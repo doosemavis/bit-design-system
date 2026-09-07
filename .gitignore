@@ -1,0 +1,16 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+storybook-static/
+coverage/
+
+# brainstorming companion mockups
+.superpowers/
+
+# editor / os
+.DS_Store
+.idea/
+.vscode/
+*.log
