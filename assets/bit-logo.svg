@@ -24,10 +24,10 @@
   </linearGradient>
 </defs>
 <rect width="320" height="110" rx="14" fill="#F5EEDC" stroke="#1B1B2F" stroke-width="3"/>
-<g class="era"><text x="150" y="83" text-anchor="end" font-family="Press Start 2P" font-size="46" fill="#D42B26">8</text></g>
+<g class="era"><text x="150" y="83" text-anchor="end" font-family="'Press Start 2P'" font-size="46" fill="#D42B26">8</text></g>
 <g class="era">
-    <text x="152" y="85" text-anchor="end" font-family="Press Start 2P" font-size="46" fill="#1B1B2F">16</text>
-    <text x="150" y="83" text-anchor="end" font-family="Press Start 2P" font-size="46" fill="url(#g16)">16</text>
+    <text x="152" y="85" text-anchor="end" font-family="'Press Start 2P'" font-size="46" fill="#1B1B2F">16</text>
+    <text x="150" y="83" text-anchor="end" font-family="'Press Start 2P'" font-size="46" fill="url(#g16)">16</text>
   </g>
 <g class="era">
     <text x="153" y="89" text-anchor="end" font-family="Bungee" font-size="62" fill="#1B1B2F">32</text>

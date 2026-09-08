@@ -38,11 +38,11 @@ const Y = 86;
 
 const eras = [
   // 8-bit: flat pixel red
-  `<g class="era"><text x="${X}" y="${Y - 3}" text-anchor="end" font-family="Press Start 2P" font-size="46" fill="${DANGER}">8</text></g>`,
+  `<g class="era"><text x="${X}" y="${Y - 3}" text-anchor="end" font-family="'Press Start 2P'" font-size="46" fill="${DANGER}">8</text></g>`,
   // 16-bit: banded fill + hard ink drop
   `<g class="era">
-    <text x="${X + 2}" y="${Y - 1}" text-anchor="end" font-family="Press Start 2P" font-size="46" fill="${INK}">16</text>
-    <text x="${X}" y="${Y - 3}" text-anchor="end" font-family="Press Start 2P" font-size="46" fill="url(#g16)">16</text>
+    <text x="${X + 2}" y="${Y - 1}" text-anchor="end" font-family="'Press Start 2P'" font-size="46" fill="${INK}">16</text>
+    <text x="${X}" y="${Y - 3}" text-anchor="end" font-family="'Press Start 2P'" font-size="46" fill="url(#g16)">16</text>
   </g>`,
   // 32-bit: chrome gradient + white lip + ink drop
   `<g class="era">
