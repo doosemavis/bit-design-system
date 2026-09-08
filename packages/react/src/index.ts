@@ -16,3 +16,6 @@ export type { CardProps, CardPartProps } from './components/Card/Card';
 
 export { Stack } from './components/Stack/Stack';
 export type { StackProps } from './components/Stack/Stack';
+
+export { Text } from './components/Text/Text';
+export type { TextProps, TextElement } from './components/Text/Text';
