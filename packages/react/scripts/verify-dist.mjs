@@ -24,6 +24,7 @@ const dts = readFileSync(resolve(dist, 'index.d.ts'), 'utf8');
 for (const name of ['ButtonProps', 'BitLogoProps', 'Tone', 'Variant', 'Size']) {
   assert.ok(dts.includes(name), `index.d.ts missing type: ${name}`);
 }
+assert.ok(existsSync(resolve(dist, 'index.d.cts')), 'index.d.cts missing (CJS types entry)');
 
 // 4. CSS bundle: system layer + every component, no unresolved local imports
 const css = readFileSync(resolve(dist, 'styles.css'), 'utf8');

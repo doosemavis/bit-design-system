@@ -71,6 +71,8 @@ A theme is one CSS file that fills in every semantic token. Switch with an attri
 
 Adding a theme: copy `packages/core/src/themes/power-up.css`, change the values, run `pnpm --filter @bit/core test`. The test fails if any token is missing or any tone fails WCAG AA contrast.
 
+The theme file starts with a Google Fonts `@import`; if your bundler concatenates stylesheets, import the theme before other CSS so the `@import` stays first. Self-hosted fonts are planned.
+
 ## Scripts
 
 | Command | What it does |

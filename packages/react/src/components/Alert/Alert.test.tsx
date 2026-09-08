@@ -23,8 +23,10 @@ describe('Alert', () => {
     expect(screen.getByRole('alert').className).toBe('bit-alert bit-danger bit-solid');
   });
 
-  it.each(TONES)('tone=%s has no accessibility violations', async (tone) => {
-    const { container } = render(<Alert tone={tone} title="Heads up">Body</Alert>);
+  const variants = ['solid', 'outline'] as const;
+  const combos = TONES.flatMap((tone) => variants.map((variant) => [tone, variant] as const));
+  it.each(combos)('tone=%s variant=%s has no accessibility violations', async (tone, variant) => {
+    const { container } = render(<Alert tone={tone} variant={variant} title="Heads up">Body</Alert>);
     await expectNoA11yViolations(container);
   });
 });

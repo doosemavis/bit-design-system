@@ -38,9 +38,6 @@ importers:
       '@bit/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@bit/react':
-        specifier: workspace:*
-        version: link:../../packages/react
       react:
         specifier: ^19.2.0
         version: 19.2.8

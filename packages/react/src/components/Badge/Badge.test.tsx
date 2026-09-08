@@ -25,8 +25,10 @@ describe('Badge', () => {
     expect(ref.current).toBe(screen.getByTestId('b'));
   });
 
-  it.each(TONES)('tone=%s has no accessibility violations', async (tone) => {
-    const { container } = render(<Badge tone={tone}>Tag</Badge>);
+  const variants = ['solid', 'outline'] as const;
+  const combos = TONES.flatMap((tone) => variants.map((variant) => [tone, variant] as const));
+  it.each(combos)('tone=%s variant=%s has no accessibility violations', async (tone, variant) => {
+    const { container } = render(<Badge tone={tone} variant={variant}>Tag</Badge>);
     await expectNoA11yViolations(container);
   });
 });
