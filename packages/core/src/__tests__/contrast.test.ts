@@ -25,4 +25,8 @@ describe.each(listCss('themes'))('%s color contrast', (file) => {
   it('focus ring is visible against the page', () => {
     expect(contrastRatio(color('--bit-color-focus'), color('--bit-color-bg'))).toBeGreaterThanOrEqual(AA_NON_TEXT);
   });
+
+  it.each(TONES)('tone %s: body text is readable on the soft background', (tone) => {
+    expect(contrastRatio(color('--bit-color-text'), color(`--bit-color-${tone}-soft`))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
 });

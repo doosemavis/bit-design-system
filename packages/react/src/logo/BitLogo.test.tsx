@@ -13,7 +13,7 @@ describe('BitLogo', () => {
     expect(root).toHaveAttribute('data-animated');
     expect(eras(root)).toEqual(['8', '16', '32', '64']);
     expect(root.querySelector('.bit-logo__suffix')).toHaveTextContent('-bit');
-    expect(root.style.getPropertyValue('--bit-logo-interval')).toBe('5s');
+    expect(root.style.getPropertyValue('--_bit-logo-interval')).toBe('5s');
   });
 
   it('freeze renders only the chosen era and stops the cycle', () => {
@@ -34,7 +34,7 @@ describe('BitLogo', () => {
     render(<BitLogo size="lg" interval={2} className="extra" />);
     const root = screen.getByRole('img');
     expect(root.className).toBe('bit-logo bit-lg extra');
-    expect(root.style.getPropertyValue('--bit-logo-interval')).toBe('2s');
+    expect(root.style.getPropertyValue('--_bit-logo-interval')).toBe('2s');
   });
 
   it('has no accessibility violations', async () => {

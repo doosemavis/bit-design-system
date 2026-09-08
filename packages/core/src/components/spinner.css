@@ -1,3 +1,4 @@
+/* Exempt from --bit-border-width: the spinner ring is fixed-width regardless of size. */
 /* Spinner: an ink ring with a tone-colored arc. Diameter is half the control height of its size. */
 .bit-spinner {
   display: inline-block;

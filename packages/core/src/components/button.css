@@ -33,7 +33,7 @@
 }
 
 .bit-button.bit-outline {
-  background: var(--bit-color-surface);
+  background: var(--_bit-tone-soft);
   color: var(--bit-color-text);
 }
 
@@ -54,7 +54,6 @@
 }
 
 .bit-button.bit-outline:hover:not(:disabled):not([aria-disabled="true"]) {
-  background: var(--_bit-tone-soft);
   box-shadow: var(--bit-shadow-sm);
 }
 

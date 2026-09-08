@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SIZES, TEXT_SIZES, TONES } from '../tokens';
+import { SEMANTIC_TOKENS, SIZES, TEXT_SIZES, TONES } from '../tokens';
 import { listCss, readCss } from './css';
 
 /** Return the body of the first `selector { ... }` block, or null. */
@@ -51,11 +51,35 @@ describe('index.css', () => {
     }
     const systemEnd = css.lastIndexOf('./system/');
     const firstComponent = css.indexOf('./components/');
-    if (firstComponent !== -1) expect(firstComponent).toBeGreaterThan(systemEnd);
+    expect(firstComponent).toBeGreaterThan(systemEnd);
   });
   it('imports every file in components/', () => {
     for (const file of listCss('components')) {
       expect(css).toContain(`@import "./components/${file}";`);
     }
   });
+});
+
+describe('components/*.css conventions', () => {
+  for (const file of listCss('components')) {
+    const css = readCss(`components/${file}`);
+
+    it(`${file}: every var(--bit-…) it reads is a semantic token`, () => {
+      const reads = [...css.matchAll(/var\((--bit-[a-zA-Z0-9-]+)\)/g)].map((m) => m[1]!);
+      for (const name of reads) {
+        expect(SEMANTIC_TOKENS).toContain(name);
+      }
+    });
+
+    it(`${file}: contains no --bit-palette- reference`, () => {
+      expect(css).not.toContain('--bit-palette-');
+    });
+
+    it(`${file}: every custom property it declares starts with --_bit-`, () => {
+      const declared = [...css.matchAll(/^\s*(--[a-zA-Z0-9_-]+)\s*:/gm)].map((m) => m[1]!);
+      for (const name of declared) {
+        expect(name.startsWith('--_bit-')).toBe(true);
+      }
+    });
+  }
 });

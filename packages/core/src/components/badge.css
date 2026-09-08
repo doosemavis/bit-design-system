@@ -1,3 +1,5 @@
+/* Exempt from --_bit-size-* and --bit-border-width: the pixel font needs sub-scale sizes and a
+   thinner border than the control size scale provides. */
 /* Badge: micro-label in the pixel font. */
 .bit-badge {
   display: inline-flex;
@@ -29,6 +31,6 @@
 }
 
 .bit-badge.bit-outline {
-  background: var(--bit-color-surface);
+  background: var(--_bit-tone-soft);
   color: var(--bit-color-text);
 }

@@ -1,7 +1,20 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
 import type { ComponentType } from 'react';
 import * as lib from './index';
+
+const srcDir = dirname(fileURLToPath(import.meta.url));
+
+/** Every file path under a directory, recursively. */
+function collectFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = join(dir, entry.name);
+    return entry.isDirectory() ? collectFiles(full) : [full];
+  });
+}
 
 const kebab = (name: string) => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 
@@ -40,5 +53,15 @@ describe('public index', () => {
     const root = container.firstElementChild;
     expect(root).not.toBeNull();
     expect(root!.classList.contains(expectedRootClass(name))).toBe(true);
+  });
+
+  it('no file under src imports a .css file (styles come from @bit/core only)', () => {
+    const offenders = collectFiles(srcDir).filter((file) => {
+      const content = readFileSync(file, 'utf8');
+      return content.includes("import '") || content.includes('import "')
+        ? /import\s*['"][^'"]*\.css['"]/.test(content)
+        : false;
+    });
+    expect(offenders).toEqual([]);
   });
 });

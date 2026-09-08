@@ -1,7 +1,9 @@
+/* Exempt from --_bit-size-* and --bit-border-width: the logo is not a control, so it scales from
+   the type scale directly rather than the control size scale, and has no border. */
 /* BitLogo: "-bit" is fixed; the number cycles 8 → 16 → 32 → 64, each drawn in its era's type style.
    Transition: no fades. The outgoing number cuts out; the incoming one does the NES three-size grow. */
 .bit-logo {
-  --bit-logo-interval: 5s;
+  --_bit-logo-interval: 5s;
   display: inline-flex;
   align-items: baseline;
   gap: 0.12em;
@@ -89,13 +91,13 @@
    Negative delays stagger them. step-end timing means no easing anywhere. */
 .bit-logo[data-animated] .bit-logo__era {
   opacity: 0;
-  animation: bit-logo-cycle calc(var(--bit-logo-interval) * 4) step-end infinite;
+  animation: bit-logo-cycle calc(var(--_bit-logo-interval) * 4) step-end infinite;
 }
 
-.bit-logo[data-animated] .bit-logo__era:nth-child(1) { animation-delay: calc(var(--bit-logo-interval) * -4); }
-.bit-logo[data-animated] .bit-logo__era:nth-child(2) { animation-delay: calc(var(--bit-logo-interval) * -3); }
-.bit-logo[data-animated] .bit-logo__era:nth-child(3) { animation-delay: calc(var(--bit-logo-interval) * -2); }
-.bit-logo[data-animated] .bit-logo__era:nth-child(4) { animation-delay: calc(var(--bit-logo-interval) * -1); }
+.bit-logo[data-animated] .bit-logo__era:nth-child(1) { animation-delay: calc(var(--_bit-logo-interval) * -4); }
+.bit-logo[data-animated] .bit-logo__era:nth-child(2) { animation-delay: calc(var(--_bit-logo-interval) * -3); }
+.bit-logo[data-animated] .bit-logo__era:nth-child(3) { animation-delay: calc(var(--_bit-logo-interval) * -2); }
+.bit-logo[data-animated] .bit-logo__era:nth-child(4) { animation-delay: calc(var(--_bit-logo-interval) * -1); }
 
 /* The grow occupies the first 4.8% of the cycle (≈1s at the 5s default) and mirrors @keyframes bit-power-up. */
 @keyframes bit-logo-cycle {

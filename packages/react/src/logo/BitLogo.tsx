@@ -26,7 +26,7 @@ export const BitLogo = forwardRef<HTMLSpanElement, BitLogoProps>(function BitLog
 ) {
   const shown: readonly Era[] = freeze !== undefined ? [freeze] : animated ? ERAS : [ERAS[0]];
   const cycling = shown.length > 1;
-  const cssVars = { ...style, '--bit-logo-interval': `${interval}s` } as CSSProperties;
+  const cssVars = { ...style, '--_bit-logo-interval': `${interval}s` } as CSSProperties;
 
   return (
     <span
