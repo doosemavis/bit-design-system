@@ -62,8 +62,11 @@
   background: var(--_bit-tone-soft);
 }
 
-/* active: fully pressed, no shadow */
-.bit-button:active:not(:disabled):not([aria-disabled="true"]) {
+/* active: fully pressed, no shadow (variant-scoped selectors outrank the hover rules above) */
+.bit-button:active:not(:disabled):not([aria-disabled="true"]),
+.bit-button.bit-solid:active:not(:disabled):not([aria-disabled="true"]),
+.bit-button.bit-outline:active:not(:disabled):not([aria-disabled="true"]),
+.bit-button.bit-ghost:active:not(:disabled):not([aria-disabled="true"]) {
   transform: translate(calc(var(--bit-press-offset) * 2), calc(var(--bit-press-offset) * 2));
   box-shadow: none;
 }
