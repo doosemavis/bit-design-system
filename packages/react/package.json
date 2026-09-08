@@ -22,7 +22,8 @@
     "build": "tsup && node scripts/build-css.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "verify": "node scripts/verify-dist.mjs"
   },
   "peerDependencies": {
     "react": "^19.0.0",
