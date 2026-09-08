@@ -46,6 +46,8 @@ Three axes, same names on every component that has them:
 
 Booleans are attributes, never classes: `disabled`, `aria-invalid`, `data-loading`.
 
+A decorator in `className` replaces the prop's decorator for that axis: `<Button className="bit-danger">` is a danger button.
+
 ## Two ways to use every static component
 
 ```tsx

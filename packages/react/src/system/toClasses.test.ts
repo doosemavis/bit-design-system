@@ -20,7 +20,19 @@ describe('toClasses', () => {
 
   it('appends the caller className last', () => {
     expect(toClasses('button', axes('primary', 'solid', 'md'), 'bit-danger extra')).toBe(
-      'bit-button bit-primary bit-solid bit-md bit-danger extra',
+      'bit-button bit-solid bit-md bit-danger extra',
+    );
+  });
+
+  it('a bit-{value} decorator in className replaces the prop decorator for that axis', () => {
+    expect(toClasses('button', axes('primary', 'solid', 'md'), 'bit-danger')).toBe(
+      'bit-button bit-solid bit-md bit-danger',
+    );
+  });
+
+  it('a bit-{value} decorator in a multi-class className replaces the prop decorator for that axis', () => {
+    expect(toClasses('button', axes('primary', 'solid', 'lg'), 'bit-sm extra')).toBe(
+      'bit-button bit-primary bit-solid bit-sm extra',
     );
   });
 

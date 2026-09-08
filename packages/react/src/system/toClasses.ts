@@ -20,12 +20,16 @@ export function element(blockName: string, elementName: string): string {
 /**
  * Build a component's class string: block class, one `bit-{value}` decorator per
  * axis (in the order given), then the caller's className last so it wins.
- * Unknown values are dropped with a dev-only warning; nothing throws.
+ * A `bit-{value}` in `className` replaces the prop's decorator for that axis, so
+ * `className` really does win. Unknown values are dropped with a dev-only warning;
+ * nothing throws.
  */
 export function toClasses(blockName: string, axes: readonly Axis[], className?: string): string {
   const classes = [block(blockName)];
+  const supplied = new Set(className ? className.split(/\s+/) : []);
   for (const axis of axes) {
     if (axis.value === undefined) continue;
+    if (axis.allowed.some((v) => supplied.has(`${PREFIX}-${v}`))) continue;
     if (!axis.allowed.includes(axis.value)) {
       warnUnknown(blockName, axis);
       continue;

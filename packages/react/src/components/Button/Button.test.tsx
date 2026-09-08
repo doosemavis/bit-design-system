@@ -21,7 +21,12 @@ describe('Button', () => {
 
   it('appends className last so it can override a decorator', () => {
     render(<Button className="bit-danger">X</Button>);
-    expect(screen.getByRole('button').className).toBe('bit-button bit-primary bit-solid bit-md bit-danger');
+    expect(screen.getByRole('button').className).toBe('bit-button bit-solid bit-md bit-danger');
+  });
+
+  it('a tone decorator in className overrides the tone prop', () => {
+    render(<Button tone="danger" className="bit-primary">X</Button>);
+    expect(screen.getByRole('button').className).toBe('bit-button bit-solid bit-md bit-primary');
   });
 
   it('forwards the ref and spreads unknown props onto the button', () => {
