@@ -13,3 +13,6 @@ export type { AlertProps } from './components/Alert/Alert';
 
 export { Card, CardHeader, CardBody, CardFooter } from './components/Card/Card';
 export type { CardProps, CardPartProps } from './components/Card/Card';
+
+export { Stack } from './components/Stack/Stack';
+export type { StackProps } from './components/Stack/Stack';
