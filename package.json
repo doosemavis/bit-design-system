@@ -1,0 +1,23 @@
+{
+  "name": "bit-design-system",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "pnpm --filter @bit/react build",
+    "test": "pnpm -r --workspace-concurrency=1 test",
+    "test:coverage": "pnpm --filter @bit/react test:coverage",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "storybook": "pnpm --filter @bit/docs storybook",
+    "storybook:build": "pnpm --filter @bit/docs build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.0"
+  }
+}
