@@ -11,7 +11,7 @@ export interface AlertProps extends HTMLAttributes<HTMLDivElement> {
   tone?: Tone;
   /** `outline` uses the tone's soft background; `solid` fills with the tone. */
   variant?: (typeof variants)[number];
-  /** Optional heading rendered in the display font. */
+  /** Heading text rendered in the display font. This is the alert's own heading, not the native `title` tooltip attribute, which is intentionally not forwarded. */
   title?: string;
 }
 

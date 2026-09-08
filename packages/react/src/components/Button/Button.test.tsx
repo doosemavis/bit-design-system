@@ -61,6 +61,19 @@ describe('Button', () => {
     expect(link).not.toHaveAttribute('type');
   });
 
+  it('asChild + loading renders an inert link: aria-disabled, aria-busy, data-loading, no disabled attribute', () => {
+    render(
+      <Button asChild loading>
+        <a href="/pay">Pay</a>
+      </Button>,
+    );
+    const link = screen.getByRole('link', { name: 'Pay' });
+    expect(link).toHaveAttribute('aria-disabled', 'true');
+    expect(link).toHaveAttribute('aria-busy', 'true');
+    expect(link).toHaveAttribute('data-loading');
+    expect(link).not.toHaveAttribute('disabled');
+  });
+
   const combos = TONES.flatMap((tone) => VARIANTS.map((variant) => [tone, variant] as const));
   it.each(combos)('tone=%s variant=%s has no accessibility violations', async (tone, variant) => {
     const { container } = render(<Button tone={tone} variant={variant}>Go</Button>);
