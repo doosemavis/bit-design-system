@@ -1,1 +1,6 @@
-/* bit core styles. System layer first, then one file per component. Filled in by later tasks. */
+/* bit core styles. System layer first, then one file per component.
+   The system test fails if a component file exists but is not imported here. */
+@import "./system/reset.css";
+@import "./system/tones.css";
+@import "./system/sizes.css";
+@import "./system/motion.css";

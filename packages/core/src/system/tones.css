@@ -1,0 +1,36 @@
+/* Tone decorators. Written once; every component reads the private variables.
+   Adding a tone = four tokens in each theme + one rule here. */
+.bit-primary {
+  --_bit-tone: var(--bit-color-primary);
+  --_bit-tone-contrast: var(--bit-color-primary-contrast);
+  --_bit-tone-hover: var(--bit-color-primary-hover);
+  --_bit-tone-soft: var(--bit-color-primary-soft);
+}
+
+.bit-neutral {
+  --_bit-tone: var(--bit-color-neutral);
+  --_bit-tone-contrast: var(--bit-color-neutral-contrast);
+  --_bit-tone-hover: var(--bit-color-neutral-hover);
+  --_bit-tone-soft: var(--bit-color-neutral-soft);
+}
+
+.bit-success {
+  --_bit-tone: var(--bit-color-success);
+  --_bit-tone-contrast: var(--bit-color-success-contrast);
+  --_bit-tone-hover: var(--bit-color-success-hover);
+  --_bit-tone-soft: var(--bit-color-success-soft);
+}
+
+.bit-warning {
+  --_bit-tone: var(--bit-color-warning);
+  --_bit-tone-contrast: var(--bit-color-warning-contrast);
+  --_bit-tone-hover: var(--bit-color-warning-hover);
+  --_bit-tone-soft: var(--bit-color-warning-soft);
+}
+
+.bit-danger {
+  --_bit-tone: var(--bit-color-danger);
+  --_bit-tone-contrast: var(--bit-color-danger-contrast);
+  --_bit-tone-hover: var(--bit-color-danger-hover);
+  --_bit-tone-soft: var(--bit-color-danger-soft);
+}

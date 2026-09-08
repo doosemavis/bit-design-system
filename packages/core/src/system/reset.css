@@ -1,0 +1,21 @@
+/* Minimal base. Everything reads tokens so a theme swap restyles the page itself. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--bit-font-body);
+  font-size: var(--bit-text-md);
+  font-weight: var(--bit-weight-normal);
+  line-height: var(--bit-leading-normal);
+  color: var(--bit-color-text);
+  background: var(--bit-color-bg);
+}
+
+:focus-visible {
+  outline: 3px solid var(--bit-color-focus);
+  outline-offset: 2px;
+}
