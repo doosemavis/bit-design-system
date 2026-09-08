@@ -1,0 +1,91 @@
+/* Button. Reads tone via --_bit-tone-* (set by .bit-{tone}) and size via --_bit-size-* (set by .bit-{size}). */
+.bit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bit-space-2);
+  height: var(--_bit-size-height);
+  padding: 0 var(--_bit-size-padding);
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-bold);
+  line-height: 1;
+  color: var(--bit-color-text);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-ink);
+  border-radius: var(--bit-radius-md);
+  box-shadow: var(--bit-shadow-md);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  transition:
+    transform var(--bit-duration-fast),
+    box-shadow var(--bit-duration-fast),
+    background-color var(--bit-duration-fast);
+}
+
+/* variants */
+.bit-button.bit-solid {
+  background: var(--_bit-tone);
+  color: var(--_bit-tone-contrast);
+  box-shadow: var(--bit-gloss), var(--bit-shadow-md);
+}
+
+.bit-button.bit-outline {
+  background: var(--bit-color-surface);
+  color: var(--bit-color-text);
+}
+
+.bit-button.bit-ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* hover: sink one press-offset; the shadow shrinks by the same amount */
+.bit-button:hover:not(:disabled):not([aria-disabled="true"]) {
+  transform: translate(var(--bit-press-offset), var(--bit-press-offset));
+}
+
+.bit-button.bit-solid:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--_bit-tone-hover);
+  box-shadow: var(--bit-gloss), var(--bit-shadow-sm);
+}
+
+.bit-button.bit-outline:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--_bit-tone-soft);
+  box-shadow: var(--bit-shadow-sm);
+}
+
+.bit-button.bit-ghost:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--_bit-tone-soft);
+}
+
+/* active: fully pressed, no shadow */
+.bit-button:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: translate(calc(var(--bit-press-offset) * 2), calc(var(--bit-press-offset) * 2));
+  box-shadow: none;
+}
+
+/* states are attributes, never classes */
+.bit-button:disabled,
+.bit-button[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.bit-button[data-loading] {
+  cursor: progress;
+}
+
+.bit-button[data-loading]::before {
+  content: "";
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--bit-radius-full);
+  animation: bit-spin 0.7s linear infinite;
+}
