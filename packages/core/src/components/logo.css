@@ -1,0 +1,118 @@
+/* BitLogo: "-bit" is fixed; the number cycles 8 → 16 → 32 → 64, each drawn in its era's type style.
+   Transition: no fades. The outgoing number cuts out; the incoming one does the NES three-size grow. */
+.bit-logo {
+  --bit-logo-interval: 5s;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.12em;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--bit-color-ink);
+}
+
+.bit-logo.bit-sm { font-size: var(--bit-text-2xl); }
+.bit-logo.bit-md { font-size: calc(var(--bit-text-2xl) * 1.5); }
+.bit-logo.bit-lg { font-size: calc(var(--bit-text-2xl) * 2.25); }
+
+.bit-logo__slot {
+  display: inline-grid;
+  justify-items: end;
+  align-items: baseline;
+}
+
+.bit-logo__era {
+  grid-area: 1 / 1;
+  display: inline-block;
+  transform-origin: 50% 100%;
+}
+
+.bit-logo__suffix {
+  font-family: var(--bit-font-display);
+  letter-spacing: 0.01em;
+}
+
+/* ---------- era treatments (a theme may override any of these by selector) ---------- */
+
+/* 8-bit: flat pixel type, one color */
+.bit-logo__era[data-era="8"] {
+  font-family: var(--bit-font-pixel);
+  font-size: 0.72em;
+  color: var(--bit-color-danger);
+}
+
+/* 16-bit: pixel type with three-band shading and a hard drop */
+.bit-logo__era[data-era="16"] {
+  font-family: var(--bit-font-pixel);
+  font-size: 0.72em;
+  background: linear-gradient(
+    180deg,
+    var(--bit-color-primary-soft) 0 34%,
+    var(--bit-color-primary) 34% 67%,
+    var(--bit-color-warning) 67% 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(2px 2px 0 var(--bit-color-ink));
+}
+
+/* 32-bit: chrome gradient with a bevel. The chrome is era-specific, so it is fixed rather than tokenized. */
+.bit-logo__era[data-era="32"] {
+  font-family: "Bungee", var(--bit-font-display);
+  font-size: 0.98em;
+  letter-spacing: 0.02em;
+  background: linear-gradient(180deg, #ffffff 0%, #c9d8f0 38%, #3b5b8c 50%, #9db4d6 58%, #4e6fa3 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(1px 1px 0 #ffffff) drop-shadow(3px 3px 0 var(--bit-color-ink));
+}
+
+/* 64-bit: rounded display type, extruded */
+.bit-logo__era[data-era="64"] {
+  font-family: var(--bit-font-display);
+  font-size: 1.04em;
+  color: var(--bit-color-primary);
+  -webkit-text-stroke: 1.5px var(--bit-color-ink);
+  paint-order: stroke fill;
+  text-shadow:
+    1px 1px 0 var(--bit-color-primary-hover),
+    2px 2px 0 var(--bit-color-primary-hover),
+    3px 3px 0 var(--bit-color-primary-hover),
+    4px 4px 0 var(--bit-color-primary-hover),
+    5px 5px 0 var(--bit-color-ink),
+    6px 6px 0 var(--bit-color-ink);
+}
+
+/* ---------- the cycle ---------- */
+/* Four eras share one grid cell. Each owns a 25% window of a cycle four intervals long.
+   Negative delays stagger them. step-end timing means no easing anywhere. */
+.bit-logo[data-animated] .bit-logo__era {
+  opacity: 0;
+  animation: bit-logo-cycle calc(var(--bit-logo-interval) * 4) step-end infinite;
+}
+
+.bit-logo[data-animated] .bit-logo__era:nth-child(1) { animation-delay: calc(var(--bit-logo-interval) * -4); }
+.bit-logo[data-animated] .bit-logo__era:nth-child(2) { animation-delay: calc(var(--bit-logo-interval) * -3); }
+.bit-logo[data-animated] .bit-logo__era:nth-child(3) { animation-delay: calc(var(--bit-logo-interval) * -2); }
+.bit-logo[data-animated] .bit-logo__era:nth-child(4) { animation-delay: calc(var(--bit-logo-interval) * -1); }
+
+/* The grow occupies the first 4.8% of the cycle (≈1s at the 5s default) and mirrors @keyframes bit-power-up. */
+@keyframes bit-logo-cycle {
+  0%    { opacity: 1; transform: scale(0.5); }
+  0.6%  { transform: scale(0.75); }
+  1.2%  { transform: scale(1); }
+  1.8%  { transform: scale(0.5); }
+  2.4%  { transform: scale(0.75); }
+  3.0%  { transform: scale(1); }
+  3.6%  { transform: scale(0.5); }
+  4.2%  { transform: scale(0.75); }
+  4.8%  { opacity: 1; transform: scale(1); }
+  25%   { opacity: 0; transform: scale(1); }
+  100%  { opacity: 0; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bit-logo[data-animated] .bit-logo__era { animation: none; }
+  .bit-logo[data-animated] .bit-logo__era:first-child { opacity: 1; }
+}

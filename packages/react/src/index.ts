@@ -22,3 +22,6 @@ export type { TextProps, TextElement } from './components/Text/Text';
 
 export { Spinner } from './components/Spinner/Spinner';
 export type { SpinnerProps } from './components/Spinner/Spinner';
+
+export { BitLogo, ERAS } from './logo/BitLogo';
+export type { BitLogoProps, Era } from './logo/BitLogo';
