@@ -10,6 +10,8 @@
 .bit-text[data-weight="normal"] { font-weight: var(--bit-weight-normal); }
 .bit-text[data-weight="bold"] { font-weight: var(--bit-weight-bold); }
 
+/* xl and 2xl switch to the display face, which has one weight. font-weight: 400 deliberately
+   outranks [data-weight="bold"] here so the browser never synthesizes a faux bold. */
 .bit-text.bit-xl,
 .bit-text.bit-2xl {
   font-family: var(--bit-font-display);

@@ -16,7 +16,10 @@ export interface TextProps extends HTMLAttributes<HTMLElement> {
   size?: TextSize;
   /** `neutral` renders muted text. */
   tone?: (typeof tones)[number];
-  /** Rendered as `data-weight`. */
+  /**
+   * Rendered as `data-weight`. Has no visible effect at `xl` and `2xl`: those sizes use the
+   * display face, which ships a single weight, so a heavier value would be browser-synthesized.
+   */
   weight?: 'normal' | 'bold';
 }
 
