@@ -1,0 +1,34 @@
+/* Badge: micro-label in the pixel font. */
+.bit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bit-space-1);
+  font-family: var(--bit-font-pixel);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  border: 2px solid var(--bit-color-ink);
+  border-radius: var(--bit-radius-full);
+  box-shadow: var(--bit-shadow-sm);
+  white-space: nowrap;
+}
+
+.bit-badge.bit-sm {
+  font-size: 7px;
+  padding: 5px 8px;
+}
+
+.bit-badge.bit-md {
+  font-size: 8px;
+  padding: 6px 10px;
+}
+
+.bit-badge.bit-solid {
+  background: var(--_bit-tone);
+  color: var(--_bit-tone-contrast);
+}
+
+.bit-badge.bit-outline {
+  background: var(--bit-color-surface);
+  color: var(--bit-color-text);
+}
