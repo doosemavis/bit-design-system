@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { toClasses, element } from './toClasses';
+import { toClasses, element, withClassName } from './toClasses';
 import { TONES, SIZES, VARIANTS } from './axes';
 
 const axes = (tone?: string, variant?: string, size?: string) => [
@@ -47,5 +47,12 @@ describe('toClasses', () => {
 describe('element', () => {
   it('builds a BEM element class', () => {
     expect(element('card', 'header')).toBe('bit-card__header');
+  });
+});
+
+describe('withClassName', () => {
+  it('appends the caller className to a base class', () => {
+    expect(withClassName('bit-card__header', 'extra')).toBe('bit-card__header extra');
+    expect(withClassName('bit-card__header')).toBe('bit-card__header');
   });
 });

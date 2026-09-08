@@ -43,3 +43,8 @@ function warnUnknown(blockName: string, axis: Axis): void {
       `${axis.allowed.join(' | ')} are allowed. The value was dropped.`,
   );
 }
+
+/** Join a fixed class (usually an element class) with the caller's className, which goes last. */
+export function withClassName(base: string, className?: string): string {
+  return className ? `${base} ${className}` : base;
+}

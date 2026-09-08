@@ -10,3 +10,6 @@ export type { BadgeProps } from './components/Badge/Badge';
 
 export { Alert } from './components/Alert/Alert';
 export type { AlertProps } from './components/Alert/Alert';
+
+export { Card, CardHeader, CardBody, CardFooter } from './components/Card/Card';
+export type { CardProps, CardPartProps } from './components/Card/Card';
