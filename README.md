@@ -81,6 +81,7 @@ The theme file starts with a Google Fonts `@import`; if your bundler concatenate
 | `pnpm test` | all unit, a11y, and system tests |
 | `pnpm test:coverage` | react tests with the 80% gate |
 | `pnpm build && pnpm verify` | build `@bit/react` and prove the dist is consumable |
+| `pnpm smoke` | packs `@bit/react` and installs it with npm into a throwaway project to prove the tarball works |
 | `pnpm logo:svg` | regenerate `assets/bit-logo.svg` |
 
 ## Docs

@@ -22,7 +22,7 @@ Constraints that shaped every decision below:
 **The word a junior types as a prop is the same word in the CSS class and the same word in the token.** Grep any one of them and you find the others.
 
 ```
-<Button tone="primary">            prop
+<Button color="primary">            prop
 class="bit-button bit-primary"     class
 --bit-color-primary                token
 ```
@@ -82,12 +82,12 @@ Grammar: `--bit-{category}-{role}[-{modifier}]`. This is the complete list. Ever
 | `--bit-color-text` | default text |
 | `--bit-color-text-muted` | secondary text |
 | `--bit-color-focus` | focus ring |
-| `--bit-color-{tone}` | fill for the tone |
-| `--bit-color-{tone}-contrast` | text on that fill |
-| `--bit-color-{tone}-hover` | fill on hover |
-| `--bit-color-{tone}-soft` | tinted background (alerts, ghost hover) |
+| `--bit-color-{color}` | fill for the color |
+| `--bit-color-{color}-contrast` | text on that fill |
+| `--bit-color-{color}-hover` | fill on hover |
+| `--bit-color-{color}-soft` | tinted background (alerts, ghost hover) |
 
-`{tone}` ∈ `primary | neutral | success | warning | danger` (4 tokens × 5 tones = 20).
+`{color}` ∈ `primary | neutral | success | warning | danger` (4 tokens × 5 colors = 20).
 
 **Shape** (this is where the retro look lives)
 
@@ -160,7 +160,7 @@ Adding a variant to one component = add it to that array + add a CSS rule in the
 ### 4.2 Rules every component follows
 
 - Emits `bit-{component}` plus exactly one decorator per supported axis, so CSS can rely on their presence. The decorator is the prop's value, or the caller's `bit-{value}` from `className` if one is given for that axis — that is how `className` overrides a default.
-- Appends the caller's `className` **last**, so `<Button className="bit-danger">` overrides the default tone.
+- Appends the caller's `className` **last**, so `<Button className="bit-danger">` overrides the default color.
 - Forwards its `ref` to the root DOM node.
 - Spreads unknown props onto the root DOM node.
 - Booleans become **attributes, never classes**: native where they exist (`disabled`, `aria-invalid`), `data-` otherwise (`data-loading`, Radix's `data-state`).
@@ -179,7 +179,7 @@ Adding a variant to one component = add it to that array + add a CSS rule in the
 | Alert | ✓ default `neutral` | solid, outline | | `title` prop; outline uses `-soft` bg |
 | Card | | solid, outline | | `CardHeader`, `CardBody`, `CardFooter` |
 | Stack | | | | `direction`, `gap`, `align`, `justify`, `wrap` as data attrs |
-| Text | muted via tone `neutral` | | xs … 2xl | `as` (p, span, h1–h6), `weight` |
+| Text | muted via color `neutral` | | xs … 2xl | `as` (p, span, h1–h6), `weight` |
 | Spinner | ✓ | | ✓ | `aria-label` required |
 | BitLogo | | | ✓ | see §7 |
 | **Phase 2: Forms** (native elements, styled) | | | | |
@@ -224,10 +224,10 @@ bit-design-system/
 │   │   └── src/
 │   │       ├── themes/power-up.css
 │   │       ├── tokens.ts             semantic token name list (drives completeness test)
-│   │       ├── system/               reset.css, tones.css, sizes.css, motion.css
+│   │       ├── system/               reset.css, colors.css, sizes.css, motion.css
 │   │       ├── components/           button.css, card.css, … one per component
 │   │       └── index.css             imports system + every component file
-│   └── react/                    @bit/react  depends on core, Radix; React is a peer dep
+│   └── react/                    @bit/react  inlines core at build (core is a devDependency), depends on Radix; React is a peer dep
 │       └── src/
 │           ├── system/               axes.ts (unions), toClasses(), warnUnknown()
 │           ├── components/           Button/Button.tsx, Button.test.tsx, Button.stories.tsx

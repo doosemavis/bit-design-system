@@ -28,7 +28,7 @@
 
 `@bit/react` inlines `@bit/core` at build time (tsup `noExternal`) and copies its CSS into `dist`, so `@bit/core` must be a **devDependency**, not a dependency; otherwise a tarball install in a fresh project tries to fetch `@bit/core` from the registry and fails.
 
-A **consumer smoke test** joins §8.3's system tests: a script packs `@bit/react` with `pnpm pack`, installs the tarball into a temporary project with `npm install`, imports the ESM and CJS entries, and checks that `styles.css` and `themes/power-up.css` exist. It runs in CI. Consumers may use any package manager; the repo's own pnpm choice does not constrain them.
+A **consumer smoke test** joins §8.3's system tests: a script packs `@bit/react` with `pnpm pack`, installs the tarball into a temporary project with `npm install`, imports the ESM and CJS entries, typechecks a small TypeScript consumer against the shipped declarations, and checks that `styles.css` and `themes/power-up.css` exist. It runs in CI. Consumers may use any package manager; the repo's own pnpm choice does not constrain them.
 
 ## C. The gallery replaces Storybook
 
@@ -135,3 +135,4 @@ Phases 2–4 of the base spec follow unchanged, with "gallery manifest" substitu
 | Highlighting | in-repo tokenizer | shiki/prism | four token classes suffice; no dependency |
 | Package manager | keep pnpm | switch to npm | strict isolation protects the zero-dep core; consumers unaffected |
 | `@bit/core` in react | devDependency | dependency | it is inlined at build; a tarball must install standalone |
+| Types in the tarball | tsup dts resolves `@bit/core` | leave `@bit/core` imports in dts | a devDependency is not in the tarball; the declarations must be self-contained |
