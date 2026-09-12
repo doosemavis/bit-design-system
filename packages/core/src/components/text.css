@@ -1,0 +1,25 @@
+/* Text: type scale. xl and 2xl switch to the display face. */
+.bit-text {
+  margin: 0;
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  line-height: var(--bit-leading-normal);
+  color: var(--bit-color-text);
+}
+
+.bit-text[data-weight="normal"] { font-weight: var(--bit-weight-normal); }
+.bit-text[data-weight="bold"] { font-weight: var(--bit-weight-bold); }
+
+/* xl and 2xl switch to the display face, which has one weight. font-weight: 400 deliberately
+   outranks [data-weight="bold"] here so the browser never synthesizes a faux bold. */
+.bit-text.bit-xl,
+.bit-text.bit-2xl {
+  font-family: var(--bit-font-display);
+  font-weight: 400;
+  line-height: var(--bit-leading-tight);
+  letter-spacing: 0.01em;
+}
+
+.bit-text.bit-neutral {
+  color: var(--bit-color-text-muted);
+}

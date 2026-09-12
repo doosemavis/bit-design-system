@@ -1,0 +1,32 @@
+/* Alert: a bordered panel that carries a tone. */
+.bit-alert {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bit-space-1);
+  padding: var(--bit-space-4);
+  border: var(--bit-border-width) solid var(--bit-color-ink);
+  border-radius: var(--bit-radius-md);
+}
+
+.bit-alert.bit-solid {
+  background: var(--_bit-tone);
+  color: var(--_bit-tone-contrast);
+  box-shadow: var(--bit-shadow-md);
+}
+
+.bit-alert.bit-outline {
+  background: var(--_bit-tone-soft);
+  color: var(--bit-color-text);
+  box-shadow: var(--bit-shadow-sm);
+}
+
+.bit-alert__title {
+  font-family: var(--bit-font-display);
+  font-size: var(--bit-text-lg);
+  line-height: var(--bit-leading-tight);
+  letter-spacing: 0.01em;
+}
+
+.bit-alert__body {
+  font-size: var(--bit-text-md);
+}
