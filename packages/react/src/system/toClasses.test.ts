@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { toClasses, element, withClassName } from './toClasses';
-import { TONES, SIZES, VARIANTS } from './axes';
+import { COLORS, SIZES, VARIANTS } from './axes';
 
-const axes = (tone?: string, variant?: string, size?: string) => [
-  { name: 'tone', allowed: TONES, value: tone },
+const axes = (color?: string, variant?: string, size?: string) => [
+  { name: 'color', allowed: COLORS, value: color },
   { name: 'variant', allowed: VARIANTS, value: variant },
   { name: 'size', allowed: SIZES, value: size },
 ];
@@ -44,7 +44,7 @@ describe('toClasses', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     expect(toClasses('button', axes('purple', 'solid', 'md'))).toBe('bit-button bit-solid bit-md');
     expect(warn).toHaveBeenCalledTimes(1);
-    expect(warn.mock.calls[0]?.[0]).toContain('tone="purple"');
+    expect(warn.mock.calls[0]?.[0]).toContain('color="purple"');
     expect(warn.mock.calls[0]?.[0]).toContain('primary | neutral | success | warning | danger');
   });
 

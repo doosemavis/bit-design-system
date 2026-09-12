@@ -1,15 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from './Button';
-import { SIZES, TONES, VARIANTS } from '../../system/axes';
+import { SIZES, COLORS, VARIANTS } from '../../system/axes';
 
 const row = { display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' } as const;
 
 const meta = {
   title: 'Components/Button',
   component: Button,
-  args: { children: 'Continue ▶', tone: 'primary', variant: 'solid', size: 'md' },
+  args: { children: 'Continue ▶', color: 'primary', variant: 'solid', size: 'md' },
   argTypes: {
-    tone: { control: 'select', options: TONES },
+    color: { control: 'select', options: COLORS },
     variant: { control: 'select', options: VARIANTS },
     size: { control: 'select', options: SIZES },
   },
@@ -20,11 +20,11 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
-export const Tones: Story = {
+export const Colors: Story = {
   render: (args) => (
     <div style={row}>
-      {TONES.map((tone) => (
-        <Button key={tone} {...args} tone={tone}>{tone}</Button>
+      {COLORS.map((color) => (
+        <Button key={color} {...args} color={color}>{color}</Button>
       ))}
     </div>
   ),

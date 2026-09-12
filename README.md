@@ -5,7 +5,7 @@
 A React design system for people who are new to design systems. One vocabulary everywhere: the prop you type is the class it emits is the token it reads.
 
 ```tsx
-<Button tone="primary" size="lg">Save</Button>
+<Button color="primary" size="lg">Save</Button>
 // renders: <button class="bit-button bit-primary bit-solid bit-lg">
 // reads:   --bit-color-primary, --bit-control-height-lg
 ```
@@ -33,14 +33,14 @@ import { Button } from '@bit/react';
 
 | You write | Class | Token |
 | --- | --- | --- |
-| `tone="primary"` | `bit-primary` | `--bit-color-primary` |
+| `color="primary"` | `bit-primary` | `--bit-color-primary` |
 | `variant="outline"` | `bit-outline` | (per component CSS) |
 | `size="lg"` | `bit-lg` | `--bit-control-height-lg` |
 | `<CardHeader>` | `bit-card__header` | |
 
 Three axes, same names on every component that has them:
 
-- `tone`: `primary` `neutral` `success` `warning` `danger`
+- `color`: `primary` `neutral` `success` `warning` `danger`
 - `variant`: `solid` `outline` `ghost`
 - `size`: `sm` `md` `lg`
 
@@ -69,7 +69,7 @@ A theme is one CSS file that fills in every semantic token. Switch with an attri
 <html data-theme="power-up">
 ```
 
-Adding a theme: copy `packages/core/src/themes/power-up.css`, change the values, run `pnpm --filter @bit/core test`. The test fails if any token is missing or any tone fails WCAG AA contrast.
+Adding a theme: copy `packages/core/src/themes/power-up.css`, change the values, run `pnpm --filter @bit/core test`. The test fails if any token is missing or any color fails WCAG AA contrast.
 
 The theme file starts with a Google Fonts `@import`; if your bundler concatenates stylesheets, import the theme before other CSS so the `@import` stays first. Self-hosted fonts are planned.
 

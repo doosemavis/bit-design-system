@@ -42,7 +42,7 @@ describe('public index', () => {
 
   it('exports the prefix and axes', () => {
     expect(lib.PREFIX).toBe('bit');
-    expect(lib.TONES).toHaveLength(5);
+    expect(lib.COLORS).toHaveLength(5);
     expect(lib.VARIANTS).toEqual(['solid', 'outline', 'ghost']);
     expect(lib.SIZES).toEqual(['sm', 'md', 'lg']);
   });

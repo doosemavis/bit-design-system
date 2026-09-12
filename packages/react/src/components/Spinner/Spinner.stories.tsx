@@ -1,15 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Spinner } from './Spinner';
-import { SIZES, TONES } from '../../system/axes';
+import { SIZES, COLORS } from '../../system/axes';
 
 const row = { display: 'flex', gap: 16, alignItems: 'center' } as const;
 
 const meta = {
   title: 'Components/Spinner',
   component: Spinner,
-  args: { 'aria-label': 'Loading', tone: 'primary', size: 'md' },
+  args: { 'aria-label': 'Loading', color: 'primary', size: 'md' },
   argTypes: {
-    tone: { control: 'select', options: TONES },
+    color: { control: 'select', options: COLORS },
     size: { control: 'select', options: SIZES },
   },
 } satisfies Meta<typeof Spinner>;
@@ -29,11 +29,11 @@ export const Sizes: Story = {
   ),
 };
 
-export const Tones: Story = {
+export const Colors: Story = {
   render: (args) => (
     <div style={row}>
-      {TONES.map((tone) => (
-        <Spinner key={tone} {...args} tone={tone} />
+      {COLORS.map((color) => (
+        <Spinner key={color} {...args} color={color} />
       ))}
     </div>
   ),

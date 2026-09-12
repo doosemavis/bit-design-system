@@ -21,14 +21,14 @@ for (const name of EXPECTED) assert.ok(esm[name], `ESM export missing: ${name}`)
 
 // 3. Types
 const dts = readFileSync(resolve(dist, 'index.d.ts'), 'utf8');
-for (const name of ['ButtonProps', 'BitLogoProps', 'Tone', 'Variant', 'Size']) {
+for (const name of ['ButtonProps', 'BitLogoProps', 'Color', 'Variant', 'Size']) {
   assert.ok(dts.includes(name), `index.d.ts missing type: ${name}`);
 }
 assert.ok(existsSync(resolve(dist, 'index.d.cts')), 'index.d.cts missing (CJS types entry)');
 
 // 4. CSS bundle: system layer + every component, no unresolved local imports
 const css = readFileSync(resolve(dist, 'styles.css'), 'utf8');
-for (const needle of ['.bit-primary', '--_bit-tone', '.bit-sm', '@keyframes bit-power-up', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo']) {
+for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '@keyframes bit-power-up', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo']) {
   assert.ok(css.includes(needle), `styles.css missing: ${needle}`);
 }
 assert.ok(!/@import\s+"\.\//.test(css), 'styles.css still contains a relative @import (bundling failed)');

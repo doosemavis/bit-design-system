@@ -13,8 +13,8 @@ describe('Text', () => {
     expect(el).toHaveAttribute('data-weight', 'normal');
   });
 
-  it('renders the element given by `as` and maps size, tone, and weight', () => {
-    render(<Text as="h2" size="2xl" tone="neutral" weight="bold">Title</Text>);
+  it('renders the element given by `as` and maps size, color, and weight', () => {
+    render(<Text as="h2" size="2xl" color="neutral" weight="bold">Title</Text>);
     const el = screen.getByRole('heading', { level: 2 });
     expect(el.className).toBe('bit-text bit-neutral bit-2xl');
     expect(el).toHaveAttribute('data-weight', 'bold');

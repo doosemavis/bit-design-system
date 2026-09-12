@@ -10,8 +10,8 @@ describe('Spinner', () => {
     expect(el.className).toBe('bit-spinner bit-primary bit-md');
   });
 
-  it('maps tone and size and appends className last', () => {
-    render(<Spinner aria-label="Loading" tone="danger" size="lg" className="extra" />);
+  it('maps color and size and appends className last', () => {
+    render(<Spinner aria-label="Loading" color="danger" size="lg" className="extra" />);
     expect(screen.getByRole('status').className).toBe('bit-spinner bit-danger bit-lg extra');
   });
 

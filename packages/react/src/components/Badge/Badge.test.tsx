@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { Badge } from './Badge';
-import { TONES } from '../../system/axes';
+import { COLORS } from '../../system/axes';
 import { expectNoA11yViolations } from '../../test/a11y';
 
 describe('Badge', () => {
@@ -13,8 +13,8 @@ describe('Badge', () => {
     expect(badge.className).toBe('bit-badge bit-neutral bit-solid bit-md');
   });
 
-  it('maps tone, variant, and size', () => {
-    render(<Badge tone="success" variant="outline" size="sm">1-Up</Badge>);
+  it('maps color, variant, and size', () => {
+    render(<Badge color="success" variant="outline" size="sm">1-Up</Badge>);
     expect(screen.getByText('1-Up').className).toBe('bit-badge bit-success bit-outline bit-sm');
   });
 
@@ -26,9 +26,9 @@ describe('Badge', () => {
   });
 
   const variants = ['solid', 'outline'] as const;
-  const combos = TONES.flatMap((tone) => variants.map((variant) => [tone, variant] as const));
-  it.each(combos)('tone=%s variant=%s has no accessibility violations', async (tone, variant) => {
-    const { container } = render(<Badge tone={tone} variant={variant}>Tag</Badge>);
+  const combos = COLORS.flatMap((color) => variants.map((variant) => [color, variant] as const));
+  it.each(combos)('color=%s variant=%s has no accessibility violations', async (color, variant) => {
+    const { container } = render(<Badge color={color} variant={variant}>Tag</Badge>);
     await expectNoA11yViolations(container);
   });
 });

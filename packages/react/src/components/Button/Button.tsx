@@ -1,21 +1,21 @@
 import { forwardRef } from 'react';
 import type { ButtonHTMLAttributes, ElementType } from 'react';
 import { Slot } from '@radix-ui/react-slot';
-import { SIZES, TONES, VARIANTS } from '../../system/axes';
-import type { Size, Tone, Variant } from '../../system/axes';
+import { SIZES, COLORS, VARIANTS } from '../../system/axes';
+import type { Size, Color, Variant } from '../../system/axes';
 import { toClasses } from '../../system/toClasses';
 
 /**
  * The values Button supports. To add one (say variant "link"): add it here,
  * then add a `.bit-button.bit-link { }` rule in packages/core/src/components/button.css.
  */
-const tones = TONES;
+const colors = COLORS;
 const variants = VARIANTS;
 const sizes = SIZES;
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  /** Color role. Class: `bit-{tone}`. */
-  tone?: Tone;
+  /** Color role. Class: `bit-{color}`. */
+  color?: Color;
   /** Emphasis. Class: `bit-{variant}`. */
   variant?: Variant;
   /** Control height. Class: `bit-{size}`. */
@@ -28,7 +28,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
-    tone = 'primary',
+    color = 'primary',
     variant = 'solid',
     size = 'md',
     loading = false,
@@ -46,7 +46,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   const classes = toClasses(
     'button',
     [
-      { name: 'tone', allowed: tones, value: tone },
+      { name: 'color', allowed: colors, value: color },
       { name: 'variant', allowed: variants, value: variant },
       { name: 'size', allowed: sizes, value: size },
     ],
