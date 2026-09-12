@@ -34,3 +34,4 @@ Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1
 - Booleans are attributes, never classes.
 - Components never import CSS; the app does, once.
 - Theme names describe a look, not a trademark.
+- `@bit/core` is a devDependency of `@bit/react` because tsup inlines it; `pnpm smoke` proves the packed tarball installs with npm into a fresh project. Consumers can use any package manager.

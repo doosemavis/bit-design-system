@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "storybook": "pnpm --filter @bit/docs storybook",
     "storybook:build": "pnpm --filter @bit/docs build",
-    "logo:svg": "node scripts/build-logo-svg.mjs"
+    "logo:svg": "node scripts/build-logo-svg.mjs",
+    "smoke": "node scripts/smoke-consumer.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
