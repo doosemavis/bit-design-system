@@ -28,4 +28,14 @@ describe('Stack', () => {
     render(<Stack className="extra" data-testid="s">x</Stack>);
     expect(screen.getByTestId('s').className).toBe('bit-stack extra');
   });
+
+  it('rejects the legacy DOM color attribute and does not render it', () => {
+    render(
+      // @ts-expect-error color is not part of StackProps
+      <Stack color="danger" data-testid="s">
+        x
+      </Stack>,
+    );
+    expect(screen.getByTestId('s')).not.toHaveAttribute('color');
+  });
 });

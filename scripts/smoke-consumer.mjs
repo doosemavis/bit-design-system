@@ -1,5 +1,6 @@
 // Proves a stranger can `npm install` the packed @bit/react into a fresh project.
-// Steps: build → pnpm pack → temp project → npm install <tarball> → import ESM + CJS → check CSS files.
+// Steps: build → pnpm pack → temp project → npm install <tarball> → import ESM + CJS →
+// check CSS files → typecheck a small TS consumer against the shipped declarations.
 import { execSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -13,6 +14,18 @@ const run = (cmd, cwd) => execSync(cmd, { cwd, stdio: 'pipe', encoding: 'utf8' }
 
 const EXPECTED = ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'Spinner', 'Stack', 'Text'];
 
+// Run a command, printing its stdout/stderr and rethrowing on failure so a broken
+// consumer step fails loudly instead of an opaque non-zero exit.
+const runLoudly = (cmd, cwd, failureMessage) => {
+  try {
+    return run(cmd, cwd);
+  } catch (err) {
+    console.error(err.stdout ?? '');
+    console.error(err.stderr ?? '');
+    throw new Error(`${failureMessage} (${cmd})`);
+  }
+};
+
 // 1. Build and pack into a temp directory
 const work = mkdtempSync(join(tmpdir(), 'bit-smoke-'));
 try {
@@ -21,11 +34,16 @@ try {
   const tarball = readdirSync(work).find((f) => f.endsWith('.tgz'));
   assert.ok(tarball, 'pnpm pack produced no tarball');
 
-  // 2. A fresh consumer project installed with npm; the react/react-dom peers resolve from the registry
+  // 2. A fresh consumer project installed with npm; the react/react-dom peers, plus
+  // typescript and the React type packages needed to typecheck the dist declarations,
+  // resolve from the registry.
   const app = join(work, 'consumer');
   mkdirSync(app);
   writeFileSync(join(app, 'package.json'), JSON.stringify({ name: 'consumer', private: true, type: 'module' }, null, 2));
-  run(`npm install --no-audit --no-fund --loglevel=error "${join(work, tarball)}"`, app);
+  run(
+    `npm install --no-audit --no-fund --loglevel=error "${join(work, tarball)}" typescript @types/react @types/react-dom`,
+    app,
+  );
 
   // 3. Import both entry points and check the CSS shipped
   writeFileSync(
@@ -45,10 +63,46 @@ for (const n of expected) assert.ok(cjs[n], 'CJS missing ' + n);
 const dist = join(dirname(require.resolve('@bit/react/package.json')), 'dist');
 assert.ok(existsSync(join(dist, 'styles.css')), 'styles.css missing');
 assert.ok(existsSync(join(dist, 'themes', 'power-up.css')), 'themes/power-up.css missing');
-console.log('consumer OK: ' + expected.length + ' components via ESM and CJS, CSS present');
 `,
   );
-  console.log(run('node check.mjs', app).trim());
+  runLoudly('node check.mjs', app, 'consumer runtime checks failed (node check.mjs)');
+
+  // 4. Typecheck a small TS consumer against the shipped declarations (dist/index.d.ts):
+  // proves the tarball's types are self-contained (no unresolved `@bit/core` import).
+  writeFileSync(
+    join(app, 'tsconfig.json'),
+    JSON.stringify(
+      {
+        compilerOptions: {
+          strict: true,
+          moduleResolution: 'bundler',
+          module: 'esnext',
+          target: 'es2022',
+          jsx: 'react-jsx',
+          noEmit: true,
+          skipLibCheck: false,
+        },
+        include: ['check.tsx'],
+      },
+      null,
+      2,
+    ),
+  );
+  writeFileSync(
+    join(app, 'check.tsx'),
+    `import { Button, COLORS } from '@bit/react';
+import type { Color } from '@bit/react';
+
+const c: Color = COLORS[0];
+
+export function App() {
+  return <Button color={c}>ok</Button>;
+}
+`,
+  );
+  runLoudly('npx tsc -p tsconfig.json', app, 'consumer type-check failed (npx tsc -p tsconfig.json)');
+
+  console.log(`consumer OK: ${EXPECTED.length} components via ESM and CJS, CSS present, types check`);
 } finally {
   rmSync(work, { recursive: true, force: true });
 }

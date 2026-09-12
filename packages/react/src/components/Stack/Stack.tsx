@@ -2,8 +2,9 @@ import { forwardRef } from 'react';
 import type { HTMLAttributes } from 'react';
 import type { SpaceStep } from '../../system/axes';
 import { toClasses } from '../../system/toClasses';
+import { dropLegacyColor } from '../../system/dropLegacyColor';
 
-export interface StackProps extends HTMLAttributes<HTMLDivElement> {
+export interface StackProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color'> {
   /** Flex direction. Rendered as `data-direction`. */
   direction?: 'row' | 'column';
   /** Gap on the 4px space scale (1 = 4px … 8 = 64px). Rendered as `data-gap`. */
@@ -26,7 +27,7 @@ export const Stack = forwardRef<HTMLDivElement, StackProps>(function Stack(
       data-align={align}
       data-justify={justify}
       data-wrap={wrap ? '' : undefined}
-      {...rest}
+      {...dropLegacyColor(rest)}
     />
   );
 });
