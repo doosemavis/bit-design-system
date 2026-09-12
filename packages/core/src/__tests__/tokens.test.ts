@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { SEMANTIC_TOKENS, TONES, SIZES, TEXT_SIZES } from '../tokens';
+import { SEMANTIC_TOKENS, COLORS, SIZES, TEXT_SIZES } from '../tokens';
 
 describe('semantic token list', () => {
-  it('has the five tones, three sizes, six text sizes', () => {
-    expect(TONES).toEqual(['primary', 'neutral', 'success', 'warning', 'danger']);
+  it('has the five colors, three sizes, six text sizes', () => {
+    expect(COLORS).toEqual(['primary', 'neutral', 'success', 'warning', 'danger']);
     expect(SIZES).toEqual(['sm', 'md', 'lg']);
     expect(TEXT_SIZES).toEqual(['xs', 'sm', 'md', 'lg', 'xl', '2xl']);
   });
@@ -14,10 +14,10 @@ describe('semantic token list', () => {
     for (const name of SEMANTIC_TOKENS) expect(name).toMatch(/^--bit-[a-z0-9-]+$/);
   });
 
-  it('includes the four color tokens for every tone', () => {
-    for (const tone of TONES) {
+  it('includes the four color tokens for every color', () => {
+    for (const color of COLORS) {
       for (const suffix of ['', '-contrast', '-hover', '-soft']) {
-        expect(SEMANTIC_TOKENS).toContain(`--bit-color-${tone}${suffix}`);
+        expect(SEMANTIC_TOKENS).toContain(`--bit-color-${color}${suffix}`);
       }
     }
   });

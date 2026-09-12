@@ -26,11 +26,11 @@
 }
 
 .bit-badge.bit-solid {
-  background: var(--_bit-tone);
-  color: var(--_bit-tone-contrast);
+  background: var(--_bit-color);
+  color: var(--_bit-color-contrast);
 }
 
 .bit-badge.bit-outline {
-  background: var(--_bit-tone-soft);
+  background: var(--_bit-color-soft);
   color: var(--bit-color-text);
 }

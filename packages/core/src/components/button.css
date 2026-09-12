@@ -1,4 +1,4 @@
-/* Button. Reads tone via --_bit-tone-* (set by .bit-{tone}) and size via --_bit-size-* (set by .bit-{size}). */
+/* Button. Reads color via --_bit-color-* (set by .bit-{color}) and size via --_bit-size-* (set by .bit-{size}). */
 .bit-button {
   display: inline-flex;
   align-items: center;
@@ -27,13 +27,13 @@
 
 /* variants */
 .bit-button.bit-solid {
-  background: var(--_bit-tone);
-  color: var(--_bit-tone-contrast);
+  background: var(--_bit-color);
+  color: var(--_bit-color-contrast);
   box-shadow: var(--bit-gloss), var(--bit-shadow-md);
 }
 
 .bit-button.bit-outline {
-  background: var(--_bit-tone-soft);
+  background: var(--_bit-color-soft);
   color: var(--bit-color-text);
 }
 
@@ -49,7 +49,7 @@
 }
 
 .bit-button.bit-solid:hover:not(:disabled):not([aria-disabled="true"]) {
-  background: var(--_bit-tone-hover);
+  background: var(--_bit-color-hover);
   box-shadow: var(--bit-gloss), var(--bit-shadow-sm);
 }
 
@@ -58,7 +58,7 @@
 }
 
 .bit-button.bit-ghost:hover:not(:disabled):not([aria-disabled="true"]) {
-  background: var(--_bit-tone-soft);
+  background: var(--_bit-color-soft);
 }
 
 /* active: fully pressed, no shadow (variant-scoped selectors outrank the hover rules above) */
