@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { Text } from '@bit/react';
+import { MANIFESTS, routeFor } from '../manifests';
 
 export type NavGroup = 'Foundations' | 'Components' | 'Brand';
 export interface NavItem {
@@ -8,9 +9,10 @@ export interface NavItem {
   to: string;
 }
 
-/** Foundations and Brand entries. Task 3 adds the Components entries from the manifests. */
+/** Foundations, then one entry per Components manifest, then Brand. */
 export const NAV: readonly NavItem[] = [
   { group: 'Foundations', label: 'Tokens', to: '/tokens' },
+  ...MANIFESTS.filter((m) => m.group === 'Components').map((m) => ({ group: 'Components' as const, label: m.name, to: routeFor(m) })),
   { group: 'Brand', label: 'Logo', to: '/brand/logo' },
 ];
 
