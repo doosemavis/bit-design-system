@@ -159,7 +159,7 @@ Adding a variant to one component = add it to that array + add a CSS rule in the
 
 ### 4.2 Rules every component follows
 
-- Emits `bit-{component}` plus one decorator per supported axis, **always, including defaults**, so CSS can rely on their presence.
+- Emits `bit-{component}` plus exactly one decorator per supported axis, so CSS can rely on their presence. The decorator is the prop's value, or the caller's `bit-{value}` from `className` if one is given for that axis — that is how `className` overrides a default.
 - Appends the caller's `className` **last**, so `<Button className="bit-danger">` overrides the default tone.
 - Forwards its `ref` to the root DOM node.
 - Spreads unknown props onto the root DOM node.

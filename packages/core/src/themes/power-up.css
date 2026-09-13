@@ -1,0 +1,113 @@
+/* bit theme: power-up
+   Late-90s platformer chunkiness on a warm cream page.
+   Tier 1 (palette) is private to this file. Tier 2 (semantic) is the public API
+   and must list every name in tokens.ts — the theme-completeness test enforces it. */
+
+@import url("https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800&family=Press+Start+2P&family=Bungee&display=swap");
+
+:root,
+[data-theme="power-up"] {
+  /* ---------- tier 1: palette ---------- */
+  --bit-palette-yellow: #FFCC00;
+  --bit-palette-yellow-dark: #E0B000;
+  --bit-palette-yellow-soft: #FFF3BF;
+  --bit-palette-red: #D42B26;
+  --bit-palette-red-dark: #B5221E;
+  --bit-palette-red-soft: #FBDCDB;
+  --bit-palette-green: #43B047;
+  --bit-palette-green-dark: #3BA03F;
+  --bit-palette-green-soft: #DCF2DD;
+  --bit-palette-orange: #F5A623;
+  --bit-palette-orange-dark: #D98E12;
+  --bit-palette-orange-soft: #FDEBCB;
+  --bit-palette-blue: #2D7DFF;
+  --bit-palette-ink: #1B1B2F;
+  --bit-palette-ink-soft: #E8E6EF;
+  --bit-palette-slate: #4A4A5E;
+  --bit-palette-cream: #F5EEDC;
+  --bit-palette-white: #FFFFFF;
+
+  /* ---------- tier 2: color ---------- */
+  --bit-color-bg: var(--bit-palette-cream);
+  --bit-color-surface: var(--bit-palette-white);
+  --bit-color-ink: var(--bit-palette-ink);
+  --bit-color-text: var(--bit-palette-ink);
+  --bit-color-text-muted: var(--bit-palette-slate);
+  --bit-color-focus: var(--bit-palette-blue);
+
+  --bit-color-primary: var(--bit-palette-yellow);
+  --bit-color-primary-contrast: var(--bit-palette-ink);
+  --bit-color-primary-hover: var(--bit-palette-yellow-dark);
+  --bit-color-primary-soft: var(--bit-palette-yellow-soft);
+
+  --bit-color-neutral: var(--bit-palette-white);
+  --bit-color-neutral-contrast: var(--bit-palette-ink);
+  --bit-color-neutral-hover: var(--bit-palette-ink-soft);
+  --bit-color-neutral-soft: var(--bit-palette-ink-soft);
+
+  --bit-color-success: var(--bit-palette-green);
+  --bit-color-success-contrast: var(--bit-palette-ink);
+  --bit-color-success-hover: var(--bit-palette-green-dark);
+  --bit-color-success-soft: var(--bit-palette-green-soft);
+
+  --bit-color-warning: var(--bit-palette-orange);
+  --bit-color-warning-contrast: var(--bit-palette-ink);
+  --bit-color-warning-hover: var(--bit-palette-orange-dark);
+  --bit-color-warning-soft: var(--bit-palette-orange-soft);
+
+  --bit-color-danger: var(--bit-palette-red);
+  --bit-color-danger-contrast: var(--bit-palette-white);
+  --bit-color-danger-hover: var(--bit-palette-red-dark);
+  --bit-color-danger-soft: var(--bit-palette-red-soft);
+
+  /* ---------- tier 2: shape (where the retro look lives) ---------- */
+  --bit-border-width: 3px;
+  --bit-radius-sm: 6px;
+  --bit-radius-md: 10px;
+  --bit-radius-lg: 14px;
+  --bit-radius-full: 999px;
+  --bit-shadow-sm: 2px 2px 0 var(--bit-color-ink);
+  --bit-shadow-md: 4px 4px 0 var(--bit-color-ink);
+  --bit-shadow-lg: 6px 6px 0 var(--bit-color-ink);
+  --bit-shadow-inset: inset 3px 3px 0 rgba(27, 27, 47, 0.12);
+  --bit-gloss: inset 0 3px 0 rgba(255, 255, 255, 0.4);
+
+  /* ---------- tier 2: typography ---------- */
+  --bit-font-display: "Lilita One", "Arial Black", sans-serif;
+  --bit-font-body: "Nunito", "Segoe UI", sans-serif;
+  --bit-font-pixel: "Press Start 2P", monospace;
+  --bit-text-xs: 11px;
+  --bit-text-sm: 13px;
+  --bit-text-md: 15px;
+  --bit-text-lg: 18px;
+  --bit-text-xl: 24px;
+  --bit-text-2xl: 32px;
+  --bit-leading-tight: 1.1;
+  --bit-leading-normal: 1.5;
+  --bit-weight-normal: 600;
+  --bit-weight-bold: 800;
+
+  /* ---------- tier 2: space ---------- */
+  --bit-space-1: 4px;
+  --bit-space-2: 8px;
+  --bit-space-3: 12px;
+  --bit-space-4: 16px;
+  --bit-space-5: 24px;
+  --bit-space-6: 32px;
+  --bit-space-7: 48px;
+  --bit-space-8: 64px;
+
+  /* ---------- tier 2: controls ---------- */
+  --bit-control-height-sm: 32px;
+  --bit-control-height-md: 40px;
+  --bit-control-height-lg: 48px;
+  --bit-control-padding-sm: 10px;
+  --bit-control-padding-md: 14px;
+  --bit-control-padding-lg: 18px;
+
+  /* ---------- tier 2: motion ---------- */
+  --bit-press-offset: 2px;
+  --bit-duration-fast: 80ms;
+  --bit-duration-normal: 160ms;
+  --bit-motion-power-up: bit-power-up;
+}

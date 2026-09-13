@@ -1,0 +1,27 @@
+/* Stack: flex layout driven by data attributes (layout is not a design axis, so no decorator classes). */
+.bit-stack {
+  display: flex;
+}
+
+.bit-stack[data-direction="column"] { flex-direction: column; }
+.bit-stack[data-direction="row"] { flex-direction: row; }
+.bit-stack[data-wrap] { flex-wrap: wrap; }
+
+.bit-stack[data-gap="1"] { gap: var(--bit-space-1); }
+.bit-stack[data-gap="2"] { gap: var(--bit-space-2); }
+.bit-stack[data-gap="3"] { gap: var(--bit-space-3); }
+.bit-stack[data-gap="4"] { gap: var(--bit-space-4); }
+.bit-stack[data-gap="5"] { gap: var(--bit-space-5); }
+.bit-stack[data-gap="6"] { gap: var(--bit-space-6); }
+.bit-stack[data-gap="7"] { gap: var(--bit-space-7); }
+.bit-stack[data-gap="8"] { gap: var(--bit-space-8); }
+
+.bit-stack[data-align="start"] { align-items: flex-start; }
+.bit-stack[data-align="center"] { align-items: center; }
+.bit-stack[data-align="end"] { align-items: flex-end; }
+.bit-stack[data-align="stretch"] { align-items: stretch; }
+
+.bit-stack[data-justify="start"] { justify-content: flex-start; }
+.bit-stack[data-justify="center"] { justify-content: center; }
+.bit-stack[data-justify="end"] { justify-content: flex-end; }
+.bit-stack[data-justify="between"] { justify-content: space-between; }

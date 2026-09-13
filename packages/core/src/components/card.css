@@ -1,0 +1,41 @@
+/* Card: a bordered surface with optional header, body, footer parts. */
+.bit-card {
+  display: flex;
+  flex-direction: column;
+  border: var(--bit-border-width) solid var(--bit-color-ink);
+  border-radius: var(--bit-radius-lg);
+  overflow: hidden;
+  color: var(--bit-color-text);
+}
+
+.bit-card.bit-solid {
+  background: var(--bit-color-surface);
+  box-shadow: var(--bit-shadow-lg);
+}
+
+.bit-card.bit-outline {
+  background: transparent;
+  box-shadow: none;
+}
+
+.bit-card__header {
+  padding: var(--bit-space-3) var(--bit-space-4);
+  font-family: var(--bit-font-display);
+  font-size: var(--bit-text-lg);
+  line-height: var(--bit-leading-tight);
+  letter-spacing: 0.01em;
+  border-bottom: var(--bit-border-width) solid var(--bit-color-ink);
+}
+
+.bit-card__body {
+  padding: var(--bit-space-4);
+}
+
+.bit-card__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--bit-space-2);
+  padding: var(--bit-space-3) var(--bit-space-4);
+  border-top: var(--bit-border-width) solid var(--bit-color-ink);
+  background: var(--bit-color-neutral-soft);
+}

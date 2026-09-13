@@ -1,0 +1,11 @@
+/* Exempt from --bit-border-width: the spinner ring is fixed-width regardless of size. */
+/* Spinner: an ink ring with a tone-colored arc. Diameter is half the control height of its size. */
+.bit-spinner {
+  display: inline-block;
+  width: calc(var(--_bit-size-height) / 2);
+  height: calc(var(--_bit-size-height) / 2);
+  border: 3px solid var(--bit-color-ink);
+  border-top-color: var(--_bit-tone);
+  border-radius: var(--bit-radius-full);
+  animation: bit-spin 0.8s linear infinite;
+}
