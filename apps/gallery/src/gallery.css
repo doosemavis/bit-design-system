@@ -201,3 +201,107 @@ html {
     display: block;
   }
 }
+
+/* ---------- controls ---------- */
+.gallery-controls__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--bit-space-3);
+}
+
+.gallery-controls__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: var(--bit-space-3);
+}
+
+.gallery-control {
+  display: grid;
+  gap: var(--bit-space-1);
+}
+
+.gallery-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bit-space-2);
+}
+
+.gallery-control__label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--bit-text-sm);
+  color: var(--bit-color-text-muted);
+}
+
+.gallery-switch {
+  width: 2.75rem;
+  height: 1.5rem;
+  padding: 2px;
+  border: var(--bit-border-width) solid var(--bit-color-ink);
+  border-radius: var(--bit-radius-full);
+  background: var(--bit-color-surface);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: background var(--bit-duration-fast);
+}
+
+.gallery-switch__knob {
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--bit-radius-full);
+  background: var(--bit-color-ink);
+  transition: transform var(--bit-duration-fast);
+}
+
+.gallery-switch[data-on] {
+  background: var(--bit-color-primary);
+}
+
+.gallery-switch[data-on] .gallery-switch__knob {
+  transform: translateX(1.25rem);
+  background: var(--bit-color-primary-contrast);
+}
+
+/* ---------- preview ---------- */
+.gallery-preview {
+  border: var(--bit-border-width) solid var(--bit-color-ink);
+  border-radius: var(--bit-radius-lg);
+  background: var(--bit-color-surface);
+  box-shadow: var(--bit-shadow-md);
+  overflow: hidden;
+}
+
+.gallery-preview__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--bit-space-2) var(--bit-space-3);
+  border-bottom: var(--bit-border-width) solid var(--bit-color-ink);
+  background: var(--bit-color-bg);
+}
+
+.gallery-preview__title {
+  font-family: var(--bit-font-pixel);
+  font-size: var(--bit-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.gallery-preview__stage {
+  min-height: 12rem;
+  display: grid;
+  place-items: center;
+  padding: var(--bit-space-6);
+}
+
+.gallery-preview[data-checkerboard] .gallery-preview__stage {
+  --_gallery-check: var(--bit-color-bg);
+  background-image:
+    linear-gradient(45deg, var(--_gallery-check) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--_gallery-check) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--_gallery-check) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--_gallery-check) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
