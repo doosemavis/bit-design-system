@@ -25,6 +25,13 @@ describe('Shell', () => {
     expect(document.getElementById('main')).not.toBeNull();
   });
 
+  it('does not move focus to the heading on first load', async () => {
+    renderAt('/');
+    await screen.findByRole('heading', { level: 1 });
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+    expect(document.activeElement).toBe(document.body);
+  });
+
   it('moves focus to the page heading after navigation', async () => {
     renderAt('/');
     await screen.findByRole('heading', { level: 1 });
