@@ -37,7 +37,7 @@ export function Matrix({ manifest, state }: MatrixProps) {
           <thead>
             <tr>
               <th scope="col">{axes.rows.prop}</th>
-              {axes.cols ? cols.map((c) => <th key={c} scope="col">{c}</th>) : <th scope="col">{axes.rows.prop}</th>}
+              {axes.cols ? cols.map((c) => <th key={c} scope="col">{c}</th>) : <th scope="col">preview</th>}
             </tr>
           </thead>
           <tbody>
@@ -47,7 +47,7 @@ export function Matrix({ manifest, state }: MatrixProps) {
                 {cols.map((col) => {
                   const cell: ControlState = { ...state, [axes.rows.prop]: row };
                   if (axes.cols) cell[axes.cols.prop] = col;
-                  return <td key={col || row}>{renderManifest(manifest, cell)}</td>;
+                  return <td key={axes.cols ? col : 'single'}>{renderManifest(manifest, cell)}</td>;
                 })}
               </tr>
             ))}
