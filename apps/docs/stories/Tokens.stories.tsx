@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { SEMANTIC_TOKENS, TONES } from '@bit/core/tokens';
+import { SEMANTIC_TOKENS, COLORS } from '@bit/core/tokens';
 
 function Swatches() {
   const style = getComputedStyle(document.documentElement);
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
-      {TONES.map((tone) => (
+      {COLORS.map((color) => (
         <div
-          key={tone}
+          key={color}
           style={{
             border: 'var(--bit-border-width) solid var(--bit-color-ink)',
             borderRadius: 'var(--bit-radius-md)',
@@ -16,12 +16,12 @@ function Swatches() {
             background: 'var(--bit-color-surface)',
           }}
         >
-          <div style={{ background: `var(--bit-color-${tone})`, color: `var(--bit-color-${tone}-contrast)`, padding: 16, fontWeight: 800 }}>
-            {tone}
-            <div style={{ fontSize: 12, fontWeight: 600 }}>{style.getPropertyValue(`--bit-color-${tone}`).trim()}</div>
+          <div style={{ background: `var(--bit-color-${color})`, color: `var(--bit-color-${color}-contrast)`, padding: 16, fontWeight: 800 }}>
+            {color}
+            <div style={{ fontSize: 12, fontWeight: 600 }}>{style.getPropertyValue(`--bit-color-${color}`).trim()}</div>
           </div>
-          <div style={{ background: `var(--bit-color-${tone}-hover)`, color: `var(--bit-color-${tone}-contrast)`, padding: '6px 16px', fontSize: 12 }}>hover</div>
-          <div style={{ background: `var(--bit-color-${tone}-soft)`, padding: '6px 16px', fontSize: 12 }}>soft</div>
+          <div style={{ background: `var(--bit-color-${color}-hover)`, color: `var(--bit-color-${color}-contrast)`, padding: '6px 16px', fontSize: 12 }}>hover</div>
+          <div style={{ background: `var(--bit-color-${color}-soft)`, padding: '6px 16px', fontSize: 12 }}>soft</div>
         </div>
       ))}
     </div>

@@ -1,4 +1,4 @@
-/* Alert: a bordered panel that carries a tone. */
+/* Alert: a bordered panel that carries a color. */
 .bit-alert {
   display: flex;
   flex-direction: column;
@@ -9,13 +9,13 @@
 }
 
 .bit-alert.bit-solid {
-  background: var(--_bit-tone);
-  color: var(--_bit-tone-contrast);
+  background: var(--_bit-color);
+  color: var(--_bit-color-contrast);
   box-shadow: var(--bit-shadow-md);
 }
 
 .bit-alert.bit-outline {
-  background: var(--_bit-tone-soft);
+  background: var(--_bit-color-soft);
   color: var(--bit-color-text);
   box-shadow: var(--bit-shadow-sm);
 }

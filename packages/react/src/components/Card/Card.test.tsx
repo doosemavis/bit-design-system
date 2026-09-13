@@ -39,4 +39,36 @@ describe('Card', () => {
     );
     await expectNoA11yViolations(container);
   });
+
+  it('rejects the legacy DOM color attribute and does not render it', () => {
+    render(
+      // @ts-expect-error color is not part of CardProps
+      <Card color="danger" data-testid="card">
+        x
+      </Card>,
+    );
+    expect(screen.getByTestId('card')).not.toHaveAttribute('color');
+  });
+
+  it('rejects the legacy DOM color attribute on CardHeader, CardBody, and CardFooter', () => {
+    render(
+      <Card>
+        {/* @ts-expect-error color is not part of CardPartProps */}
+        <CardHeader color="danger" data-testid="header">
+          Stats
+        </CardHeader>
+        {/* @ts-expect-error color is not part of CardPartProps */}
+        <CardBody color="danger" data-testid="body">
+          42 coins
+        </CardBody>
+        {/* @ts-expect-error color is not part of CardPartProps */}
+        <CardFooter color="danger" data-testid="footer">
+          Done
+        </CardFooter>
+      </Card>,
+    );
+    expect(screen.getByTestId('header')).not.toHaveAttribute('color');
+    expect(screen.getByTestId('body')).not.toHaveAttribute('color');
+    expect(screen.getByTestId('footer')).not.toHaveAttribute('color');
+  });
 });

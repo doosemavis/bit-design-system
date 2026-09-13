@@ -23,4 +23,5 @@ jobs:
       - run: pnpm --filter @bit/core test
       - run: pnpm test:coverage
       - run: pnpm build && pnpm verify
+      - run: pnpm smoke
       - run: pnpm storybook:build

@@ -1,21 +1,22 @@
 import { forwardRef } from 'react';
 import type { HTMLAttributes } from 'react';
-import { SIZES, TONES } from '../../system/axes';
-import type { Size, Tone } from '../../system/axes';
+import { SIZES, COLORS } from '../../system/axes';
+import type { Size, Color } from '../../system/axes';
 import { toClasses } from '../../system/toClasses';
 
-const tones = TONES;
+const colors = COLORS;
 const sizes = SIZES;
 
 export interface SpinnerProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'aria-label'> {
-  tone?: Tone;
+  /** Color role. Class: `bit-{color}`. */
+  color?: Color;
   size?: Size;
   /** Required: screen readers announce this. Example: "Loading coins". */
   'aria-label': string;
 }
 
 export const Spinner = forwardRef<HTMLSpanElement, SpinnerProps>(function Spinner(
-  { tone = 'primary', size = 'md', className, ...rest },
+  { color = 'primary', size = 'md', className, ...rest },
   ref,
 ) {
   return (
@@ -25,7 +26,7 @@ export const Spinner = forwardRef<HTMLSpanElement, SpinnerProps>(function Spinne
       className={toClasses(
         'spinner',
         [
-          { name: 'tone', allowed: tones, value: tone },
+          { name: 'color', allowed: colors, value: color },
           { name: 'size', allowed: sizes, value: size },
         ],
         className,

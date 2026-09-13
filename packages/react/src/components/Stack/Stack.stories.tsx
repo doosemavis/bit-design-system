@@ -22,8 +22,8 @@ export const Playground: Story = {
   render: (args) => (
     <Stack {...args}>
       <Button>One</Button>
-      <Button tone="neutral">Two</Button>
-      <Button tone="success">Three</Button>
+      <Button color="neutral">Two</Button>
+      <Button color="success">Three</Button>
     </Stack>
   ),
 };

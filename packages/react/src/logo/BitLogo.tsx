@@ -3,6 +3,7 @@ import type { CSSProperties, HTMLAttributes } from 'react';
 import { SIZES } from '../system/axes';
 import type { Size } from '../system/axes';
 import { element, toClasses } from '../system/toClasses';
+import { dropLegacyColor } from '../system/dropLegacyColor';
 
 /** Console generations, in the order the logo cycles through them. */
 export const ERAS = [8, 16, 32, 64] as const;
@@ -10,7 +11,7 @@ export type Era = (typeof ERAS)[number];
 
 const sizes = SIZES;
 
-export interface BitLogoProps extends HTMLAttributes<HTMLSpanElement> {
+export interface BitLogoProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'color'> {
   size?: Size;
   /** Seconds each era stays on screen. Demo default is 5. */
   interval?: number;
@@ -36,7 +37,7 @@ export const BitLogo = forwardRef<HTMLSpanElement, BitLogoProps>(function BitLog
       className={toClasses('logo', [{ name: 'size', allowed: sizes, value: size }], className)}
       data-animated={cycling ? '' : undefined}
       style={cssVars}
-      {...rest}
+      {...dropLegacyColor(rest)}
     >
       <span className={element('logo', 'slot')} aria-hidden="true">
         {shown.map((era) => (

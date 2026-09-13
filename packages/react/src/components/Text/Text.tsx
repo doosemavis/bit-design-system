@@ -6,7 +6,7 @@ import { toClasses } from '../../system/toClasses';
 
 const sizes = TEXT_SIZES;
 /** Only `neutral` (muted) is supported on Text in v1; see the plan note. */
-const tones = ['neutral'] as const;
+const colors = ['neutral'] as const;
 
 export type TextElement = 'p' | 'span' | 'div' | 'label' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
@@ -15,7 +15,7 @@ export interface TextProps extends HTMLAttributes<HTMLElement> {
   as?: TextElement;
   size?: TextSize;
   /** `neutral` renders muted text. */
-  tone?: (typeof tones)[number];
+  color?: (typeof colors)[number];
   /**
    * Rendered as `data-weight`. Has no visible effect at `xl` and `2xl`: those sizes use the
    * display face, which ships a single weight, so a heavier value would be browser-synthesized.
@@ -24,7 +24,7 @@ export interface TextProps extends HTMLAttributes<HTMLElement> {
 }
 
 export const Text = forwardRef<HTMLElement, TextProps>(function Text(
-  { as = 'p', size = 'md', tone, weight = 'normal', className, ...rest },
+  { as = 'p', size = 'md', color, weight = 'normal', className, ...rest },
   ref,
 ) {
   return createElement(as, {
@@ -32,7 +32,7 @@ export const Text = forwardRef<HTMLElement, TextProps>(function Text(
     className: toClasses(
       'text',
       [
-        { name: 'tone', allowed: tones, value: tone },
+        { name: 'color', allowed: colors, value: color },
         { name: 'size', allowed: sizes, value: size },
       ],
       className,

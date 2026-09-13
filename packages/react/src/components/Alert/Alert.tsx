@@ -1,22 +1,23 @@
 import { forwardRef } from 'react';
 import type { HTMLAttributes } from 'react';
-import { TONES } from '../../system/axes';
-import type { Tone } from '../../system/axes';
+import { COLORS } from '../../system/axes';
+import type { Color } from '../../system/axes';
 import { element, toClasses } from '../../system/toClasses';
 
-const tones = TONES;
+const colors = COLORS;
 const variants = ['solid', 'outline'] as const;
 
 export interface AlertProps extends HTMLAttributes<HTMLDivElement> {
-  tone?: Tone;
-  /** `outline` uses the tone's soft background; `solid` fills with the tone. */
+  /** Color role. Class: `bit-{color}`. */
+  color?: Color;
+  /** `outline` uses the color's soft background; `solid` fills with the color. */
   variant?: (typeof variants)[number];
   /** Heading text rendered in the display font. This is the alert's own heading, not the native `title` tooltip attribute, which is intentionally not forwarded. */
   title?: string;
 }
 
 export const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
-  { tone = 'neutral', variant = 'outline', title, role = 'status', className, children, ...rest },
+  { color = 'neutral', variant = 'outline', title, role = 'status', className, children, ...rest },
   ref,
 ) {
   return (
@@ -26,7 +27,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
       className={toClasses(
         'alert',
         [
-          { name: 'tone', allowed: tones, value: tone },
+          { name: 'color', allowed: colors, value: color },
           { name: 'variant', allowed: variants, value: variant },
         ],
         className,

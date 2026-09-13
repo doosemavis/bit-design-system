@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SEMANTIC_TOKENS, SIZES, TEXT_SIZES, TONES } from '../tokens';
+import { SEMANTIC_TOKENS, SIZES, TEXT_SIZES, COLORS } from '../tokens';
 import { listCss, readCss } from './css';
 
 /** Return the body of the first `selector { ... }` block, or null. */
@@ -9,13 +9,13 @@ function block(css: string, selector: string): string | null {
   return m ? m[1]! : null;
 }
 
-describe('system/tones.css', () => {
-  const css = readCss('system/tones.css');
-  it.each(TONES)('.bit-%s remaps the four private tone variables', (tone) => {
-    const body = block(css, `.bit-${tone}`);
+describe('system/colors.css', () => {
+  const css = readCss('system/colors.css');
+  it.each(COLORS)('.bit-%s remaps the four private color variables', (color) => {
+    const body = block(css, `.bit-${color}`);
     expect(body).not.toBeNull();
     for (const suffix of ['', '-contrast', '-hover', '-soft']) {
-      expect(body).toContain(`--_bit-tone${suffix}: var(--bit-color-${tone}${suffix});`);
+      expect(body).toContain(`--_bit-color${suffix}: var(--bit-color-${color}${suffix});`);
     }
   });
 });
@@ -46,7 +46,7 @@ describe('system/motion.css', () => {
 describe('index.css', () => {
   const css = readCss('index.css');
   it('imports every system file, in order, before any component file', () => {
-    for (const name of ['reset', 'tones', 'sizes', 'motion']) {
+    for (const name of ['reset', 'colors', 'sizes', 'motion']) {
       expect(css).toContain(`@import "./system/${name}.css";`);
     }
     const systemEnd = css.lastIndexOf('./system/');

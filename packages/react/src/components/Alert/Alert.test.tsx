@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Alert } from './Alert';
-import { TONES } from '../../system/axes';
+import { COLORS } from '../../system/axes';
 import { expectNoA11yViolations } from '../../test/a11y';
 
 describe('Alert', () => {
@@ -18,15 +18,15 @@ describe('Alert', () => {
     expect(screen.getByText('Coins collected').className).toBe('bit-alert__title');
   });
 
-  it('maps tone and variant, and lets role be overridden', () => {
-    render(<Alert tone="danger" variant="solid" role="alert">Game over</Alert>);
+  it('maps color and variant, and lets role be overridden', () => {
+    render(<Alert color="danger" variant="solid" role="alert">Game over</Alert>);
     expect(screen.getByRole('alert').className).toBe('bit-alert bit-danger bit-solid');
   });
 
   const variants = ['solid', 'outline'] as const;
-  const combos = TONES.flatMap((tone) => variants.map((variant) => [tone, variant] as const));
-  it.each(combos)('tone=%s variant=%s has no accessibility violations', async (tone, variant) => {
-    const { container } = render(<Alert tone={tone} variant={variant} title="Heads up">Body</Alert>);
+  const combos = COLORS.flatMap((color) => variants.map((variant) => [color, variant] as const));
+  it.each(combos)('color=%s variant=%s has no accessibility violations', async (color, variant) => {
+    const { container } = render(<Alert color={color} variant={variant} title="Heads up">Body</Alert>);
     await expectNoA11yViolations(container);
   });
 });

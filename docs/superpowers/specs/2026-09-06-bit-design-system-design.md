@@ -22,7 +22,7 @@ Constraints that shaped every decision below:
 **The word a junior types as a prop is the same word in the CSS class and the same word in the token.** Grep any one of them and you find the others.
 
 ```
-<Button tone="primary">            prop
+<Button color="primary">            prop
 class="bit-button bit-primary"     class
 --bit-color-primary                token
 ```
@@ -82,12 +82,12 @@ Grammar: `--bit-{category}-{role}[-{modifier}]`. This is the complete list. Ever
 | `--bit-color-text` | default text |
 | `--bit-color-text-muted` | secondary text |
 | `--bit-color-focus` | focus ring |
-| `--bit-color-{tone}` | fill for the tone |
-| `--bit-color-{tone}-contrast` | text on that fill |
-| `--bit-color-{tone}-hover` | fill on hover |
-| `--bit-color-{tone}-soft` | tinted background (alerts, ghost hover) |
+| `--bit-color-{color}` | fill for the color |
+| `--bit-color-{color}-contrast` | text on that fill |
+| `--bit-color-{color}-hover` | fill on hover |
+| `--bit-color-{color}-soft` | tinted background (alerts, ghost hover) |
 
-`{tone}` ∈ `primary | neutral | success | warning | danger` (4 tokens × 5 tones = 20).
+`{color}` ∈ `primary | neutral | success | warning | danger` (4 tokens × 5 colors = 20).
 
 **Shape** (this is where the retro look lives)
 
@@ -133,7 +133,7 @@ Grammar: `--bit-{category}-{role}[-{modifier}]`. This is the complete list. Ever
 
 ### 3.4 How decorators are implemented
 
-- **Tone decorators are global, written once.** `core/src/system/tones.css` maps each `bit-{tone}` class to private variables: `--_bit-tone`, `--_bit-tone-contrast`, `--_bit-tone-hover`, `--_bit-tone-soft`. Components consume the private variables. Adding a tone system-wide is: 4 semantic tokens per theme + one rule in `tones.css`.
+- **Color decorators are global, written once.** `core/src/system/colors.css` maps each `bit-{color}` class to private variables: `--_bit-color`, `--_bit-color-contrast`, `--_bit-color-hover`, `--_bit-color-soft`. Components consume the private variables. Adding a color system-wide is: 4 semantic tokens per theme + one rule in `colors.css`.
 - **Size decorators are global, written once.** `core/src/system/sizes.css` maps `bit-{size}` to `--_bit-size-height`, `--_bit-size-padding`, `--_bit-size-text`.
 - **Variant decorators are per component**, because solid / outline / ghost render differently on a Button than on a Card. Each component's CSS has `.bit-button.bit-solid { }` style rules.
 
@@ -144,7 +144,7 @@ Grammar: `--bit-{category}-{role}[-{modifier}]`. This is the complete list. Ever
 Plain string props with fixed unions, so the editor autocompletes allowed values.
 
 ```
-tone     primary | neutral | success | warning | danger
+color    primary | neutral | success | warning | danger
 variant  solid | outline | ghost
 size     sm | md | lg        (Text extends this to xs … 2xl)
 ```
@@ -160,7 +160,7 @@ Adding a variant to one component = add it to that array + add a CSS rule in the
 ### 4.2 Rules every component follows
 
 - Emits `bit-{component}` plus exactly one decorator per supported axis, so CSS can rely on their presence. The decorator is the prop's value, or the caller's `bit-{value}` from `className` if one is given for that axis — that is how `className` overrides a default.
-- Appends the caller's `className` **last**, so `<Button className="bit-danger">` overrides the default tone.
+- Appends the caller's `className` **last**, so `<Button className="bit-danger">` overrides the default color.
 - Forwards its `ref` to the root DOM node.
 - Spreads unknown props onto the root DOM node.
 - Booleans become **attributes, never classes**: native where they exist (`disabled`, `aria-invalid`), `data-` otherwise (`data-loading`, Radix's `data-state`).
@@ -171,7 +171,7 @@ Adding a variant to one component = add it to that array + add a CSS rule in the
 
 ### 4.3 The 20 components
 
-| Component | tone | variant | size | Notes |
+| Component | color | variant | size | Notes |
 |---|---|---|---|---|
 | **Phase 1: Foundation** | | | | |
 | Button | ✓ default `primary` | ✓ | ✓ | `loading` → `data-loading`; `asChild` via Radix Slot |
@@ -179,7 +179,7 @@ Adding a variant to one component = add it to that array + add a CSS rule in the
 | Alert | ✓ default `neutral` | solid, outline | | `title` prop; outline uses `-soft` bg |
 | Card | | solid, outline | | `CardHeader`, `CardBody`, `CardFooter` |
 | Stack | | | | `direction`, `gap`, `align`, `justify`, `wrap` as data attrs |
-| Text | muted via tone `neutral` | | xs … 2xl | `as` (p, span, h1–h6), `weight` |
+| Text | muted via color `neutral` | | xs … 2xl | `as` (p, span, h1–h6), `weight` |
 | Spinner | ✓ | | ✓ | `aria-label` required |
 | BitLogo | | | ✓ | see §7 |
 | **Phase 2: Forms** (native elements, styled) | | | | |
@@ -194,7 +194,7 @@ Adding a variant to one component = add it to that array + add a CSS rule in the
 | Modal | | | ✓ | Radix Dialog; `Modal`, `ModalTrigger`, `ModalClose`; `title`, `description` props |
 | Tabs | | | ✓ | Radix Tabs; `Tabs`, `TabList`, `Tab`, `TabPanel` |
 | Tooltip | | | | Radix Tooltip; `content` prop wraps children |
-| Menu | item tone (`danger`) | | | Radix DropdownMenu; `Menu`, `MenuTrigger`, `MenuItem`, `MenuSeparator` |
+| Menu | item color (`danger`) | | | Radix DropdownMenu; `Menu`, `MenuTrigger`, `MenuItem`, `MenuSeparator` |
 | Avatar | | | ✓ | Radix Avatar; `src`, `name` → initials fallback |
 | Table | | | ✓ | plain styled table; `striped` → `data-striped`; row/cell exports |
 
@@ -224,10 +224,10 @@ bit-design-system/
 │   │   └── src/
 │   │       ├── themes/power-up.css
 │   │       ├── tokens.ts             semantic token name list (drives completeness test)
-│   │       ├── system/               reset.css, tones.css, sizes.css, motion.css
+│   │       ├── system/               reset.css, colors.css, sizes.css, motion.css
 │   │       ├── components/           button.css, card.css, … one per component
 │   │       └── index.css             imports system + every component file
-│   └── react/                    @bit/react  depends on core, Radix; React is a peer dep
+│   └── react/                    @bit/react  inlines core at build (core is a devDependency), depends on Radix; React is a peer dep
 │       └── src/
 │           ├── system/               axes.ts (unions), toClasses(), warnUnknown()
 │           ├── components/           Button/Button.tsx, Button.test.tsx, Button.stories.tsx
@@ -293,7 +293,7 @@ Every component ships three sibling files: `X.tsx`, `X.test.tsx`, `X.stories.tsx
 
 ### 8.2 Accessibility tests
 
-`vitest-axe` against every component's default render and each tone × variant. Contrast failures in a theme fail the build.
+`vitest-axe` against every component's default render and each color × variant. Contrast failures in a theme fail the build.
 
 ### 8.3 System tests (guard the conventions)
 
@@ -337,3 +337,4 @@ Angular or other frameworks, dark mode, i18n / RTL, npm publishing, Style Dictio
 | Logo transition | A2 three-size stepped grow, no fades | hard cut w/ flicker, pop, roll, two-size | matches NES power-up exactly |
 | Privacy | `"private": true` guard flag | private npm package | open-source repo makes a hidden package pointless |
 | Name | `bit`, prefix `bit-`, repo `bit-design-system` | 32-bit, Lexicon, Sprite | themes per game under one name |
+| Axis name | `color` | `tone` | the word people already use; aligns with `--bit-color-*` (addendum 2026-09-12) |

@@ -41,4 +41,12 @@ describe('BitLogo', () => {
     const { container } = render(<BitLogo />);
     await expectNoA11yViolations(container);
   });
+
+  it('rejects the legacy DOM color attribute and does not render it', () => {
+    render(
+      // @ts-expect-error color is not part of BitLogoProps
+      <BitLogo color="danger" />,
+    );
+    expect(screen.getByRole('img')).not.toHaveAttribute('color');
+  });
 });

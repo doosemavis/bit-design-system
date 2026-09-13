@@ -18,7 +18,7 @@ export const Playground: Story = {
       <CardHeader>Coins collected</CardHeader>
       <CardBody>You picked up 42 coins in World 1-2.</CardBody>
       <CardFooter>
-        <Button variant="ghost" tone="neutral">Later</Button>
+        <Button variant="ghost" color="neutral">Later</Button>
         <Button>Collect</Button>
       </CardFooter>
     </Card>

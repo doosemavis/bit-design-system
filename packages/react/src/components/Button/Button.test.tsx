@@ -3,7 +3,7 @@ import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Button } from './Button';
-import { TONES, VARIANTS } from '../../system/axes';
+import { COLORS, VARIANTS } from '../../system/axes';
 import { expectNoA11yViolations } from '../../test/a11y';
 
 describe('Button', () => {
@@ -14,8 +14,8 @@ describe('Button', () => {
     expect(btn.className).toBe('bit-button bit-primary bit-solid bit-md');
   });
 
-  it('maps tone, variant, and size to decorator classes', () => {
-    render(<Button tone="danger" variant="outline" size="lg">Delete</Button>);
+  it('maps color, variant, and size to decorator classes', () => {
+    render(<Button color="danger" variant="outline" size="lg">Delete</Button>);
     expect(screen.getByRole('button').className).toBe('bit-button bit-danger bit-outline bit-lg');
   });
 
@@ -24,8 +24,8 @@ describe('Button', () => {
     expect(screen.getByRole('button').className).toBe('bit-button bit-solid bit-md bit-danger');
   });
 
-  it('a tone decorator in className overrides the tone prop', () => {
-    render(<Button tone="danger" className="bit-primary">X</Button>);
+  it('a color decorator in className overrides the color prop', () => {
+    render(<Button color="danger" className="bit-primary">X</Button>);
     expect(screen.getByRole('button').className).toBe('bit-button bit-solid bit-md bit-primary');
   });
 
@@ -52,7 +52,7 @@ describe('Button', () => {
 
   it('asChild renders the child element with Button classes and no type attribute', () => {
     render(
-      <Button asChild tone="neutral">
+      <Button asChild color="neutral">
         <a href="/docs">Docs</a>
       </Button>,
     );
@@ -74,9 +74,9 @@ describe('Button', () => {
     expect(link).not.toHaveAttribute('disabled');
   });
 
-  const combos = TONES.flatMap((tone) => VARIANTS.map((variant) => [tone, variant] as const));
-  it.each(combos)('tone=%s variant=%s has no accessibility violations', async (tone, variant) => {
-    const { container } = render(<Button tone={tone} variant={variant}>Go</Button>);
+  const combos = COLORS.flatMap((color) => VARIANTS.map((variant) => [color, variant] as const));
+  it.each(combos)('color=%s variant=%s has no accessibility violations', async (color, variant) => {
+    const { container } = render(<Button color={color} variant={variant}>Go</Button>);
     await expectNoA11yViolations(container);
   });
 });

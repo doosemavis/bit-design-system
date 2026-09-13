@@ -9,7 +9,7 @@ const meta = {
   argTypes: {
     as: { control: 'select', options: ['p', 'span', 'div', 'label', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'] },
     size: { control: 'select', options: TEXT_SIZES },
-    tone: { control: 'select', options: [undefined, 'neutral'] },
+    color: { control: 'select', options: [undefined, 'neutral'] },
     weight: { control: 'radio', options: ['normal', 'bold'] },
   },
 } satisfies Meta<typeof Text>;
@@ -29,5 +29,5 @@ export const Scale: Story = {
   ),
 };
 
-export const Muted: Story = { args: { tone: 'neutral' } };
+export const Muted: Story = { args: { color: 'neutral' } };
 export const Heading: Story = { args: { as: 'h1', size: '2xl', children: 'Press Start' } };

@@ -20,15 +20,26 @@ const esm = await import(resolve(dist, 'index.js'));
 for (const name of EXPECTED) assert.ok(esm[name], `ESM export missing: ${name}`);
 
 // 3. Types
-const dts = readFileSync(resolve(dist, 'index.d.ts'), 'utf8');
-for (const name of ['ButtonProps', 'BitLogoProps', 'Tone', 'Variant', 'Size']) {
-  assert.ok(dts.includes(name), `index.d.ts missing type: ${name}`);
-}
 assert.ok(existsSync(resolve(dist, 'index.d.cts')), 'index.d.cts missing (CJS types entry)');
+const dtsFiles = {
+  'index.d.ts': readFileSync(resolve(dist, 'index.d.ts'), 'utf8'),
+  'index.d.cts': readFileSync(resolve(dist, 'index.d.cts'), 'utf8'),
+};
+// @bit/core is a devDependency: it is never in the tarball, so the declarations must be
+// self-contained. A substring check on 'Color' would pass even if the type still came from
+// an unresolved `@bit/core` import, so assert the shape directly instead.
+for (const [file, contents] of Object.entries(dtsFiles)) {
+  assert.ok(!/from\s+['"]@bit\/core/.test(contents), `${file} still imports from @bit/core (types must be self-contained)`);
+  assert.ok(/declare\s+const\s+COLORS\b/.test(contents), `${file} missing local declaration: COLORS`);
+  assert.ok(/type\s+Color\b/.test(contents), `${file} missing exported type: Color`);
+}
+for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size']) {
+  assert.ok(dtsFiles['index.d.ts'].includes(name), `index.d.ts missing type: ${name}`);
+}
 
 // 4. CSS bundle: system layer + every component, no unresolved local imports
 const css = readFileSync(resolve(dist, 'styles.css'), 'utf8');
-for (const needle of ['.bit-primary', '--_bit-tone', '.bit-sm', '@keyframes bit-power-up', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo']) {
+for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '@keyframes bit-power-up', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo']) {
   assert.ok(css.includes(needle), `styles.css missing: ${needle}`);
 }
 assert.ok(!/@import\s+"\.\//.test(css), 'styles.css still contains a relative @import (bundling failed)');

@@ -1,8 +1,8 @@
 /** Every public class and custom property starts with this. */
 export const PREFIX = 'bit';
 
-/** The five color roles. Same words as the `tone` prop and the `bit-{tone}` class. */
-export const TONES = ['primary', 'neutral', 'success', 'warning', 'danger'] as const;
+/** The five color roles. Same words as the `color` prop and the `bit-{color}` class. */
+export const COLORS = ['primary', 'neutral', 'success', 'warning', 'danger'] as const;
 /** Control sizes. Same words as the `size` prop and the `bit-{size}` class. */
 export const SIZES = ['sm', 'md', 'lg'] as const;
 /** Text sizes: the control sizes plus the ends of the type scale. */
@@ -10,7 +10,7 @@ export const TEXT_SIZES = ['xs', 'sm', 'md', 'lg', 'xl', '2xl'] as const;
 /** Spacing steps on a 4px scale: 4, 8, 12, 16, 24, 32, 48, 64. */
 export const SPACE_STEPS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 
-export type Tone = (typeof TONES)[number];
+export type Color = (typeof COLORS)[number];
 export type Size = (typeof SIZES)[number];
 export type TextSize = (typeof TEXT_SIZES)[number];
 export type SpaceStep = (typeof SPACE_STEPS)[number];
@@ -20,11 +20,11 @@ const token = (category: string, ...parts: (string | number)[]) =>
 
 const colorRoleTokens = ['bg', 'surface', 'ink', 'text', 'text-muted', 'focus'].map((role) => token('color', role));
 
-const toneTokens = TONES.flatMap((tone) => [
-  token('color', tone),
-  token('color', tone, 'contrast'),
-  token('color', tone, 'hover'),
-  token('color', tone, 'soft'),
+const colorTokens = COLORS.flatMap((color) => [
+  token('color', color),
+  token('color', color, 'contrast'),
+  token('color', color, 'hover'),
+  token('color', color, 'soft'),
 ]);
 
 const shapeTokens = [
@@ -63,7 +63,7 @@ const motionTokens = [
  */
 export const SEMANTIC_TOKENS: readonly string[] = [
   ...colorRoleTokens,
-  ...toneTokens,
+  ...colorTokens,
   ...shapeTokens,
   ...typeTokens,
   ...spaceTokens,
