@@ -1,0 +1,11 @@
+/* bit gallery. Every value is a --bit-* token so a theme swap restyles the gallery too.
+   Gallery-private variables are --_gallery-*. Classes are gallery-block / gallery-block__element. */
+:root {
+  --_gallery-sidebar-width: 15rem;
+  --_gallery-header-height: 3.5rem;
+  --_gallery-gutter: var(--bit-space-4);
+}
+
+html {
+  scroll-behavior: smooth;
+}
