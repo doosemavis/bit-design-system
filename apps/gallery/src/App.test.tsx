@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { App } from './App';
 
 describe('App', () => {
-  it('renders the gallery name', () => {
+  it('mounts the hash router and shows the home page', async () => {
     render(<App />);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('bit');
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('bit');
   });
 });
