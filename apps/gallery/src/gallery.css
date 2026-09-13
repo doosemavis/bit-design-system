@@ -305,3 +305,33 @@ html {
   background-size: 16px 16px;
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
 }
+
+/* ---------- presets and matrix ---------- */
+.gallery-presets__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bit-space-2);
+  margin-top: var(--bit-space-2);
+}
+
+.gallery-matrix__scroll {
+  overflow-x: auto;
+  margin-top: var(--bit-space-2);
+}
+
+.gallery-matrix__table {
+  border-collapse: separate;
+  border-spacing: var(--bit-space-3);
+}
+
+.gallery-matrix__table th {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--bit-text-sm);
+  font-weight: var(--bit-weight-normal);
+  color: var(--bit-color-text-muted);
+  text-align: left;
+}
+
+.gallery-matrix__table td {
+  vertical-align: middle;
+}
