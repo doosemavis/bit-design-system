@@ -74,4 +74,19 @@ describe('toJsx', () => {
     const state = { ...defaultState(button), children: 'a < b {c}' };
     expect(toJsx(button, state)).toBe(`import { Button } from '@bit/react';\n\n<Button>{'a < b {c}'}</Button>`);
   });
+
+  it('escapes single quotes inside braced children', () => {
+    const state = { ...defaultState(button), children: "it's <b>" };
+    expect(toJsx(button, state)).toBe(`import { Button } from '@bit/react';\n\n<Button>{'it\\'s <b>'}</Button>`);
+  });
+
+  it('escapes backslashes before quotes inside braced children', () => {
+    const state = { ...defaultState(button), children: "C:\\dir\\'x {y}" };
+    expect(toJsx(button, state)).toBe(`import { Button } from '@bit/react';\n\n<Button>{'C:\\\\dir\\\\\\'x {y}'}</Button>`);
+  });
+
+  it('prints plain children with quotes and backslashes raw', () => {
+    const state = { ...defaultState(button), children: "it's C:\\dir" };
+    expect(toJsx(button, state)).toBe(`import { Button } from '@bit/react';\n\n<Button>it's C:\\dir</Button>`);
+  });
 });

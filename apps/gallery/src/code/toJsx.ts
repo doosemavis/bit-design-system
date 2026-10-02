@@ -8,9 +8,14 @@ function escapeAttr(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
+/** A single-quoted JS string literal. Backslashes are escaped before quotes so the quote escapes survive. */
+function singleQuoted(value: string): string {
+  return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+}
+
 /** Children print raw unless they contain JSX-significant characters, then as a string expression. */
 function printChildren(value: string): string {
-  return /[<>{}]/.test(value) ? `{${JSON.stringify(value).replace(/^"|"$/g, "'").replace(/\\"/g, '"')}}` : value;
+  return /[<>{}]/.test(value) ? `{${singleQuoted(value)}}` : value;
 }
 
 function isRequiredAria(control: Control): boolean {
