@@ -177,3 +177,17 @@ Accessibility and markup are otherwise unchanged:
 - `data-era` is on the root
 
 **Header:** the logo gets shorter than the stacked version, because no line sits below the word.
+
+## Amendment 2 (owner, 2026-10-03, at the second sign-off board)
+
+| # | Change | Supersedes |
+|---|---|---|
+| B1 | **Every era is the same size and width.** 32-bit and 64-bit match 8-bit and 16-bit in two ways. First, the visual height of "bit" (the ascender of "b" and "t" from the baseline) is the same. Second, the word is just as **wide**, so the gap between "bit" and "DESIGN / SYSTEM" looks the same in every era. 32 and 64 reach that width with per-era `letter-spacing`, not by stretching. A page load changes only the era's style, never the logo's size or the caption's position. | §3's per-era word sizes (`0.82em` / `1em` / `1.04em`) |
+| B2 | **Placement sizes stay:** `sm` in the header and `lg` on Home. `size` is placement only, and nothing about size animates. | (confirms §1) |
+| B3 | **The gallery header loses the "gallery" label** beside the logo. The header link around the logo is unchanged, and so is the tab title "bit — component gallery". | §4 header |
+
+The reference box is the 8-bit word: Press Start 2P "bit" at `0.82em`. Its ink height and advance width are the targets. 16-bit already matches it, because it uses the same font at the same size. 32-bit (Audiowide) and 64-bit (Lilita One) each get two values, both measured in a real browser and recorded in the CSS comments:
+- a `font-size`, so the ink height of "bit" matches
+- a `letter-spacing`, so the word's width matches
+
+The README image (64-bit only) uses the same 64-bit ratios.
