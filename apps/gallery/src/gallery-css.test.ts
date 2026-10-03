@@ -51,7 +51,6 @@ describe('gallery.css', () => {
   it('never hardcodes a font stack: mono labels read --bit-font-mono', () => {
     expect(galleryCss).not.toMatch(/monospace/);
     expect(galleryCss).toMatch(/\.gallery-control__label\s*\{[^}]*font-family: var\(--bit-font-mono\);/);
-    expect(galleryCss).toMatch(/\.gallery-matrix__table th\s*\{[^}]*font-family: var\(--bit-font-mono\);/);
   });
 
   it('every face sample is one height and sits on its floor, so the token chips line up across the cards', () => {
@@ -62,5 +61,23 @@ describe('gallery.css', () => {
 
   it('script-moved focus on main and on tabIndex -1 targets draws no ring; real controls keep theirs', () => {
     expect(galleryCss).toMatch(/\.gallery-main:focus,\s*\.gallery-main \[tabindex="-1"\]:focus \{\s*outline: none;\s*\}/);
+  });
+
+  it('the Matrix is gone: Variants is a bit Table', () => {
+    expect(galleryCss).not.toMatch(/gallery-matrix/);
+  });
+
+  it('the playground puts the controls beside the preview, and under it below 720px', () => {
+    expect(galleryCss).toMatch(/\.gallery-playground__top \{[^}]*grid-template-columns: minmax\(0, 1fr\) 16rem;/);
+    expect(galleryCss).toMatch(
+      /@media \(max-width: 720px\) \{\s*\.gallery-playground__top \{\s*grid-template-columns: minmax\(0, 1fr\);\s*\}\s*\}/,
+    );
+  });
+
+  it('the presets scroll sideways in one row instead of widening the page', () => {
+    const presets = /\.gallery-presets \{([^}]*)\}/.exec(galleryCss)![1]!;
+    expect(presets).toContain('overflow-x: auto;');
+    expect(presets).toContain('min-width: 0;');
+    expect(presets).not.toContain('flex-wrap');
   });
 });

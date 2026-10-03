@@ -6,6 +6,7 @@ import { expectNoA11yViolations } from './test/a11y';
 
 /** The Foundations guide pages and their h1s. */
 const FOUNDATION_PAGES = [
+  ['/tokens', 'Tokens'],
   ['/typography', 'Typography'],
   ['/spacing', 'Spacing'],
 ] as const;

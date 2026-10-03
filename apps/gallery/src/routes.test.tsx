@@ -5,14 +5,14 @@ import { MANIFESTS, routeFor } from './manifests';
 import { renderAt } from './test/renderRoute';
 import { expectNoA11yViolations } from './test/a11y';
 
-/** The React code panel: the CodeBlock in the section headed "React". */
+/** The Playground's code panel: the CodeBlock whose code region is "Example code". */
 function reactPanel(): HTMLElement {
-  const section = screen.getByRole('heading', { level: 2, name: 'React' }).closest('section')!;
-  return section.querySelector<HTMLElement>('.bit-code__block')!;
+  return screen.getByRole('region', { name: 'Example code' }).closest<HTMLElement>('.bit-code__block')!;
 }
 
 /** The Foundations guide pages and their h1s. */
 const FOUNDATION_PAGES = [
+  ['/tokens', 'Tokens'],
   ['/typography', 'Typography'],
   ['/spacing', 'Spacing'],
 ] as const;
@@ -23,13 +23,16 @@ describe('component routes (route smoke, D14)', () => {
   });
 
   it.each(MANIFESTS.map((m) => [m.name, m] as const))(
-    '%s: heading, live preview, controls and code, with no axe violations',
+    '%s: heading, the five sections, live preview, controls and code, with no axe violations',
     async (_name, manifest) => {
       const { container } = renderAt(routeFor(manifest));
       expect(await screen.findByRole('heading', { level: 1, name: manifest.name })).toBeInTheDocument();
       const preview = screen.getByRole('region', { name: `${manifest.name} preview` });
       expect(preview.querySelector('[class*="bit-"]')).not.toBeNull();
-      expect(screen.getByRole('heading', { level: 2, name: 'Controls' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 3, name: 'Controls' })).toBeInTheDocument();
+      for (const name of ['Playground', 'Usage', 'Props', 'Accessibility']) {
+        expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument();
+      }
       expect(reactPanel()).toHaveAttribute('data-language', 'jsx');
       expect(reactPanel().querySelector('pre')!.textContent).toMatch(/^import \{ .+ \} from '@bit-ds\/react';\n\n</);
       await expectNoA11yViolations(container);

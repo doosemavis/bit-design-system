@@ -85,12 +85,40 @@ function importLine(manifest: Manifest): string {
   return `import { ${unique.join(', ')} } from '@bit-ds/react';`;
 }
 
+export interface ToJsxOptions {
+  /**
+   * `'props'` (the default) prints every axis as its prop: `color="danger"`. `'className'` prints the
+   * non-default axes as one `className="bit-danger bit-outline"`, in control order, where the first of
+   * them would have been, and leaves those props out. Both render the same classes.
+   */
+  decorators?: 'props' | 'className';
+}
+
+/** True when an axis control's value differs from its default, so it emits a class worth printing. */
+function axisChanged(control: Control, state: ControlState, defaults: ControlState): boolean {
+  return control.kind === 'axis' && (state[control.prop] ?? defaults[control.prop]) !== defaults[control.prop];
+}
+
+/** `className="bit-danger bit-outline"`: one class per changed axis, in control order. */
+function decoratorClassName(manifest: Manifest, state: ControlState, defaults: ControlState): string {
+  const classes = manifest.controls
+    .filter((control) => axisChanged(control, state, defaults))
+    .map((control) => `bit-${String(state[control.prop])}`);
+  return `className="${escapeAttr(classes.join(' '))}"`;
+}
+
 /** The React snippet for the current state: import line, blank line, element. Pure. */
-export function toJsx(manifest: Manifest, state: ControlState): string {
+export function toJsx(manifest: Manifest, state: ControlState, options: ToJsxOptions = {}): string {
   const defaults = defaultState(manifest);
   const fixed = Object.entries(manifest.fixedProps ?? {}).map(([name, value]) => printFixed(name, value));
+  const asClasses = options.decorators === 'className';
+  // In className mode the attribute takes the place of the first changed axis; -1 when none changed.
+  const classAt = asClasses ? manifest.controls.findIndex((control) => axisChanged(control, state, defaults)) : -1;
   const props = manifest.controls
-    .map((control) => printProp(control, state[control.prop] ?? defaults[control.prop]!, defaults[control.prop]!))
+    .map((control, index) => {
+      if (asClasses && control.kind === 'axis') return index === classAt ? decoratorClassName(manifest, state, defaults) : null;
+      return printProp(control, state[control.prop] ?? defaults[control.prop]!, defaults[control.prop]!);
+    })
     .filter((p): p is string => p !== null)
     .concat(fixed)
     .map((p) => ` ${p}`)
