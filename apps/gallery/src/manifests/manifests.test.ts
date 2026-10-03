@@ -98,6 +98,7 @@ describe('manifest contract', () => {
     ];
     expect(unknownChildren(nested)).toEqual(['tdd']);
   });
+
   it('Stack gap and Text size are px numbers, migrated through the D13 table (OV6)', () => {
     expect(stack.controls.find((c) => c.prop === 'gap')).toMatchObject({
       kind: 'select',
