@@ -320,3 +320,31 @@ html {
 .gallery-matrix__table td {
   vertical-align: middle;
 }
+
+/* ---------- foundations pages ---------- */
+/* Cards side by side, as many as fit at 12rem or wider: the faces, Do and Don't, Stack or Box. */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--bit-space-12px);
+}
+
+/* One row of the Spacing page's ruler: the step, its bar (the 64px bar fits in 5rem), its token. */
+.gallery-ruler {
+  display: grid;
+  grid-template-columns: 3rem 5rem minmax(0, 1fr);
+  justify-items: start;
+  align-items: center;
+  gap: var(--bit-space-12px);
+}
+
+/* The bar is a Box with paddingLeft set to the step and no content, so its width is the step's token. */
+.gallery-ruler__bar {
+  height: var(--bit-space-12px);
+  background: var(--bit-color-accent);
+}
+
+/* The Spacing page's live Box gets the preview stage's outline, so its padding shows. */
+.bit-box.gallery-outline {
+  outline: 2px dashed var(--bit-color-accent);
+}
