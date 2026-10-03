@@ -114,9 +114,9 @@ In order:
 1. **Hero:**
    - `BitLogo size="lg"` as the h1
    - the tagline "A retro-game React design system for people new to design systems. The prop you type is the class it emits is the token it reads."
-   - a primary Button "Browse components →" (to the first component) and an outline Button "See the tokens"
+   - a primary Button "Browse components →" (to the first component in the sidebar, today `/components/alert`) and an outline Button "See the tokens"
 2. **Components:**
-   - Two `Heading level={2}` groups: "Components" with a count Badge (15), then "Forms" with a count Badge (4).
+   - Two `Heading level={2}` groups: "Components" with a count Badge, then "Forms" with a count Badge. The counts come from the manifests (15 and 4 today).
    - Large tiles go to Alert, Button, Card and SegmentedControl, and to all four Forms components. Each large tile has a small live preview on top and a footer with the name and →.
    - Every other component gets a compact tile: a small icon chip, the name and →.
    - Every tile is one Link to its page.
