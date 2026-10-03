@@ -6,6 +6,7 @@ import { stack } from '../manifests/stack';
 import { text } from '../manifests/text';
 import { bitLogo } from '../manifests/bitLogo';
 import { spinner } from '../manifests/spinner';
+import { numberControlFixture as fixture } from '../test/fixtures';
 
 describe('buildProps', () => {
   it('passes axes, booleans, and text through and excludes children', () => {
@@ -16,6 +17,7 @@ describe('buildProps', () => {
   it('converts numeric selects and number controls to numbers', () => {
     expect(buildProps(stack, { ...defaultState(stack), gap: '32' }).gap).toBe(32);
     expect(buildProps(bitLogo, { ...defaultState(bitLogo), era: '32' })).toMatchObject({ era: 32 });
+    expect(buildProps(fixture, { ...defaultState(fixture), interval: '8' }).interval).toBe(8);
   });
 
   it('drops the default and none sentinels so the component sees an omitted prop', () => {

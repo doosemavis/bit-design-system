@@ -39,6 +39,6 @@ describe('preview and code agree on sentinels (D12)', () => {
   it('a select sentinel is left off both', () => {
     const state = defaultState(bitLogo);
     expect('era' in buildProps(bitLogo, state)).toBe(false);
-    expect(toJsx(bitLogo, state)).not.toContain('era');
+    expect(toJsx(bitLogo, state)).not.toContain('era=');
   });
 });

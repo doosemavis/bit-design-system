@@ -10,6 +10,7 @@ import { spinner } from '../manifests/spinner';
 import { bitLogo } from '../manifests/bitLogo';
 import { badge } from '../manifests/badge';
 import type { Manifest } from '../manifests/types';
+import { numberControlFixture } from '../test/fixtures';
 
 describe('toJsx', () => {
   it.each([
@@ -25,6 +26,12 @@ describe('toJsx', () => {
       bitLogo,
       { era: '32' },
       `import { BitLogo } from '@bit-ds/react';\n\n<BitLogo era={32} />`,
+    ],
+    [
+      'number controls use braces and a true-default boolean turned off prints ={false}',
+      numberControlFixture,
+      { interval: '8', animated: false },
+      `import { BitLogo } from '@bit-ds/react';\n\n<BitLogo interval={8} animated={false} />`,
     ],
     [
       'numeric selects use braces and sentinels are omitted',

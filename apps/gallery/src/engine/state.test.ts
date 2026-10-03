@@ -3,16 +3,7 @@ import { defaultState, parseState, serializeState } from './state';
 import { button } from '../manifests/button';
 import { stack } from '../manifests/stack';
 import { bitLogo } from '../manifests/bitLogo';
-import type { Manifest } from '../manifests/types';
-
-/** The engine still supports number controls and true-default booleans; no shipped manifest uses them now. */
-const fixture: Manifest = {
-  ...bitLogo,
-  controls: [
-    { kind: 'number', prop: 'interval', default: 5, min: 1, max: 30, step: 1 },
-    { kind: 'boolean', prop: 'animated', default: true },
-  ],
-};
+import { numberControlFixture as fixture } from '../test/fixtures';
 
 describe('defaultState', () => {
   it('collects every control default and string children', () => {

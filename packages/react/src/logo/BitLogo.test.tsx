@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { StrictMode, createRef } from 'react';
+import { hydrateRoot, type Root } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { BitLogo } from './BitLogo';
 import { LOGO_ERA_STORAGE_KEY, resetLogoEra } from './logoEra';
@@ -109,6 +110,25 @@ describe('BitLogo', () => {
     expect(renderToString(<BitLogo />)).toContain('data-era="64"');
     expect(renderToString(<BitLogo era={16} />)).toContain('data-era="16"');
     expect(stored()).toBeNull();
+  });
+
+  it('hydrates server HTML into this page load\'s era without a hydration error', () => {
+    const container = document.body.appendChild(document.createElement('div'));
+    container.innerHTML = renderToString(<BitLogo />);
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let root: Root | undefined;
+    try {
+      act(() => {
+        root = hydrateRoot(container, <BitLogo />);
+      });
+      expect(within(container).getByRole('img', { name: 'bit Design System' })).toHaveAttribute('data-era', '8');
+      expect(stored()).toBe('8');
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+      act(() => root?.unmount());
+      container.remove();
+    }
   });
 
   it('maps size, appends className last, and passes style and ref through', () => {
