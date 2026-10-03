@@ -4,6 +4,12 @@ import { MANIFESTS, routeFor } from './manifests';
 import { renderAt } from './test/renderRoute';
 import { expectNoA11yViolations } from './test/a11y';
 
+/** The Foundations guide pages and their h1s. */
+const FOUNDATION_PAGES = [
+  ['/typography', 'Typography'],
+  ['/spacing', 'Spacing'],
+] as const;
+
 /**
  * Every page with data-mode="dark" set before the first render, the way COLOR_MODE_SCRIPT leaves it.
  * jsdom loads no CSS, so this checks markup and accessibility in dark mode. The real dark colors are
@@ -18,6 +24,12 @@ describe('component routes in dark mode', () => {
   it.each(MANIFESTS.map((m) => [m.name, m] as const))('%s renders with no axe violations', async (_name, manifest) => {
     const { container } = renderAt(routeFor(manifest));
     expect(await screen.findByRole('heading', { level: 1, name: manifest.name })).toBeInTheDocument();
+    await expectNoA11yViolations(container);
+  });
+
+  it.each(FOUNDATION_PAGES)('%s renders with no axe violations', async (path, title) => {
+    const { container } = renderAt(path);
+    expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
     await expectNoA11yViolations(container);
   });
 

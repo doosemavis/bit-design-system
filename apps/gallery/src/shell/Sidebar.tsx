@@ -13,9 +13,11 @@ export interface NavItem {
 type PageGroup = Exclude<ManifestGroup, 'brand'>;
 const GROUP_LABELS: Record<PageGroup, NavGroup> = { components: 'Components', forms: 'Forms' };
 
-/** Foundations, then one entry per components or forms manifest, then Brand. */
+/** Foundations (the guide pages), then one entry per components or forms manifest, then Brand. */
 export const NAV: readonly NavItem[] = [
   { group: 'Foundations', label: 'Tokens', to: '/tokens' },
+  { group: 'Foundations', label: 'Typography', to: '/typography' },
+  { group: 'Foundations', label: 'Spacing', to: '/spacing' },
   ...MANIFESTS.filter((m): m is Manifest & { group: PageGroup } => m.group !== 'brand').map((m) => ({
     group: GROUP_LABELS[m.group],
     label: m.name,

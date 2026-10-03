@@ -5,6 +5,9 @@ import { COMPONENTS, HTML_CHILDREN, isHtmlElement } from './registry';
 import { defaultState, parseState, serializeState } from '../engine/state';
 import { stack } from './stack';
 import { text } from './text';
+import { heading } from './heading';
+import { box } from './box';
+import { toJsx } from '../code/toJsx';
 import type { ChildSpec, ControlState } from './types';
 
 /** ChildSpec names, nested parts included, that are neither a registered component nor an allowed HTML element. */
@@ -114,6 +117,33 @@ describe('manifest contract', () => {
       values: ['11', '13', '15', '18', '24', '32'],
     });
     expect(text.presets?.map((p) => p.state.size)).toEqual(['32', '13']);
+  });
+
+  it('Heading always prints its required level; size is left off until chosen', () => {
+    expect(toJsx(heading, defaultState(heading))).toBe(
+      "import { Heading } from '@bit-ds/react';\n\n<Heading level={2}>Build with bit</Heading>",
+    );
+    const preset = heading.presets!.find((p) => p.label === 'h2 that looks like h3')!;
+    expect(toJsx(heading, { ...defaultState(heading), ...preset.state } as ControlState)).toContain('<Heading level={2} size={3}>Build with bit</Heading>');
+  });
+
+  it('Box prints its padding and leaves the other spacing props off until chosen; 0 prints as 0', () => {
+    expect(toJsx(box, defaultState(box))).toBe(
+      "import { Badge, Box } from '@bit-ds/react';\n\n<Box padding={16}>\n  <Badge color=\"primary\">Inside the box</Badge>\n</Box>",
+    );
+    expect(toJsx(box, { ...defaultState(box), paddingY: '0' })).toContain('<Box padding={16} paddingY={0}>');
+    expect(box.controls.filter((c) => c.kind === 'select' && c.numeric).map((c) => c.prop)).toEqual([
+      'padding',
+      'paddingX',
+      'paddingY',
+      'margin',
+      'marginTop',
+    ]);
+  });
+
+  it('the gallery offers Box every as tag but main and aside (the Box API keeps them)', () => {
+    const as = box.controls.find((c) => c.prop === 'as');
+    expect(as?.kind === 'select' && as.values).toEqual(['div', 'section', 'article', 'header', 'footer', 'nav', 'span']);
   });
 
   it('every preset sets only real controls, to values those controls accept (§H.3)', () => {

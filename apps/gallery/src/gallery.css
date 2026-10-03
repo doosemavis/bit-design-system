@@ -285,6 +285,12 @@ html {
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
 }
 
+/* A previewed Box gets a dashed outline in the mode accent, so its padding shows. Gallery only: Box itself
+   draws nothing. An outline takes no space, so the space on screen is exactly what the props set. */
+.gallery-preview__stage > .bit-box {
+  outline: 2px dashed var(--bit-color-accent);
+}
+
 /* ---------- presets and matrix ---------- */
 .gallery-presets__row {
   display: flex;
@@ -313,4 +319,65 @@ html {
 
 .gallery-matrix__table td {
   vertical-align: middle;
+}
+
+/* ---------- foundations pages ---------- */
+/* Cards side by side, as many as fit at 12rem or wider: the faces, Do and Don't, Stack or Box. */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--bit-space-12px);
+}
+
+/* A face sample on the Typography page, set in the font token data-face names. Text size 24 gives the
+   base size; the pixel and mono samples step down so their wide letters fit a card. */
+.gallery-face[data-face="display"] {
+  font-family: var(--bit-font-display);
+  font-weight: 400;
+}
+
+.gallery-face[data-face="body"] {
+  font-family: var(--bit-font-body);
+  font-weight: var(--bit-weight-bold);
+}
+
+.gallery-face[data-face="pixel"] {
+  font-family: var(--bit-font-pixel);
+  font-weight: 400;
+  font-size: var(--bit-text-13px);
+  text-transform: uppercase;
+}
+
+.gallery-face[data-face="mono"] {
+  font-family: var(--bit-font-mono);
+  font-weight: 400;
+  font-size: var(--bit-text-18px);
+}
+
+/* One row of the Spacing page's ruler: the step, its bar (the 64px bar fits in 5rem), its token. */
+.gallery-ruler {
+  display: grid;
+  grid-template-columns: 3rem 5rem minmax(0, 1fr);
+  justify-items: start;
+  align-items: center;
+  gap: var(--bit-space-12px);
+}
+
+/* The bar is a Box with paddingLeft set to the step and no content, so its width is the step's token. */
+.gallery-ruler__bar {
+  height: var(--bit-space-12px);
+  background: var(--bit-color-accent);
+}
+
+/* Forced colours would drop the background and leave the ruler empty; draw the bar in the text colour. */
+@media (forced-colors: active) {
+  .gallery-ruler__bar {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}
+
+/* The Spacing page's live Box gets the preview stage's outline, so its padding shows. */
+.bit-box.gallery-outline {
+  outline: 2px dashed var(--bit-color-accent);
 }

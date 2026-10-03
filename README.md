@@ -60,7 +60,7 @@ Both render identically. For interactive components (Switch, SegmentedControl, C
 ## Components
 
 - **Actions and status:** Button, Badge, Alert, Spinner
-- **Layout and type:** Card (+ CardHeader, CardBody, CardFooter), Stack, Text
+- **Layout and type:** Card (+ CardHeader, CardBody, CardFooter), Stack, Box, Text, Heading
 - **Forms:** Field, Input, Select, Switch
 - **Content:** Link, Code, CodeBlock, Table (+ TableHead, TableBody, TableRow, TableCell)
 - **Choice:** SegmentedControl, ModeToggle
@@ -68,6 +68,8 @@ Both render identically. For interactive components (Switch, SegmentedControl, C
 
 Every one works in light and dark mode, and anything focusable shows the one focus ring from `reset.css`. The form controls (Input, Select, Switch, SegmentedControl) sit on the real native element (an `<input>`, `<select>`, checkbox or radio), so keyboards and screen readers work as browsers intend.
 
+- `Heading` takes a required `level` (the tag, h1 to h6) and an optional `size` (the look), so an h2 can look like an h3.
+- `Box` pads and offsets one element on the space scale (`padding`, `paddingX`, `paddingTop`, … and the same for `margin`). When props overlap, the most specific wins: `paddingTop` beats `paddingY`, which beats `padding`. Use `Stack` for space between things.
 - `Switch` carries its own label; don't wrap it in `Field`.
 - `SegmentedControl` is native radios, so the arrow keys move the choice.
 - `Link` takes `color="primary"` or `color="neutral"` only.

@@ -11,6 +11,12 @@ function reactPanel(): HTMLElement {
   return section.querySelector<HTMLElement>('.bit-code__block')!;
 }
 
+/** The Foundations guide pages and their h1s. */
+const FOUNDATION_PAGES = [
+  ['/typography', 'Typography'],
+  ['/spacing', 'Spacing'],
+] as const;
+
 describe('component routes (route smoke, D14)', () => {
   beforeEach(() => {
     document.documentElement.dataset.theme = 'power-up';
@@ -29,6 +35,12 @@ describe('component routes (route smoke, D14)', () => {
       await expectNoA11yViolations(container);
     },
   );
+
+  it.each(FOUNDATION_PAGES)('%s: its heading, with no axe violations', async (path, title) => {
+    const { container } = renderAt(path);
+    expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
+    await expectNoA11yViolations(container);
+  });
 
   it('a control change updates the preview, the code, and the URL', async () => {
     const { router } = renderAt('/components/button');
@@ -54,6 +66,12 @@ describe('component routes (route smoke, D14)', () => {
     await screen.findByRole('heading', { level: 1, name: 'Stack' });
     const preview = screen.getByRole('region', { name: 'Stack preview' });
     expect(preview.querySelector('.bit-stack')).toHaveAttribute('data-gap', '12');
+  });
+
+  it("the Box page's dashed outline selector matches: the previewed Box is the stage's direct child", async () => {
+    const { container } = renderAt('/components/box');
+    await screen.findByRole('heading', { level: 1, name: 'Box' });
+    expect(container.querySelector('.gallery-preview__stage > .bit-box')).not.toBeNull();
   });
 
   it.each(['/components/nope', '/components/logo'])('%s renders the 404 (the logo lives at /brand/logo)', async (path) => {

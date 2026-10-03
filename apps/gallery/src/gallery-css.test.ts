@@ -26,6 +26,28 @@ describe('gallery.css', () => {
     expect(galleryCss).not.toMatch(/\.gallery-pre[\s{,]/);
   });
 
+  it('outlines a previewed Box, dashed in the mode accent, and only the Box the stage shows', () => {
+    expect(galleryCss).toMatch(/\.gallery-preview__stage > \.bit-box \{\s*outline: 2px dashed var\(--bit-color-accent\);\s*\}/);
+  });
+
+  it.each(['display', 'body', 'pixel', 'mono'])('a %s face sample reads its own font token', (face) => {
+    const rule = new RegExp(`\\.gallery-face\\[data-face="${face}"\\]\\s*\\{[^}]*font-family: var\\(--bit-font-${face}\\);`);
+    expect(galleryCss).toMatch(rule);
+  });
+
+  it('the ruler bar is drawn in the accent, and its width comes only from Box padding', () => {
+    const bar = /\.gallery-ruler__bar \{([^}]*)\}/.exec(galleryCss)![1]!;
+    expect(bar).toContain('background: var(--bit-color-accent);');
+    expect(bar).not.toMatch(/(^|\s)(width|padding)/);
+    expect(galleryCss).toMatch(/\.bit-box\.gallery-outline \{\s*outline: 2px dashed var\(--bit-color-accent\);\s*\}/);
+  });
+
+  it('in forced colours the ruler bar keeps a visible fill: CanvasText, with forced-color-adjust off', () => {
+    expect(galleryCss).toMatch(
+      /@media \(forced-colors: active\) \{\s*\.gallery-ruler__bar \{\s*forced-color-adjust: none;\s*background: CanvasText;\s*\}\s*\}/,
+    );
+  });
+
   it('never hardcodes a font stack: mono labels read --bit-font-mono', () => {
     expect(galleryCss).not.toMatch(/monospace/);
     expect(galleryCss).toMatch(/\.gallery-control__label\s*\{[^}]*font-family: var\(--bit-font-mono\);/);

@@ -9,7 +9,9 @@
 @import "./components/alert.css";
 @import "./components/card.css";
 @import "./components/stack.css";
+@import "./components/box.css";
 @import "./components/text.css";
+@import "./components/heading.css";
 @import "./components/spinner.css";
 @import "./components/logo.css";
 @import "./components/mode-toggle.css";
