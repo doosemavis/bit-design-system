@@ -1,4 +1,4 @@
-import type { ChildSpec, Control, ControlState, ControlValue, Manifest } from '../manifests/types';
+import type { ChildSpec, Control, ControlState, ControlValue, LiteralValue, Manifest } from '../manifests/types';
 import { defaultState } from '../engine/state';
 import { isOmittedSentinel } from '../manifests/sentinels';
 import { isHtmlElement } from '../manifests/registry';
@@ -17,6 +17,20 @@ function singleQuoted(value: string): string {
 /** Children print raw unless they contain JSX-significant characters, then as a string expression. */
 function printChildren(value: string): string {
   return /[<>{}]/.test(value) ? `{${singleQuoted(value)}}` : value;
+}
+
+/** A fixed prop's value as JS source: single-quoted strings, `{ key: value }` objects, `[a, b]` arrays. */
+function literal(value: LiteralValue): string {
+  if (typeof value === 'string') return singleQuoted(value);
+  if (typeof value !== 'object') return String(value);
+  if (Array.isArray(value)) return `[${value.map(literal).join(', ')}]`;
+  const entries = Object.entries(value as Record<string, LiteralValue>).map(([key, v]) => `${key}: ${literal(v)}`);
+  return `{ ${entries.join(', ')} }`;
+}
+
+/** A fixed prop as JSX: strings as attributes, everything else in braces. */
+function printFixed(name: string, value: LiteralValue): string {
+  return typeof value === 'string' ? `${name}="${escapeAttr(value)}"` : `${name}={${literal(value)}}`;
 }
 
 function isRequiredAria(control: Control): boolean {
@@ -66,9 +80,11 @@ function importLine(manifest: Manifest): string {
 /** The React snippet for the current state: import line, blank line, element. Pure. */
 export function toJsx(manifest: Manifest, state: ControlState): string {
   const defaults = defaultState(manifest);
+  const fixed = Object.entries(manifest.fixedProps ?? {}).map(([name, value]) => printFixed(name, value));
   const props = manifest.controls
     .map((control) => printProp(control, state[control.prop] ?? defaults[control.prop]!, defaults[control.prop]!))
     .filter((p): p is string => p !== null)
+    .concat(fixed)
     .map((p) => ` ${p}`)
     .join('');
 

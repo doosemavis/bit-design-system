@@ -13,6 +13,7 @@ import { field } from '../manifests/field';
 import { input } from '../manifests/input';
 import { select } from '../manifests/select';
 import { codeBlock } from '../manifests/codeBlock';
+import { segmentedControl } from '../manifests/segmentedControl';
 import type { Manifest } from '../manifests/types';
 import { numberControlFixture } from '../test/fixtures';
 
@@ -98,6 +99,12 @@ describe('toJsx', () => {
       `import { CodeBlock } from '@bit-ds/react';\n\n<CodeBlock language="jsx" code="const coins = 42; // collected" copy={false} />`,
     ],
     [
+      'fixed props print after the controls, as JS literals',
+      segmentedControl,
+      { size: 'sm' },
+      `import { SegmentedControl } from '@bit-ds/react';\n\n<SegmentedControl legend="Range" size="sm" options={[{ value: 'day', label: 'Day' }, { value: 'week', label: 'Week' }, { value: 'month', label: 'Month' }]} />`,
+    ],
+    [
       'a data-attribute enum prints like any select',
       badge,
       { shape: 'square' },
@@ -125,6 +132,16 @@ describe('toJsx', () => {
   it('prints plain children with quotes and backslashes raw', () => {
     const state = { ...defaultState(button), children: "it's C:\\dir" };
     expect(toJsx(button, state)).toBe(`import { Button } from '@bit-ds/react';\n\n<Button>it's C:\\dir</Button>`);
+  });
+
+  it('prints every kind of fixed value: strings as attributes, numbers, booleans, arrays and objects in braces', () => {
+    const withFixed: Manifest = {
+      ...button,
+      fixedProps: { title: 'Say "hi"', tabIndex: 0, hidden: false, data: [{ it: "it's" }] },
+    };
+    expect(toJsx(withFixed, defaultState(withFixed))).toBe(
+      `import { Button } from '@bit-ds/react';\n\n<Button title="Say &quot;hi&quot;" tabIndex={0} hidden={false} data={[{ it: 'it\\'s' }]}>Save</Button>`,
+    );
   });
 
   it('prints HTML ChildSpecs as JSX but leaves them out of the import line', () => {

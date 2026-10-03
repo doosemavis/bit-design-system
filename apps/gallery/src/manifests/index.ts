@@ -15,9 +15,10 @@ import { switchManifest } from './switch';
 import { link } from './link';
 import { code } from './code';
 import { codeBlock } from './codeBlock';
+import { segmentedControl } from './segmentedControl';
 
 /** Sidebar order within each group (Components, then Forms, then Brand). */
-export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, text, spinner, modeToggle, link, code, codeBlock, field, input, select, switchManifest, bitLogo];
+export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, text, spinner, modeToggle, link, code, codeBlock, segmentedControl, field, input, select, switchManifest, bitLogo];
 
 export function findManifest(slug: string): Manifest | undefined {
   return MANIFESTS.find((m) => m.slug === slug);
@@ -27,4 +28,15 @@ export function routeFor(manifest: Manifest): string {
   return manifest.group === 'brand' ? '/brand/logo' : `/components/${manifest.slug}`;
 }
 
-export type { Manifest, ManifestGroup, ManifestDocs, PropDoc, Control, ControlState, ControlValue, ChildSpec, Preset } from './types';
+export type {
+  Manifest,
+  ManifestGroup,
+  ManifestDocs,
+  PropDoc,
+  Control,
+  ControlState,
+  ControlValue,
+  ChildSpec,
+  LiteralValue,
+  Preset,
+} from './types';
