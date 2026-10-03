@@ -49,7 +49,7 @@ describe('semantic token list', () => {
     for (const name of expected) expect(SEMANTIC_TOKENS).toContain(name);
   });
 
-  it('has no --bit-color-focus (D9 draws the ring in ink)', () => {
+  it('has no --bit-color-focus (the focus ring has its own tokens)', () => {
     expect(SEMANTIC_TOKENS).not.toContain('--bit-color-focus');
   });
 

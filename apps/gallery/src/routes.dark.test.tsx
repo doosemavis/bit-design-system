@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { MANIFESTS, routeFor } from './manifests';
 import { renderAt } from './test/renderRoute';
@@ -24,7 +24,7 @@ describe('component routes in dark mode', () => {
   it('the header toggle shows Dark as pressed', async () => {
     renderAt('/');
     await screen.findByRole('heading', { level: 1 });
-    const darkButtons = screen.getAllByRole('button', { name: 'Dark' });
-    expect(darkButtons[0]).toHaveAttribute('aria-pressed', 'true');
+    const dark = within(screen.getByRole('banner')).getByRole('button', { name: 'Dark' });
+    expect(dark).toHaveAttribute('aria-pressed', 'true');
   });
 });

@@ -21,6 +21,7 @@ describe('Header color mode', () => {
     const header = await screen.findByRole('banner');
     await userEvent.click(within(header).getByRole('button', { name: 'Dark' }));
     expect(document.documentElement.dataset.mode).toBe('dark');
+    expect(localStorage.getItem('bit-color-mode')).toBe('dark');
     first.unmount();
 
     renderAt('/');

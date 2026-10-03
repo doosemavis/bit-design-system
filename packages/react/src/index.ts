@@ -22,6 +22,7 @@ export type { TextProps, TextElement } from './components/Text/Text';
 
 export { Spinner } from './components/Spinner/Spinner';
 export type { SpinnerProps } from './components/Spinner/Spinner';
+
 export { ModeToggle } from './components/ModeToggle/ModeToggle';
 export type { ModeToggleProps } from './components/ModeToggle/ModeToggle';
 
