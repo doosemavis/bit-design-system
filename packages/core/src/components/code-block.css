@@ -1,0 +1,92 @@
+/* CodeBlock: the Ink-night panel (dark in both modes) with editor colors, a language bar and a Copy
+   button. The border and the bar's rule follow the mode accent (decision 3). The pre's focus ring is
+   pulled inside the panel by system/reset.css, so overflow: hidden can't clip it. */
+.bit-code__block {
+  overflow: hidden;
+  color: var(--bit-code-text);
+  background: var(--bit-code-bg);
+  border: var(--bit-border-width) solid var(--bit-color-accent);
+  border-radius: var(--bit-radius-10px);
+  box-shadow: var(--bit-shadow-md);
+  /* A solid Alert sets the ring to its contrast colour, which can be ink: invisible on code-bg.
+     Reset it so the pre and Copy rings fall back to --bit-focus-ring-color, tested on code-bg. */
+  --_bit-focus-ring: initial;
+}
+
+.bit-code__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bit-space-8px);
+  padding: var(--bit-space-8px) var(--bit-space-8px) var(--bit-space-8px) var(--bit-space-16px);
+  border-bottom: 2px solid var(--bit-color-accent);
+}
+
+.bit-code__lang {
+  font-family: var(--bit-font-pixel);
+  font-size: var(--bit-text-11px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bit-code-punct);
+}
+
+/* A small light button on the dark bar, edged in ink like the board. */
+.bit-code__copy {
+  padding: var(--bit-space-4px) var(--bit-space-8px);
+  font-family: var(--bit-font-body);
+  font-size: var(--bit-text-13px);
+  font-weight: var(--bit-weight-bold);
+  line-height: 1;
+  color: var(--bit-color-ink);
+  background: var(--bit-code-text);
+  border: 2px solid var(--bit-color-ink);
+  border-radius: var(--bit-radius-6px);
+  cursor: pointer;
+}
+
+/* states are attributes, never classes */
+.bit-code__copy[data-state="failed"] {
+  color: var(--bit-color-danger-contrast);
+  background: var(--bit-color-danger);
+}
+
+.bit-code__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.bit-code__pre {
+  margin: 0;
+  padding: var(--bit-space-12px) var(--bit-space-16px);
+  overflow-x: auto;
+  font-family: var(--bit-font-mono);
+  font-size: var(--bit-text-13px);
+  /* JetBrains Mono ships 400 and 700; the page's 600 would snap to bold. */
+  font-weight: 400;
+  line-height: 1.6;
+  font-variant-ligatures: none;
+  white-space: pre;
+}
+
+.bit-code__pre code {
+  font: inherit;
+}
+
+/* One color per CODE_KINDS entry. Plain text is a bare string and takes the panel's text color. */
+.bit-code__token[data-kind="text"] { color: var(--bit-code-text); }
+.bit-code__token[data-kind="keyword"] { color: var(--bit-code-keyword); }
+.bit-code__token[data-kind="string"] { color: var(--bit-code-string); }
+.bit-code__token[data-kind="tag"] { color: var(--bit-code-tag); }
+.bit-code__token[data-kind="component"] { color: var(--bit-code-component); }
+.bit-code__token[data-kind="attr"] { color: var(--bit-code-attr); }
+.bit-code__token[data-kind="punct"] { color: var(--bit-code-punct); }
+.bit-code__token[data-kind="comment"] { color: var(--bit-code-comment); font-style: italic; }
+.bit-code__token[data-kind="number"] { color: var(--bit-code-number); }
+.bit-code__token[data-kind="prop"] { color: var(--bit-code-prop); }

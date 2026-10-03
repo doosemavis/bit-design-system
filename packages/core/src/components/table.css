@@ -1,0 +1,43 @@
+/* Table: a native table in a bordered wrapper. The wrapper scrolls sideways when the table is too
+   wide and is focusable (tabindex="0"), so that scroll works from the keyboard. */
+.bit-table {
+  overflow-x: auto;
+  color: var(--bit-color-text);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+  box-shadow: var(--bit-shadow-md);
+}
+
+.bit-table__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bit-table__cell {
+  padding: var(--bit-space-12px) var(--bit-space-16px);
+  text-align: left;
+  vertical-align: top;
+}
+
+.bit-table__head .bit-table__cell {
+  font-family: var(--bit-font-pixel);
+  font-size: var(--bit-text-11px);
+  font-weight: var(--bit-weight-normal);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: var(--bit-border-width) solid var(--bit-color-line);
+}
+
+.bit-table__body .bit-table__cell {
+  border-top: 1px solid color-mix(in srgb, var(--bit-color-line) 30%, transparent);
+}
+
+.bit-table__body .bit-table__row:first-child .bit-table__cell {
+  border-top: 0;
+}
+
+/* states are attributes, never classes */
+.bit-table[data-striped] .bit-table__body .bit-table__row:nth-child(even) {
+  background: var(--bit-color-neutral-soft);
+}

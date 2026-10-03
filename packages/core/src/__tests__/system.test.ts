@@ -1,19 +1,20 @@
 import { describe, it, expect } from 'vitest';
 import { SEMANTIC_TOKENS, SIZES, COLORS } from '../tokens';
-import { listCss, readCss, resolveVar, themeModes } from './css';
+import { OUTLINE_DECLARATION, block, decl, listCss, readCss, resolveVar, themeModes, withoutBlocks } from './css';
 
-/** Return the body of the first `selector { ... }` block, or null. */
-function block(css: string, selector: string): string | null {
-  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const m = new RegExp(`${escaped}\\s*\\{([^}]*)\\}`).exec(css);
-  return m ? m[1]! : null;
-}
-
-/** Return the value of `prop` in a block body (not a prefixed or longer property), or null. */
-function decl(body: string, prop: string): string | null {
-  const m = new RegExp(`(?<![-\\w])${prop}\\s*:\\s*([^;]+);`).exec(body);
-  return m ? m[1]!.trim() : null;
-}
+/**
+ * The only places a component may read --bit-color-ink, by file and exact selector. Everything else
+ * draws lines with --bit-color-line so they lift in dark mode. Each entry is an owner decision.
+ */
+const INK_EXCEPTIONS: Readonly<Record<string, readonly string[]>> = {
+  // Decision 2: an on Switch outlines its track and thumb in ink so it stays crisp in dark mode.
+  'switch.css': [
+    '.bit-switch__input:checked + .bit-switch__track',
+    '.bit-switch__input:checked + .bit-switch__track .bit-switch__thumb',
+  ],
+  // The Copy button is a light button on the dark code bar, edged and labelled in ink (board 1).
+  'code-block.css': ['.bit-code__copy'],
+};
 
 describe('system/colors.css', () => {
   const css = readCss('system/colors.css');
@@ -275,8 +276,17 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
     expect(reset).not.toMatch(/(^|\n)\[tabindex="-1"\]:focus\s*\{/);
   });
 
-  it.each(listCss('components'))('%s never sets outline, so nothing can override the ring', (file) => {
-    expect(readCss(`components/${file}`)).not.toMatch(/^\s*outline\s*:/m);
+  it.each(listCss('components'))('%s never sets outline or its longhands, so nothing can override the ring', (file) => {
+    expect(readCss(`components/${file}`)).not.toMatch(OUTLINE_DECLARATION);
+  });
+
+  it('the outline guard catches the shorthand and every longhand, and allows outline-offset', () => {
+    for (const css of ['a {\n  outline: none;\n}', 'a { outline-color: red; }', 'a{outline-style:none}', 'a { color: red; outline-width: 0; }']) {
+      expect(css).toMatch(OUTLINE_DECLARATION);
+    }
+    for (const css of ['a { outline-offset: 2px; }', '.bit-outline { color: red; }', '.bit-button.bit-outline:hover { color: red; }']) {
+      expect(css).not.toMatch(OUTLINE_DECLARATION);
+    }
   });
 
   it.each(listCss('components'))('%s has no focus band and no gloss', (file) => {
@@ -285,8 +295,9 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
     expect(css).not.toContain('--bit-gloss');
   });
 
-  it.each(listCss('components'))('%s draws lines with --bit-color-line, never ink', (file) => {
-    expect(readCss(`components/${file}`)).not.toContain('var(--bit-color-ink)');
+  it.each(listCss('components'))('%s draws lines with --bit-color-line; ink only where the owner chose it', (file) => {
+    const css = withoutBlocks(readCss(`components/${file}`), INK_EXCEPTIONS[file] ?? []);
+    expect(css).not.toContain('var(--bit-color-ink)');
   });
 });
 

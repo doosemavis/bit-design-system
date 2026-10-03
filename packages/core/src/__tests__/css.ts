@@ -76,3 +76,43 @@ export function themeModes(css: string): { light: Map<string, string>; dark: Map
     dark: parseCustomProps(css.slice(open + 1, close)),
   };
 }
+
+/** Return the body of the first `selector { ... }` block, or null. */
+export function block(css: string, selector: string): string | null {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const m = new RegExp(`${escaped}\\s*\\{([^}]*)\\}`).exec(css);
+  return m ? m[1]! : null;
+}
+
+/** Return the value of `prop` in a block body (not a prefixed or longer property), or null. */
+export function decl(body: string, prop: string): string | null {
+  const m = new RegExp(`(?<![-\\w])${prop}\\s*:\\s*([^;]+);`).exec(body);
+  return m ? m[1]!.trim() : null;
+}
+
+/** The CSS with each listed `selector { ... }` block removed. Selectors must match the file's text exactly. */
+export function withoutBlocks(css: string, selectors: readonly string[]): string {
+  return selectors.reduce((rest, selector) => {
+    const body = block(rest, selector);
+    return body === null ? rest : rest.replace(`${selector} {${body}}`, '');
+  }, css);
+}
+
+/**
+ * The visually hidden pattern (PR2 spec §1): gone from sight and layout, still read and focusable.
+ * Every component that hides a native input or a status line declares exactly these.
+ */
+export const VISUALLY_HIDDEN: readonly string[] = [
+  'position: absolute;',
+  'width: 1px;',
+  'height: 1px;',
+  'margin: -1px;',
+  'padding: 0;',
+  'overflow: hidden;',
+  'clip-path: inset(50%);',
+  'white-space: nowrap;',
+  'border: 0;',
+];
+
+/** Matches any outline declaration, longhands included (outline-offset is allowed). */
+export const OUTLINE_DECLARATION = /(^|[;{])\s*outline(-(color|style|width))?\s*:/m;

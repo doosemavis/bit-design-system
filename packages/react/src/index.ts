@@ -26,6 +26,33 @@ export type { SpinnerProps } from './components/Spinner/Spinner';
 export { ModeToggle } from './components/ModeToggle/ModeToggle';
 export type { ModeToggleProps } from './components/ModeToggle/ModeToggle';
 
+export { Field } from './components/Field/Field';
+export type { FieldProps } from './components/Field/Field';
+
+export { Input } from './components/Input/Input';
+export type { InputProps } from './components/Input/Input';
+
+export { Select } from './components/Select/Select';
+export type { SelectProps } from './components/Select/Select';
+
+export { Switch } from './components/Switch/Switch';
+export type { SwitchProps } from './components/Switch/Switch';
+
+export { Link } from './components/Link/Link';
+export type { LinkProps } from './components/Link/Link';
+
+export { Code } from './components/Code/Code';
+export type { CodeProps } from './components/Code/Code';
+
+export { CodeBlock } from './components/CodeBlock/CodeBlock';
+export type { CodeBlockProps, CodeLanguage } from './components/CodeBlock/CodeBlock';
+
+export { SegmentedControl } from './components/SegmentedControl/SegmentedControl';
+export type { SegmentedControlProps, SegmentedOption } from './components/SegmentedControl/SegmentedControl';
+
+export { Table, TableHead, TableBody, TableRow, TableCell } from './components/Table/Table';
+export type { TableProps, TableSectionProps, TableRowProps, TableCellProps } from './components/Table/Table';
+
 export { BitLogo } from './logo/BitLogo';
 export type { BitLogoProps } from './logo/BitLogo';
 export { ERAS, LOGO_ERA_STORAGE_KEY } from './logo/logoEra';

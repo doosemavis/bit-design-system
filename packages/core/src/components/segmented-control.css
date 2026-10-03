@@ -1,0 +1,91 @@
+/* SegmentedControl: joined segments that pick one option. Real radios underneath, visually hidden,
+   so arrow keys move the choice and Tab enters and leaves in one stop. The chosen segment fills with
+   the color (.bit-{color}); heights come from the size scale (.bit-{size}). The focus ring is drawn
+   inside the segment by system/reset.css. */
+.bit-segmented-control {
+  display: inline-block;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--bit-color-text);
+}
+
+.bit-segmented-control__legend {
+  padding: 0;
+  margin-bottom: var(--bit-space-8px);
+  font-family: var(--bit-font-body);
+  font-size: var(--bit-text-15px);
+  font-weight: var(--bit-weight-bold);
+}
+
+.bit-segmented-control__legend[data-hidden],
+.bit-segmented-control__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* overflow: hidden keeps the chosen fill inside the rounded corners; the ring is inset, so it is never clipped. */
+.bit-segmented-control__options {
+  display: flex;
+  overflow: hidden;
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+  box-shadow: var(--bit-shadow-md);
+}
+
+.bit-segmented-control__option {
+  position: relative;
+  display: flex;
+}
+
+.bit-segmented-control__option + .bit-segmented-control__option {
+  border-left: var(--bit-border-width) solid var(--bit-color-line);
+}
+
+.bit-segmented-control__label {
+  display: inline-flex;
+  align-items: center;
+  height: calc(var(--_bit-size-height) - 2 * var(--bit-border-width));
+  padding: 0 var(--_bit-size-padding);
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-bold);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.bit-segmented-control__input:not(:checked):not(:disabled) + .bit-segmented-control__label:hover {
+  background: var(--bit-color-neutral-soft);
+}
+
+/* states are attributes, never classes */
+.bit-segmented-control__input:checked + .bit-segmented-control__label {
+  background: var(--_bit-color);
+  color: var(--_bit-color-contrast);
+  /* The ring lands on this fill, so it takes the fill's contrast color, as inside a solid Alert. */
+  --_bit-focus-ring: var(--_bit-color-contrast);
+}
+
+.bit-segmented-control__input:disabled + .bit-segmented-control__label {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Forced colors drop the fill, and the radio is hidden, so mark the chosen segment with system colours. */
+@media (forced-colors: active) {
+  .bit-segmented-control__input:checked + .bit-segmented-control__label {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+}

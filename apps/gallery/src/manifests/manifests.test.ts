@@ -1,11 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import * as lib from '@bit-ds/react';
 import { MANIFESTS, findManifest, routeFor } from './index';
-import { COMPONENTS, isHtmlElement } from './registry';
+import { COMPONENTS, HTML_CHILDREN, isHtmlElement } from './registry';
 import { defaultState, parseState, serializeState } from '../engine/state';
 import { stack } from './stack';
 import { text } from './text';
-import type { ControlState } from './types';
+import type { ChildSpec, ControlState } from './types';
+
+/** ChildSpec names, nested parts included, that are neither a registered component nor an allowed HTML element. */
+function unknownChildren(children: readonly ChildSpec[]): string[] {
+  return children.flatMap((child) => {
+    const name = child.component;
+    const unknown = isHtmlElement(name) ? !HTML_CHILDREN.includes(name) : COMPONENTS[name] === undefined;
+    const nested = typeof child.children === 'object' ? unknownChildren(child.children) : [];
+    return unknown ? [name, ...nested] : nested;
+  });
+}
 
 /**
  * Every runtime export of @bit-ds/react that is a component: PascalCase with a lowercase second
@@ -55,19 +65,40 @@ describe('manifest contract', () => {
     }
   });
 
-  it('every control default is one of its values and every child spec names a registered component', () => {
+  it('every control default is one of its values', () => {
     for (const m of MANIFESTS) {
       for (const c of m.controls) {
         if (c.kind === 'select') expect(c.values, `${m.name}.${c.prop}`).toContain(c.default);
         if (c.kind === 'number') expect(c.default).toBeGreaterThanOrEqual(c.min);
       }
-      if (Array.isArray(m.children)) {
-        for (const child of m.children) {
-          if (!isHtmlElement(child.component)) expect(COMPONENTS[child.component], child.component).toBeDefined();
-        }
-      }
     }
   });
+
+  it('every child spec names a registered component or an allowed HTML element', () => {
+    for (const m of MANIFESTS) {
+      if (Array.isArray(m.children)) expect(unknownChildren(m.children), m.name).toEqual([]);
+    }
+  });
+
+  it('the ChildSpec allowlist is option, span, strong, em and code, and catches a typo or a stray tag', () => {
+    expect(HTML_CHILDREN).toEqual(['option', 'span', 'strong', 'em', 'code']);
+    const children: ChildSpec[] = [
+      { component: 'option', children: 'ok' },
+      { component: 'opton', children: 'typo' },
+      { component: 'div', children: 'not allowed' },
+      { component: 'Badge', children: 'registered' },
+      { component: 'Nope', children: 'unregistered' },
+    ];
+    expect(unknownChildren(children)).toEqual(['opton', 'div', 'Nope']);
+  });
+
+  it('the allowlist check reaches nested parts (Table rows and cells)', () => {
+    const nested: ChildSpec[] = [
+      { component: 'TableBody', children: [{ component: 'TableRow', children: [{ component: 'tdd', children: 'typo' }] }] },
+    ];
+    expect(unknownChildren(nested)).toEqual(['tdd']);
+  });
+
   it('Stack gap and Text size are px numbers, migrated through the D13 table (OV6)', () => {
     expect(stack.controls.find((c) => c.prop === 'gap')).toMatchObject({
       kind: 'select',
@@ -97,6 +128,10 @@ describe('manifest contract', () => {
   it('groups are the sidebar groups, and only the logo is brand', () => {
     for (const m of MANIFESTS) expect(['components', 'forms', 'brand']).toContain(m.group);
     expect(MANIFESTS.filter((m) => m.group === 'brand').map((m) => m.name)).toEqual(['BitLogo']);
+  });
+
+  it('the form controls are in the forms group', () => {
+    expect(MANIFESTS.filter((m) => m.group === 'forms').map((m) => m.name)).toEqual(['Field', 'Input', 'Select', 'Switch']);
   });
 
   it('isHtmlElement follows JSX: lowercase is an HTML tag, PascalCase is a component', () => {

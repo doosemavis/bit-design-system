@@ -1,0 +1,88 @@
+/* Switch: a real checkbox (role="switch"), visually hidden, inside a label that draws the track and
+   thumb beside it. The input's state reaches them through the + combinator. Its focus ring is drawn
+   on the track by system/reset.css. Sizes are fixed px from the board, not the control scale. */
+.bit-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bit-space-8px);
+  font-family: var(--bit-font-body);
+  font-size: var(--bit-text-15px);
+  font-weight: var(--bit-weight-bold);
+  line-height: var(--bit-leading-tight);
+  color: var(--bit-color-text);
+  cursor: pointer;
+}
+
+.bit-switch.bit-md {
+  --_bit-switch-width: 48px;
+  --_bit-switch-height: 28px;
+  --_bit-switch-thumb: 16px;
+}
+
+.bit-switch.bit-sm {
+  --_bit-switch-width: 40px;
+  --_bit-switch-height: 24px;
+  --_bit-switch-thumb: 12px;
+  font-size: var(--bit-text-13px);
+}
+
+.bit-switch__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.bit-switch__track {
+  position: relative;
+  flex: none;
+  width: var(--_bit-switch-width);
+  height: var(--_bit-switch-height);
+  background: var(--bit-color-neutral-soft);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-full);
+  box-shadow: var(--bit-shadow-sm);
+  transition: background-color var(--bit-duration-fast);
+}
+
+/* The thumb sits 3px inside the track. On, it slides to the far end by `left` (no transform). */
+.bit-switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: var(--_bit-switch-thumb);
+  height: var(--_bit-switch-thumb);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-full);
+  transition: left var(--bit-duration-fast);
+}
+
+/* On: green, with a near-black outline on the track and the thumb so it stays crisp in dark mode
+   (owner decision 2, board W1). */
+.bit-switch__input:checked + .bit-switch__track {
+  background: var(--bit-color-success);
+  border-color: var(--bit-color-ink);
+}
+
+.bit-switch__input:checked + .bit-switch__track .bit-switch__thumb {
+  left: calc(var(--_bit-switch-width) - 2 * var(--bit-border-width) - var(--_bit-switch-thumb) - 3px);
+  background: var(--bit-color-knob);
+  border-color: var(--bit-color-ink);
+}
+
+/* states are attributes, never classes */
+.bit-switch__input:disabled + .bit-switch__track,
+.bit-switch__input:disabled ~ .bit-switch__label {
+  opacity: 0.5;
+}
+
+.bit-switch:has(.bit-switch__input:disabled) {
+  cursor: not-allowed;
+}

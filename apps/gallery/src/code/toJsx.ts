@@ -1,4 +1,4 @@
-import type { ChildSpec, Control, ControlState, ControlValue, Manifest } from '../manifests/types';
+import type { ChildSpec, Control, ControlState, ControlValue, LiteralValue, Manifest } from '../manifests/types';
 import { defaultState } from '../engine/state';
 import { isOmittedSentinel } from '../manifests/sentinels';
 import { isHtmlElement } from '../manifests/registry';
@@ -19,6 +19,20 @@ function printChildren(value: string): string {
   return /[<>{}]/.test(value) ? `{${singleQuoted(value)}}` : value;
 }
 
+/** A fixed prop's value as JS source: single-quoted strings, `{ key: value }` objects, `[a, b]` arrays. */
+function literal(value: LiteralValue): string {
+  if (typeof value === 'string') return singleQuoted(value);
+  if (typeof value !== 'object') return String(value);
+  if (Array.isArray(value)) return `[${value.map(literal).join(', ')}]`;
+  const entries = Object.entries(value as Record<string, LiteralValue>).map(([key, v]) => `${key}: ${literal(v)}`);
+  return `{ ${entries.join(', ')} }`;
+}
+
+/** A fixed prop as JSX: strings as attributes, everything else in braces. */
+function printFixed(name: string, value: LiteralValue): string {
+  return typeof value === 'string' ? `${name}="${escapeAttr(value)}"` : `${name}={${literal(value)}}`;
+}
+
 function isRequiredAria(control: Control): boolean {
   return control.kind === 'text' && control.prop.includes('-');
 }
@@ -32,14 +46,14 @@ function printProp(control: Control, value: ControlValue, defaultValue: ControlV
     case 'number':
       return isDefault ? null : `${control.prop}={${Number(value)}}`;
     case 'select':
-      if (isDefault || isOmittedSentinel(control, value)) return null;
+      if ((isDefault && !control.alwaysPrint) || isOmittedSentinel(control, value)) return null;
       return control.numeric ? `${control.prop}={${Number(value)}}` : `${control.prop}="${escapeAttr(String(value))}"`;
     case 'axis':
       return isDefault ? null : `${control.prop}="${escapeAttr(String(value))}"`;
     case 'text': {
       const str = String(value);
       if (str === '') return null;
-      if (isDefault && !isRequiredAria(control)) return null;
+      if (isDefault && !control.alwaysPrint && !isRequiredAria(control)) return null;
       return `${control.prop}="${escapeAttr(str)}"`;
     }
   }
@@ -49,24 +63,36 @@ function printChildSpec(child: ChildSpec, depth: number): string {
   const props = Object.entries(child.props ?? {})
     .map(([k, v]) => ` ${k}="${escapeAttr(v)}"`)
     .join('');
-  return `${INDENT.repeat(depth)}<${child.component}${props}>${printChildren(child.children)}</${child.component}>`;
+  const indent = INDENT.repeat(depth);
+  const open = `${indent}<${child.component}${props}`;
+  if (child.children === undefined) return `${open} />`;
+  if (typeof child.children === 'string') return `${open}>${printChildren(child.children)}</${child.component}>`;
+  const inner = child.children.map((part) => printChildSpec(part, depth + 1)).join('\n');
+  return `${open}>\n${inner}\n${indent}</${child.component}>`;
+}
+
+/** Every bit component a ChildSpec tree names, nested parts included. HTML elements are not imported. */
+function componentNames(children: readonly ChildSpec[]): string[] {
+  return children.flatMap((child) => [
+    ...(isHtmlElement(child.component) ? [] : [child.component]),
+    ...(typeof child.children === 'object' ? componentNames(child.children) : []),
+  ]);
 }
 
 function importLine(manifest: Manifest): string {
-  const names = [manifest.name, ...(manifest.parts ?? [])];
-  if (Array.isArray(manifest.children)) {
-    for (const child of manifest.children) if (!isHtmlElement(child.component)) names.push(child.component);
-  }
-  const unique = [...new Set(names)].sort();
+  const nested = typeof manifest.children === 'object' ? componentNames(manifest.children) : [];
+  const unique = [...new Set([manifest.name, ...(manifest.parts ?? []), ...nested])].sort();
   return `import { ${unique.join(', ')} } from '@bit-ds/react';`;
 }
 
 /** The React snippet for the current state: import line, blank line, element. Pure. */
 export function toJsx(manifest: Manifest, state: ControlState): string {
   const defaults = defaultState(manifest);
+  const fixed = Object.entries(manifest.fixedProps ?? {}).map(([name, value]) => printFixed(name, value));
   const props = manifest.controls
     .map((control) => printProp(control, state[control.prop] ?? defaults[control.prop]!, defaults[control.prop]!))
     .filter((p): p is string => p !== null)
+    .concat(fixed)
     .map((p) => ` ${p}`)
     .join('');
 

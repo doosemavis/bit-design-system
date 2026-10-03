@@ -1,0 +1,30 @@
+/* Input: recessed into the page (inset shadow), where buttons pop out of it. Size from .bit-{size}. */
+.bit-input {
+  appearance: none;
+  width: 100%;
+  height: var(--_bit-size-height);
+  padding: 0 var(--_bit-size-padding);
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-normal);
+  color: var(--bit-color-text);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+  box-shadow: var(--bit-shadow-inset);
+}
+
+.bit-input::placeholder {
+  color: var(--bit-color-text-muted);
+  opacity: 1;
+}
+
+/* states are attributes, never classes */
+.bit-input[aria-invalid="true"] {
+  border-color: var(--bit-color-danger);
+}
+
+.bit-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

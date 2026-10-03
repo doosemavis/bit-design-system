@@ -3,7 +3,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
-import type { ComponentType } from 'react';
+import { createElement } from 'react';
+import type { ComponentType, ReactElement } from 'react';
 import * as lib from './index';
 
 const srcDir = dirname(fileURLToPath(import.meta.url));
@@ -24,6 +25,28 @@ function isComponent(value: unknown): value is ComponentType<Record<string, unkn
 
 const componentNames = Object.keys(lib).filter((name) => /^[A-Z]/.test(name) && isComponent((lib as Record<string, unknown>)[name]));
 
+/**
+ * What each component renders with in the naming-rule test: `aria-label="x"` and the child "x", plus
+ * these props where a component needs more to render at all. A void element (Input) takes no children.
+ */
+const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
+  Input: { children: undefined },
+  CodeBlock: { code: 'x', language: 'shell', children: undefined },
+  SegmentedControl: { legend: 'x', options: [{ value: 'x', label: 'x' }], children: undefined },
+  Table: { children: <tbody><tr><td>x</td></tr></tbody> },
+  TableHead: { children: <tr><th>x</th></tr> },
+  TableBody: { children: <tr><td>x</td></tr> },
+  TableRow: { children: <td>x</td> },
+};
+
+/** Table parts only render inside their table parents. The root is then the part's own element. */
+const PARENTS: Record<string, { wrap: (part: ReactElement) => ReactElement; root: string }> = {
+  TableHead: { wrap: (part) => <table>{part}</table>, root: 'thead' },
+  TableBody: { wrap: (part) => <table>{part}</table>, root: 'tbody' },
+  TableRow: { wrap: (part) => <table><tbody>{part}</tbody></table>, root: 'tr' },
+  TableCell: { wrap: (part) => <table><tbody><tr>{part}</tr></tbody></table>, root: 'td' },
+};
+
 /** The naming rule from the spec, as code. */
 function expectedRootClass(name: string): string {
   const parent = componentNames
@@ -34,9 +57,13 @@ function expectedRootClass(name: string): string {
 }
 
 describe('public index', () => {
-  it('exports exactly the Phase 1 components', () => {
+  it('exports exactly the public components', () => {
     expect(componentNames.sort()).toEqual(
-      ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text'].sort(),
+      [
+        'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
+        'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
+        'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
+      ].sort(),
     );
   });
 
@@ -51,8 +78,10 @@ describe('public index', () => {
 
   it.each(componentNames)('%s renders the root class the naming rule predicts', (name) => {
     const Component = (lib as Record<string, unknown>)[name] as ComponentType<Record<string, unknown>>;
-    const { container } = render(<Component aria-label="x">x</Component>);
-    const root = container.firstElementChild;
+    const sample = createElement(Component, { 'aria-label': 'x', children: 'x', ...SAMPLE_PROPS[name] });
+    const parent = PARENTS[name];
+    const { container } = render(parent ? parent.wrap(sample) : sample);
+    const root = parent ? container.querySelector(parent.root) : container.firstElementChild;
     expect(root).not.toBeNull();
     expect(root!.classList.contains(expectedRootClass(name))).toBe(true);
   });
@@ -81,5 +110,13 @@ describe('public index', () => {
     expect(lib.ERAS).toEqual([8, 16, 32, 64]);
     expect(lib.LOGO_ERA_STORAGE_KEY).toBe('bit-logo-era');
     for (const name of ['resetLogoEra', 'currentPageEra', 'useLogoEra']) expect(name in lib).toBe(false);
+  });
+
+  it('keeps Slot internal: Link asChild uses it, the package does not export it', () => {
+    for (const name of ['Slot', 'composeRefs', 'mergeProps']) expect(name in lib).toBe(false);
+  });
+
+  it('keeps the tokenizer and the copy button internal', () => {
+    for (const name of ['tokenize', 'CODE_LANGUAGES', 'CopyButton', 'COPY_RESET_MS']) expect(name in lib).toBe(false);
   });
 });

@@ -18,6 +18,8 @@ export interface SelectControl {
   /** Parse the chosen value with Number() before passing it as a prop (Stack gap, BitLogo era). */
   numeric?: boolean;
   label?: string;
+  /** Print the prop in the code even at its default, because the component requires it (CodeBlock `language`). */
+  alwaysPrint?: boolean;
 }
 export interface BooleanControl {
   kind: 'boolean';
@@ -39,19 +41,25 @@ export interface TextControl {
   prop: string;
   default: string;
   label?: string;
+  /** Print the prop in the code even at its default, because the component requires it (Field `label`). */
+  alwaysPrint?: boolean;
 }
 export type Control = AxisControl | SelectControl | BooleanControl | NumberControl | TextControl;
 
 /**
  * One child element of a compound component, as data so toJsx can print it. A PascalCase
  * `component` is a registered bit component; a lowercase one is a plain HTML element
- * (Select's `option`), following JSX's own rule.
+ * (Select's `option`), following JSX's own rule. `children` is text, nested parts (Table's
+ * head, rows and cells), or nothing for a self-closing element (Field's Input).
  */
 export interface ChildSpec {
   component: string;
   props?: Record<string, string>;
-  children: string;
+  children?: string | readonly ChildSpec[];
 }
+
+/** A JSON-like value toJsx can print as a JS literal (SegmentedControl's options). */
+export type LiteralValue = string | number | boolean | readonly LiteralValue[] | { readonly [key: string]: LiteralValue };
 
 export interface Preset {
   label: string;
@@ -91,6 +99,8 @@ export interface Manifest {
   controls: readonly Control[];
   /** A string is editable through a `children` text control; ChildSpec[] renders parts. */
   children?: string | readonly ChildSpec[];
+  /** Props every render gets that the page doesn't let you change. They print after the controls' props. */
+  fixedProps?: Readonly<Record<string, LiteralValue>>;
   presets?: readonly Preset[];
   /** Compound parts documented on this page; the import line lists them. */
   parts?: readonly string[];

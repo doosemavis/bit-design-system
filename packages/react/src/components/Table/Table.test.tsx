@@ -1,0 +1,195 @@
+import { describe, expect, it } from 'vitest';
+import { createRef } from 'react';
+import { render, screen } from '@testing-library/react';
+import { Table, TableBody, TableCell, TableHead, TableRow } from './Table';
+import type { TableProps } from './Table';
+import { expectNoA11yViolations } from '../../test/a11y';
+
+function PropsTable(props: TableProps) {
+  return (
+    <Table {...props}>
+      <TableHead>
+        <TableRow>
+          <TableCell>Prop</TableCell>
+          <TableCell>Default</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        <TableRow>
+          <TableCell as="th" scope="row">
+            color
+          </TableCell>
+          <TableCell>primary</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell as="th" scope="row">
+            size
+          </TableCell>
+          <TableCell>md</TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  );
+}
+
+describe('Table', () => {
+  it('renders a focusable div.bit-table around table.bit-table__table, with the parts as BEM elements', () => {
+    const { container } = render(<PropsTable />);
+    const wrapper = container.firstElementChild as HTMLElement;
+    expect(wrapper.tagName).toBe('DIV');
+    expect(wrapper.className).toBe('bit-table');
+    expect(wrapper).toHaveAttribute('tabindex', '0');
+    const table = screen.getByRole('table');
+    expect(table.parentElement).toBe(wrapper);
+    expect(table.className).toBe('bit-table__table');
+    expect(table.querySelector('thead')!.className).toBe('bit-table__head');
+    expect(table.querySelector('tbody')!.className).toBe('bit-table__body');
+    expect(table.querySelector('tr')!.className).toBe('bit-table__row');
+    expect([...table.querySelectorAll('th, td')].every((cell) => cell.className === 'bit-table__cell')).toBe(true);
+  });
+
+  it('TableCell is th in the head and td in the body, and as overrides it', () => {
+    render(<PropsTable />);
+    expect(screen.getAllByRole('columnheader').map((c) => [c.tagName, c.textContent])).toEqual([
+      ['TH', 'Prop'],
+      ['TH', 'Default'],
+    ]);
+    expect(screen.getAllByRole('rowheader').map((c) => [c.tagName, c.textContent])).toEqual([
+      ['TH', 'color'],
+      ['TH', 'size'],
+    ]);
+    expect(screen.getAllByRole('cell').map((c) => [c.tagName, c.textContent])).toEqual([
+      ['TD', 'primary'],
+      ['TD', 'md'],
+    ]);
+  });
+
+  it('as="td" makes a plain cell even in the head', () => {
+    render(
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell as="td">not a header</TableCell>
+          </TableRow>
+        </TableHead>
+      </Table>,
+    );
+    expect(screen.getByText('not a header').tagName).toBe('TD');
+  });
+
+  it('a cell outside any section is a td', () => {
+    render(
+      <Table>
+        <tbody>
+          <TableRow>
+            <TableCell>loose</TableCell>
+          </TableRow>
+        </tbody>
+      </Table>,
+    );
+    expect(screen.getByText('loose').tagName).toBe('TD');
+  });
+
+  it('className goes on the wrapper; the ref and rest props go on the table', () => {
+    const ref = createRef<HTMLTableElement>();
+    const { container } = render(
+      <Table ref={ref} className="extra" data-testid="table">
+        <TableBody />
+      </Table>,
+    );
+    const table = screen.getByTestId('table');
+    expect((container.firstElementChild as HTMLElement).className).toBe('bit-table extra');
+    expect(table.tagName).toBe('TABLE');
+    expect(ref.current).toBe(table);
+    expect(table.className).toBe('bit-table__table');
+  });
+
+  it('every part takes className and a ref', () => {
+    const head = createRef<HTMLTableSectionElement>();
+    const row = createRef<HTMLTableRowElement>();
+    const cell = createRef<HTMLTableCellElement>();
+    const body = createRef<HTMLTableSectionElement>();
+    render(
+      <Table>
+        <TableHead ref={head} className="h">
+          <TableRow ref={row} className="r">
+            <TableCell ref={cell} className="c">
+              Prop
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody ref={body} className="b" />
+      </Table>,
+    );
+    expect(head.current!.className).toBe('bit-table__head h');
+    expect(row.current!.className).toBe('bit-table__row r');
+    expect(cell.current!.className).toBe('bit-table__cell c');
+    expect(body.current!.className).toBe('bit-table__body b');
+  });
+
+  it('striped sets data-striped on the wrapper; off by default', () => {
+    const { container, rerender } = render(<PropsTable striped />);
+    expect(container.firstElementChild).toHaveAttribute('data-striped', '');
+    rerender(<PropsTable />);
+    expect(container.firstElementChild).not.toHaveAttribute('data-striped');
+  });
+
+  it('with no label the wrapper is focusable but not a region', () => {
+    const { container } = render(<PropsTable />);
+    expect(container.firstElementChild).not.toHaveAttribute('role');
+    expect(screen.queryByRole('region')).toBeNull();
+  });
+
+  it.each([
+    ['aria-label', { 'aria-label': '' }],
+    ['aria-labelledby', { 'aria-labelledby': '' }],
+  ])('an empty %s does not make an empty-named region', (_attr, props) => {
+    const { container } = render(<PropsTable {...props} />);
+    expect(container.firstElementChild).not.toHaveAttribute('role');
+  });
+
+  it('aria-label makes the wrapper a region with that name, and names the table too', () => {
+    render(<PropsTable aria-label="Button props" />);
+    const region = screen.getByRole('region', { name: 'Button props' });
+    expect(region).toHaveClass('bit-table');
+    expect(screen.getByRole('table', { name: 'Button props' })).toBeInTheDocument();
+  });
+
+  it('aria-labelledby does the same', () => {
+    render(
+      <>
+        <h2 id="props-heading">Props</h2>
+        <PropsTable aria-labelledby="props-heading" />
+      </>,
+    );
+    expect(screen.getByRole('region', { name: 'Props' })).toHaveClass('bit-table');
+    expect(screen.getByRole('table', { name: 'Props' })).toBeInTheDocument();
+  });
+
+  it('rejects the legacy DOM color attribute on every part', () => {
+    render(
+      // @ts-expect-error color is not part of TableProps
+      <Table color="danger" data-testid="table">
+        {/* @ts-expect-error color is not part of TableSectionProps */}
+        <TableBody color="danger" data-testid="body">
+          {/* @ts-expect-error color is not part of TableRowProps */}
+          <TableRow color="danger" data-testid="row">
+            {/* @ts-expect-error color is not part of TableCellProps */}
+            <TableCell color="danger" data-testid="cell">
+              x
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>,
+    );
+    for (const id of ['table', 'body', 'row', 'cell']) expect(screen.getByTestId(id)).not.toHaveAttribute('color');
+  });
+
+  it.each([
+    ['unlabelled', {}],
+    ['labelled and striped', { 'aria-label': 'Button props', striped: true }],
+  ])('has no accessibility violations (%s)', async (_name, props) => {
+    const { container } = render(<PropsTable {...props} />);
+    await expectNoA11yViolations(container);
+  });
+});

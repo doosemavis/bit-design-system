@@ -5,6 +5,12 @@ import { MANIFESTS, routeFor } from './manifests';
 import { renderAt } from './test/renderRoute';
 import { expectNoA11yViolations } from './test/a11y';
 
+/** The React code panel: the CodeBlock in the section headed "React". */
+function reactPanel(): HTMLElement {
+  const section = screen.getByRole('heading', { level: 2, name: 'React' }).closest('section')!;
+  return section.querySelector<HTMLElement>('.bit-code__block')!;
+}
+
 describe('component routes (route smoke, D14)', () => {
   beforeEach(() => {
     document.documentElement.dataset.theme = 'power-up';
@@ -18,7 +24,8 @@ describe('component routes (route smoke, D14)', () => {
       const preview = screen.getByRole('region', { name: `${manifest.name} preview` });
       expect(preview.querySelector('[class*="bit-"]')).not.toBeNull();
       expect(screen.getByRole('heading', { level: 2, name: 'Controls' })).toBeInTheDocument();
-      expect(screen.getByText(/from '@bit-ds\/react';/)).toBeInTheDocument();
+      expect(reactPanel()).toHaveAttribute('data-language', 'jsx');
+      expect(reactPanel().querySelector('pre')!.textContent).toMatch(/^import \{ .+ \} from '@bit-ds\/react';\n\n</);
       await expectNoA11yViolations(container);
     },
   );
@@ -29,8 +36,17 @@ describe('component routes (route smoke, D14)', () => {
     await userEvent.selectOptions(screen.getByLabelText('color'), 'danger');
     const preview = screen.getByRole('region', { name: 'Button preview' });
     expect(within(preview).getByRole('button', { name: 'Save' })).toHaveClass('bit-danger');
-    expect(screen.getByText(/<Button color="danger">Save<\/Button>/)).toBeInTheDocument();
+    expect(reactPanel().querySelector('pre')!.textContent).toContain('<Button color="danger">Save</Button>');
     expect(router.state.location.search).toBe('?color=danger');
+  });
+
+  it('the CodeBlock page names its two jsx regions apart: the preview and the "Example code" panel', async () => {
+    const { container } = renderAt('/components/codeblock');
+    await screen.findByRole('heading', { level: 1, name: 'CodeBlock' });
+    const preview = screen.getByRole('region', { name: 'CodeBlock preview' });
+    expect(within(preview).getByRole('region', { name: 'jsx code' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Example code' })).toBe(reactPanel().querySelector('pre'));
+    await expectNoA11yViolations(container);
   });
 
   it('old shared links fall back to defaults: ?gap=3 (the pre-px step) renders the 12px default', async () => {

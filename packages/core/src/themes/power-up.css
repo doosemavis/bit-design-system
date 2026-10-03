@@ -61,6 +61,12 @@
   --bit-color-selection: var(--bit-palette-yellow);
   --bit-color-line: var(--bit-palette-ink);
   --bit-color-shadow: var(--bit-palette-ink);
+  --bit-color-accent: var(--bit-palette-violet);
+  --bit-color-link: var(--bit-palette-violet);
+  --bit-color-link-visited: #5B2BB5;
+  /* The spec's var(--bit-color-danger) (#D91A1A) is 4.41:1 on the page; #D61A1A is the nearest red that passes (4.51:1). */
+  --bit-color-danger-text: #D61A1A;
+  --bit-color-knob: var(--bit-palette-white);
 
   --bit-color-primary: var(--bit-palette-violet);
   --bit-color-primary-contrast: var(--bit-palette-white);
@@ -186,4 +192,9 @@
   --bit-code-bg: var(--bit-palette-night-code);
   --bit-focus-ring-color: var(--bit-palette-yellow);
   --bit-focus-ring-offset: 1px;
+  --bit-color-accent: var(--bit-palette-yellow);
+  --bit-color-link: #B79BFF;
+  /* The spec's #9B7FE6 is 4.45:1 on the hover highlight (primary-soft); #9D82E7 is the nearest that passes (4.59:1). */
+  --bit-color-link-visited: #9D82E7;
+  --bit-color-danger-text: #FF8A8A;
 }

@@ -56,6 +56,35 @@ describe.each(MODES)('%s contrast', (_name, map) => {
   it('selected text (ink on the selection color) is readable', () => {
     expect(contrastRatio(resolveColor('--bit-color-ink'), resolveColor('--bit-color-selection'))).toBeGreaterThanOrEqual(AA_TEXT);
   });
+
+  it.each(['--bit-color-bg', '--bit-color-surface', '--bit-code-bg'])('PR2: the code accent border stands out on %s', (bg) => {
+    expect(contrastRatio(resolveColor('--bit-color-accent'), resolveColor(bg))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  it('PR2: the focus ring stands out on the code panel (CodeBlock pre and copy button)', () => {
+    expect(contrastRatio(resolveColor('--bit-focus-ring-color'), resolveColor('--bit-code-bg'))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  it('PR2: the ink outline of an on Switch stands out from the success fill', () => {
+    expect(contrastRatio(resolveColor('--bit-color-ink'), resolveColor('--bit-color-success'))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  // primary-soft is the hover highlight behind a primary Link, so link text must stay readable on it too.
+  it.each(['--bit-color-link', '--bit-color-link-visited'])('PR2: %s is readable on the page, surfaces and the hover highlight', (link) => {
+    for (const bg of ['--bit-color-bg', '--bit-color-surface', '--bit-color-primary-soft']) {
+      expect(contrastRatio(resolveColor(link), resolveColor(bg)), bg).toBeGreaterThanOrEqual(AA_TEXT);
+    }
+  });
+
+  it('PR2: the Copy button label (ink on the code text color) is readable', () => {
+    expect(contrastRatio(resolveColor('--bit-color-ink'), resolveColor('--bit-code-text'))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it('PR2: field error text is readable on the page and on surfaces', () => {
+    for (const bg of ['--bit-color-bg', '--bit-color-surface']) {
+      expect(contrastRatio(resolveColor('--bit-color-danger-text'), resolveColor(bg)), bg).toBeGreaterThanOrEqual(AA_TEXT);
+    }
+  });
 });
 
 describe('dark mode values (owner-locked 2026-10-03)', () => {
@@ -73,6 +102,9 @@ describe('dark mode values (owner-locked 2026-10-03)', () => {
     ['--bit-color-primary-soft', '#2E2352'], ['--bit-color-success-soft', '#173A25'],
     ['--bit-color-warning-soft', '#3B3212'], ['--bit-color-danger-soft', '#40191B'],
     ['--bit-code-bg', '#0B0B10'], ['--bit-focus-ring-color', '#FFC800'],
+    // PR2 (spec §2). link-visited is #9D82E7, not the spec's #9B7FE6: see the plan's deviation D2.
+    ['--bit-color-accent', '#FFC800'], ['--bit-color-link', '#B79BFF'],
+    ['--bit-color-link-visited', '#9D82E7'], ['--bit-color-danger-text', '#FF8A8A'],
   ])('%s is %s in dark', (token, value) => {
     expect(dk(token)).toBe(value);
   });
@@ -81,5 +113,26 @@ describe('dark mode values (owner-locked 2026-10-03)', () => {
     expect(merged.get('--bit-focus-ring-width')).toBe('2px');
     expect(dark.get('--bit-focus-ring-offset')).toBe('1px');
     expect(dark.get('--bit-shadow-inset')).toBe('inset 3px 3px 0 rgba(0, 0, 0, 0.4)');
+  });
+});
+
+describe('PR2 light values (spec §2)', () => {
+  const { light } = themeModes(readCss('themes/power-up.css'));
+
+  it.each([
+    ['--bit-color-accent', '#7C3AED'],
+    ['--bit-color-link', '#7C3AED'],
+    ['--bit-color-link-visited', '#5B2BB5'],
+    // Not the spec's var(--bit-color-danger) (#D91A1A, 4.41:1 on the page): see the plan's deviation D1.
+    ['--bit-color-danger-text', '#D61A1A'],
+    ['--bit-color-knob', '#FFFFFF'],
+  ])('%s is %s in light', (token, value) => {
+    expect(resolveVar(light, token)).toBe(value);
+  });
+
+  it('accent and link follow the palette violet, and the knob the palette white', () => {
+    expect(light.get('--bit-color-accent')).toBe('var(--bit-palette-violet)');
+    expect(light.get('--bit-color-link')).toBe('var(--bit-palette-violet)');
+    expect(light.get('--bit-color-knob')).toBe('var(--bit-palette-white)');
   });
 });

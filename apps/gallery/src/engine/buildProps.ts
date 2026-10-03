@@ -1,9 +1,12 @@
 import type { ControlState, Manifest } from '../manifests/types';
 import { isOmittedSentinel } from '../manifests/sentinels';
 
-/** Turn control state into the props object the component receives. `children` is rendered separately. */
+/**
+ * Turn control state into the props object the component receives, on top of the manifest's fixed
+ * props. `children` is rendered separately.
+ */
 export function buildProps(manifest: Manifest, state: ControlState): Record<string, unknown> {
-  const props: Record<string, unknown> = {};
+  const props: Record<string, unknown> = { ...manifest.fixedProps };
   for (const control of manifest.controls) {
     const value = state[control.prop];
     if (value === undefined) continue;

@@ -1,0 +1,32 @@
+/* Link: bold text with a thick underline. primary reads the link tokens (with a visited color);
+   neutral reads body text. Hover thickens the underline and adds a soft highlight. */
+.bit-link {
+  font-weight: var(--bit-weight-bold);
+  text-decoration: underline 2px;
+  text-underline-offset: 3px;
+}
+
+.bit-link.bit-primary {
+  color: var(--bit-color-link);
+}
+
+.bit-link.bit-primary:visited {
+  color: var(--bit-color-link-visited);
+}
+
+.bit-link.bit-neutral,
+.bit-link.bit-neutral:visited {
+  color: var(--bit-color-text);
+}
+
+.bit-link:hover {
+  text-decoration-thickness: 3px;
+}
+
+.bit-link.bit-primary:hover {
+  background: var(--bit-color-primary-soft);
+}
+
+.bit-link.bit-neutral:hover {
+  background: var(--bit-color-neutral-soft);
+}

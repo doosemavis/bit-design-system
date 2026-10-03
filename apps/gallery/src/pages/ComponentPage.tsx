@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { Stack, Text } from '@bit-ds/react';
+import { CodeBlock, Stack, Text } from '@bit-ds/react';
 import { findManifest, routeFor } from '../manifests';
 import type { Manifest } from '../manifests';
 import { bitLogo } from '../manifests/bitLogo';
@@ -36,9 +36,7 @@ export function ComponentPage({ manifest }: ComponentPageProps) {
         <Text as="h2" size={18} id="code-heading">
           React
         </Text>
-        <pre className="gallery-pre">
-          <code>{toJsx(manifest, state)}</code>
-        </pre>
+        <CodeBlock code={toJsx(manifest, state)} language="jsx" label="Example code" />
       </section>
     </Stack>
   );

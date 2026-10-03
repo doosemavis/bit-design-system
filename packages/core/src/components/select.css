@@ -1,0 +1,53 @@
+/* Select: the native select with Input's recessed look. The wrapper draws the chevron, so the
+   option list stays the browser's own. Size from .bit-{size} on the wrapper. */
+.bit-select {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+/* A CSS border triangle, 12px wide and 7px tall, centred on the right padding. */
+.bit-select::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: var(--_bit-size-padding);
+  width: 0;
+  height: 0;
+  margin-top: -3px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid var(--bit-color-text);
+  pointer-events: none;
+}
+
+.bit-select__control {
+  appearance: none;
+  width: 100%;
+  height: var(--_bit-size-height);
+  /* room on the right for the 12px chevron and a padding either side of it */
+  padding: 0 calc(var(--_bit-size-padding) * 2 + 12px) 0 var(--_bit-size-padding);
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-normal);
+  color: var(--bit-color-text);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+  box-shadow: var(--bit-shadow-inset);
+  cursor: pointer;
+}
+
+/* states are attributes, never classes */
+.bit-select__control[aria-invalid="true"] {
+  border-color: var(--bit-color-danger);
+}
+
+.bit-select__control:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bit-select:has(.bit-select__control:disabled)::after {
+  opacity: 0.5;
+}

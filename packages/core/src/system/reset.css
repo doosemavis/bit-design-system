@@ -43,6 +43,25 @@ body {
   outline-offset: var(--bit-focus-ring-offset);
 }
 
+/* Visually hidden inputs can't show a ring, so the part drawn beside them shows it: the same ring,
+   from the same tokens. */
+.bit-switch__input:focus-visible + .bit-switch__track {
+  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
+  outline-offset: var(--bit-focus-ring-offset);
+}
+
+/* A segment is flush with its neighbours, so its ring sits inside it, 2px in from the edge. */
+.bit-segmented-control__input:focus-visible + .bit-segmented-control__label {
+  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
+  outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);
+}
+
+/* CodeBlock's scrollable pre sits inside a panel with overflow: hidden, which would clip a ring drawn
+   outside it. Pull the ring 2px inside the pre instead, onto the code background. */
+.bit-code__pre:focus-visible {
+  outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);
+}
+
 /* Programmatic focus targets (a page heading or section focused after navigation, the main
    landmark) show no ring. Widgets that use tabindex="-1" for roving focus keep theirs. */
 :is(h1, h2, h3, h4, h5, h6, main, section)[tabindex="-1"]:focus {
