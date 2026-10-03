@@ -140,6 +140,14 @@ describe('Table', () => {
     expect(screen.queryByRole('region')).toBeNull();
   });
 
+  it.each([
+    ['aria-label', { 'aria-label': '' }],
+    ['aria-labelledby', { 'aria-labelledby': '' }],
+  ])('an empty %s does not make an empty-named region', (_attr, props) => {
+    const { container } = render(<PropsTable {...props} />);
+    expect(container.firstElementChild).not.toHaveAttribute('role');
+  });
+
   it('aria-label makes the wrapper a region with that name, and names the table too', () => {
     render(<PropsTable aria-label="Button props" />);
     const region = screen.getByRole('region', { name: 'Button props' });

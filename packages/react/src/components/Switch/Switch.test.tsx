@@ -88,6 +88,14 @@ describe('Switch', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it('an untyped caller cannot override role="switch" or type="checkbox"', () => {
+    // @ts-expect-error role and type are not part of SwitchProps
+    render(<Switch role="button" type="radio">Wi-Fi</Switch>);
+    const input = screen.getByRole('switch', { name: 'Wi-Fi' });
+    expect(input).toHaveAttribute('type', 'checkbox');
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
   it('rejects the legacy DOM color attribute and does not render it', () => {
     // @ts-expect-error color is not part of SwitchProps
     render(<Switch color="danger">Wi-Fi</Switch>);

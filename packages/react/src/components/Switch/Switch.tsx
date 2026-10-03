@@ -23,7 +23,8 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
 ) {
   return (
     <label className={toClasses('switch', [{ name: 'size', allowed: sizes, value: size }], className)}>
-      <input ref={ref} type="checkbox" role="switch" className={element('switch', 'input')} {...dropLegacyColor(rest)} />
+      {/* type and role come after the spread, so an untyped caller cannot override them. */}
+      <input ref={ref} className={element('switch', 'input')} {...dropLegacyColor(rest)} type="checkbox" role="switch" />
       <span className={element('switch', 'track')} aria-hidden="true">
         <span className={element('switch', 'thumb')} />
       </span>

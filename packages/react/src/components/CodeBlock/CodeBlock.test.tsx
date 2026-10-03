@@ -74,6 +74,11 @@ describe('CodeBlock', () => {
     expect(screen.getByRole('region', { name: 'jsx code' }).tagName).toBe('PRE');
   });
 
+  it('an empty label falls back to "<language> code", never an empty-named region', () => {
+    render(<CodeBlock code={JSX} language="jsx" label="" />);
+    expect(screen.getByRole('region', { name: 'jsx code' }).tagName).toBe('PRE');
+  });
+
   it('puts the ref, className and rest props on the root', () => {
     const ref = createRef<HTMLDivElement>();
     const { container } = render(<CodeBlock ref={ref} code="x" language="css" className="extra" data-testid="cb" />);

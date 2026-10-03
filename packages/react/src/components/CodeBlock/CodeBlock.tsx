@@ -44,7 +44,7 @@ export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(function Cod
         <span className={element('code', 'lang')}>{language}</span>
         {copy ? <CopyButton code={code} /> : null}
       </div>
-      <pre className={element('code', 'pre')} tabIndex={0} role="region" aria-label={label ?? `${language} code`}>
+      <pre className={element('code', 'pre')} tabIndex={0} role="region" aria-label={label || `${language} code`}>
         <code>{tokens.map(renderToken)}</code>
       </pre>
     </div>

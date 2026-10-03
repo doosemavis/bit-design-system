@@ -22,7 +22,8 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(function Table(
 ) {
   const label = rest['aria-label'];
   const labelledBy = rest['aria-labelledby'];
-  const named = label !== undefined || labelledBy !== undefined;
+  // An empty string names nothing, so it must not make an empty-named region.
+  const named = Boolean(label) || Boolean(labelledBy);
   return (
     <div
       className={toClasses('table', [], className)}
