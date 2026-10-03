@@ -5,6 +5,21 @@
   box-sizing: border-box;
 }
 
+:root {
+  caret-color: var(--bit-color-primary);
+  scrollbar-color: var(--bit-color-ink) var(--bit-color-neutral-soft);
+}
+
+/* scrollbar-width does not inherit, so every scroll container needs it. */
+* {
+  scrollbar-width: thin;
+}
+
+::selection {
+  background: var(--bit-color-selection);
+  color: var(--bit-color-ink);
+}
+
 body {
   margin: 0;
   font-family: var(--bit-font-body);

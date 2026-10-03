@@ -94,3 +94,31 @@ describe('components/*.css conventions', () => {
     });
   }
 });
+
+describe('system/reset.css browser surfaces (amendments §C)', () => {
+  const css = readCss('system/reset.css');
+
+  it('selection is the selection color with ink text', () => {
+    const body = block(css, '::selection');
+    expect(body).toContain('background: var(--bit-color-selection);');
+    expect(body).toContain('color: var(--bit-color-ink);');
+  });
+
+  it('the caret is primary and scrollbars are an ink thumb on a neutral-soft track', () => {
+    const root = block(css, ':root');
+    expect(root).toContain('caret-color: var(--bit-color-primary);');
+    expect(root).toContain('scrollbar-color: var(--bit-color-ink) var(--bit-color-neutral-soft);');
+    expect(block(css, '*')).toContain('scrollbar-width: thin;');
+  });
+});
+
+describe('components/logo.css', () => {
+  const css = readCss('components/logo.css');
+
+  it('the eras read the logo coin tokens, never primary or warning, so the palette swap leaves the logo gold', () => {
+    expect(css).not.toMatch(/--bit-color-(primary|warning)/);
+    for (const name of ['--bit-logo-coin', '--bit-logo-coin-light', '--bit-logo-coin-shade', '--bit-logo-coin-deep']) {
+      expect(css).toContain(`var(${name})`);
+    }
+  });
+});

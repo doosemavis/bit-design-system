@@ -1,59 +1,66 @@
 /* bit theme: power-up
-   Late-90s platformer chunkiness on a warm cream page.
+   Late-90s platformer chunkiness on a cool paper page: violet primary, coin-yellow warning.
    Tier 1 (palette) is private to this file. Tier 2 (semantic) is the public API
    and must list every name in tokens.ts — the theme-completeness test enforces it. */
 
-@import url("https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800&family=Press+Start+2P&family=Bungee&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800&family=Press+Start+2P&family=Bungee&family=JetBrains+Mono:wght@400;700&display=swap");
 
 :root,
 [data-theme="power-up"] {
   /* ---------- tier 1: palette ---------- */
-  --bit-palette-yellow: #FFCC00;
-  --bit-palette-yellow-dark: #E0B000;
-  --bit-palette-yellow-soft: #FFF3BF;
-  --bit-palette-red: #D42B26;
-  --bit-palette-red-dark: #B5221E;
-  --bit-palette-red-soft: #FBDCDB;
-  --bit-palette-green: #43B047;
-  --bit-palette-green-dark: #3BA03F;
-  --bit-palette-green-soft: #DCF2DD;
-  --bit-palette-orange: #F5A623;
-  --bit-palette-orange-dark: #D98E12;
-  --bit-palette-orange-soft: #FDEBCB;
-  --bit-palette-blue: #2D7DFF;
-  --bit-palette-ink: #1B1B2F;
-  --bit-palette-ink-soft: #E8E6EF;
+  --bit-palette-violet: #7C3AED;
+  --bit-palette-violet-dark: #6527D4;
+  --bit-palette-violet-soft: #EBE1FD;
+  --bit-palette-yellow: #FFC800;
+  --bit-palette-yellow-dark: #F0B400;
+  --bit-palette-yellow-soft: #FFF1B8;
+  --bit-palette-green: #1FA34A;
+  /* The review approved #178C3E, but ink on it is 4.22:1 (under AA). #19943F is the closest darker shade that passes (4.65:1). */
+  --bit-palette-green-dark: #19943F;
+  --bit-palette-green-soft: #D3F1DD;
+  --bit-palette-red: #D91A1A;
+  --bit-palette-red-dark: #B81414;
+  --bit-palette-red-soft: #FBD5D5;
+  --bit-palette-blue: #1D5BFF;
+  --bit-palette-ink: #151515;
+  --bit-palette-stone: #DCDED6;
+  --bit-palette-stone-light: #E5E7E0;
   --bit-palette-slate: #4A4A5E;
-  --bit-palette-cream: #F5EEDC;
+  --bit-palette-paper: #EEEFE9;
   --bit-palette-white: #FFFFFF;
+  --bit-palette-coin: #FFCC00;
+  --bit-palette-coin-light: #FFF3BF;
+  --bit-palette-coin-shade: #E0B000;
+  --bit-palette-coin-deep: #F5A623;
 
   /* ---------- tier 2: color ---------- */
-  --bit-color-bg: var(--bit-palette-cream);
+  --bit-color-bg: var(--bit-palette-paper);
   --bit-color-surface: var(--bit-palette-white);
   --bit-color-ink: var(--bit-palette-ink);
   --bit-color-text: var(--bit-palette-ink);
   --bit-color-text-muted: var(--bit-palette-slate);
   --bit-color-focus: var(--bit-palette-blue);
+  --bit-color-selection: var(--bit-palette-yellow);
 
-  --bit-color-primary: var(--bit-palette-yellow);
-  --bit-color-primary-contrast: var(--bit-palette-ink);
-  --bit-color-primary-hover: var(--bit-palette-yellow-dark);
-  --bit-color-primary-soft: var(--bit-palette-yellow-soft);
+  --bit-color-primary: var(--bit-palette-violet);
+  --bit-color-primary-contrast: var(--bit-palette-white);
+  --bit-color-primary-hover: var(--bit-palette-violet-dark);
+  --bit-color-primary-soft: var(--bit-palette-violet-soft);
 
   --bit-color-neutral: var(--bit-palette-white);
   --bit-color-neutral-contrast: var(--bit-palette-ink);
-  --bit-color-neutral-hover: var(--bit-palette-ink-soft);
-  --bit-color-neutral-soft: var(--bit-palette-ink-soft);
+  --bit-color-neutral-hover: var(--bit-palette-stone-light);
+  --bit-color-neutral-soft: var(--bit-palette-stone);
 
   --bit-color-success: var(--bit-palette-green);
   --bit-color-success-contrast: var(--bit-palette-ink);
   --bit-color-success-hover: var(--bit-palette-green-dark);
   --bit-color-success-soft: var(--bit-palette-green-soft);
 
-  --bit-color-warning: var(--bit-palette-orange);
+  --bit-color-warning: var(--bit-palette-yellow);
   --bit-color-warning-contrast: var(--bit-palette-ink);
-  --bit-color-warning-hover: var(--bit-palette-orange-dark);
-  --bit-color-warning-soft: var(--bit-palette-orange-soft);
+  --bit-color-warning-hover: var(--bit-palette-yellow-dark);
+  --bit-color-warning-soft: var(--bit-palette-yellow-soft);
 
   --bit-color-danger: var(--bit-palette-red);
   --bit-color-danger-contrast: var(--bit-palette-white);
@@ -69,13 +76,14 @@
   --bit-shadow-sm: 2px 2px 0 var(--bit-color-ink);
   --bit-shadow-md: 4px 4px 0 var(--bit-color-ink);
   --bit-shadow-lg: 6px 6px 0 var(--bit-color-ink);
-  --bit-shadow-inset: inset 3px 3px 0 rgba(27, 27, 47, 0.12);
+  --bit-shadow-inset: inset 3px 3px 0 rgba(21, 21, 21, 0.12);
   --bit-gloss: inset 0 3px 0 rgba(255, 255, 255, 0.4);
 
   /* ---------- tier 2: typography ---------- */
   --bit-font-display: "Lilita One", "Arial Black", sans-serif;
   --bit-font-body: "Nunito", "Segoe UI", sans-serif;
   --bit-font-pixel: "Press Start 2P", monospace;
+  --bit-font-mono: "JetBrains Mono", ui-monospace, monospace;
   --bit-text-11px: 11px;
   --bit-text-13px: 13px;
   --bit-text-15px: 15px;
@@ -110,4 +118,23 @@
   --bit-duration-fast: 80ms;
   --bit-duration-normal: 160ms;
   --bit-motion-power-up: bit-power-up;
+
+  /* ---------- tier 2: code ("Ink night": every color is at least 5.6:1 on --bit-code-bg) ---------- */
+  --bit-code-bg: var(--bit-palette-ink);
+  --bit-code-text: #EDEBE4;
+  --bit-code-keyword: #C4A7FF;
+  --bit-code-string: #7EE2A0;
+  --bit-code-tag: #7CC7FF;
+  --bit-code-component: #FFD54A;
+  --bit-code-attr: #FFB86B;
+  --bit-code-punct: #A3A3AE;
+  --bit-code-comment: #8E8E9A;
+  --bit-code-number: #FF9F7A;
+  --bit-code-prop: #FF8FCB;
+
+  /* ---------- tier 2: logo (fixed coin golds; never primary or warning) ---------- */
+  --bit-logo-coin: var(--bit-palette-coin);
+  --bit-logo-coin-light: var(--bit-palette-coin-light);
+  --bit-logo-coin-shade: var(--bit-palette-coin-shade);
+  --bit-logo-coin-deep: var(--bit-palette-coin-deep);
 }

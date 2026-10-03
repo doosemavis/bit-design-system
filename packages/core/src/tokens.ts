@@ -14,6 +14,8 @@ export const TEXT_SIZES = [11, 13, 15, 18, 24, 32] as const;
 export const SPACE_STEPS = [4, 8, 12, 16, 24, 32, 48, 64] as const;
 /** Corner radii in px, as `--bit-radius-{n}px`. `--bit-radius-full` (the pill) names a shape, not a size. */
 const RADII = [6, 10, 14] as const;
+/** Syntax-color kinds for code. CodeBlock's tokenizer (PR2) emits these; each reads `--bit-code-{kind}`. */
+export const CODE_KINDS = ['text', 'keyword', 'string', 'tag', 'component', 'attr', 'punct', 'comment', 'number', 'prop'] as const;
 
 export type Color = (typeof COLORS)[number];
 export type Size = (typeof SIZES)[number];
@@ -25,7 +27,9 @@ const token = (category: string, ...parts: (string | number)[]) =>
 
 const px = (n: number) => `${n}px`;
 
-const colorRoleTokens = ['bg', 'surface', 'ink', 'text', 'text-muted', 'focus'].map((role) => token('color', role));
+const colorRoleTokens = ['bg', 'surface', 'ink', 'text', 'text-muted', 'focus', 'selection'].map((role) =>
+  token('color', role),
+);
 
 const colorTokens = COLORS.flatMap((color) => [
   token('color', color),
@@ -43,7 +47,7 @@ const shapeTokens = [
 ];
 
 const typeTokens = [
-  ...['display', 'body', 'pixel'].map((f) => token('font', f)),
+  ...['display', 'body', 'pixel', 'mono'].map((f) => token('font', f)),
   ...TEXT_SIZES.map((n) => token('text', px(n))),
   token('leading', 'tight'),
   token('leading', 'normal'),
@@ -65,6 +69,11 @@ const motionTokens = [
   token('motion', 'power-up'),
 ];
 
+const codeTokens = [token('code', 'bg'), ...CODE_KINDS.map((kind) => token('code', kind))];
+
+/** The BitLogo's coin golds. Fixed brand colors, so a palette change never recolors the logo. */
+const logoTokens = ['coin', 'coin-light', 'coin-shade', 'coin-deep'].map((part) => token('logo', part));
+
 /**
  * The complete tier-2 token set. Every theme must declare every one of these.
  * Components read only these names (never tier-1 `--bit-palette-*` values).
@@ -77,4 +86,6 @@ export const SEMANTIC_TOKENS: readonly string[] = [
   ...spaceTokens,
   ...controlTokens,
   ...motionTokens,
+  ...codeTokens,
+  ...logoTokens,
 ];
