@@ -10,7 +10,7 @@ import { box } from './box';
 import { button } from './button';
 import { codeBlock } from './codeBlock';
 import { toJsx } from '../code/toJsx';
-import type { ChildSpec, ControlState, Manifest, ManifestDocs } from './types';
+import type { ChildSpec, ControlState } from './types';
 
 /** ChildSpec names, nested parts included, that are neither a registered component nor an allowed HTML element. */
 function unknownChildren(children: readonly ChildSpec[]): string[] {
@@ -30,9 +30,6 @@ function unknownChildren(children: readonly ChildSpec[]): string[] {
 const COMPONENT_EXPORTS = Object.keys(lib)
   .filter((name) => /^[A-Z][a-z]/.test(name))
   .sort();
-
-/** The manifests that have docs so far. T3c replaces this with every manifest, once docs are required. */
-const DOCUMENTED = MANIFESTS.filter((m): m is Manifest & { docs: ManifestDocs } => m.docs !== undefined);
 
 /** Compound parts are documented on their parent's page, not their own. */
 const PARTS = MANIFESTS.flatMap((m) => m.parts ?? []);
@@ -160,41 +157,49 @@ describe('manifest contract', () => {
     }
   });
 
-  it('documented manifests have complete docs: at least one Do, one Don\'t, one prop and one a11y line, none blank', () => {
-    for (const m of DOCUMENTED) {
+  it.each(MANIFESTS.map((m) => [m.name, m] as const))(
+    '%s has complete docs: at least one Do, one Don\'t, one prop and one a11y line, none blank',
+    (_name, m) => {
       const { usage, props, a11y, badges } = m.docs;
-      expect(usage.do.length, `${m.name} do`).toBeGreaterThan(0);
-      expect(usage.dont.length, `${m.name} dont`).toBeGreaterThan(0);
-      expect(props.length, `${m.name} props`).toBeGreaterThan(0);
-      expect(a11y.length, `${m.name} a11y`).toBeGreaterThan(0);
+      expect(usage.do.length, 'do').toBeGreaterThan(0);
+      expect(usage.dont.length, 'dont').toBeGreaterThan(0);
+      expect(props.length, 'props').toBeGreaterThan(0);
+      expect(a11y.length, 'a11y').toBeGreaterThan(0);
       const lines = [...badges, ...usage.do, ...usage.dont, ...a11y, ...props.flatMap((p) => [p.name, p.type, p.description])];
-      expect(lines.filter((line) => line.trim() === ''), m.name).toEqual([]);
+      expect(lines.filter((line) => line.trim() === '')).toEqual([]);
+    },
+  );
+
+  it.each(MANIFESTS.map((m) => [m.name, m] as const))('%s documents every prop its controls expose, once', (_name, m) => {
+    const documented = m.docs.props.map((p) => p.name);
+    expect(new Set(documented).size, 'duplicate prop rows').toBe(documented.length);
+    expect(m.controls.map((c) => c.prop).filter((prop) => !documented.includes(prop))).toEqual([]);
+  });
+
+  it.each(MANIFESTS.map((m) => [m.name, m] as const))('%s gives every axis prop row its bit-{prop} class, and no other row one', (_name, m) => {
+    const axes = new Set<string>(m.controls.filter((c) => c.kind === 'axis').map((c) => c.prop));
+    for (const row of m.docs.props) {
+      expect(row.className, row.name).toBe(axes.has(row.name) ? `bit-{${row.name}}` : undefined);
     }
   });
 
-  it('documented manifests document every prop their controls expose, once', () => {
-    for (const m of DOCUMENTED) {
-      const documented = m.docs.props.map((p) => p.name);
-      expect(new Set(documented).size, `${m.name} duplicate prop rows`).toBe(documented.length);
-      expect(m.controls.map((c) => c.prop).filter((prop) => !documented.includes(prop)), m.name).toEqual([]);
+  it('only manifests with a children text control carry an empty-children error', () => {
+    for (const m of MANIFESTS) {
+      if (m.docs.emptyChildrenError !== undefined) expect(typeof m.children, m.name).toBe('string');
     }
+    expect(MANIFESTS.filter((m) => m.docs.emptyChildrenError).map((m) => m.name)).toEqual(['Button', 'Link', 'Switch']);
   });
 
-  it('documented manifests give every axis prop row its bit-{prop} class, and no other row one', () => {
-    for (const m of DOCUMENTED) {
-      const axes = new Set<string>(m.controls.filter((c) => c.kind === 'axis').map((c) => c.prop));
-      for (const row of m.docs.props) {
-        expect(row.className, `${m.name}.${row.name}`).toBe(axes.has(row.name) ? `bit-{${row.name}}` : undefined);
-      }
-    }
-  });
-
-  it("Button's empty-children error is the §E text", () => {
-    expect(button.docs?.emptyChildrenError).toBe('A Button needs text or an aria-label, or screen readers announce just "button".');
+  it('Button\'s empty-children error is the §E text', () => {
+    expect(button.docs.emptyChildrenError).toBe('A Button needs text or an aria-label, or screen readers announce just "button".');
   });
 
   it('CodeBlock documents its actions slot', () => {
-    expect(codeBlock.docs?.props.find((p) => p.name === 'actions')?.type).toBe('ReactNode');
+    expect(codeBlock.docs.props.find((p) => p.name === 'actions')?.type).toBe('ReactNode');
+  });
+
+  it('only ModeToggle and CodeBlock are interactive (no HTML tab): they need React to work', () => {
+    expect(MANIFESTS.filter((m) => m.interactive).map((m) => m.name)).toEqual(['ModeToggle', 'CodeBlock']);
   });
 
   it('groups are the sidebar groups, and only the logo is brand', () => {
