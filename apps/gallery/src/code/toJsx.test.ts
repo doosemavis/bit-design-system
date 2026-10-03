@@ -9,6 +9,7 @@ import { text } from '../manifests/text';
 import { spinner } from '../manifests/spinner';
 import { bitLogo } from '../manifests/bitLogo';
 import { badge } from '../manifests/badge';
+import type { Manifest } from '../manifests/types';
 
 describe('toJsx', () => {
   it.each([
@@ -95,5 +96,18 @@ describe('toJsx', () => {
   it('prints plain children with quotes and backslashes raw', () => {
     const state = { ...defaultState(button), children: "it's C:\\dir" };
     expect(toJsx(button, state)).toBe(`import { Button } from '@bit-ds/react';\n\n<Button>it's C:\\dir</Button>`);
+  });
+
+  it('prints HTML ChildSpecs as JSX but leaves them out of the import line', () => {
+    const withHtml: Manifest = {
+      ...stack,
+      children: [
+        { component: 'span', props: { className: 'note' }, children: 'plain' },
+        { component: 'Badge', children: 'bit' },
+      ],
+    };
+    expect(toJsx(withHtml, defaultState(withHtml))).toBe(
+      `import { Badge, Stack } from '@bit-ds/react';\n\n<Stack>\n  <span className="note">plain</span>\n  <Badge>bit</Badge>\n</Stack>`,
+    );
   });
 });

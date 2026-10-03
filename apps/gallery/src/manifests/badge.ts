@@ -4,7 +4,7 @@ import type { Manifest } from './types';
 export const badge: Manifest = {
   name: 'Badge',
   slug: 'badge',
-  group: 'Components',
+  group: 'components',
   component: Badge,
   description: 'A small label. Solid or outline, two sizes, pill or square.',
   controls: [

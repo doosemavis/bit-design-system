@@ -4,7 +4,7 @@ import type { Manifest } from './types';
 export const text: Manifest = {
   name: 'Text',
   slug: 'text',
-  group: 'Components',
+  group: 'components',
   component: Text,
   description: 'Typography. The element comes from `as`; the look comes from `size`, in px.',
   controls: [

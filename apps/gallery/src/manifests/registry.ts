@@ -16,3 +16,8 @@ export const COMPONENTS: Record<string, ComponentType<any>> = {
   Stack,
   Text,
 };
+
+/** A lowercase ChildSpec name is a plain HTML element, the same rule JSX uses for tags. */
+export function isHtmlElement(name: string): boolean {
+  return /^[a-z]/.test(name);
+}

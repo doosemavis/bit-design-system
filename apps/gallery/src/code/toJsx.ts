@@ -1,6 +1,7 @@
 import type { ChildSpec, Control, ControlState, ControlValue, Manifest } from '../manifests/types';
 import { defaultState } from '../engine/state';
 import { isOmittedSentinel } from '../manifests/sentinels';
+import { isHtmlElement } from '../manifests/registry';
 
 const INDENT = '  ';
 
@@ -53,7 +54,9 @@ function printChildSpec(child: ChildSpec, depth: number): string {
 
 function importLine(manifest: Manifest): string {
   const names = [manifest.name, ...(manifest.parts ?? [])];
-  if (Array.isArray(manifest.children)) for (const child of manifest.children) names.push(child.component);
+  if (Array.isArray(manifest.children)) {
+    for (const child of manifest.children) if (!isHtmlElement(child.component)) names.push(child.component);
+  }
   const unique = [...new Set(names)].sort();
   return `import { ${unique.join(', ')} } from '@bit-ds/react';`;
 }

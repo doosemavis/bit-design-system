@@ -4,7 +4,7 @@ import type { Manifest } from './types';
 export const spinner: Manifest = {
   name: 'Spinner',
   slug: 'spinner',
-  group: 'Components',
+  group: 'components',
   component: Spinner,
   description: 'A loading indicator. The aria-label is required so screen readers announce it.',
   controls: [

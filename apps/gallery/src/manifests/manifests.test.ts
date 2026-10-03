@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import * as lib from '@bit-ds/react';
 import { MANIFESTS, findManifest, routeFor } from './index';
-import { COMPONENTS } from './registry';
+import { COMPONENTS, isHtmlElement } from './registry';
 import { defaultState, parseState, serializeState } from '../engine/state';
 import { stack } from './stack';
 import { text } from './text';
@@ -39,7 +39,7 @@ describe('manifest contract', () => {
     for (const m of MANIFESTS) {
       expect(m.slug).toMatch(/^[a-z]+$/);
       expect(findManifest(m.slug)).toBe(m);
-      expect(routeFor(m)).toBe(m.group === 'Brand' ? '/brand/logo' : `/components/${m.slug}`);
+      expect(routeFor(m)).toBe(m.group === 'brand' ? '/brand/logo' : `/components/${m.slug}`);
     }
     expect(findManifest('nope')).toBeUndefined();
   });
@@ -62,7 +62,9 @@ describe('manifest contract', () => {
         if (c.kind === 'number') expect(c.default).toBeGreaterThanOrEqual(c.min);
       }
       if (Array.isArray(m.children)) {
-        for (const child of m.children) expect(COMPONENTS[child.component], child.component).toBeDefined();
+        for (const child of m.children) {
+          if (!isHtmlElement(child.component)) expect(COMPONENTS[child.component], child.component).toBeDefined();
+        }
       }
     }
   });
@@ -90,5 +92,15 @@ describe('manifest contract', () => {
         expect(parseState(m, serializeState(m, expected)), `${m.name} / ${preset.label}`).toEqual(expected);
       }
     }
+  });
+
+  it('groups are the sidebar groups, and only the logo is brand', () => {
+    for (const m of MANIFESTS) expect(['components', 'forms', 'brand']).toContain(m.group);
+    expect(MANIFESTS.filter((m) => m.group === 'brand').map((m) => m.name)).toEqual(['BitLogo']);
+  });
+
+  it('isHtmlElement follows JSX: lowercase is an HTML tag, PascalCase is a component', () => {
+    expect(isHtmlElement('option')).toBe(true);
+    expect(isHtmlElement('Badge')).toBe(false);
   });
 });

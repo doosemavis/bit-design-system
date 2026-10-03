@@ -1,22 +1,30 @@
 import { NavLink } from 'react-router-dom';
 import { Text } from '@bit-ds/react';
 import { MANIFESTS, routeFor } from '../manifests';
+import type { Manifest, ManifestGroup } from '../manifests';
 
-export type NavGroup = 'Foundations' | 'Components' | 'Brand';
+export type NavGroup = 'Foundations' | 'Components' | 'Forms' | 'Brand';
 export interface NavItem {
   group: NavGroup;
   label: string;
   to: string;
 }
 
-/** Foundations, then one entry per Components manifest, then Brand. */
+type PageGroup = Exclude<ManifestGroup, 'brand'>;
+const GROUP_LABELS: Record<PageGroup, NavGroup> = { components: 'Components', forms: 'Forms' };
+
+/** Foundations, then one entry per components or forms manifest, then Brand. */
 export const NAV: readonly NavItem[] = [
   { group: 'Foundations', label: 'Tokens', to: '/tokens' },
-  ...MANIFESTS.filter((m) => m.group === 'Components').map((m) => ({ group: 'Components' as const, label: m.name, to: routeFor(m) })),
+  ...MANIFESTS.filter((m): m is Manifest & { group: PageGroup } => m.group !== 'brand').map((m) => ({
+    group: GROUP_LABELS[m.group],
+    label: m.name,
+    to: routeFor(m),
+  })),
   { group: 'Brand', label: 'Logo', to: '/brand/logo' },
 ];
 
-const GROUPS: readonly NavGroup[] = ['Foundations', 'Components', 'Brand'];
+const GROUPS: readonly NavGroup[] = ['Foundations', 'Components', 'Forms', 'Brand'];
 
 interface SidebarProps {
   items: readonly NavItem[];
