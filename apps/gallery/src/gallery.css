@@ -369,6 +369,14 @@ html {
   background: var(--bit-color-accent);
 }
 
+/* Forced colours would drop the background and leave the ruler empty; draw the bar in the text colour. */
+@media (forced-colors: active) {
+  .gallery-ruler__bar {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}
+
 /* The Spacing page's live Box gets the preview stage's outline, so its padding shows. */
 .bit-box.gallery-outline {
   outline: 2px dashed var(--bit-color-accent);

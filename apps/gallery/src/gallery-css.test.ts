@@ -42,6 +42,12 @@ describe('gallery.css', () => {
     expect(galleryCss).toMatch(/\.bit-box\.gallery-outline \{\s*outline: 2px dashed var\(--bit-color-accent\);\s*\}/);
   });
 
+  it('in forced colours the ruler bar keeps a visible fill: CanvasText, with forced-color-adjust off', () => {
+    expect(galleryCss).toMatch(
+      /@media \(forced-colors: active\) \{\s*\.gallery-ruler__bar \{\s*forced-color-adjust: none;\s*background: CanvasText;\s*\}\s*\}/,
+    );
+  });
+
   it('never hardcodes a font stack: mono labels read --bit-font-mono', () => {
     expect(galleryCss).not.toMatch(/monospace/);
     expect(galleryCss).toMatch(/\.gallery-control__label\s*\{[^}]*font-family: var\(--bit-font-mono\);/);
