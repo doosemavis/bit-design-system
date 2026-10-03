@@ -8,6 +8,9 @@
   flex-direction: row;
   align-items: center;
   gap: 0.4em;
+  /* Top, not baseline: each era's font sets its baseline at a different height, which would change the
+     height of a line (such as a heading) around the logo between page loads. */
+  vertical-align: top;
   line-height: 1;
   white-space: nowrap;
   color: var(--bit-color-text);

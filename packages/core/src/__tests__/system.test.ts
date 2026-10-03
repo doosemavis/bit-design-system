@@ -177,6 +177,12 @@ describe('components/logo.css', () => {
     expect(word(64)).toContain('line-height: 0.822;');
   });
 
+  it('sits on the top of its line, not the word baseline, so a heading around it is the same height in every era', () => {
+    // Each era's font puts its baseline at a different height in the word box; baseline alignment
+    // made the Home <h1> 65.5px tall for 8-bit and 59.5px for 32-bit at lg.
+    expect(block(css, '.bit-logo')).toContain('vertical-align: top;');
+  });
+
   it('32-bit uses Audiowide (lowercase), never the caps-only Bungee', () => {
     expect(word(32)).toContain('font-family: "Audiowide", var(--bit-font-display);');
     expect(css).not.toContain('Bungee');
