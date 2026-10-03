@@ -20,6 +20,9 @@ export type { StackProps } from './components/Stack/Stack';
 export { Text } from './components/Text/Text';
 export type { TextProps, TextElement } from './components/Text/Text';
 
+export { Heading } from './components/Heading/Heading';
+export type { HeadingProps, HeadingLevel } from './components/Heading/Heading';
+
 export { Spinner } from './components/Spinner/Spinner';
 export type { SpinnerProps } from './components/Spinner/Spinner';
 

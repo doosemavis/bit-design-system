@@ -5,6 +5,7 @@ import { alert } from './alert';
 import { card } from './card';
 import { stack } from './stack';
 import { text } from './text';
+import { heading } from './heading';
 import { spinner } from './spinner';
 import { modeToggle } from './modeToggle';
 import { bitLogo } from './bitLogo';
@@ -19,7 +20,7 @@ import { segmentedControl } from './segmentedControl';
 import { table } from './table';
 
 /** Sidebar order within each group (Components, then Forms, then Brand). */
-export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, text, spinner, modeToggle, link, code, codeBlock, segmentedControl, table, field, input, select, switchManifest, bitLogo];
+export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, text, heading, spinner, modeToggle, link, code, codeBlock, segmentedControl, table, field, input, select, switchManifest, bitLogo];
 
 export function findManifest(slug: string): Manifest | undefined {
   return MANIFESTS.find((m) => m.slug === slug);

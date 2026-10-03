@@ -31,6 +31,7 @@ const componentNames = Object.keys(lib).filter((name) => /^[A-Z]/.test(name) && 
  */
 const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
   Input: { children: undefined },
+  Heading: { level: 2 },
   CodeBlock: { code: 'x', language: 'shell', children: undefined },
   SegmentedControl: { legend: 'x', options: [{ value: 'x', label: 'x' }], children: undefined },
   Table: { children: <tbody><tr><td>x</td></tr></tbody> },
@@ -63,6 +64,7 @@ describe('public index', () => {
         'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
         'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
         'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
+        'Heading',
       ].sort(),
     );
   });

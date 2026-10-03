@@ -5,6 +5,8 @@ import { COMPONENTS, HTML_CHILDREN, isHtmlElement } from './registry';
 import { defaultState, parseState, serializeState } from '../engine/state';
 import { stack } from './stack';
 import { text } from './text';
+import { heading } from './heading';
+import { toJsx } from '../code/toJsx';
 import type { ChildSpec, ControlState } from './types';
 
 /** ChildSpec names, nested parts included, that are neither a registered component nor an allowed HTML element. */
@@ -114,6 +116,14 @@ describe('manifest contract', () => {
       values: ['11', '13', '15', '18', '24', '32'],
     });
     expect(text.presets?.map((p) => p.state.size)).toEqual(['32', '13']);
+  });
+
+  it('Heading always prints its required level; size is left off until chosen', () => {
+    expect(toJsx(heading, defaultState(heading))).toBe(
+      "import { Heading } from '@bit-ds/react';\n\n<Heading level={2}>Build with bit</Heading>",
+    );
+    const preset = heading.presets!.find((p) => p.label === 'h2 that looks like h3')!;
+    expect(toJsx(heading, { ...defaultState(heading), ...preset.state } as ControlState)).toContain('<Heading level={2} size={3}>Build with bit</Heading>');
   });
 
   it('every preset sets only real controls, to values those controls accept (§H.3)', () => {
