@@ -54,9 +54,19 @@ export const segmentedControl: Manifest = {
         description: 'The chosen value, when the parent owns it. Use with onValueChange, or use defaultValue.',
       },
       { name: 'onValueChange', type: '(value: string) => void', description: 'Called with the new value when the choice changes.' },
+      {
+        name: 'defaultValue',
+        type: 'string',
+        description: 'The first chosen value, when the control owns it. Unset, the first option starts chosen.',
+      },
+      {
+        name: 'name',
+        type: 'string',
+        description: 'The name the radios share, for form submits. Unset, a unique one is generated.',
+      },
     ],
     a11y: [
-      'Native radios in a fieldset, so Tab enters and leaves the group in one stop and the arrow keys move the choice.',
+      'Native radios in a fieldset (a native group box that screen readers announce with its legend), so Tab enters and leaves the group in one stop and the arrow keys move the choice.',
       'The legend names the group for screen readers, even when legendHidden hides it from sight.',
     ],
   },

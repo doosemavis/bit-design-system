@@ -45,7 +45,7 @@ export const input: Manifest = {
         name: 'invalid',
         type: 'boolean',
         default: 'false',
-        description: 'Marks the value wrong: aria-invalid="true" and a danger border. A Field with an error does the same.',
+        description: 'Marks the value wrong: aria-invalid="true" (a flag that tells screen readers the value is wrong) and a danger border. A Field with an error does the same.',
       },
       { name: 'disabled', type: 'boolean', default: 'false', description: "The native disabled attribute: it can't be edited or focused." },
     ],

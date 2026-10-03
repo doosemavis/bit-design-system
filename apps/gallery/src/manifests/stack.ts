@@ -24,7 +24,7 @@ export const stack: Manifest = {
     { label: 'Row, space between', state: { direction: 'row', justify: 'between' } },
   ],
   docs: {
-    badges: ['Layout', 'Data attributes, no classes'],
+    badges: ['Layout', 'Layout props'],
     usage: {
       do: [
         'Use Stack for the space between things: a column of fields, a row of Buttons.',
@@ -41,7 +41,7 @@ export const stack: Manifest = {
         name: 'gap',
         type: '4 | 8 | 12 | 16 | 24 | 32 | 48 | 64',
         default: '12',
-        description: 'Space between children in px. Rendered as data-gap; reads --bit-space-{gap}px.',
+        description: 'Space between children in px, from the space scale. Rendered as data-gap; reads --bit-space-{gap}px.',
       },
       {
         name: 'align',

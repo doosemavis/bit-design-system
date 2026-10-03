@@ -30,7 +30,7 @@ export const modeToggle: Manifest = {
       },
     ],
     a11y: [
-      'A labelled group of two real buttons, Light and Dark; the current one has aria-pressed="true".',
+      'A labelled group of two real buttons, Light and Dark; the current one has aria-pressed="true", which screen readers announce as "pressed".',
       "It follows the visitor's system setting until they click, then remembers their choice.",
     ],
   },

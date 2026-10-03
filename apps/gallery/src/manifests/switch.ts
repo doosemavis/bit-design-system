@@ -37,10 +37,21 @@ export const switchManifest: Manifest = {
         type: 'boolean',
         description: 'On or off, when the parent owns the value. Pair it with onChange, or use defaultChecked.',
       },
+      {
+        name: 'defaultChecked',
+        type: 'boolean',
+        default: 'false',
+        description: 'Whether it starts on, when the Switch owns the value.',
+      },
+      {
+        name: 'onChange',
+        type: '(event: ChangeEvent<HTMLInputElement>) => void',
+        description: 'Called when it is toggled. Read event.target.checked for the new value.',
+      },
       { name: 'children', type: 'ReactNode', description: 'The visible label.' },
     ],
     a11y: [
-      'A real checkbox with role="switch", so screen readers say "switch, on" or "switch, off".',
+      'A real checkbox with role="switch" (it tells screen readers this is an on/off control, not a tick box), so they say "switch, on" or "switch, off".',
       'Clicking the label toggles it, and Space toggles it from the keyboard.',
     ],
     emptyChildrenError: 'A Switch needs a label, or screen readers announce just "switch, off".',

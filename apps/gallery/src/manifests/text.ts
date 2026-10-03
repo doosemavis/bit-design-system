@@ -41,7 +41,7 @@ export const text: Manifest = {
         name: 'size',
         type: '11 | 13 | 15 | 18 | 24 | 32',
         default: '15',
-        description: 'Size in px. Rendered as data-size; reads --bit-text-{size}px. 24 and 32 use the display face.',
+        description: 'Text size in px, from the type scale. Rendered as data-size; reads --bit-text-{size}px. 24 and 32 use the display face.',
       },
       { name: 'color', type: "'neutral'", description: 'neutral renders muted text. Leave it off for the normal text color.' },
       {

@@ -46,7 +46,7 @@ export const select: Manifest = {
         name: 'invalid',
         type: 'boolean',
         default: 'false',
-        description: 'Marks the choice wrong: aria-invalid="true" and a danger border.',
+        description: 'Marks the choice wrong: aria-invalid="true" (a flag that tells screen readers the choice is wrong) and a danger border.',
       },
       { name: 'disabled', type: 'boolean', default: 'false', description: 'The native disabled attribute.' },
       { name: 'children', type: 'ReactNode', description: 'The <option> elements.' },

@@ -53,7 +53,7 @@ export const table: Manifest = {
     usage: {
       do: [
         'Use a Table for data people compare across rows: props, prices, scores.',
-        'Give it an aria-label or aria-labelledby, so its scroll area is a named region.',
+        'Give it an aria-label or aria-labelledby, so its scroll area is a named region: a landmark screen readers can jump to.',
       ],
       dont: [
         'Use a Table for layout. Use Stack or a grid.',
@@ -65,7 +65,7 @@ export const table: Manifest = {
       {
         name: 'aria-label',
         type: 'string',
-        description: 'Names the table and its scroll area, which then becomes a region screen readers can jump to.',
+        description: "Names the table and its scroll area, which then becomes a named region: a landmark screen readers can list and jump to. To name it with a visible heading instead, use aria-labelledby with that heading's id.",
       },
       {
         name: 'children',
