@@ -53,7 +53,8 @@ export const alert: Manifest = {
         name: 'role',
         type: 'string',
         default: "'status'",
-        description: 'Use "alert" for an urgent error, "note" for guidance that isn\'t news.',
+        description:
+          'A role tells screen readers what kind of thing an element is. Use "alert" for an urgent error, "note" for guidance that isn\'t news.',
       },
       { name: 'children', type: 'ReactNode', description: 'The message.' },
     ],

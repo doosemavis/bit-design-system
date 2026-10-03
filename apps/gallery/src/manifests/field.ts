@@ -49,8 +49,9 @@ export const field: Manifest = {
     ],
     a11y: [
       'The label points at the control, so clicking it focuses the control and screen readers read it.',
-      'hint and error are linked with aria-describedby, and error also sets aria-invalid on the control.',
-      'The ids come from useId, so two Fields on one page never clash.',
+      "hint and error are linked with aria-describedby, which is how a screen reader finds a control's help text.",
+      'error also sets aria-invalid on the control: a flag that tells screen readers the value is wrong.',
+      "The ids come from useId, React's unique-id helper, so two Fields on one page never clash.",
     ],
   },
 };

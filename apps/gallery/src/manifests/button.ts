@@ -40,7 +40,7 @@ export const button: Manifest = {
         className: 'bit-{color}',
         type: "'primary' | 'neutral' | 'success' | 'warning' | 'danger'",
         default: "'primary'",
-        description: 'The color role. Reads the --bit-color-{color} tokens.',
+        description: 'The color role. Reads the --bit-color-{color} tokens: named design values, such as --bit-color-primary.',
       },
       {
         name: 'variant',
@@ -54,9 +54,16 @@ export const button: Manifest = {
         name: 'loading',
         type: 'boolean',
         default: 'false',
-        description: 'Shows a spinner, sets aria-busy and blocks clicks. The label stays, so people still know what it does.',
+        description:
+          'Shows a spinner and sets aria-busy, which tells screen readers it is working. It blocks clicks and takes the button out of the Tab order. The label stays, so people still know what it does.',
       },
-      { name: 'disabled', type: 'boolean', default: 'false', description: "The native disabled attribute: it can't be clicked or focused." },
+      {
+        name: 'disabled',
+        type: 'boolean',
+        default: 'false',
+        description:
+          "The native disabled attribute: it can't be clicked or focused. With asChild it becomes aria-disabled instead, because a link has no disabled attribute.",
+      },
       {
         name: 'asChild',
         type: 'boolean',
@@ -67,8 +74,8 @@ export const button: Manifest = {
     ],
     a11y: [
       'Renders a native <button type="button">, so Enter and Space press it and it never submits a form by surprise.',
-      'loading sets aria-busy="true" and keeps the label, so screen readers still announce the action.',
-      'The focus ring comes from reset.css and nothing removes it.',
+      'loading sets aria-busy="true" and native disabled, so the button leaves the Tab order. The label stays, so screen readers still announce the action.',
+      "The focus ring comes from reset.css, bit's base stylesheet, and nothing removes it.",
       'A Button with only an icon needs an aria-label.',
     ],
     emptyChildrenError: 'A Button needs text or an aria-label, or screen readers announce just "button".',

@@ -23,7 +23,7 @@ export const card: Manifest = {
         'Use outline when the Card sits on another surface.',
       ],
       dont: [
-        'Put Cards inside Cards. Use Stack or Box for the space inside one.',
+        'Nest Cards inside Cards. For spacing inside a Card, use Stack or Box.',
         'Wrap a whole page in a Card.',
       ],
     },

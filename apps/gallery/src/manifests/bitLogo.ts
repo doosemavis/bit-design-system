@@ -34,7 +34,7 @@ export const bitLogo: Manifest = {
     ],
     a11y: [
       'role="img" with the name "bit Design System"; the letters inside are hidden from screen readers.',
-      'Inside a link, the link takes that name too, so add context such as "gallery home" with aria-label.',
+      'Inside a link, the link takes that name too. To add context such as "gallery home", put aria-label on the link.',
       'Nothing moves on screen: the era changes only between page loads, so there is no animation to pause.',
     ],
   },
