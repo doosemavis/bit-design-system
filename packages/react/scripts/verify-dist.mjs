@@ -14,6 +14,8 @@ const EXPECTED = ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'Ca
 const cjs = require(resolve(dist, 'index.cjs'));
 for (const name of EXPECTED) assert.ok(cjs[name], `CJS export missing: ${name}`);
 assert.equal(cjs.PREFIX, 'bit');
+assert.equal(typeof cjs.COLOR_MODE_SCRIPT, 'string', 'CJS export missing: COLOR_MODE_SCRIPT');
+assert.equal(typeof cjs.useColorMode, 'function', 'CJS export missing: useColorMode');
 
 // 2. ESM entry
 const esm = await import(resolve(dist, 'index.js'));

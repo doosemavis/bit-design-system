@@ -66,4 +66,13 @@ describe('public index', () => {
     });
     expect(offenders).toEqual([]);
   });
+
+  it('exports the color mode service but not its test helpers', () => {
+    expect(lib.COLOR_MODES).toEqual(['light', 'dark']);
+    expect(lib.COLOR_MODE_STORAGE_KEY).toBe('bit-color-mode');
+    expect(typeof lib.COLOR_MODE_SCRIPT).toBe('string');
+    expect(typeof lib.useColorMode).toBe('function');
+    expect('resetColorModeStore' in lib).toBe(false);
+    expect('setColorMode' in lib).toBe(false);
+  });
 });
