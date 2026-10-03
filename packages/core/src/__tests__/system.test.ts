@@ -104,10 +104,12 @@ describe('system/reset.css browser surfaces (amendments §C)', () => {
     expect(body).toContain('color: var(--bit-color-ink);');
   });
 
-  it('the caret is primary and scrollbars are a line-colored thumb on a neutral-soft track', () => {
-    const root = block(css, ':root');
+  it('the root and any mode element set text, a primary caret, and a line-on-neutral-soft scrollbar', () => {
+    const root = block(css, ':root,\n[data-mode="light"],\n[data-mode="dark"]');
+    expect(root).not.toBeNull();
     expect(root).toContain('caret-color: var(--bit-color-primary);');
     expect(root).toContain('scrollbar-color: var(--bit-color-line) var(--bit-color-neutral-soft);');
+    expect(root).toContain('color: var(--bit-color-text);');
     expect(block(css, '*')).toContain('scrollbar-width: thin;');
   });
 });

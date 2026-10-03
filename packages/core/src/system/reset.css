@@ -5,9 +5,14 @@
   box-sizing: border-box;
 }
 
-:root {
+/* The page root, and any element that sets a mode, re-declares the inherited colors so a dark (or
+   light) subtree gets its own text, caret, and scrollbar colors. A subtree paints its own background. */
+:root,
+[data-mode="light"],
+[data-mode="dark"] {
   caret-color: var(--bit-color-primary);
   scrollbar-color: var(--bit-color-line) var(--bit-color-neutral-soft);
+  color: var(--bit-color-text);
 }
 
 /* scrollbar-width does not inherit, so every scroll container needs it. */
