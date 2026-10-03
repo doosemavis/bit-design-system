@@ -17,9 +17,8 @@ export function HomePage() {
   return (
     <Stack gap={32}>
       <Stack gap={12}>
-        <BitLogo size="lg" />
-        <Text as="h1" size={32}>
-          bit
+        <Text as="h1">
+          <BitLogo size="lg" />
         </Text>
         <Text size={18}>A React design system for people who are new to design systems.</Text>
       </Stack>

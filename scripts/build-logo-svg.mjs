@@ -1,5 +1,7 @@
-// Generates assets/bit-logo.svg: the #-bit wordmark with the power-up cycle, fully self-contained.
-// Fonts are read from the @fontsource packages and embedded as base64 so GitHub can render it in an <img>.
+// Generates assets/bit-logo.svg: the bit wordmark ("bit" in its 64-bit style, with "DESIGN" over "SYSTEM"
+// to its right, centred on the word) on a snug card, static and fully self-contained. An image can't
+// advance per page load, so the README shows the still era (64). Fonts are read from the @fontsource
+// packages and embedded as base64 so GitHub can render it.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
@@ -8,17 +10,60 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 
-// power-up theme values (kept in sync by hand; this is a static brand asset)
-const INK = '#1B1B2F';
-const PRIMARY = '#FFCC00';
-const PRIMARY_SOFT = '#FFF3BF';
-const PRIMARY_HOVER = '#E0B000';
-const WARNING = '#F5A623';
-const DANGER = '#D42B26';
-const CREAM = '#F5EEDC';
+// power-up light values (kept in sync by hand; this is a static brand asset)
+const INK = '#151515';
+const PAPER = '#EEEFE9';
+const SLATE = '#4A4A5E';
+const COIN = '#FFCC00';
+const COIN_SHADE = '#E0B000';
+const VIOLET = '#7C3AED'; // --bit-logo-violet (--bit-palette-violet): 64-bit's hard drop
 
-const INTERVAL_S = 5;
-const CYCLE_S = INTERVAL_S * 4;
+// Lockup proportions, matching components/logo.css, all in units of the root font-size:
+// - the 64-bit word is Audiowide, like 32-bit and at its values: 0.955em with 0.4em letter-spacing (em of the
+//   word), so its ink is as tall as the 8-bit reference (Press Start 2P "bit" at 0.82em with -0.11em tracking)
+//   and ends at the same x;
+// - its box is the reference's box: 0.82 × (3 glyphs − 0.11 × 2 inner tracking) = 2.2796em
+//   (in CSS a margin-right takes back the trailing spacing);
+// - the caption is 0.26em with 0.14em tracking and 1.3 leading, 0.4em after the word box.
+const ROOT = 70;
+const WORD_SIZE = 0.955 * ROOT;
+const WORD_TRACKING = 0.4 * WORD_SIZE;
+const WORD_BOX = 0.82 * (3 - 0.11 * 2) * ROOT;
+const CAPTION_SIZE = 0.26 * ROOT;
+const CAPTION_TRACKING = 0.14 * CAPTION_SIZE;
+const CAPTION_LEADING = 1.3 * CAPTION_SIZE;
+const GAP = 0.4 * ROOT;
+const CAPTION_LINES = ['DESIGN', 'SYSTEM'];
+const MARGIN = 24; // even, from the card's outer edge to the ink on every side
+
+// 64-bit layering (px): the deepest drop layer is offset this far, and the face stroke is this wide.
+const DROP = 6;
+const STROKE = 3;
+
+// Ink metrics per em, measured from the embedded fonts (canvas measureText).
+const AUDIOWIDE_BIT = { inkLeft: 0.05664, advance: 1.50439, ascent: 0.75098, descent: 0 };
+const PS2P = { capTop: 1, capBottom: 0.125, lastGlyphInk: 0.875 };
+
+const round = (n) => Math.round(n * 10) / 10;
+
+// The word: ink starts at the left margin and its ascender at the top margin.
+const X = round(MARGIN - AUDIOWIDE_BIT.inkLeft * WORD_SIZE + STROKE / 2);
+const WORD_Y = round(MARGIN + AUDIOWIDE_BIT.ascent * WORD_SIZE + STROKE / 2);
+// The drop layers are unstroked, so the lowest ink is the deepest drop (or the face stroke, if deeper).
+const WORD_INK_BOTTOM = WORD_Y + AUDIOWIDE_BIT.descent * WORD_SIZE + Math.max(DROP, STROKE / 2);
+const WORD_MIDDLE = (MARGIN + WORD_INK_BOTTOM) / 2;
+
+// The caption: two lines whose ink block is centred on the word's ink (face plus extrusion).
+const CAPTION_X = round(X + WORD_BOX + GAP);
+const CAPTION_INK_TOP = -PS2P.capTop * CAPTION_SIZE; // relative to the first baseline
+const CAPTION_INK_BOTTOM = CAPTION_LEADING - PS2P.capBottom * CAPTION_SIZE;
+const CAPTION_Y = round(WORD_MIDDLE - (CAPTION_INK_TOP + CAPTION_INK_BOTTOM) / 2);
+const CAPTION_CHARS = Math.max(...CAPTION_LINES.map((line) => line.length));
+const CAPTION_INK_RIGHT =
+  CAPTION_X + (CAPTION_CHARS - 1) * (CAPTION_SIZE + CAPTION_TRACKING) + PS2P.lastGlyphInk * CAPTION_SIZE;
+
+const WIDTH = Math.round(CAPTION_INK_RIGHT + MARGIN);
+const HEIGHT = Math.round(WORD_INK_BOTTOM + MARGIN);
 
 function fontFace(family, pkg, file) {
   const path = require.resolve(`${pkg}/files/${file}`);
@@ -28,64 +73,33 @@ function fontFace(family, pkg, file) {
 
 const fonts = [
   fontFace('Press Start 2P', '@fontsource/press-start-2p', 'press-start-2p-latin-400-normal.woff2'),
-  fontFace('Lilita One', '@fontsource/lilita-one', 'lilita-one-latin-400-normal.woff2'),
-  fontFace('Bungee', '@fontsource/bungee', 'bungee-latin-400-normal.woff2'),
+  fontFace('Audiowide', '@fontsource/audiowide', 'audiowide-latin-400-normal.woff2'),
 ].join('\n');
 
-// Layout: numbers right-aligned at x=150, suffix starts at x=160, baseline y=86.
-const X = 150;
-const Y = 86;
+const word = (dx, fill, extra = '') =>
+  `<text x="${round(X + dx)}" y="${round(WORD_Y + dx)}" font-family="'Audiowide'" font-size="${round(WORD_SIZE)}" letter-spacing="${round(WORD_TRACKING)}" fill="${fill}"${extra}>bit</text>`;
 
-const eras = [
-  // 8-bit: flat pixel red
-  `<g class="era"><text x="${X}" y="${Y - 3}" text-anchor="end" font-family="'Press Start 2P'" font-size="46" fill="${DANGER}">8</text></g>`,
-  // 16-bit: banded fill + hard ink drop
-  `<g class="era">
-    <text x="${X + 2}" y="${Y - 1}" text-anchor="end" font-family="'Press Start 2P'" font-size="46" fill="${INK}">16</text>
-    <text x="${X}" y="${Y - 3}" text-anchor="end" font-family="'Press Start 2P'" font-size="46" fill="url(#g16)">16</text>
-  </g>`,
-  // 32-bit: chrome gradient + white lip + ink drop
-  `<g class="era">
-    <text x="${X + 3}" y="${Y + 3}" text-anchor="end" font-family="Bungee" font-size="62" fill="${INK}">32</text>
-    <text x="${X + 1}" y="${Y + 1}" text-anchor="end" font-family="Bungee" font-size="62" fill="#ffffff">32</text>
-    <text x="${X}" y="${Y}" text-anchor="end" font-family="Bungee" font-size="62" fill="url(#g32)">32</text>
-  </g>`,
-  // 64-bit: extruded rounded type with ink stroke
-  `<g class="era">
-    ${[6, 5].map((o) => `<text x="${X + o}" y="${Y + o}" text-anchor="end" font-family="Lilita One" font-size="66" fill="${INK}">64</text>`).join('')}
-    ${[4, 3, 2, 1].map((o) => `<text x="${X + o}" y="${Y + o}" text-anchor="end" font-family="Lilita One" font-size="66" fill="${PRIMARY_HOVER}">64</text>`).join('')}
-    <text x="${X}" y="${Y}" text-anchor="end" font-family="Lilita One" font-size="66" fill="${PRIMARY}" stroke="${INK}" stroke-width="3" paint-order="stroke fill">64</text>
-  </g>`,
-];
+// 64-bit: two violet layers for the hard drop, four coin-shade layers for the extrusion, then the face.
+const word64 = [
+  ...[DROP, DROP - 1].map((o) => word(o, VIOLET)),
+  ...[4, 3, 2, 1].map((o) => word(o, COIN_SHADE)),
+  word(0, COIN, ` stroke="${INK}" stroke-width="${STROKE}" paint-order="stroke fill"`),
+].join('\n  ');
 
-const delays = eras.map((_, i) => `.era:nth-of-type(${i + 1}){animation-delay:${-(4 - i) * INTERVAL_S}s}`).join('');
+const caption = CAPTION_LINES.map(
+  (line, i) =>
+    `<text x="${CAPTION_X}" y="${round(CAPTION_Y + i * CAPTION_LEADING)}" font-family="'Press Start 2P'" font-size="${round(CAPTION_SIZE)}" letter-spacing="${round(CAPTION_TRACKING)}" fill="${SLATE}">${line}</text>`,
+).join('\n');
 
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 110" width="320" height="110" role="img" aria-label="bit">
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${HEIGHT}" width="${WIDTH}" height="${HEIGHT}" role="img" aria-label="bit Design System">
 <style>
 ${fonts}
-.era{opacity:0;transform-box:fill-box;transform-origin:50% 100%;animation:cycle ${CYCLE_S}s step-end infinite}
-${delays}
-@keyframes cycle{
-0%{opacity:1;transform:scale(.5)}0.6%{transform:scale(.75)}1.2%{transform:scale(1)}
-1.8%{transform:scale(.5)}2.4%{transform:scale(.75)}3%{transform:scale(1)}
-3.6%{transform:scale(.5)}4.2%{transform:scale(.75)}4.8%{opacity:1;transform:scale(1)}
-25%{opacity:0;transform:scale(1)}100%{opacity:0;transform:scale(1)}}
-@media (prefers-reduced-motion:reduce){.era{animation:none}.era:first-of-type{opacity:1}}
 </style>
-<defs>
-  <linearGradient id="g16" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="${PRIMARY_SOFT}"/><stop offset=".34" stop-color="${PRIMARY_SOFT}"/>
-    <stop offset=".34" stop-color="${PRIMARY}"/><stop offset=".67" stop-color="${PRIMARY}"/>
-    <stop offset=".67" stop-color="${WARNING}"/><stop offset="1" stop-color="${WARNING}"/>
-  </linearGradient>
-  <linearGradient id="g32" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#ffffff"/><stop offset=".38" stop-color="#c9d8f0"/>
-    <stop offset=".5" stop-color="#3b5b8c"/><stop offset=".58" stop-color="#9db4d6"/><stop offset="1" stop-color="#4e6fa3"/>
-  </linearGradient>
-</defs>
-<rect width="320" height="110" rx="14" fill="${CREAM}" stroke="${INK}" stroke-width="3"/>
-${eras.join('\n')}
-<text x="160" y="${Y}" font-family="Lilita One" font-size="64" fill="${INK}">-bit</text>
+<rect x="1.5" y="1.5" width="${WIDTH - 3}" height="${HEIGHT - 3}" rx="14" fill="${PAPER}" stroke="${INK}" stroke-width="3"/>
+<g>
+  ${word64}
+</g>
+${caption}
 </svg>
 `;
 

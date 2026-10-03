@@ -1,53 +1,41 @@
 import { forwardRef } from 'react';
-import type { CSSProperties, HTMLAttributes } from 'react';
+import type { HTMLAttributes } from 'react';
 import { SIZES } from '../system/axes';
 import type { Size } from '../system/axes';
 import { element, toClasses } from '../system/toClasses';
 import { dropLegacyColor } from '../system/dropLegacyColor';
-
-/** Console generations, in the order the logo cycles through them. */
-export const ERAS = [8, 16, 32, 64] as const;
-export type Era = (typeof ERAS)[number];
+import { useLogoEra } from './logoEra';
+import type { Era } from './logoEra';
 
 const sizes = SIZES;
 
 export interface BitLogoProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'color'> {
   size?: Size;
-  /** Seconds each era stays on screen. Demo default is 5. */
-  interval?: number;
-  /** Set false to show a single static era (the first one). */
-  animated?: boolean;
-  /** Pin one era and stop cycling. A theme or version picker sets this. */
-  freeze?: Era;
+  /** Pin one era. Omit it and each page load shows the next era: 8 → 16 → 32 → 64. */
+  era?: Era;
 }
 
+/** The bit wordmark: "bit" drawn in one console era's style, with a small "Design System" caption to its right. */
 export const BitLogo = forwardRef<HTMLSpanElement, BitLogoProps>(function BitLogo(
-  { size = 'md', interval = 5, animated = true, freeze, className, style, ...rest },
+  { size = 'md', era, className, ...rest },
   ref,
 ) {
-  const shown: readonly Era[] = freeze !== undefined ? [freeze] : animated ? ERAS : [ERAS[0]];
-  const cycling = shown.length > 1;
-  const cssVars = { ...style, '--_bit-logo-interval': `${interval}s` } as CSSProperties;
+  const shown = useLogoEra(era);
 
   return (
     <span
       ref={ref}
       role="img"
-      aria-label="bit"
+      aria-label="bit Design System"
       className={toClasses('logo', [{ name: 'size', allowed: sizes, value: size }], className)}
-      data-animated={cycling ? '' : undefined}
-      style={cssVars}
+      data-era={shown}
       {...dropLegacyColor(rest)}
     >
-      <span className={element('logo', 'slot')} aria-hidden="true">
-        {shown.map((era) => (
-          <span key={era} className={element('logo', 'era')} data-era={era}>
-            {era}
-          </span>
-        ))}
+      <span className={element('logo', 'word')} aria-hidden="true">
+        bit
       </span>
-      <span className={element('logo', 'suffix')} aria-hidden="true">
-        -bit
+      <span className={element('logo', 'caption')} aria-hidden="true">
+        Design System
       </span>
     </span>
   );

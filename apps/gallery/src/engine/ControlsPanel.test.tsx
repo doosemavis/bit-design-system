@@ -6,7 +6,6 @@ import { ControlsPanel } from './ControlsPanel';
 import { defaultState } from './state';
 import type { ControlState, ControlValue, Manifest } from '../manifests/types';
 import { button } from '../manifests/button';
-import { bitLogo } from '../manifests/bitLogo';
 import { spinner } from '../manifests/spinner';
 import { expectNoA11yViolations } from '../test/a11y';
 
@@ -66,7 +65,11 @@ describe('ControlsPanel', () => {
 
   it('renders number and text controls and labels aria-label by its prop name', async () => {
     const onChange = vi.fn();
-    render(<Harness manifest={bitLogo} onChange={onChange} />);
+    const numbered: Manifest = {
+      ...spinner,
+      controls: [{ kind: 'number', prop: 'interval', default: 5, min: 1, max: 30, step: 1 }],
+    };
+    render(<Harness manifest={numbered} onChange={onChange} />);
     const interval = screen.getByLabelText('interval') as HTMLInputElement;
     expect(interval.type).toBe('number');
     expect(interval).toHaveValue(5);

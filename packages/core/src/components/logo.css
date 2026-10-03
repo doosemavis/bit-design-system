@@ -1,12 +1,16 @@
 /* Exempt from --_bit-size-* and --bit-border-width: the logo is not a control, so it scales from
    the type scale directly rather than the control size scale, and has no border. */
-/* BitLogo: "-bit" is fixed; the number cycles 8 → 16 → 32 → 64, each drawn in its era's type style.
-   Transition: no fades. The outgoing number cuts out; the incoming one does the NES three-size grow. */
+/* BitLogo: "bit" with a small "DESIGN / SYSTEM" caption in two lines to its right, centred on the word.
+   The word is drawn in one era's style, chosen by data-era on the root (8, 16, 32 or 64). Nothing moves;
+   the era changes between page loads. */
 .bit-logo {
-  --_bit-logo-interval: 5s;
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.12em;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4em;
+  /* Top, not baseline: each era's font sets its baseline at a different height, which would change the
+     height of a line (such as a heading) around the logo between page loads. */
+  vertical-align: top;
   line-height: 1;
   white-space: nowrap;
   color: var(--bit-color-text);
@@ -16,36 +20,56 @@
 .bit-logo.bit-md { font-size: calc(var(--bit-text-32px) * 1.5); }
 .bit-logo.bit-lg { font-size: calc(var(--bit-text-32px) * 2.25); }
 
-.bit-logo__slot {
-  display: inline-grid;
-  justify-items: end;
-  align-items: baseline;
+.bit-logo__word {
+  line-height: 1;
 }
 
-.bit-logo__era {
-  grid-area: 1 / 1;
-  display: inline-block;
-  transform-origin: 50% 100%;
-}
-
-.bit-logo__suffix {
-  font-family: var(--bit-font-display);
-  letter-spacing: 0.01em;
+/* The caption stays the same in every era. It is one text node, "Design System"; min-content width
+   makes it wrap at its one space, so it reads DESIGN over SYSTEM beside the word.
+   0.26em of the root: ~8px at sm, 12.5px at md, ~18.7px at lg. */
+.bit-logo__caption {
+  font-family: var(--bit-font-pixel);
+  font-size: 0.26em;
+  letter-spacing: 0.14em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--bit-color-text-muted);
+  width: min-content;
+  white-space: normal;
 }
 
 /* ---------- era treatments (a theme may override any of these by selector) ---------- */
 
+/* Every era matches the 8-bit word's ink height and width, so a page load changes only the style, never
+   the size or where the caption starts. Reference: Press Start 2P "bit" at 0.82em with -0.11em tracking
+   (8 and 16), which closes the pixel font's built-in padding between glyphs; its margin-right takes back
+   the trailing tracking after "t". Reference box, in em of the root: ink height 0.7175, ink right edge 2.1771,
+   box width 2.2796. Measured in a browser (headless Chrome 151, Google Fonts) on 2026-10-03.
+   32 and 64 share one font (Audiowide) and so one set of values (Amendment 3). They solve, in em of the word:
+   - font-size so the ink height of "bit" matches (no stretching);
+   - letter-spacing so the ink right edge of "t" lands where 8-bit's does, so the gap to the caption looks
+     the same;
+   - margin-right so the word box is 2.2796em of the root wide (it takes back the trailing letter-spacing
+     after "t"), so the caption starts at the same x. The 0.4em gap is unchanged;
+   - line-height so the word box stays 0.82em tall, so nothing below the logo moves.
+   Re-measured with 64 in Audiowide (same browser, 2026-10-03): 64's glyph ink equals 32's. Its 1.5px stroke
+   and its 6px extrusion and drop are paint outside the glyph, so they are not part of the fit. */
+
 /* 8-bit: flat pixel type, one color */
-.bit-logo__era[data-era="8"] {
+.bit-logo[data-era="8"] .bit-logo__word {
   font-family: var(--bit-font-pixel);
-  font-size: 0.72em;
+  font-size: 0.82em;
+  letter-spacing: -0.11em;
+  margin-right: 0.11em;
   color: var(--bit-color-danger);
 }
 
 /* 16-bit: pixel type with three-band shading and a hard drop */
-.bit-logo__era[data-era="16"] {
+.bit-logo[data-era="16"] .bit-logo__word {
   font-family: var(--bit-font-pixel);
-  font-size: 0.72em;
+  font-size: 0.82em;
+  letter-spacing: -0.11em;
+  margin-right: 0.11em;
   background: linear-gradient(
     180deg,
     var(--bit-logo-coin-light) 0 34%,
@@ -58,11 +82,14 @@
   filter: drop-shadow(2px 2px 0 var(--bit-color-shadow));
 }
 
-/* 32-bit: chrome gradient with a bevel. The chrome is era-specific, so it is fixed rather than tokenized. */
-.bit-logo__era[data-era="32"] {
-  font-family: "Bungee", var(--bit-font-display);
-  font-size: 0.98em;
-  letter-spacing: 0.02em;
+/* 32-bit: chrome gradient with a bevel. Audiowide has a real lowercase (the old 32-bit face was capitals only).
+   The chrome is era-specific, so it is fixed rather than tokenized. */
+.bit-logo[data-era="32"] .bit-logo__word {
+  font-family: "Audiowide", var(--bit-font-display);
+  font-size: 0.955em;
+  letter-spacing: 0.4em;
+  margin-right: -0.317em;
+  line-height: 0.859;
   background: linear-gradient(180deg, #ffffff 0%, #c9d8f0 38%, #3b5b8c 50%, #9db4d6 58%, #4e6fa3 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -70,10 +97,14 @@
   filter: drop-shadow(1px 1px 0 #ffffff) drop-shadow(3px 3px 0 var(--bit-color-shadow));
 }
 
-/* 64-bit: rounded display type, extruded */
-.bit-logo__era[data-era="64"] {
-  font-family: var(--bit-font-display);
-  font-size: 1.04em;
+/* 64-bit: Audiowide, as 32-bit and at 32-bit's fitted values, in gold with a gold extrusion over a violet hard
+   drop. The violet is a fixed logo token, not primary, so a palette swap never recolors it. */
+.bit-logo[data-era="64"] .bit-logo__word {
+  font-family: "Audiowide", var(--bit-font-display);
+  font-size: 0.955em;
+  letter-spacing: 0.4em;
+  margin-right: -0.317em;
+  line-height: 0.859;
   color: var(--bit-logo-coin);
   -webkit-text-stroke: 1.5px var(--bit-color-line);
   paint-order: stroke fill;
@@ -82,39 +113,6 @@
     2px 2px 0 var(--bit-logo-coin-shade),
     3px 3px 0 var(--bit-logo-coin-shade),
     4px 4px 0 var(--bit-logo-coin-shade),
-    5px 5px 0 var(--bit-color-shadow),
-    6px 6px 0 var(--bit-color-shadow);
-}
-
-/* ---------- the cycle ---------- */
-/* Four eras share one grid cell. Each owns a 25% window of a cycle four intervals long.
-   Negative delays stagger them. step-end timing means no easing anywhere. */
-.bit-logo[data-animated] .bit-logo__era {
-  opacity: 0;
-  animation: bit-logo-cycle calc(var(--_bit-logo-interval) * 4) step-end infinite;
-}
-
-.bit-logo[data-animated] .bit-logo__era:nth-child(1) { animation-delay: calc(var(--_bit-logo-interval) * -4); }
-.bit-logo[data-animated] .bit-logo__era:nth-child(2) { animation-delay: calc(var(--_bit-logo-interval) * -3); }
-.bit-logo[data-animated] .bit-logo__era:nth-child(3) { animation-delay: calc(var(--_bit-logo-interval) * -2); }
-.bit-logo[data-animated] .bit-logo__era:nth-child(4) { animation-delay: calc(var(--_bit-logo-interval) * -1); }
-
-/* The grow occupies the first 4.8% of the cycle (≈1s at the 5s default) and mirrors @keyframes bit-power-up. */
-@keyframes bit-logo-cycle {
-  0%    { opacity: 1; transform: scale(0.5); }
-  0.6%  { transform: scale(0.75); }
-  1.2%  { transform: scale(1); }
-  1.8%  { transform: scale(0.5); }
-  2.4%  { transform: scale(0.75); }
-  3.0%  { transform: scale(1); }
-  3.6%  { transform: scale(0.5); }
-  4.2%  { transform: scale(0.75); }
-  4.8%  { opacity: 1; transform: scale(1); }
-  25%   { opacity: 0; transform: scale(1); }
-  100%  { opacity: 0; transform: scale(1); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bit-logo[data-animated] .bit-logo__era { animation: none; }
-  .bit-logo[data-animated] .bit-logo__era:first-child { opacity: 1; }
+    5px 5px 0 var(--bit-logo-violet),
+    6px 6px 0 var(--bit-logo-violet);
 }

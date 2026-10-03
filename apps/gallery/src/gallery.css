@@ -57,11 +57,6 @@ html {
   text-decoration: none;
 }
 
-.gallery-header__name {
-  font-family: var(--bit-font-display);
-  font-size: var(--bit-text-18px);
-}
-
 .gallery-header__tools {
   margin-left: auto;
   display: flex;
@@ -193,10 +188,6 @@ html {
 
   .gallery-header__menu {
     display: inline-flex;
-  }
-
-  .gallery-header__name {
-    display: none;
   }
 
   .gallery-sidebar {

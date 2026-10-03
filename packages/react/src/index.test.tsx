@@ -76,4 +76,10 @@ describe('public index', () => {
     expect('setColorMode' in lib).toBe(false);
     expect('resolveColorMode' in lib).toBe(false);
   });
+
+  it('exports the logo eras and storage key but not the page-era internals', () => {
+    expect(lib.ERAS).toEqual([8, 16, 32, 64]);
+    expect(lib.LOGO_ERA_STORAGE_KEY).toBe('bit-logo-era');
+    for (const name of ['resetLogoEra', 'currentPageEra', 'useLogoEra']) expect(name in lib).toBe(false);
+  });
 });

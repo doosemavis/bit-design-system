@@ -15,7 +15,7 @@ export interface SelectControl {
   prop: string;
   values: readonly string[];
   default: string;
-  /** Parse the chosen value with Number() before passing it as a prop (Stack gap, BitLogo freeze). */
+  /** Parse the chosen value with Number() before passing it as a prop (Stack gap, BitLogo era). */
   numeric?: boolean;
   label?: string;
 }

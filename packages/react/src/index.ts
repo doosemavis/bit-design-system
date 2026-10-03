@@ -26,8 +26,10 @@ export type { SpinnerProps } from './components/Spinner/Spinner';
 export { ModeToggle } from './components/ModeToggle/ModeToggle';
 export type { ModeToggleProps } from './components/ModeToggle/ModeToggle';
 
-export { BitLogo, ERAS } from './logo/BitLogo';
-export type { BitLogoProps, Era } from './logo/BitLogo';
+export { BitLogo } from './logo/BitLogo';
+export type { BitLogoProps } from './logo/BitLogo';
+export { ERAS, LOGO_ERA_STORAGE_KEY } from './logo/logoEra';
+export type { Era } from './logo/logoEra';
 
 export { useColorMode, COLOR_MODES, COLOR_MODE_STORAGE_KEY, COLOR_MODE_SCRIPT } from './mode/colorMode';
 export type { ColorMode } from './mode/colorMode';

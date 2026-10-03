@@ -23,10 +23,9 @@ export function Header({ menuOpen, onToggleMenu }: HeaderProps) {
       >
         Menu
       </Button>
-      <Link to="/" className="gallery-header__brand" aria-label="bit gallery home">
+      <Link to="/" className="gallery-header__brand" aria-label="bit Design System, gallery home">
         <BitLogo size="sm" />
       </Link>
-      <span className="gallery-header__name">gallery</span>
       <div className="gallery-header__tools">
         {/* The theme dropdown appears once a second theme exists (plan §H.5); light/dark is a mode. */}
         {THEMES.length > 1 ? <ThemeSelect /> : null}

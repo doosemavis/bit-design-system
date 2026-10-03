@@ -32,9 +32,10 @@ describe('semantic token list', () => {
       '--bit-text-11px', '--bit-text-32px', '--bit-leading-tight', '--bit-leading-normal', '--bit-weight-normal', '--bit-weight-bold',
       '--bit-space-4px', '--bit-space-64px',
       '--bit-control-height-sm', '--bit-control-height-lg', '--bit-control-padding-sm', '--bit-control-padding-lg',
-      '--bit-press-offset', '--bit-duration-fast', '--bit-duration-normal', '--bit-motion-power-up',
+      '--bit-press-offset', '--bit-duration-fast', '--bit-duration-normal',
     ];
     for (const name of expected) expect(SEMANTIC_TOKENS).toContain(name);
+    expect(SEMANTIC_TOKENS).not.toContain('--bit-motion-power-up');
   });
 
   it('includes the code, mono, selection, and logo tokens (amendments §C)', () => {
@@ -44,7 +45,7 @@ describe('semantic token list', () => {
       ...CODE_KINDS.map((kind) => `--bit-code-${kind}`),
       '--bit-font-mono',
       '--bit-color-selection',
-      '--bit-logo-coin', '--bit-logo-coin-light', '--bit-logo-coin-shade', '--bit-logo-coin-deep',
+      '--bit-logo-coin', '--bit-logo-coin-light', '--bit-logo-coin-shade', '--bit-logo-coin-deep', '--bit-logo-violet',
     ];
     for (const name of expected) expect(SEMANTIC_TOKENS).toContain(name);
   });
