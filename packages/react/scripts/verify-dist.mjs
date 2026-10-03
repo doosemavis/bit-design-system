@@ -10,6 +10,12 @@ const require = createRequire(import.meta.url);
 
 const EXPECTED = ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text'];
 
+// 0. Client boundary: the hooks and toggle need a 'use client' directive for React Server Components.
+for (const file of ['index.js', 'index.cjs']) {
+  const source = readFileSync(resolve(dist, file), 'utf8');
+  assert.ok(/^\s*'use client';/.test(source), `dist/${file} must start with 'use client'; (tsup banner missing)`);
+}
+
 // 1. CJS entry
 const cjs = require(resolve(dist, 'index.cjs'));
 for (const name of EXPECTED) assert.ok(cjs[name], `CJS export missing: ${name}`);

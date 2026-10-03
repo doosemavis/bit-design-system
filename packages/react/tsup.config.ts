@@ -20,6 +20,8 @@ export default defineConfig({
   clean: true,
   target: 'es2022',
   external: ['react', 'react-dom', 'react/jsx-runtime'],
+  // The hooks and ModeToggle run on the client; the directive lets React Server Components import the package.
+  banner: { js: "'use client';" },
   // Inline the workspace core package (only tokens.ts is ever imported from it).
   noExternal: ['@bit-ds/core'],
 });
