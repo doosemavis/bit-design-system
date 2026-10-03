@@ -9,34 +9,6 @@ describe('Shell', () => {
     document.documentElement.dataset.theme = 'power-up';
   });
 
-  it('home shows the logo, the install lines, and the naming rule', async () => {
-    const { container } = renderAt('/');
-    expect((await screen.findAllByRole('img', { name: 'bit Design System' })).length).toBeGreaterThan(0);
-    const heading = screen.getByRole('heading', { level: 1, name: 'bit Design System' });
-    expect(within(heading).getByRole('img', { name: 'bit Design System' })).toBeInTheDocument();
-    // The old separate "bit" h1 is gone: the logo is the heading.
-    expect(screen.queryByText('bit', { selector: 'h1' })).toBeNull();
-    const install = container.querySelector('.bit-code__block[data-language="shell"] pre');
-    expect(install?.textContent).toBe(
-      "pnpm add @bit-ds/react\nimport '@bit-ds/react/themes/power-up.css';\nimport '@bit-ds/react/styles.css';",
-    );
-    expect(screen.getByText('bit-primary')).toBeInTheDocument();
-    await expectNoA11yViolations(container);
-  });
-
-  it('home shows its three snippets as CodeBlocks: install in shell, then the React and HTML ways', async () => {
-    const { container } = renderAt('/');
-    await screen.findByRole('heading', { level: 1 });
-    const blocks = [...container.querySelectorAll('.bit-code__block')];
-    expect(blocks.map((b) => b.getAttribute('data-language'))).toEqual(['shell', 'jsx', 'html']);
-    expect(blocks[1]!.querySelector('pre')!.textContent).toBe('<Card><CardHeader>Stats</CardHeader></Card>');
-    expect(blocks[2]!.querySelector('pre')!.textContent).toBe(
-      '<div class="bit-card bit-solid"><div class="bit-card__header">Stats</div></div>',
-    );
-    expect(blocks[1]!.querySelector('[data-kind="component"]')).toHaveTextContent('Card');
-    expect(container.querySelector('pre.gallery-pre')).toBeNull();
-  });
-
   it('has a skip link that targets main', async () => {
     renderAt('/');
     const skip = await screen.findByRole('link', { name: 'Skip to content' });

@@ -42,6 +42,15 @@ describe('components/code-block.css', () => {
     expect(decl(block(css, '.bit-code__lang')!, 'margin-inline-end')).toBe('auto');
   });
 
+  it('the bar wraps when its parts do not fit, so a narrow phone never clips Copy (PR3a T6 fix round 1)', () => {
+    // The panel has overflow: hidden, so without wrapping a wide "Copy failed" beside a switcher is cut off
+    // below about 388px. Wrapping drops the actions and Copy to a second row instead.
+    const bar = block(css, '.bit-code__bar')!;
+    expect(decl(bar, 'flex-wrap')).toBe('wrap');
+    // The label still takes the free space, so when everything fits the row looks as before.
+    expect(decl(block(css, '.bit-code__lang')!, 'margin-inline-end')).toBe('auto');
+  });
+
   it('the actions wrapper lays its controls out in a row, 8px apart, reading only tokens', () => {
     const actions = block(css, '.bit-code__actions')!;
     expect(actions).not.toBeNull();

@@ -490,3 +490,85 @@ html {
 }
 
 /* ---------- home page ---------- */
+
+/* Large tiles: a live preview over a footer link. The link's ::after covers the tile, so the whole tile
+   is one link while the preview inside stays inert. */
+.gallery-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--bit-space-16px);
+}
+
+.gallery-tile {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(8rem, auto) auto;
+  overflow: hidden;
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-14px);
+  box-shadow: var(--bit-shadow-md);
+}
+
+.gallery-tile__preview {
+  display: grid;
+  place-items: center;
+  padding: var(--bit-space-16px);
+  overflow: hidden;
+  border-bottom: var(--bit-border-width) solid var(--bit-color-line);
+}
+
+.gallery-tile__link {
+  padding: var(--bit-space-12px) var(--bit-space-16px);
+}
+
+.gallery-tile__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+/* The link covers the whole tile, so the whole tile shows its keyboard focus: reset.css's ring, drawn on
+   the tile instead of around the link text (which the tile's overflow: hidden would clip). */
+.gallery-tile:has(.gallery-tile__link:focus-visible) {
+  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
+  outline-offset: var(--bit-focus-ring-offset);
+}
+
+.gallery-tile__link:focus-visible {
+  outline: none;
+}
+
+/* Compact tiles: a glyph chip, the name and →, all one link. */
+.gallery-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bit-space-12px);
+}
+
+.gallery-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bit-space-8px);
+  padding: var(--bit-space-8px) var(--bit-space-12px);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+}
+
+.gallery-chip__glyph {
+  display: inline-grid;
+  place-items: center;
+  width: var(--bit-space-24px);
+  height: var(--bit-space-24px);
+  font-family: var(--bit-font-mono);
+  font-size: var(--bit-text-13px);
+  background: var(--bit-color-neutral-soft);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-6px);
+}
+
+/* The naming rule: a code never wraps mid-word; on a phone the Table scrolls sideways inside its border. */
+.gallery-naming .bit-code {
+  white-space: nowrap;
+}
