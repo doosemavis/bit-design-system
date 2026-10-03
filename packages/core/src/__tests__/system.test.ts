@@ -155,20 +155,21 @@ describe('components/logo.css', () => {
   });
 
   it('draws each era on the word, with the agreed sizes', () => {
-    // 8 and 16 are the reference box: Press Start 2P "bit" at 0.82em, no extra tracking.
+    // 8 and 16 are the reference box: Press Start 2P "bit" at 0.82em, tightened by -0.11em tracking; the
+    // margin-right takes back the trailing tracking after "t" (owner fix 2, round 2, option B).
     for (const era of [8, 16]) {
       expect(word(era)).toContain('font-size: 0.82em;');
-      expect(word(era)).not.toContain('letter-spacing');
-      expect(word(era)).not.toContain('margin-right');
+      expect(word(era)).toContain('letter-spacing: -0.11em;');
+      expect(word(era)).toContain('margin-right: 0.11em;');
     }
     // 32 and 64 match its ink height (font-size), ink right edge (letter-spacing) and box width (margin-right),
     // so the caption starts at the same x in every era. Values measured in a browser (Amendment 2, B1).
     expect(word(32)).toContain('font-size: 0.955em;');
-    expect(word(32)).toContain('letter-spacing: 0.494em;');
-    expect(word(32)).toContain('margin-right: -0.41em;');
+    expect(word(32)).toContain('letter-spacing: 0.4em;');
+    expect(word(32)).toContain('margin-right: -0.317em;');
     expect(word(64)).toContain('font-size: 0.998em;');
-    expect(word(64)).toContain('letter-spacing: 0.603em;');
-    expect(word(64)).toContain('margin-right: -0.505em;');
+    expect(word(64)).toContain('letter-spacing: 0.513em;');
+    expect(word(64)).toContain('margin-right: -0.416em;');
   });
 
   it('keeps the word box 0.82em tall in every era, so nothing below the logo moves between page loads', () => {

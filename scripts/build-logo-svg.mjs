@@ -18,14 +18,15 @@ const COIN = '#FFCC00';
 const COIN_SHADE = '#E0B000';
 
 // Lockup proportions, matching components/logo.css, all in units of the root font-size:
-// - the 64-bit word is 0.998em with 0.603em letter-spacing (em of the word), so its ink is as tall as the
-//   8-bit reference (Press Start 2P "bit" at 0.82em) and ends at the same x;
-// - its box is the reference's 2.46em advance (in CSS a margin-right takes back the trailing spacing);
+// - the 64-bit word is 0.998em with 0.513em letter-spacing (em of the word), so its ink is as tall as the
+//   8-bit reference (Press Start 2P "bit" at 0.82em with -0.11em tracking) and ends at the same x;
+// - its box is the reference's box: 0.82 × (3 glyphs − 0.11 × 2 inner tracking) = 2.2796em
+//   (in CSS a margin-right takes back the trailing spacing);
 // - the caption is 0.26em with 0.14em tracking and 1.3 leading, 0.4em after the word box.
 const ROOT = 70;
 const WORD_SIZE = 0.998 * ROOT;
-const WORD_TRACKING = 0.603 * WORD_SIZE;
-const WORD_BOX = 2.46 * ROOT;
+const WORD_TRACKING = 0.513 * WORD_SIZE;
+const WORD_BOX = 0.82 * (3 - 0.11 * 2) * ROOT;
 const CAPTION_SIZE = 0.26 * ROOT;
 const CAPTION_TRACKING = 0.14 * CAPTION_SIZE;
 const CAPTION_LEADING = 1.3 * CAPTION_SIZE;

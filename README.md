@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/bit-logo.svg" width="366" alt="bit Design System"></p>
+<p align="center"><img src="assets/bit-logo.svg" width="353" alt="bit Design System"></p>
 
 # bit
 
