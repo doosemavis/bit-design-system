@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 
+/** The page's own h1, skipping presentational samples such as the Typography page's heading table. */
+const PAGE_HEADING = 'main h1:not([role="presentation"]):not([role="none"])';
+
 /**
  * After each route change (not the first load), move focus to the page's h1 so screen readers
  * announce the new page. Pages are lazy, so the h1 may not exist yet when the route changes;
@@ -16,7 +19,7 @@ export function useFocusHeading(): void {
     let cancelled = false;
     const tryFocus = () => {
       if (cancelled) return;
-      const heading = document.querySelector<HTMLHeadingElement>('main h1');
+      const heading = document.querySelector<HTMLHeadingElement>(PAGE_HEADING);
       if (!heading) {
         requestAnimationFrame(tryFocus);
         return;
