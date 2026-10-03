@@ -7,6 +7,8 @@ import { stack } from './stack';
 import { text } from './text';
 import { heading } from './heading';
 import { box } from './box';
+import { button } from './button';
+import { codeBlock } from './codeBlock';
 import { toJsx } from '../code/toJsx';
 import type { ChildSpec, ControlState, Manifest, ManifestDocs } from './types';
 
@@ -185,6 +187,14 @@ describe('manifest contract', () => {
         expect(row.className, `${m.name}.${row.name}`).toBe(axes.has(row.name) ? `bit-{${row.name}}` : undefined);
       }
     }
+  });
+
+  it("Button's empty-children error is the §E text", () => {
+    expect(button.docs?.emptyChildrenError).toBe('A Button needs text or an aria-label, or screen readers announce just "button".');
+  });
+
+  it('CodeBlock documents its actions slot', () => {
+    expect(codeBlock.docs?.props.find((p) => p.name === 'actions')?.type).toBe('ReactNode');
   });
 
   it('groups are the sidebar groups, and only the logo is brand', () => {
