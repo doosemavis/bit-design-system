@@ -35,6 +35,13 @@ describe('gallery.css', () => {
     expect(galleryCss).toMatch(rule);
   });
 
+  it('the ruler bar is drawn in the accent, and its width comes only from Box padding', () => {
+    const bar = /\.gallery-ruler__bar \{([^}]*)\}/.exec(galleryCss)![1]!;
+    expect(bar).toContain('background: var(--bit-color-accent);');
+    expect(bar).not.toMatch(/(^|\s)(width|padding)/);
+    expect(galleryCss).toMatch(/\.bit-box\.gallery-outline \{\s*outline: 2px dashed var\(--bit-color-accent\);\s*\}/);
+  });
+
   it('never hardcodes a font stack: mono labels read --bit-font-mono', () => {
     expect(galleryCss).not.toMatch(/monospace/);
     expect(galleryCss).toMatch(/\.gallery-control__label\s*\{[^}]*font-family: var\(--bit-font-mono\);/);

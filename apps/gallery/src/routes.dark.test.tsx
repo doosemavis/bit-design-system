@@ -5,7 +5,10 @@ import { renderAt } from './test/renderRoute';
 import { expectNoA11yViolations } from './test/a11y';
 
 /** The Foundations guide pages and their h1s. */
-const FOUNDATION_PAGES = [['/typography', 'Typography']] as const;
+const FOUNDATION_PAGES = [
+  ['/typography', 'Typography'],
+  ['/spacing', 'Spacing'],
+] as const;
 
 /**
  * Every page with data-mode="dark" set before the first render, the way COLOR_MODE_SCRIPT leaves it.

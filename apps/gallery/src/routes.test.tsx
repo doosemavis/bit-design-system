@@ -12,7 +12,10 @@ function reactPanel(): HTMLElement {
 }
 
 /** The Foundations guide pages and their h1s. */
-const FOUNDATION_PAGES = [['/typography', 'Typography']] as const;
+const FOUNDATION_PAGES = [
+  ['/typography', 'Typography'],
+  ['/spacing', 'Spacing'],
+] as const;
 
 describe('component routes (route smoke, D14)', () => {
   beforeEach(() => {

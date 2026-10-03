@@ -17,6 +17,7 @@ const GROUP_LABELS: Record<PageGroup, NavGroup> = { components: 'Components', fo
 export const NAV: readonly NavItem[] = [
   { group: 'Foundations', label: 'Tokens', to: '/tokens' },
   { group: 'Foundations', label: 'Typography', to: '/typography' },
+  { group: 'Foundations', label: 'Spacing', to: '/spacing' },
   ...MANIFESTS.filter((m): m is Manifest & { group: PageGroup } => m.group !== 'brand').map((m) => ({
     group: GROUP_LABELS[m.group],
     label: m.name,
