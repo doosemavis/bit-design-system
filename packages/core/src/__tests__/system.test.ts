@@ -136,10 +136,16 @@ describe('components/logo.css', () => {
 describe('focus ring (dark mode spec: one ring, no band)', () => {
   const reset = readCss('system/reset.css');
 
-  it('reset.css draws the ring from the three focus-ring tokens', () => {
+  it('reset.css draws the ring from the three focus-ring tokens, unless a colored container overrides its color', () => {
     const body = block(reset, ':focus-visible');
-    expect(body).toContain('outline: var(--bit-focus-ring-width) solid var(--bit-focus-ring-color);');
+    expect(body).toContain('outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));');
     expect(body).toContain('outline-offset: var(--bit-focus-ring-offset);');
+  });
+
+  it('a solid alert draws rings inside it in its contrast color, so they stay visible on the fill', () => {
+    expect(block(readCss('components/alert.css'), '.bit-alert.bit-solid')).toContain(
+      '--_bit-focus-ring: var(--_bit-color-contrast);',
+    );
   });
 
   it('programmatic focus targets (tabindex="-1", e.g. a page heading) show no ring', () => {

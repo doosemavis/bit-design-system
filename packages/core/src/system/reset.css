@@ -36,9 +36,10 @@ body {
 }
 
 /* Focus: one ring on everything, which no component sets or overrides. Color, width and gap come
-   from the theme (violet 2px/2px in light, yellow 2px/1px in dark). */
+   from the theme (violet 2px/2px in light, yellow 2px/1px in dark). Containers with a colored fill
+   set --_bit-focus-ring so rings inside them stay visible. */
 :focus-visible {
-  outline: var(--bit-focus-ring-width) solid var(--bit-focus-ring-color);
+  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
   outline-offset: var(--bit-focus-ring-offset);
 }
 

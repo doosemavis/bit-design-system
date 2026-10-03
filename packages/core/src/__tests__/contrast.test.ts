@@ -36,6 +36,11 @@ describe.each(MODES)('%s contrast', (_name, map) => {
     }
   });
 
+  it.each(COLORS)('a focus ring inside a solid %s panel (its contrast color) stands out from the fill', (color) => {
+    const ring = resolveColor(`--bit-color-${color}-contrast`);
+    expect(contrastRatio(ring, resolveColor(`--bit-color-${color}`))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
   it('borders (line) stand out from the page', () => {
     expect(contrastRatio(resolveColor('--bit-color-line'), resolveColor('--bit-color-bg'))).toBeGreaterThanOrEqual(AA_NON_TEXT);
   });

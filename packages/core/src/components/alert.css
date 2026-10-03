@@ -11,6 +11,7 @@
 .bit-alert.bit-solid {
   background: var(--_bit-color);
   color: var(--_bit-color-contrast);
+  --_bit-focus-ring: var(--_bit-color-contrast);
   box-shadow: var(--bit-shadow-md);
 }
 
