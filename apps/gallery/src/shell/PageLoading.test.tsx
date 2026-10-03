@@ -2,6 +2,10 @@ import { act, render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { ComponentLoading, LOADING_DELAY_MS, PageLoading } from './PageLoading';
+import { renderAt } from '../test/renderRoute';
+
+// The Typography page's code never arrives in this file, so its route stays suspended.
+vi.mock('../pages/TypographyPage', () => new Promise(() => {}));
 
 afterEach(() => {
   vi.useRealTimers();
@@ -39,5 +43,15 @@ describe('PageLoading', () => {
       expect(screen.getByRole('status', { name: label })).toBeInTheDocument();
       unmount();
     }
+  });
+
+  it('moving from one lazy page to another shows the new page\'s loading state, not the old page', async () => {
+    const { router } = renderAt('/tokens');
+    await screen.findByRole('heading', { level: 1, name: 'Tokens' });
+    await act(async () => {
+      void router.navigate('/typography');
+    });
+    expect(await screen.findByRole('status', { name: 'Loading Typography…' }, { timeout: 2000 })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 1, name: 'Tokens' })).toBeNull();
   });
 });

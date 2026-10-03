@@ -36,7 +36,7 @@ export function Shell({ nav = NAV }: ShellProps) {
 
   return (
     <div className="gallery-shell">
-      <InPageLink targetId="main" className="gallery-skip">
+      <InPageLink targetId="main" color="neutral" className="gallery-skip">
         Skip to content
       </InPageLink>
       <Header

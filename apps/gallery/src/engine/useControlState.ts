@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import type { ControlState, ControlValue, Manifest } from '../manifests/types';
 import { parseState, serializeState } from './state';
 
@@ -20,33 +20,36 @@ function isTyped(manifest: Manifest, prop: string): boolean {
   return kind === 'text' || kind === 'number';
 }
 
-/** An edit not yet in the URL, and the query it was typed on top of. */
+/** An edit not yet in the URL, and the history entry (location key) it was typed on. */
 interface Draft {
-  query: string;
+  entry: string;
   state: ControlState;
 }
 
 /**
  * Page state lives in the query string, so every state is a link.
- * - Selects, switches, presets and Reset push a history entry, so Back undoes them.
+ * - Selects, switches, presets and Reset push a history entry, so Back undoes them. One that leaves the
+ *   query as it is (Reset on a clean page, a preset already applied) navigates nowhere.
  * - Typing shows at once but replaces the current entry 400ms after the last keystroke, so Back skips
  *   the keystrokes and a word is one step, not five.
- * A draft only counts while the URL still holds the query it was typed on. Back, Forward or a push moves
- * the URL, which drops the draft and cancels its timer; so does leaving the page.
+ * A draft only counts on the history entry it was typed on. Back, Forward, a push or a replace moves to
+ * another entry (even one with the same query), which drops the draft and cancels its timer; so does
+ * leaving the page.
  * A URL with invalid or unknown values is rewritten to the values shown, with replace (§E).
  */
 export function useControlState(manifest: Manifest): ControlStateApi {
   const [search, setSearch] = useSearchParams();
   const query = search.toString();
+  const { key: entry } = useLocation();
   const parsed = useMemo(() => parseState(manifest, search), [manifest, search]);
   const [draft, setDraft] = useState<Draft | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const state = draft !== null && draft.query === query ? draft.state : parsed;
+  const state = draft !== null && draft.entry === entry ? draft.state : parsed;
 
   useEffect(() => {
-    setDraft((current) => (current !== null && current.query !== query ? null : current));
+    setDraft((current) => (current !== null && current.entry !== entry ? null : current));
     return () => clearTimeout(timer.current);
-  }, [query]);
+  }, [entry]);
 
   // A shared link with bad or unknown values shows the defaults; rewrite its URL to match, in place.
   const canonical = useMemo(() => serializeState(manifest, parsed).toString(), [manifest, parsed]);
@@ -58,9 +61,10 @@ export function useControlState(manifest: Manifest): ControlStateApi {
     (next: ControlState) => {
       clearTimeout(timer.current);
       setDraft(null);
-      setSearch(serializeState(manifest, next));
+      const nextSearch = serializeState(manifest, next);
+      if (nextSearch.toString() !== query) setSearch(nextSearch);
     },
-    [manifest, setSearch],
+    [manifest, query, setSearch],
   );
 
   const apply = useCallback(
@@ -79,11 +83,11 @@ export function useControlState(manifest: Manifest): ControlStateApi {
         push(next);
         return;
       }
-      setDraft({ query, state: next });
+      setDraft({ entry, state: next });
       clearTimeout(timer.current);
       timer.current = setTimeout(() => setSearch(serializeState(manifest, next), { replace: true }), TYPING_DEBOUNCE_MS);
     },
-    [manifest, query, state, push, setSearch],
+    [manifest, entry, state, push, setSearch],
   );
 
   const reset = useCallback(() => push(parseState(manifest, new URLSearchParams())), [manifest, push]);

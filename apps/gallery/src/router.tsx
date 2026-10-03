@@ -15,8 +15,22 @@ const SpacingPage = lazy(() => import('./pages/SpacingPage').then((m) => ({ defa
 const ComponentRoute = lazy(() => import('./pages/ComponentRoute').then((m) => ({ default: m.ComponentRoute })));
 const LogoRoute = lazy(() => import('./pages/ComponentRoute').then((m) => ({ default: m.LogoRoute })));
 
-function lazyPage(page: ReactNode, fallback: ReactNode) {
-  return <Suspense fallback={fallback}>{page}</Suspense>;
+/**
+ * Wrap a lazy page in its own Suspense boundary. React Router runs each navigation in a transition, and a
+ * transition keeps an already-shown boundary's old content on screen instead of its fallback. Keying the
+ * boundary on the route pattern makes every route's boundary a new one, so moving between two lazy pages
+ * shows the new page's loading state. Component pages share the one pattern, so moving between them keeps
+ * the boundary (their code is the same chunk, already loaded).
+ */
+function lazyPage(path: string, page: ReactNode, fallback: ReactNode): RouteObject {
+  return {
+    path,
+    element: (
+      <Suspense key={path} fallback={fallback}>
+        {page}
+      </Suspense>
+    ),
+  };
 }
 
 /** Route table shared by the hash router (app) and memory routers (tests). */
@@ -30,11 +44,11 @@ export function buildRoutes(): RouteObject[] {
           errorElement: <PageError />,
           children: [
             { index: true, element: <HomePage /> },
-            { path: 'tokens', element: lazyPage(<TokensPage />, <PageLoading name="Tokens" />) },
-            { path: 'typography', element: lazyPage(<TypographyPage />, <PageLoading name="Typography" />) },
-            { path: 'spacing', element: lazyPage(<SpacingPage />, <PageLoading name="Spacing" />) },
-            { path: 'components/:slug', element: lazyPage(<ComponentRoute />, <ComponentLoading />) },
-            { path: 'brand/logo', element: lazyPage(<LogoRoute />, <PageLoading name="Logo" />) },
+            lazyPage('tokens', <TokensPage />, <PageLoading name="Tokens" />),
+            lazyPage('typography', <TypographyPage />, <PageLoading name="Typography" />),
+            lazyPage('spacing', <SpacingPage />, <PageLoading name="Spacing" />),
+            lazyPage('components/:slug', <ComponentRoute />, <ComponentLoading />),
+            lazyPage('brand/logo', <LogoRoute />, <PageLoading name="Logo" />),
             { path: '*', element: <NotFoundPage /> },
           ],
         },

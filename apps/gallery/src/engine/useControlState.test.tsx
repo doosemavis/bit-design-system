@@ -19,14 +19,14 @@ function NumberProbe() {
   return null;
 }
 
-function setup(initial: string) {
+function setup(...entries: string[]) {
   const router = createMemoryRouter(
     [
       { path: '/x', element: <Probe /> },
       { path: '/n', element: <NumberProbe /> },
       { path: '/elsewhere', element: <p>elsewhere</p> },
     ],
-    { initialEntries: [initial] },
+    { initialEntries: entries, initialIndex: entries.length - 1 },
   );
   const utils = render(<RouterProvider router={router} />);
   return { router, ...utils };
@@ -56,8 +56,9 @@ describe('useControlState', () => {
     expect(router.state.historyAction).toBe('REPLACE');
   });
 
-  it('a clean URL is left alone', () => {
+  it('a clean URL is left alone', async () => {
     const { router } = setup('/x?color=danger');
+    await act(async () => {});
     expect(router.state.location.search).toBe('?color=danger');
     expect(router.state.historyAction).toBe('POP');
   });
@@ -162,5 +163,25 @@ describe('useControlState', () => {
     await wait(TYPING_DEBOUNCE_MS);
     expect(router.state.location.pathname).toBe('/elsewhere');
     expect(router.state.location.search).toBe('');
+  });
+
+  it('Reset on a clean page, or a preset already applied, adds no history entry', async () => {
+    const { router } = setup('/x');
+    const { key } = router.state.location;
+    act(() => api?.reset());
+    act(() => api?.apply({ color: 'primary' }));
+    await act(async () => {});
+    expect(router.state.location.key).toBe(key);
+    expect(router.state.historyAction).toBe('POP');
+  });
+
+  it('Back onto an entry with the same query still drops the unsent word', async () => {
+    vi.useFakeTimers();
+    const { router } = setup('/x', '/x');
+    act(() => api?.setProp('children', 'Go'));
+    await act(() => router.navigate(-1));
+    await wait(TYPING_DEBOUNCE_MS);
+    expect(router.state.location.search).toBe('');
+    expect(api?.state.children).toBe('Save');
   });
 });
