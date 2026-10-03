@@ -1,15 +1,11 @@
-import { useParams } from 'react-router-dom';
 import { CodeBlock, Stack, Text } from '@bit-ds/react';
-import { findManifest, routeFor } from '../manifests';
 import type { Manifest } from '../manifests';
-import { bitLogo } from '../manifests/bitLogo';
 import { useControlState } from '../engine/useControlState';
 import { renderManifest } from '../engine/renderManifest';
 import { Presets } from '../engine/Presets';
 import { Preview } from '../engine/Preview';
 import { ControlsPanel } from '../engine/ControlsPanel';
 import { toJsx } from '../code/toJsx';
-import { NotFoundPage } from './NotFoundPage';
 
 interface ComponentPageProps {
   manifest: Manifest;
@@ -40,17 +36,4 @@ export function ComponentPage({ manifest }: ComponentPageProps) {
       </section>
     </Stack>
   );
-}
-
-/** `/components/:slug`. Unknown slugs, and manifests routed elsewhere (the logo is under Brand), get the 404. */
-export function ComponentRoute() {
-  const { slug = '' } = useParams();
-  const manifest = findManifest(slug);
-  if (!manifest || routeFor(manifest) !== `/components/${slug}`) return <NotFoundPage />;
-  return <ComponentPage key={manifest.slug} manifest={manifest} />;
-}
-
-/** `/brand/logo`. */
-export function LogoRoute() {
-  return <ComponentPage manifest={bitLogo} />;
 }

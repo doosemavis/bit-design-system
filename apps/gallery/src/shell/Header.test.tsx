@@ -1,7 +1,9 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderAt } from '../test/renderRoute';
+import { stubMatchMedia } from '../test/matchMedia';
+import { NARROW_QUERY } from '../ui/useMediaQuery';
 
 describe('Header color mode', () => {
   beforeEach(() => {
@@ -40,5 +42,29 @@ describe('Header color mode', () => {
     renderAt('/');
     const again = await screen.findByRole('banner');
     expect(within(again).getByRole('button', { name: 'Dark' })).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
+describe('Header at phone width', () => {
+  let restore: () => void = () => {};
+  afterEach(() => restore());
+
+  it('is Menu, the logo and the mode toggle; GitHub moves into the sidebar sheet', async () => {
+    restore = stubMatchMedia(NARROW_QUERY);
+    renderAt('/');
+    const header = await screen.findByRole('banner');
+    expect(within(header).getByRole('button', { name: 'Menu' })).toBeInTheDocument();
+    expect(within(header).getByRole('link', { name: 'bit Design System, gallery home' })).toBeInTheDocument();
+    expect(within(header).getByRole('group', { name: 'Color mode' })).toBeInTheDocument();
+    expect(within(header).queryByRole('link', { name: 'GitHub' })).toBeNull();
+    const nav = screen.getByRole('navigation', { name: 'Gallery' });
+    expect(within(nav).getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', 'https://github.com/doosemavis/bit-design-system');
+  });
+
+  it('on a wide screen GitHub stays in the header and the sheet has none', async () => {
+    renderAt('/');
+    const header = await screen.findByRole('banner');
+    expect(within(header).getByRole('link', { name: 'GitHub' })).toBeInTheDocument();
+    expect(within(screen.getByRole('navigation', { name: 'Gallery' })).queryByRole('link', { name: 'GitHub' })).toBeNull();
   });
 });
