@@ -148,19 +148,6 @@ html {
   outline: none;
 }
 
-.gallery-table {
-  border-collapse: collapse;
-  width: 100%;
-  margin-top: var(--bit-space-12px);
-}
-
-.gallery-table th,
-.gallery-table td {
-  text-align: left;
-  padding: var(--bit-space-8px);
-  border-bottom: var(--bit-border-width) solid var(--bit-color-line);
-}
-
 /* The unknown-component page lists every component as a row of Links that wraps. */
 .gallery-link-list {
   list-style: none;
@@ -222,6 +209,14 @@ html {
   }
 }
 
+/* Small phones (360px, 375px): Menu, the full logo and the mode toggle need 380px, so below 390px the
+   header drops the logo's "Design System" caption. It is aria-hidden; the logo's accessible name stays. */
+@media (max-width: 389px) {
+  .gallery-header__brand .bit-logo__caption {
+    display: none;
+  }
+}
+
 /* ---------- controls ---------- */
 .gallery-controls__head {
   display: flex;
@@ -239,12 +234,6 @@ html {
 .gallery-control {
   display: grid;
   gap: var(--bit-space-4px);
-}
-
-.gallery-inline {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--bit-space-8px);
 }
 
 .gallery-control__label {
