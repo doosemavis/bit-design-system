@@ -1,31 +1,19 @@
-/* Size decorators. sm/md/lg set control height, padding, and text.
-   xs/xl/2xl exist for Text only and set text size alone. */
+/* Size decorators for controls. sm/md/lg set height, padding, and text size.
+   Text does not use these: its size is a px number rendered as data-size (see components/text.css). */
 .bit-sm {
   --_bit-size-height: var(--bit-control-height-sm);
   --_bit-size-padding: var(--bit-control-padding-sm);
-  --_bit-size-text: var(--bit-text-sm);
+  --_bit-size-text: var(--bit-text-13px);
 }
 
 .bit-md {
   --_bit-size-height: var(--bit-control-height-md);
   --_bit-size-padding: var(--bit-control-padding-md);
-  --_bit-size-text: var(--bit-text-md);
+  --_bit-size-text: var(--bit-text-15px);
 }
 
 .bit-lg {
   --_bit-size-height: var(--bit-control-height-lg);
   --_bit-size-padding: var(--bit-control-padding-lg);
-  --_bit-size-text: var(--bit-text-lg);
-}
-
-.bit-xs {
-  --_bit-size-text: var(--bit-text-xs);
-}
-
-.bit-xl {
-  --_bit-size-text: var(--bit-text-xl);
-}
-
-.bit-2xl {
-  --_bit-size-text: var(--bit-text-2xl);
+  --_bit-size-text: var(--bit-text-18px);
 }

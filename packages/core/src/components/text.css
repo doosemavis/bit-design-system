@@ -1,19 +1,27 @@
-/* Text: type scale. xl and 2xl switch to the display face. */
+/* Text: size is a px number rendered as data-size; each value reads the token with the same number.
+   With no data-size (or an unknown one) Text renders 15px. 24 and 32 switch to the display face. */
 .bit-text {
   margin: 0;
   font-family: var(--bit-font-body);
-  font-size: var(--_bit-size-text);
+  font-size: var(--bit-text-15px);
   line-height: var(--bit-leading-normal);
   color: var(--bit-color-text);
 }
 
+.bit-text[data-size="11"] { font-size: var(--bit-text-11px); }
+.bit-text[data-size="13"] { font-size: var(--bit-text-13px); }
+.bit-text[data-size="15"] { font-size: var(--bit-text-15px); }
+.bit-text[data-size="18"] { font-size: var(--bit-text-18px); }
+.bit-text[data-size="24"] { font-size: var(--bit-text-24px); }
+.bit-text[data-size="32"] { font-size: var(--bit-text-32px); }
+
 .bit-text[data-weight="normal"] { font-weight: var(--bit-weight-normal); }
 .bit-text[data-weight="bold"] { font-weight: var(--bit-weight-bold); }
 
-/* xl and 2xl switch to the display face, which has one weight. font-weight: 400 deliberately
-   outranks [data-weight="bold"] here so the browser never synthesizes a faux bold. */
-.bit-text.bit-xl,
-.bit-text.bit-2xl {
+/* 24 and 32 switch to the display face, which has one weight. This rule comes after the weight rules
+   at the same specificity, so font-weight: 400 wins and the browser never synthesizes a faux bold. */
+.bit-text[data-size="24"],
+.bit-text[data-size="32"] {
   font-family: var(--bit-font-display);
   font-weight: 400;
   line-height: var(--bit-leading-tight);

@@ -62,9 +62,9 @@
 
   /* ---------- tier 2: shape (where the retro look lives) ---------- */
   --bit-border-width: 3px;
-  --bit-radius-sm: 6px;
-  --bit-radius-md: 10px;
-  --bit-radius-lg: 14px;
+  --bit-radius-6px: 6px;
+  --bit-radius-10px: 10px;
+  --bit-radius-14px: 14px;
   --bit-radius-full: 999px;
   --bit-shadow-sm: 2px 2px 0 var(--bit-color-ink);
   --bit-shadow-md: 4px 4px 0 var(--bit-color-ink);
@@ -76,26 +76,26 @@
   --bit-font-display: "Lilita One", "Arial Black", sans-serif;
   --bit-font-body: "Nunito", "Segoe UI", sans-serif;
   --bit-font-pixel: "Press Start 2P", monospace;
-  --bit-text-xs: 11px;
-  --bit-text-sm: 13px;
-  --bit-text-md: 15px;
-  --bit-text-lg: 18px;
-  --bit-text-xl: 24px;
-  --bit-text-2xl: 32px;
+  --bit-text-11px: 11px;
+  --bit-text-13px: 13px;
+  --bit-text-15px: 15px;
+  --bit-text-18px: 18px;
+  --bit-text-24px: 24px;
+  --bit-text-32px: 32px;
   --bit-leading-tight: 1.1;
   --bit-leading-normal: 1.5;
   --bit-weight-normal: 600;
   --bit-weight-bold: 800;
 
   /* ---------- tier 2: space ---------- */
-  --bit-space-1: 4px;
-  --bit-space-2: 8px;
-  --bit-space-3: 12px;
-  --bit-space-4: 16px;
-  --bit-space-5: 24px;
-  --bit-space-6: 32px;
-  --bit-space-7: 48px;
-  --bit-space-8: 64px;
+  --bit-space-4px: 4px;
+  --bit-space-8px: 8px;
+  --bit-space-12px: 12px;
+  --bit-space-16px: 16px;
+  --bit-space-24px: 24px;
+  --bit-space-32px: 32px;
+  --bit-space-48px: 48px;
+  --bit-space-64px: 64px;
 
   /* ---------- tier 2: controls ---------- */
   --bit-control-height-sm: 32px;

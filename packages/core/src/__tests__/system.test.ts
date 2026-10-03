@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SEMANTIC_TOKENS, SIZES, TEXT_SIZES, COLORS } from '../tokens';
+import { SEMANTIC_TOKENS, SIZES, COLORS } from '../tokens';
 import { listCss, readCss } from './css';
 
 /** Return the body of the first `selector { ... }` block, or null. */
@@ -22,16 +22,18 @@ describe('system/colors.css', () => {
 
 describe('system/sizes.css', () => {
   const css = readCss('system/sizes.css');
+  /** Control text sizes in px. Frozen with the rename: sm 13px, md 15px, lg 18px. */
+  const CONTROL_TEXT = { sm: 13, md: 15, lg: 18 } as const;
+
   it.each(SIZES)('.bit-%s remaps height, padding, and text', (size) => {
     const body = block(css, `.bit-${size}`);
     expect(body).toContain(`--_bit-size-height: var(--bit-control-height-${size});`);
     expect(body).toContain(`--_bit-size-padding: var(--bit-control-padding-${size});`);
-    expect(body).toContain(`--_bit-size-text: var(--bit-text-${size});`);
+    expect(body).toContain(`--_bit-size-text: var(--bit-text-${CONTROL_TEXT[size]}px);`);
   });
-  it.each(TEXT_SIZES.filter((s) => !(SIZES as readonly string[]).includes(s)))('.bit-%s remaps text only', (size) => {
-    const body = block(css, `.bit-${size}`);
-    expect(body).toContain(`--_bit-size-text: var(--bit-text-${size});`);
-    expect(body).not.toContain('--_bit-size-height');
+
+  it.each(['xs', 'xl', '2xl'])('declares no .bit-%s decorator (Text sizes are data-size now)', (name) => {
+    expect(block(css, `.bit-${name}`)).toBeNull();
   });
 });
 
@@ -60,12 +62,21 @@ describe('index.css', () => {
   });
 });
 
+describe('system/*.css conventions', () => {
+  for (const file of listCss('system')) {
+    it(`${file}: every var(--bit-…) it reads is a semantic token`, () => {
+      const reads = [...readCss(`system/${file}`).matchAll(/var\((--bit-[a-zA-Z0-9-]+)/g)].map((m) => m[1]!);
+      for (const name of reads) expect(SEMANTIC_TOKENS).toContain(name);
+    });
+  }
+});
+
 describe('components/*.css conventions', () => {
   for (const file of listCss('components')) {
     const css = readCss(`components/${file}`);
 
     it(`${file}: every var(--bit-…) it reads is a semantic token`, () => {
-      const reads = [...css.matchAll(/var\((--bit-[a-zA-Z0-9-]+)\)/g)].map((m) => m[1]!);
+      const reads = [...css.matchAll(/var\((--bit-[a-zA-Z0-9-]+)/g)].map((m) => m[1]!);
       for (const name of reads) {
         expect(SEMANTIC_TOKENS).toContain(name);
       }

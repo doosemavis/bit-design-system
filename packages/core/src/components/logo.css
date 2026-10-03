@@ -12,9 +12,9 @@
   color: var(--bit-color-ink);
 }
 
-.bit-logo.bit-sm { font-size: var(--bit-text-2xl); }
-.bit-logo.bit-md { font-size: calc(var(--bit-text-2xl) * 1.5); }
-.bit-logo.bit-lg { font-size: calc(var(--bit-text-2xl) * 2.25); }
+.bit-logo.bit-sm { font-size: var(--bit-text-32px); }
+.bit-logo.bit-md { font-size: calc(var(--bit-text-32px) * 1.5); }
+.bit-logo.bit-lg { font-size: calc(var(--bit-text-32px) * 2.25); }
 
 .bit-logo__slot {
   display: inline-grid;

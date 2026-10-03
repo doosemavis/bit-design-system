@@ -3,7 +3,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--bit-space-2);
+  gap: var(--bit-space-8px);
   height: var(--_bit-size-height);
   padding: 0 var(--_bit-size-padding);
   font-family: var(--bit-font-body);
@@ -13,7 +13,7 @@
   color: var(--bit-color-text);
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-ink);
-  border-radius: var(--bit-radius-md);
+  border-radius: var(--bit-radius-10px);
   box-shadow: var(--bit-shadow-md);
   cursor: pointer;
   text-decoration: none;
