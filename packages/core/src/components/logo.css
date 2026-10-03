@@ -37,6 +37,17 @@
 
 /* ---------- era treatments (a theme may override any of these by selector) ---------- */
 
+/* Every era matches the 8-bit word's ink height and width, so a page load changes only the style, never
+   the size or where the caption starts. Reference: Press Start 2P "bit" at 0.82em (8 and 16 stay 0.82em):
+   ink height 0.7175em, ink right edge 2.3575em, box width 2.46em of the root. Measured in a browser
+   (headless Chrome 151, Google Fonts) on 2026-10-03. 32 and 64 solve, in em of the word:
+   - font-size so the ink height of "bit" matches (no stretching);
+   - letter-spacing so the ink right edge of "t" lands where 8-bit's does, so the gap to the caption looks
+     the same;
+   - margin-right so the word box is 2.46em wide (it takes back the trailing letter-spacing after "t"),
+     so the caption starts at the same x. The 0.4em gap is unchanged;
+   - line-height so the word box stays 0.82em tall, so nothing below the logo moves. */
+
 /* 8-bit: flat pixel type, one color */
 .bit-logo[data-era="8"] .bit-logo__word {
   font-family: var(--bit-font-pixel);
@@ -64,8 +75,10 @@
    The chrome is era-specific, so it is fixed rather than tokenized. */
 .bit-logo[data-era="32"] .bit-logo__word {
   font-family: "Audiowide", var(--bit-font-display);
-  font-size: 1em;
-  letter-spacing: 0.02em;
+  font-size: 0.955em;
+  letter-spacing: 0.494em;
+  margin-right: -0.41em;
+  line-height: 0.859;
   background: linear-gradient(180deg, #ffffff 0%, #c9d8f0 38%, #3b5b8c 50%, #9db4d6 58%, #4e6fa3 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -76,7 +89,10 @@
 /* 64-bit: rounded display type, extruded */
 .bit-logo[data-era="64"] .bit-logo__word {
   font-family: var(--bit-font-display);
-  font-size: 1.04em;
+  font-size: 0.998em;
+  letter-spacing: 0.603em;
+  margin-right: -0.505em;
+  line-height: 0.822;
   color: var(--bit-logo-coin);
   -webkit-text-stroke: 1.5px var(--bit-color-line);
   paint-order: stroke fill;

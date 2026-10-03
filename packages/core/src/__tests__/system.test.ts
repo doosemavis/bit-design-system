@@ -155,10 +155,26 @@ describe('components/logo.css', () => {
   });
 
   it('draws each era on the word, with the agreed sizes', () => {
-    expect(word(8)).toContain('font-size: 0.82em;');
-    expect(word(16)).toContain('font-size: 0.82em;');
-    expect(word(32)).toContain('font-size: 1em;');
-    expect(word(64)).toContain('font-size: 1.04em;');
+    // 8 and 16 are the reference box: Press Start 2P "bit" at 0.82em, no extra tracking.
+    for (const era of [8, 16]) {
+      expect(word(era)).toContain('font-size: 0.82em;');
+      expect(word(era)).not.toContain('letter-spacing');
+      expect(word(era)).not.toContain('margin-right');
+    }
+    // 32 and 64 match its ink height (font-size), ink right edge (letter-spacing) and box width (margin-right),
+    // so the caption starts at the same x in every era. Values measured in a browser (Amendment 2, B1).
+    expect(word(32)).toContain('font-size: 0.955em;');
+    expect(word(32)).toContain('letter-spacing: 0.494em;');
+    expect(word(32)).toContain('margin-right: -0.41em;');
+    expect(word(64)).toContain('font-size: 0.998em;');
+    expect(word(64)).toContain('letter-spacing: 0.603em;');
+    expect(word(64)).toContain('margin-right: -0.505em;');
+  });
+
+  it('keeps the word box 0.82em tall in every era, so nothing below the logo moves between page loads', () => {
+    // line-height × font-size ≈ 0.82: 0.859 × 0.955 and 0.822 × 0.998 (8 and 16 inherit line-height: 1).
+    expect(word(32)).toContain('line-height: 0.859;');
+    expect(word(64)).toContain('line-height: 0.822;');
   });
 
   it('32-bit uses Audiowide (lowercase), never the caps-only Bungee', () => {

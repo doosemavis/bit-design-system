@@ -17,13 +17,19 @@ const SLATE = '#4A4A5E';
 const COIN = '#FFCC00';
 const COIN_SHADE = '#E0B000';
 
-// Lockup proportions, matching components/logo.css: the caption is 0.26em of the root and the 64-bit word
-// 1.04em, so the caption is a quarter of the word; tracking 0.14em, leading 1.3, gap 0.4em.
-const WORD_SIZE = 72;
-const CAPTION_SIZE = WORD_SIZE / 4;
+// Lockup proportions, matching components/logo.css, all in units of the root font-size:
+// - the 64-bit word is 0.998em with 0.603em letter-spacing (em of the word), so its ink is as tall as the
+//   8-bit reference (Press Start 2P "bit" at 0.82em) and ends at the same x;
+// - its box is the reference's 2.46em advance (in CSS a margin-right takes back the trailing spacing);
+// - the caption is 0.26em with 0.14em tracking and 1.3 leading, 0.4em after the word box.
+const ROOT = 70;
+const WORD_SIZE = 0.998 * ROOT;
+const WORD_TRACKING = 0.603 * WORD_SIZE;
+const WORD_BOX = 2.46 * ROOT;
+const CAPTION_SIZE = 0.26 * ROOT;
 const CAPTION_TRACKING = 0.14 * CAPTION_SIZE;
 const CAPTION_LEADING = 1.3 * CAPTION_SIZE;
-const GAP = 0.4 * WORD_SIZE;
+const GAP = 0.4 * ROOT;
 const CAPTION_LINES = ['DESIGN', 'SYSTEM'];
 const MARGIN = 24; // even, from the card's outer edge to the ink on every side
 
@@ -45,7 +51,7 @@ const WORD_INK_BOTTOM = WORD_Y + LILITA_BIT.descent * WORD_SIZE + Math.max(DROP,
 const WORD_MIDDLE = (MARGIN + WORD_INK_BOTTOM) / 2;
 
 // The caption: two lines whose ink block is centred on the word's ink (face plus extrusion).
-const CAPTION_X = round(X + LILITA_BIT.advance * WORD_SIZE + GAP);
+const CAPTION_X = round(X + WORD_BOX + GAP);
 const CAPTION_INK_TOP = -PS2P.capTop * CAPTION_SIZE; // relative to the first baseline
 const CAPTION_INK_BOTTOM = CAPTION_LEADING - PS2P.capBottom * CAPTION_SIZE;
 const CAPTION_Y = round(WORD_MIDDLE - (CAPTION_INK_TOP + CAPTION_INK_BOTTOM) / 2);
@@ -68,7 +74,7 @@ const fonts = [
 ].join('\n');
 
 const word = (dx, fill, extra = '') =>
-  `<text x="${round(X + dx)}" y="${round(WORD_Y + dx)}" font-family="'Lilita One'" font-size="${WORD_SIZE}" fill="${fill}"${extra}>bit</text>`;
+  `<text x="${round(X + dx)}" y="${round(WORD_Y + dx)}" font-family="'Lilita One'" font-size="${round(WORD_SIZE)}" letter-spacing="${round(WORD_TRACKING)}" fill="${fill}"${extra}>bit</text>`;
 
 // 64-bit: two ink layers for the hard drop, four coin-shade layers for the extrusion, then the face.
 const word64 = [
