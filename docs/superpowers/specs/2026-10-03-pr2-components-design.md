@@ -404,3 +404,11 @@ interface TableCellProps extends TdHTMLAttributes<HTMLTableCellElement> { as?: '
 
 - **PR3:** the dogfooding lint bans raw `<button>`, `<a>`, `<input>`, `<select>`, `<table>`, `<code>` and `<pre>` in the gallery. These components make that possible. The layout-C pages fill in each manifest's `docs`.
 - **PR1 checklist status:** SegmentedControl roving tabindex is retired (native radios). CodeBlock ring contrast, outline longhands, the ChildSpec allowlist and the mono font are all handled here.
+
+## Amendment 1 (owner, 2026-10-03, at plan review)
+
+| # | Change | Supersedes |
+|---|---|---|
+| P1 | CodeBlock's `pre` also gets `role="region"`, keeping `aria-label={`${language} code`}` and `tabIndex={0}`, so every screen reader announces the label. | §3 CodeBlock markup |
+| P2 | **The failed Copy state is a solid danger button** in both modes: `[data-state="failed"]` uses a `--bit-color-danger` background with `--bit-color-danger-contrast` text. (Board `pr2-20261003/board-3.html`, F1.) | §3 CodeBlock copy-button look (`--bit-color-danger-soft`) |
+| P3 | **The plan's two contrast-driven values are accepted:** light `--bit-color-danger-text` `#D61A1A` and dark `--bit-color-link-visited` `#9D82E7`. | §2 values |
