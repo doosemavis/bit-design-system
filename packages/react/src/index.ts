@@ -50,6 +50,9 @@ export type { CodeBlockProps, CodeLanguage } from './components/CodeBlock/CodeBl
 export { SegmentedControl } from './components/SegmentedControl/SegmentedControl';
 export type { SegmentedControlProps, SegmentedOption } from './components/SegmentedControl/SegmentedControl';
 
+export { Table, TableHead, TableBody, TableRow, TableCell } from './components/Table/Table';
+export type { TableProps, TableSectionProps, TableRowProps, TableCellProps } from './components/Table/Table';
+
 export { BitLogo } from './logo/BitLogo';
 export type { BitLogoProps } from './logo/BitLogo';
 export { ERAS, LOGO_ERA_STORAGE_KEY } from './logo/logoEra';

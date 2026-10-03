@@ -18,6 +18,11 @@ import {
   Spinner,
   Stack,
   Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   Text,
 } from '@bit-ds/react';
 
@@ -42,6 +47,11 @@ export const COMPONENTS: Record<string, ComponentType<any>> = {
   Spinner,
   Stack,
   Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   Text,
 };
 

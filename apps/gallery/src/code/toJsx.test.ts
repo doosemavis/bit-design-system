@@ -14,6 +14,7 @@ import { input } from '../manifests/input';
 import { select } from '../manifests/select';
 import { codeBlock } from '../manifests/codeBlock';
 import { segmentedControl } from '../manifests/segmentedControl';
+import { table } from '../manifests/table';
 import type { Manifest } from '../manifests/types';
 import { numberControlFixture } from '../test/fixtures';
 
@@ -141,6 +142,18 @@ describe('toJsx', () => {
     };
     expect(toJsx(withFixed, defaultState(withFixed))).toBe(
       `import { Button } from '@bit-ds/react';\n\n<Button title="Say &quot;hi&quot;" tabIndex={0} hidden={false} data={[{ it: 'it\\'s' }]}>Save</Button>`,
+    );
+  });
+
+  it('prints nested parts indented one level per depth, and imports every part once', () => {
+    const small: Manifest = {
+      ...table,
+      children: [
+        { component: 'TableBody', children: [{ component: 'TableRow', children: [{ component: 'TableCell', children: 'a' }] }] },
+      ],
+    };
+    expect(toJsx(small, { ...defaultState(small), striped: true })).toBe(
+      `import { Table, TableBody, TableCell, TableHead, TableRow } from '@bit-ds/react';\n\n<Table striped aria-label="Button props">\n  <TableBody>\n    <TableRow>\n      <TableCell>a</TableCell>\n    </TableRow>\n  </TableBody>\n</Table>`,
     );
   });
 

@@ -63,17 +63,25 @@ function printChildSpec(child: ChildSpec, depth: number): string {
   const props = Object.entries(child.props ?? {})
     .map(([k, v]) => ` ${k}="${escapeAttr(v)}"`)
     .join('');
-  const open = `${INDENT.repeat(depth)}<${child.component}${props}`;
+  const indent = INDENT.repeat(depth);
+  const open = `${indent}<${child.component}${props}`;
   if (child.children === undefined) return `${open} />`;
-  return `${open}>${printChildren(child.children)}</${child.component}>`;
+  if (typeof child.children === 'string') return `${open}>${printChildren(child.children)}</${child.component}>`;
+  const inner = child.children.map((part) => printChildSpec(part, depth + 1)).join('\n');
+  return `${open}>\n${inner}\n${indent}</${child.component}>`;
+}
+
+/** Every bit component a ChildSpec tree names, nested parts included. HTML elements are not imported. */
+function componentNames(children: readonly ChildSpec[]): string[] {
+  return children.flatMap((child) => [
+    ...(isHtmlElement(child.component) ? [] : [child.component]),
+    ...(typeof child.children === 'object' ? componentNames(child.children) : []),
+  ]);
 }
 
 function importLine(manifest: Manifest): string {
-  const names = [manifest.name, ...(manifest.parts ?? [])];
-  if (Array.isArray(manifest.children)) {
-    for (const child of manifest.children) if (!isHtmlElement(child.component)) names.push(child.component);
-  }
-  const unique = [...new Set(names)].sort();
+  const nested = typeof manifest.children === 'object' ? componentNames(manifest.children) : [];
+  const unique = [...new Set([manifest.name, ...(manifest.parts ?? []), ...nested])].sort();
   return `import { ${unique.join(', ')} } from '@bit-ds/react';`;
 }
 

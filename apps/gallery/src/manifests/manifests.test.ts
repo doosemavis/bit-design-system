@@ -7,11 +7,14 @@ import { stack } from './stack';
 import { text } from './text';
 import type { ChildSpec, ControlState } from './types';
 
-/** ChildSpec names that are neither a registered component nor an allowed lowercase HTML element. */
+/** ChildSpec names, nested parts included, that are neither a registered component nor an allowed HTML element. */
 function unknownChildren(children: readonly ChildSpec[]): string[] {
-  return children
-    .map((child) => child.component)
-    .filter((name) => (isHtmlElement(name) ? !HTML_CHILDREN.includes(name) : COMPONENTS[name] === undefined));
+  return children.flatMap((child) => {
+    const name = child.component;
+    const unknown = isHtmlElement(name) ? !HTML_CHILDREN.includes(name) : COMPONENTS[name] === undefined;
+    const nested = typeof child.children === 'object' ? unknownChildren(child.children) : [];
+    return unknown ? [name, ...nested] : nested;
+  });
 }
 
 /**
@@ -87,6 +90,13 @@ describe('manifest contract', () => {
       { component: 'Nope', children: 'unregistered' },
     ];
     expect(unknownChildren(children)).toEqual(['opton', 'div', 'Nope']);
+  });
+
+  it('the allowlist check reaches nested parts (Table rows and cells)', () => {
+    const nested: ChildSpec[] = [
+      { component: 'TableBody', children: [{ component: 'TableRow', children: [{ component: 'tdd', children: 'typo' }] }] },
+    ];
+    expect(unknownChildren(nested)).toEqual(['tdd']);
   });
   it('Stack gap and Text size are px numbers, migrated through the D13 table (OV6)', () => {
     expect(stack.controls.find((c) => c.prop === 'gap')).toMatchObject({
