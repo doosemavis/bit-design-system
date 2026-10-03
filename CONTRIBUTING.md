@@ -21,12 +21,13 @@ Add it to that component's `const` (for example `variants`) and add a `.bit-<com
 1. Four tokens in every theme: `--bit-color-<color>`, `-contrast`, `-hover`, `-soft`.
 2. One rule in `packages/core/src/system/colors.css`.
 3. Add the word to `COLORS` in `packages/core/src/tokens.ts`.
+4. Add its dark `-soft` value to each theme's `[data-mode="dark"]` block and to `MODE_TOKENS` in `tokens.ts`.
 
 The contrast test verifies the new color's text is readable on its fill.
 
 ## Add a theme
 
-Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1 palette and any tier-2 values, keep every token name. Add it to `THEMES` in `apps/docs/.storybook/preview.ts` with a CSS import. Run `pnpm --filter @bit-ds/core test`.
+Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1 palette and any tier-2 values, keep every token name. A theme also needs a `[data-mode="dark"]` rule that declares exactly the tokens in `MODE_TOKENS` (`packages/core/src/tokens.ts`). Add it to `THEMES` in `apps/docs/.storybook/preview.ts` with a CSS import. Run `pnpm --filter @bit-ds/core test`.
 
 ## Conventions
 

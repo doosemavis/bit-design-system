@@ -59,7 +59,7 @@ Both render identically. For interactive components (coming in Phase 3) the clas
 
 ## Components (Phase 1)
 
-Button, Badge, Alert, Card (+ CardHeader, CardBody, CardFooter), Stack, Text, Spinner, BitLogo.
+Button, Badge, Alert, Card (+ CardHeader, CardBody, CardFooter), Stack, Text, Spinner, BitLogo, ModeToggle.
 
 ## Themes
 
@@ -68,6 +68,32 @@ A theme is one CSS file that fills in every semantic token. Switch with an attri
 ```html
 <html data-theme="power-up">
 ```
+
+### Light and dark
+
+Set the theme and the mode on `<html>`:
+
+```html
+<html data-theme="power-up" data-mode="dark">
+```
+
+`data-mode` is `light` or `dark`. To pick the mode before first paint (no light flash for a dark-mode visitor), put the color mode script inline in `<head>`, before your CSS:
+
+```tsx
+import { COLOR_MODE_SCRIPT } from '@bit-ds/react';
+
+<head>
+  <script>{COLOR_MODE_SCRIPT}</script>
+</head>
+```
+
+The script uses the visitor's stored choice, then the OS preference, then light.
+
+- A strict Content Security Policy needs a hash or nonce for the inline script.
+- SSR frameworks need `suppressHydrationWarning` on `<html>`, because the script sets `data-mode` before React hydrates.
+- `useColorMode()` returns `{ mode, setMode }`. `<ModeToggle />` is a ready-made light/dark switch. Neither needs a provider.
+- A subtree can be dark inside a light page with `data-mode="dark"`, but it paints its own background: give it `background: var(--bit-color-bg)`.
+- A `data-mode` hard-coded in your HTML wins until the visitor toggles.
 
 Adding a theme: copy `packages/core/src/themes/power-up.css`, change the values, run `pnpm --filter @bit-ds/core test`. The test fails if any token is missing or any color fails WCAG AA contrast.
 
