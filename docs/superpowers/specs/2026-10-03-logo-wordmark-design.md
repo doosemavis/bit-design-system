@@ -191,3 +191,12 @@ The reference box is the 8-bit word: Press Start 2P "bit" at `0.82em`. Its ink h
 - a `letter-spacing`, so the word's width matches
 
 The README image (64-bit only) uses the same 64-bit ratios.
+
+## Amendment 3 (owner, 2026-10-03, at the third sign-off board)
+
+| # | Change | Supersedes |
+|---|---|---|
+| C1 | **64-bit uses Audiowide**, the same font as 32-bit, at 32-bit's size, letter-spacing, margin and line-height. Its look is otherwise unchanged: gold face (`--bit-logo-coin`), line-coloured stroke, and gold extrusion (`--bit-logo-coin-shade`, 1–4px). | 64-bit's Lilita One and its own fitted values (Amendment 2) |
+| C2 | **64-bit's hard drop shadow is purple.** It covers the 5–6px `text-shadow` layers, which were `--bit-color-shadow`. It reads a new fixed brand token, `--bit-logo-violet: var(--bit-palette-violet)` (`#7C3AED`), the same in both modes. Like the coin golds, it is a logo token rather than `--bit-color-primary`, so a palette swap never recolours the logo. `SEMANTIC_TOKENS` goes from 86 to 87. | §3's 64-bit shadow colour |
+
+The README image is the 64-bit mark. It now embeds Audiowide (`@fontsource/audiowide`) instead of Lilita One, and uses the purple drop shadow and the same ratios.
