@@ -27,7 +27,7 @@ const token = (category: string, ...parts: (string | number)[]) =>
 
 const px = (n: number) => `${n}px`;
 
-const colorRoleTokens = ['bg', 'surface', 'ink', 'text', 'text-muted', 'focus', 'selection'].map((role) =>
+const colorRoleTokens = ['bg', 'surface', 'ink', 'text', 'text-muted', 'selection'].map((role) =>
   token('color', role),
 );
 
@@ -69,6 +69,8 @@ const motionTokens = [
   token('motion', 'power-up'),
 ];
 
+const focusTokens = [token('focus', 'band')];
+
 const codeTokens = [token('code', 'bg'), ...CODE_KINDS.map((kind) => token('code', kind))];
 
 /** The BitLogo's coin golds. Fixed brand colors, so a palette change never recolors the logo. */
@@ -86,6 +88,7 @@ export const SEMANTIC_TOKENS: readonly string[] = [
   ...spaceTokens,
   ...controlTokens,
   ...motionTokens,
+  ...focusTokens,
   ...codeTokens,
   ...logoTokens,
 ];

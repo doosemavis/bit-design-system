@@ -30,7 +30,15 @@ body {
   background: var(--bit-color-bg);
 }
 
+/* Focus (D9): an ink outline on everything, which no component sets or overrides. Interactive
+   components add a yellow band inside it through --_bit-focus-band (see button.css). */
 :focus-visible {
-  outline: 3px solid var(--bit-color-focus);
-  outline-offset: 2px;
+  outline: 3px solid var(--bit-color-ink);
+  outline-offset: 3px;
+}
+
+/* Programmatic focus targets (a page heading focused after navigation) show no ring.
+   Real controls are never tabindex="-1", so they keep theirs. */
+[tabindex="-1"]:focus {
+  outline: none;
 }

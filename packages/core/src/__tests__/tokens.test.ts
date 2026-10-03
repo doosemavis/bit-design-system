@@ -25,7 +25,7 @@ describe('semantic token list', () => {
 
   it('includes the shape, type, space, control, and motion tokens named in the spec', () => {
     const expected = [
-      '--bit-color-bg', '--bit-color-surface', '--bit-color-ink', '--bit-color-text', '--bit-color-text-muted', '--bit-color-focus',
+      '--bit-color-bg', '--bit-color-surface', '--bit-color-ink', '--bit-color-text', '--bit-color-text-muted', '--bit-focus-band',
       '--bit-border-width', '--bit-radius-6px', '--bit-radius-10px', '--bit-radius-14px', '--bit-radius-full',
       '--bit-shadow-sm', '--bit-shadow-md', '--bit-shadow-lg', '--bit-shadow-inset', '--bit-gloss',
       '--bit-font-display', '--bit-font-body', '--bit-font-pixel',
@@ -47,5 +47,9 @@ describe('semantic token list', () => {
       '--bit-logo-coin', '--bit-logo-coin-light', '--bit-logo-coin-shade', '--bit-logo-coin-deep',
     ];
     for (const name of expected) expect(SEMANTIC_TOKENS).toContain(name);
+  });
+
+  it('has no --bit-color-focus (D9 draws the ring in ink)', () => {
+    expect(SEMANTIC_TOKENS).not.toContain('--bit-color-focus');
   });
 });

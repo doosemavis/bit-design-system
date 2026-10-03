@@ -21,7 +21,6 @@
   --bit-palette-red: #D91A1A;
   --bit-palette-red-dark: #B81414;
   --bit-palette-red-soft: #FBD5D5;
-  --bit-palette-blue: #1D5BFF;
   --bit-palette-ink: #151515;
   --bit-palette-stone: #DCDED6;
   --bit-palette-stone-light: #E5E7E0;
@@ -39,7 +38,6 @@
   --bit-color-ink: var(--bit-palette-ink);
   --bit-color-text: var(--bit-palette-ink);
   --bit-color-text-muted: var(--bit-palette-slate);
-  --bit-color-focus: var(--bit-palette-blue);
   --bit-color-selection: var(--bit-palette-yellow);
 
   --bit-color-primary: var(--bit-palette-violet);
@@ -118,6 +116,10 @@
   --bit-duration-fast: 80ms;
   --bit-duration-normal: 160ms;
   --bit-motion-power-up: bit-power-up;
+
+  /* ---------- tier 2: focus ---------- */
+  /* The yellow band interactive components draw inside reset.css's ink outline (D9). */
+  --bit-focus-band: 0 0 0 3px var(--bit-color-warning);
 
   /* ---------- tier 2: code ("Ink night": every color is at least 5.6:1 on --bit-code-bg) ---------- */
   --bit-code-bg: var(--bit-palette-ink);

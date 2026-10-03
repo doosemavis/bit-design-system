@@ -122,3 +122,43 @@ describe('components/logo.css', () => {
     }
   });
 });
+
+describe('focus ring (D9)', () => {
+  const reset = readCss('system/reset.css');
+
+  it('reset.css draws a 3px ink outline at a 3px offset on :focus-visible', () => {
+    const body = block(reset, ':focus-visible');
+    expect(body).toContain('outline: 3px solid var(--bit-color-ink);');
+    expect(body).toContain('outline-offset: 3px;');
+  });
+
+  it('programmatic focus targets (tabindex="-1", e.g. a page heading) show no ring', () => {
+    expect(block(reset, '[tabindex="-1"]:focus')).toContain('outline: none;');
+  });
+
+  it.each(listCss('components'))('%s never sets outline, so nothing can override the ink ring', (file) => {
+    expect(readCss(`components/${file}`)).not.toMatch(/^\s*outline\s*:/m);
+  });
+
+  /** Interactive components carry the yellow band. PR2 adds link, input, select, switch, segmented-control, code. */
+  const INTERACTIVE = ['button.css'] as const;
+
+  describe.each(INTERACTIVE)('%s', (file) => {
+    const css = readCss(`components/${file}`);
+    const blockName = file.replace(/\.css$/, '');
+
+    it('every box-shadow starts with the band, so no variant, hover, or active state can drop it', () => {
+      const shadows = [...css.matchAll(/box-shadow:\s*([^;]+);/g)].map((m) => m[1]!.trim());
+      expect(shadows.length).toBeGreaterThan(0);
+      for (const shadow of shadows) expect(shadow.startsWith('var(--_bit-focus-band)')).toBe(true);
+    });
+
+    it('the block resets the band, so a focused ancestor cannot leak it into this component', () => {
+      expect(block(css, `.bit-${blockName}`)).toContain('--_bit-focus-band: 0 0 #0000;');
+    });
+
+    it(':focus-visible turns the band on from the theme token', () => {
+      expect(block(css, `.bit-${blockName}:focus-visible`)).toContain('--_bit-focus-band: var(--bit-focus-band);');
+    });
+  });
+});

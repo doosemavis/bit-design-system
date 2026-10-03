@@ -1,5 +1,7 @@
 /* Button. Reads color via --_bit-color-* (set by .bit-{color}) and size via --_bit-size-* (set by .bit-{size}). */
 .bit-button {
+  /* Reset here so a focused ancestor's band (custom properties inherit) can't leak in. */
+  --_bit-focus-band: 0 0 #0000;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -14,7 +16,7 @@
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-ink);
   border-radius: var(--bit-radius-10px);
-  box-shadow: var(--bit-shadow-md);
+  box-shadow: var(--_bit-focus-band), var(--bit-shadow-md);
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
@@ -29,7 +31,7 @@
 .bit-button.bit-solid {
   background: var(--_bit-color);
   color: var(--_bit-color-contrast);
-  box-shadow: var(--bit-gloss), var(--bit-shadow-md);
+  box-shadow: var(--_bit-focus-band), var(--bit-gloss), var(--bit-shadow-md);
 }
 
 .bit-button.bit-outline {
@@ -40,7 +42,7 @@
 .bit-button.bit-ghost {
   background: transparent;
   border-color: transparent;
-  box-shadow: none;
+  box-shadow: var(--_bit-focus-band);
 }
 
 /* hover: sink one press-offset; the shadow shrinks by the same amount */
@@ -50,11 +52,11 @@
 
 .bit-button.bit-solid:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--_bit-color-hover);
-  box-shadow: var(--bit-gloss), var(--bit-shadow-sm);
+  box-shadow: var(--_bit-focus-band), var(--bit-gloss), var(--bit-shadow-sm);
 }
 
 .bit-button.bit-outline:hover:not(:disabled):not([aria-disabled="true"]) {
-  box-shadow: var(--bit-shadow-sm);
+  box-shadow: var(--_bit-focus-band), var(--bit-shadow-sm);
 }
 
 .bit-button.bit-ghost:hover:not(:disabled):not([aria-disabled="true"]) {
@@ -67,7 +69,12 @@
 .bit-button.bit-outline:active:not(:disabled):not([aria-disabled="true"]),
 .bit-button.bit-ghost:active:not(:disabled):not([aria-disabled="true"]) {
   transform: translate(calc(var(--bit-press-offset) * 2), calc(var(--bit-press-offset) * 2));
-  box-shadow: none;
+  box-shadow: var(--_bit-focus-band);
+}
+
+/* focus: the band is the first layer of every box-shadow above, so this only switches it on */
+.bit-button:focus-visible {
+  --_bit-focus-band: var(--bit-focus-band);
 }
 
 /* states are attributes, never classes */
