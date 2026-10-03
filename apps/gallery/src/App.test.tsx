@@ -10,6 +10,6 @@ describe('App', () => {
         <App />
       </StrictMode>,
     );
-    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('bit');
+    expect(await screen.findByRole('heading', { level: 1, name: 'bit Design System' })).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderAt } from '../test/renderRoute';
@@ -12,7 +12,10 @@ describe('Shell', () => {
   it('home shows the logo, the install lines, and the naming rule', async () => {
     const { container } = renderAt('/');
     expect((await screen.findAllByRole('img', { name: 'bit Design System' })).length).toBeGreaterThan(0);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('bit');
+    const heading = screen.getByRole('heading', { level: 1, name: 'bit Design System' });
+    expect(within(heading).getByRole('img', { name: 'bit Design System' })).toBeInTheDocument();
+    // The old separate "bit" h1 is gone: the logo is the heading.
+    expect(screen.queryByText('bit', { selector: 'h1' })).toBeNull();
     const install = screen.getByText(/pnpm add @bit-ds\/react/);
     expect(install.textContent).toContain(
       "import '@bit-ds/react/themes/power-up.css';\nimport '@bit-ds/react/styles.css';",
