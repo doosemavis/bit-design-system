@@ -151,3 +151,29 @@ Error handling:
 
 - **PR2:** components no longer have a `bit-power-up` animation available. None planned to use it.
 - **The memory note about centring the logo on the hyphen** is superseded by this spec.
+
+## Amendment 1 (owner, 2026-10-03, at the sign-off board)
+
+Boards `board-4.html` and `board-5.html` showed the owner the built logo in place. The owner changed three things. **These supersede the conflicting lines above.**
+
+| # | Change | Supersedes |
+|---|---|---|
+| A1 | **Side-by-side lockup everywhere.** "DESIGN" and "SYSTEM" stack in two lines to the **right** of "bit", centred vertically on the word, with no divider. The gap between the word and the caption is board-5's S3 spacing without the rule: `0.4em` of the root. | Decision 1 (stacked, caption beneath) and §3's column root and `0.18em` gap |
+| A2 | **Home: the logo is the page heading.** The visible "bit" `<h1>` text goes. The `<h1>` wraps `<BitLogo size="lg" />`, so its accessible name is "bit Design System". The navigation focus-to-heading behaviour is unchanged. | §4 "Header and Home … markup unchanged" (Home only) |
+| A3 | **README card is snug:** about 270–300px wide, even margins, side-by-side lockup. | §4 README image width (320) |
+
+What A1 means in CSS:
+- **`.bit-logo`:** `flex-direction: row; align-items: center; gap: 0.4em`. The `color` and `white-space` stay.
+- **`.bit-logo__caption`:**
+  - wraps onto two lines through `width: min-content` and `white-space: normal`, so the markup stays one text node, "Design System"
+  - `font-size: 0.26em`
+  - `letter-spacing: 0.14em`
+  - `line-height: 1.3`
+  - pixel font, uppercase and muted colour are kept
+
+Accessibility and markup are otherwise unchanged:
+- the root's accessible name is "bit Design System"
+- the word and the caption are `aria-hidden`
+- `data-era` is on the root
+
+**Header:** the logo gets shorter than the stacked version, because no line sits below the word.
