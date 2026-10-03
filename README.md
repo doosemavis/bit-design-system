@@ -24,9 +24,9 @@ pnpm storybook
 When published, using it will be three lines:
 
 ```tsx
-import '@bit/react/styles.css';
-import '@bit/react/themes/power-up.css';
-import { Button } from '@bit/react';
+import '@bit-ds/react/styles.css';
+import '@bit-ds/react/themes/power-up.css';
+import { Button } from '@bit-ds/react';
 ```
 
 ## The naming rule
@@ -69,7 +69,7 @@ A theme is one CSS file that fills in every semantic token. Switch with an attri
 <html data-theme="power-up">
 ```
 
-Adding a theme: copy `packages/core/src/themes/power-up.css`, change the values, run `pnpm --filter @bit/core test`. The test fails if any token is missing or any color fails WCAG AA contrast.
+Adding a theme: copy `packages/core/src/themes/power-up.css`, change the values, run `pnpm --filter @bit-ds/core test`. The test fails if any token is missing or any color fails WCAG AA contrast.
 
 The theme file starts with a Google Fonts `@import`; if your bundler concatenates stylesheets, import the theme before other CSS so the `@import` stays first. Self-hosted fonts are planned.
 
@@ -80,8 +80,8 @@ The theme file starts with a Google Fonts `@import`; if your bundler concatenate
 | `pnpm storybook` | component docs on http://localhost:6006 |
 | `pnpm test` | all unit, a11y, and system tests |
 | `pnpm test:coverage` | react tests with the 80% gate |
-| `pnpm build && pnpm verify` | build `@bit/react` and prove the dist is consumable |
-| `pnpm smoke` | packs `@bit/react` and installs it with npm into a throwaway project to prove the tarball works |
+| `pnpm build && pnpm verify` | build `@bit-ds/react` and prove the dist is consumable |
+| `pnpm smoke` | packs `@bit-ds/react` and installs it with npm into a throwaway project to prove the tarball works |
 | `pnpm logo:svg` | regenerate `assets/bit-logo.svg` |
 
 ## Docs

@@ -1,4 +1,4 @@
-import { COLORS, SIZES, Spinner } from '@bit/react';
+import { COLORS, SIZES, Spinner } from '@bit-ds/react';
 import type { Manifest } from './types';
 
 export const spinner: Manifest = {

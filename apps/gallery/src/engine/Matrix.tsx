@@ -1,4 +1,4 @@
-import { Text } from '@bit/react';
+import { Text } from '@bit-ds/react';
 import type { AxisControl, ControlState, Manifest } from '../manifests/types';
 import { renderManifest } from './renderManifest';
 

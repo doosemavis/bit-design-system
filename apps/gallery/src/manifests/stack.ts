@@ -1,4 +1,4 @@
-import { SPACE_STEPS, Stack } from '@bit/react';
+import { SPACE_STEPS, Stack } from '@bit-ds/react';
 import type { Manifest } from './types';
 
 export const stack: Manifest = {

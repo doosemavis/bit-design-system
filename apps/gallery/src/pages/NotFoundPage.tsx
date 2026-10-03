@@ -1,4 +1,4 @@
-import { Button, Stack, Text } from '@bit/react';
+import { Button, Stack, Text } from '@bit-ds/react';
 import { Link } from 'react-router-dom';
 
 export function NotFoundPage() {

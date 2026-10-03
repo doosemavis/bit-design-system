@@ -1,4 +1,4 @@
-import { Alert, COLORS } from '@bit/react';
+import { Alert, COLORS } from '@bit-ds/react';
 import type { Manifest } from './types';
 
 export const alert: Manifest = {

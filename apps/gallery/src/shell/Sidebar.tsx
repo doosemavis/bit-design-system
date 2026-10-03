@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Text } from '@bit/react';
+import { Text } from '@bit-ds/react';
 import { MANIFESTS, routeFor } from '../manifests';
 
 export type NavGroup = 'Foundations' | 'Components' | 'Brand';

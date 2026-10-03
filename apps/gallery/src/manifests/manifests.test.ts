@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import * as lib from '@bit/react';
+import * as lib from '@bit-ds/react';
 import { MANIFESTS, findManifest, routeFor } from './index';
 import { COMPONENTS } from './registry';
 
 /**
- * Every runtime export of @bit/react that is a component: PascalCase with a lowercase second
+ * Every runtime export of @bit-ds/react that is a component: PascalCase with a lowercase second
  * character. COLORS, SIZES, ERAS, PREFIX, SEMANTIC_TOKENS are all-caps and excluded; type-only
  * exports do not exist at runtime.
  */

@@ -1,4 +1,4 @@
-import { Text } from '@bit/react';
+import { Text } from '@bit-ds/react';
 
 export function TokensPage() {
   return (

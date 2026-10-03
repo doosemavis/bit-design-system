@@ -55,7 +55,7 @@ function importLine(manifest: Manifest): string {
   const names = [manifest.name, ...(manifest.parts ?? [])];
   if (Array.isArray(manifest.children)) for (const child of manifest.children) names.push(child.component);
   const unique = [...new Set(names)].sort();
-  return `import { ${unique.join(', ')} } from '@bit/react';`;
+  return `import { ${unique.join(', ')} } from '@bit-ds/react';`;
 }
 
 /** The React snippet for the current state: import line, blank line, element. Pure. */

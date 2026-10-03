@@ -1,4 +1,4 @@
-import { Card } from '@bit/react';
+import { Card } from '@bit-ds/react';
 import type { Manifest } from './types';
 
 export const card: Manifest = {

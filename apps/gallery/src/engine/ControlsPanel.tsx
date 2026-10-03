@@ -1,4 +1,4 @@
-import { Button, Text } from '@bit/react';
+import { Button, Text } from '@bit-ds/react';
 import type { Control, ControlState, ControlValue, Manifest } from '../manifests/types';
 
 interface ControlsPanelProps {

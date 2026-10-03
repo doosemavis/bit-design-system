@@ -1,4 +1,4 @@
-import { TEXT_SIZES, Text } from '@bit/react';
+import { TEXT_SIZES, Text } from '@bit-ds/react';
 import type { Manifest } from './types';
 
 export const text: Manifest = {

@@ -1,8 +1,8 @@
-import { BitLogo, Card, CardBody, CardHeader, Stack, Text } from '@bit/react';
+import { BitLogo, Card, CardBody, CardHeader, Stack, Text } from '@bit-ds/react';
 
-const INSTALL = `pnpm add @bit/react
-import '@bit/react/styles.css';
-import '@bit/react/themes/power-up.css';`;
+const INSTALL = `pnpm add @bit-ds/react
+import '@bit-ds/react/styles.css';
+import '@bit-ds/react/themes/power-up.css';`;
 
 const REACT_WAY = `<Card><CardHeader>Stats</CardHeader></Card>`;
 const HTML_WAY = `<div class="bit-card bit-solid"><div class="bit-card__header">Stats</div></div>`;

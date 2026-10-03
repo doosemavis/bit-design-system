@@ -3,7 +3,7 @@ import { expect } from 'vitest';
 
 /**
  * Same two rules disabled as packages/react/src/test/a11y.ts: jsdom has no layout engine
- * (contrast is verified numerically in @bit/core), and `region` is meaningless for a
+ * (contrast is verified numerically in @bit-ds/core), and `region` is meaningless for a
  * fragment rendered outside the shell's landmarks.
  */
 export async function expectNoA11yViolations(container: Element): Promise<void> {

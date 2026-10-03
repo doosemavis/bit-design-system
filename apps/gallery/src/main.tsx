@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import '@bit/react/styles.css';
-import '@bit/react/themes/power-up.css';
+import '@bit-ds/react/styles.css';
+import '@bit-ds/react/themes/power-up.css';
 import './gallery.css';
 import { App } from './App';
 

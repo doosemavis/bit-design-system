@@ -13,7 +13,7 @@ describe('Shell', () => {
     const { container } = renderAt('/');
     expect((await screen.findAllByRole('img', { name: 'bit' })).length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('bit');
-    expect(screen.getByText(/pnpm add @bit\/react/)).toBeInTheDocument();
+    expect(screen.getByText(/pnpm add @bit-ds\/react/)).toBeInTheDocument();
     expect(screen.getByText('bit-primary')).toBeInTheDocument();
     await expectNoA11yViolations(container);
   });

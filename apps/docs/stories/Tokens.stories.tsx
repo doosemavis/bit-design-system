@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { SEMANTIC_TOKENS, COLORS } from '@bit/core/tokens';
+import { SEMANTIC_TOKENS, COLORS } from '@bit-ds/core/tokens';
 
 function Swatches() {
   const style = getComputedStyle(document.documentElement);

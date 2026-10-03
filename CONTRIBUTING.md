@@ -26,7 +26,7 @@ The contrast test verifies the new color's text is readable on its fill.
 
 ## Add a theme
 
-Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1 palette and any tier-2 values, keep every token name. Add it to `THEMES` in `apps/docs/.storybook/preview.ts` with a CSS import. Run `pnpm --filter @bit/core test`.
+Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1 palette and any tier-2 values, keep every token name. Add it to `THEMES` in `apps/docs/.storybook/preview.ts` with a CSS import. Run `pnpm --filter @bit-ds/core test`.
 
 ## Conventions
 
@@ -34,4 +34,4 @@ Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1
 - Booleans are attributes, never classes.
 - Components never import CSS; the app does, once.
 - Theme names describe a look, not a trademark.
-- `@bit/core` is a devDependency of `@bit/react` because tsup inlines it; `pnpm smoke` proves the packed tarball installs with npm into a fresh project. Consumers can use any package manager.
+- `@bit-ds/core` is a devDependency of `@bit-ds/react` because tsup inlines it; `pnpm smoke` proves the packed tarball installs with npm into a fresh project. Consumers can use any package manager.

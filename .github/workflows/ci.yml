@@ -18,12 +18,21 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Build first: the gallery resolves @bit/react through its gitignored dist.
+      # The npm scope is @bit-ds (the @bit scope belongs to another org). Historical plans and
+      # design docs keep the old name on purpose, so they are outside the searched paths.
+      - name: No old npm scope
+        run: |
+          if grep -rnE '@bit(/|\\/)' packages apps scripts README.md CONTRIBUTING.md docs/superpowers/specs package.json \
+            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=coverage --exclude-dir=storybook-static; then
+            echo "Found the old npm scope above. Use @bit-ds/ instead."
+            exit 1
+          fi
+      # Build first: the gallery resolves @bit-ds/react through its gitignored dist.
       - run: pnpm build && pnpm verify
       - run: pnpm typecheck
       - run: pnpm lint
-      - run: pnpm --filter @bit/core test
+      - run: pnpm --filter @bit-ds/core test
       - run: pnpm test:coverage
-      - run: pnpm --filter @bit/gallery test
+      - run: pnpm --filter @bit-ds/gallery test
       - run: pnpm smoke
       - run: pnpm storybook:build

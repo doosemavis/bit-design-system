@@ -1,4 +1,4 @@
-import { PREFIX } from '@bit/core/tokens';
+import { PREFIX } from '@bit-ds/core/tokens';
 
 /** One axis of a component: its prop name, the allowed values, and the value the caller passed. */
 export interface Axis {

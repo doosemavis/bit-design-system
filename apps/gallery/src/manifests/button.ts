@@ -1,4 +1,4 @@
-import { Button, COLORS, SIZES, VARIANTS } from '@bit/react';
+import { Button, COLORS, SIZES, VARIANTS } from '@bit-ds/react';
 import type { Manifest } from './types';
 
 export const button: Manifest = {

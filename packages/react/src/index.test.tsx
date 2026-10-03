@@ -55,7 +55,7 @@ describe('public index', () => {
     expect(root!.classList.contains(expectedRootClass(name))).toBe(true);
   });
 
-  it('no file under src imports a .css file (styles come from @bit/core only)', () => {
+  it('no file under src imports a .css file (styles come from @bit-ds/core only)', () => {
     const offenders = collectFiles(srcDir).filter((file) => {
       const content = readFileSync(file, 'utf8');
       return content.includes("import '") || content.includes('import "')

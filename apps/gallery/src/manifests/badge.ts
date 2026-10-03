@@ -1,4 +1,4 @@
-import { Badge, COLORS } from '@bit/react';
+import { Badge, COLORS } from '@bit-ds/react';
 import type { Manifest } from './types';
 
 export const badge: Manifest = {

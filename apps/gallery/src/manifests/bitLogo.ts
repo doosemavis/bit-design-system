@@ -1,4 +1,4 @@
-import { BitLogo, ERAS, SIZES } from '@bit/react';
+import { BitLogo, ERAS, SIZES } from '@bit-ds/react';
 import type { Manifest } from './types';
 
 export const bitLogo: Manifest = {

@@ -1,4 +1,4 @@
-import { Button, Text } from '@bit/react';
+import { Button, Text } from '@bit-ds/react';
 import type { ControlState, Manifest } from '../manifests/types';
 
 interface PresetsProps {
