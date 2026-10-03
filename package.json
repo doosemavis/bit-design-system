@@ -16,6 +16,7 @@
     "logo:svg": "node scripts/build-logo-svg.mjs",
     "smoke": "node scripts/smoke-consumer.mjs",
     "gallery": "pnpm build && pnpm --filter @bit-ds/gallery dev",
+    "dev": "pnpm gallery",
     "gallery:build": "pnpm build && pnpm --filter @bit-ds/gallery build",
     "e2e": "pnpm --filter @bit-ds/gallery e2e"
   },

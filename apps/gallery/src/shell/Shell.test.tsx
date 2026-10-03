@@ -13,7 +13,10 @@ describe('Shell', () => {
     const { container } = renderAt('/');
     expect((await screen.findAllByRole('img', { name: 'bit' })).length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('bit');
-    expect(screen.getByText(/pnpm add @bit-ds\/react/)).toBeInTheDocument();
+    const install = screen.getByText(/pnpm add @bit-ds\/react/);
+    expect(install.textContent).toContain(
+      "import '@bit-ds/react/themes/power-up.css';\nimport '@bit-ds/react/styles.css';",
+    );
     expect(screen.getByText('bit-primary')).toBeInTheDocument();
     await expectNoA11yViolations(container);
   });

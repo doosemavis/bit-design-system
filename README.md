@@ -24,8 +24,8 @@ pnpm storybook
 When published, using it will be three lines:
 
 ```tsx
-import '@bit-ds/react/styles.css';
 import '@bit-ds/react/themes/power-up.css';
+import '@bit-ds/react/styles.css';
 import { Button } from '@bit-ds/react';
 ```
 
@@ -77,6 +77,7 @@ The theme file starts with a Google Fonts `@import`; if your bundler concatenate
 
 | Command | What it does |
 | --- | --- |
+| `pnpm dev` | build `@bit-ds/react`, then start the gallery at http://localhost:5173 |
 | `pnpm storybook` | component docs on http://localhost:6006 |
 | `pnpm test` | all unit, a11y, and system tests |
 | `pnpm test:coverage` | react tests with the 80% gate |
