@@ -53,6 +53,27 @@ describe('CodeBlock', () => {
     expect(pre.firstElementChild!.tagName).toBe('CODE');
   });
 
+  it('label names the region, so same-language blocks on one page stay unique landmarks', async () => {
+    const { container } = render(
+      <>
+        <CodeBlock code={JSX} language="jsx" label="React code" />
+        <CodeBlock code="pnpm add @bit-ds/react" language="jsx" label="Install command" />
+      </>,
+    );
+    const react = screen.getByRole('region', { name: 'React code' });
+    const install = screen.getByRole('region', { name: 'Install command' });
+    expect(react.tagName).toBe('PRE');
+    expect(install.tagName).toBe('PRE');
+    expect(react).not.toBe(install);
+    for (const root of container.querySelectorAll('.bit-code__block')) expect(root).not.toHaveAttribute('label');
+    await expectNoA11yViolations(container);
+  });
+
+  it('without label, the region is still named "<language> code"', () => {
+    render(<CodeBlock code={JSX} language="jsx" />);
+    expect(screen.getByRole('region', { name: 'jsx code' }).tagName).toBe('PRE');
+  });
+
   it('puts the ref, className and rest props on the root', () => {
     const ref = createRef<HTMLDivElement>();
     const { container } = render(<CodeBlock ref={ref} code="x" language="css" className="extra" data-testid="cb" />);
