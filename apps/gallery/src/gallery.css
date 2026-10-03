@@ -434,7 +434,8 @@ html {
   flex: none;
 }
 
-/* Short code (a prop name, a default, a class) stays on one line in the Props table; long types wrap. */
+/* Short code (a prop name, a default, a class, one member of a union type) stays on one line in the Props
+   table. A union wraps only between its members. */
 .gallery-nowrap {
   white-space: nowrap;
 }
@@ -453,13 +454,52 @@ html {
   gap: var(--bit-space-4px);
 }
 
+/* The Props table: the Description column keeps 16rem (4 × 64px), so on a phone the table scrolls sideways
+   inside its border instead of squeezing descriptions into tall, narrow rows. */
+.gallery-props__description {
+  min-width: calc(4 * var(--bit-space-64px));
+}
+
 @media (max-width: 720px) {
   .gallery-playground__top {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
+/* Under 720px the presets get their own full-width row under the title and the Checkerboard switch (sharing
+   one row left them about 95px at 390px). The row still scrolls sideways, keeping the focus-ring padding above. */
+@media (max-width: 720px) {
+  .gallery-preview__bar {
+    flex-wrap: wrap;
+  }
+
+  .gallery-presets {
+    order: 1;
+    flex-basis: 100%;
+  }
+}
+
 /* ---------- tokens page ---------- */
+
+/* The five color role cards: one column on a phone, 3 + 2 from 30rem, and all five in one row from 70rem
+   (the 1120px-wide window where five 10rem cards fit beside the sidebar). Never 4 + 1 with danger alone. */
+.gallery-color-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bit-space-12px);
+}
+
+@media (min-width: 30rem) {
+  .gallery-color-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 70rem) {
+  .gallery-color-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
 
 /* A color sample: the token's own color, set inline through var(), edged so white and the page bg show. */
 .gallery-swatch {
@@ -481,7 +521,8 @@ html {
 /* ---------- home page ---------- */
 
 /* Large tiles: a live preview over a footer link. The link's ::after covers the tile, so the whole tile
-   is one link while the preview inside stays inert. */
+   is one link while the preview inside stays inert. Tiles in a row stretch to one height; each is a flex
+   column whose preview takes the spare height, so every link row sits on the tile's floor. */
 .gallery-tiles {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
@@ -490,8 +531,8 @@ html {
 
 .gallery-tile {
   position: relative;
-  display: grid;
-  grid-template-rows: minmax(8rem, auto) auto;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
@@ -500,6 +541,8 @@ html {
 }
 
 .gallery-tile__preview {
+  flex: 1 0 auto;
+  min-height: 8rem;
   display: grid;
   place-items: center;
   padding: var(--bit-space-16px);

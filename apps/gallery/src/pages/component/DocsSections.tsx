@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import type { ReactNode } from 'react';
 import { Alert, Box, Code, Stack, Table, TableBody, TableCell, TableHead, TableRow, Text } from '@bit-ds/react';
 import type { AxisControl, Manifest, ManifestDocs, PropDoc } from '../../manifests/types';
@@ -33,20 +34,49 @@ function None() {
   );
 }
 
+/** How a union type's members are joined in docs.props, e.g. "'sm' | 'md' | 'lg'". */
+const UNION_SEPARATOR = ' | ';
+
+/**
+ * A prop's type. A union is one unbreakable chip per member, joined by a plain "|", so a line breaks only
+ * between members. The | holds to the member before it (a no-break space), so no line starts with a lone |.
+ */
+export function TypeChips({ type }: { type: string }) {
+  const members = type.split(UNION_SEPARATOR);
+  if (members.length === 1) return <Code>{type}</Code>;
+  return members.map((member, index) => (
+    <Fragment key={member}>
+      {index > 0 ? ' | ' : null}
+      <Code className="gallery-nowrap">{member}</Code>
+    </Fragment>
+  ));
+}
+
 /** One Props-table column. To add a column, add an entry here. */
 export interface PropColumn {
   header: string;
   cell: (prop: PropDoc) => ReactNode;
-  /** Keep the cell on one line (short code); long types and descriptions wrap. */
-  nowrap?: boolean;
+  /**
+   * A class on the column's body cells: `gallery-nowrap` keeps short code on one line, and
+   * `gallery-props__description` keeps Description wide enough that a phone scrolls the table sideways.
+   */
+  className?: string;
 }
 
 export const PROP_COLUMNS: readonly PropColumn[] = [
-  { header: 'Prop', cell: (prop) => <Code>{prop.name}</Code>, nowrap: true },
-  { header: 'Type', cell: (prop) => <Code>{prop.type}</Code> },
-  { header: 'Default', cell: (prop) => (prop.default === undefined ? <None /> : <Code>{prop.default}</Code>), nowrap: true },
-  { header: 'Class', cell: (prop) => (prop.className === undefined ? <None /> : <Code>{prop.className}</Code>), nowrap: true },
-  { header: 'Description', cell: (prop) => prop.description },
+  { header: 'Prop', cell: (prop) => <Code>{prop.name}</Code>, className: 'gallery-nowrap' },
+  { header: 'Type', cell: (prop) => <TypeChips type={prop.type} /> },
+  {
+    header: 'Default',
+    cell: (prop) => (prop.default === undefined ? <None /> : <Code>{prop.default}</Code>),
+    className: 'gallery-nowrap',
+  },
+  {
+    header: 'Class',
+    cell: (prop) => (prop.className === undefined ? <None /> : <Code>{prop.className}</Code>),
+    className: 'gallery-nowrap',
+  },
+  { header: 'Description', cell: (prop) => prop.description, className: 'gallery-props__description' },
 ];
 
 /**
@@ -79,7 +109,7 @@ export function PropsTable({ manifest }: { manifest: Manifest }) {
           {manifest.docs.props.map((prop) => (
             <TableRow key={prop.name}>
               {PROP_COLUMNS.map((column) => (
-                <TableCell key={column.header} className={column.nowrap ? 'gallery-nowrap' : undefined}>
+                <TableCell key={column.header} className={column.className}>
                   {column.cell(prop)}
                 </TableCell>
               ))}

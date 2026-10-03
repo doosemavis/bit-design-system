@@ -41,7 +41,7 @@ function SwatchRow({ name, token, values }: { name: string; token: string; value
 export function ColorSection({ values }: { values: TokenValues }) {
   return (
     <Stack gap={16}>
-      <div className="gallery-grid">
+      <div className="gallery-color-grid">
         {COLORS.map((color) => (
           <Card key={color} aria-label={`${color} tokens`} role="group">
             <CardHeader style={{ background: `var(--bit-color-${color})`, color: `var(--bit-color-${color}-contrast)` }}>
