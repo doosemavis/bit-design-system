@@ -20,4 +20,11 @@ describe('gallery.css', () => {
   it('never reads tier-1 palette values', () => {
     expect(reads.filter((name) => name.startsWith('--bit-palette-'))).toEqual([]);
   });
+
+  it('code panels use the Ink-night code tokens and the mono font in both modes', () => {
+    const rule = /\.gallery-pre\s*\{([^}]*)\}/.exec(galleryCss)?.[1] ?? '';
+    expect(rule).toContain('background: var(--bit-code-bg);');
+    expect(rule).toContain('color: var(--bit-code-text);');
+    expect(rule).toContain('font-family: var(--bit-font-mono);');
+  });
 });

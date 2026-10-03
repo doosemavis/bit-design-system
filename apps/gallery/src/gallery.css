@@ -145,14 +145,17 @@ html {
   outline: none;
 }
 
+/* Ink-night code panel (both modes). PR2's CodeBlock replaces this and adds syntax colors. */
 .gallery-pre {
   margin: 0;
   padding: var(--bit-space-12px);
   overflow-x: auto;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--bit-font-mono);
   font-size: var(--bit-text-13px);
   line-height: var(--bit-leading-normal);
-  background: var(--bit-color-bg);
+  font-variant-ligatures: none;
+  background: var(--bit-code-bg);
+  color: var(--bit-code-text);
   border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-10px);
 }
