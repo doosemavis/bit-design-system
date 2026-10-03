@@ -40,7 +40,10 @@ const SPACING_PROPS = Object.keys(ATTRIBUTES) as SpacingProp[];
  * `--bit-space-{n}px`. When props overlap, the most specific wins: a side beats an axis beats all four.
  */
 export interface BoxProps extends Omit<HTMLAttributes<HTMLElement>, 'color'> {
-  /** Which element to render. Default `div`. */
+  /**
+   * Which element to render. Default `div`. `span` is inline: vertical margins (marginY/Top/Bottom) don't apply and
+   * vertical padding doesn't move layout.
+   */
   as?: BoxElement;
   /** All four sides. `data-p`. */
   padding?: Space;
