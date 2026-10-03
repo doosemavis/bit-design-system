@@ -434,4 +434,21 @@ html {
 
 /* ---------- tokens page ---------- */
 
+/* A color sample: the token's own color, set inline through var(), edged so white and the page bg show. */
+.gallery-swatch {
+  flex: none;
+  width: var(--bit-space-24px);
+  height: var(--bit-space-24px);
+  border: 2px solid var(--bit-color-line);
+  border-radius: var(--bit-radius-6px);
+}
+
+/* A shape sample: a surface square that takes one radius or shadow token inline. */
+.gallery-shape {
+  width: var(--bit-space-64px);
+  height: var(--bit-space-48px);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+}
+
 /* ---------- home page ---------- */

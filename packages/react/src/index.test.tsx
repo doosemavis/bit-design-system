@@ -78,6 +78,13 @@ describe('public index', () => {
     expect(lib.SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
+  it('exports SEMANTIC_TOKENS, the 92 tier-2 token names every theme declares, from @bit-ds/core', () => {
+    expect(lib.SEMANTIC_TOKENS).toHaveLength(92);
+    expect(lib.SEMANTIC_TOKENS).toContain('--bit-color-primary');
+    expect(lib.SEMANTIC_TOKENS).toContain('--bit-space-64px');
+    expect(lib.SEMANTIC_TOKENS.every((name) => name.startsWith('--bit-'))).toBe(true);
+  });
+
   it.each(componentNames)('%s renders the root class the naming rule predicts', (name) => {
     const Component = (lib as Record<string, unknown>)[name] as ComponentType<Record<string, unknown>>;
     const sample = createElement(Component, { 'aria-label': 'x', children: 'x', ...SAMPLE_PROPS[name] });
