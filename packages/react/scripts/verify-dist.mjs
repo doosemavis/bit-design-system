@@ -26,6 +26,8 @@ assert.equal(typeof cjs.useColorMode, 'function', 'CJS export missing: useColorM
 // 2. ESM entry
 const esm = await import(resolve(dist, 'index.js'));
 for (const name of EXPECTED) assert.ok(esm[name], `ESM export missing: ${name}`);
+assert.equal(typeof esm.COLOR_MODE_SCRIPT, 'string', 'ESM export missing: COLOR_MODE_SCRIPT');
+assert.equal(typeof esm.useColorMode, 'function', 'ESM export missing: useColorMode');
 
 // 3. Types
 assert.ok(existsSync(resolve(dist, 'index.d.cts')), 'index.d.cts missing (CJS types entry)');

@@ -74,5 +74,6 @@ describe('public index', () => {
     expect(typeof lib.useColorMode).toBe('function');
     expect('resetColorModeStore' in lib).toBe(false);
     expect('setColorMode' in lib).toBe(false);
+    expect('resolveColorMode' in lib).toBe(false);
   });
 });

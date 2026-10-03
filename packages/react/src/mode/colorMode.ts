@@ -80,19 +80,17 @@ function onSystemChange(event: { matches: boolean }): void {
   apply(event.matches ? 'dark' : 'light');
 }
 
+// The OS listener is installed by the first subscriber and kept for the page's life, so the page
+// root keeps following the OS even while no hook is mounted. Only resetColorModeStore removes it.
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
-  if (listeners.size === 1) {
-    document.documentElement.dataset.mode = getSnapshot();
+  if (listeners.size === 1) document.documentElement.dataset.mode = getSnapshot();
+  if (watched === null) {
     watched = darkQuery();
     watched?.addEventListener('change', onSystemChange);
   }
   return () => {
     listeners.delete(listener);
-    if (listeners.size === 0) {
-      watched?.removeEventListener('change', onSystemChange);
-      watched = null;
-    }
   };
 }
 

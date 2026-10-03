@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
+import { StrictMode } from 'react';
 import { renderToString } from 'react-dom/server';
 import {
   COLOR_MODE_SCRIPT,
@@ -120,15 +121,33 @@ describe('useColorMode', () => {
     expect(b.result.current.mode).toBe('dark');
   });
 
-  it('stops listening to the OS when the last hook unmounts', () => {
+  it('keeps following the OS while no hook is mounted', () => {
     const system = fakeSystem(false);
     const a = renderHook(() => useColorMode());
     const b = renderHook(() => useColorMode());
     expect(system.listenerCount()).toBe(1);
     a.unmount();
-    expect(system.listenerCount()).toBe(1);
     b.unmount();
-    expect(system.listenerCount()).toBe(0);
+    expect(system.listenerCount()).toBe(1);
+    act(() => system.flip(true));
+    expect(root().dataset.mode).toBe('dark');
+    expect(renderHook(() => useColorMode()).result.current.mode).toBe('dark');
+    expect(system.listenerCount()).toBe(1);
+  });
+
+  it('a choice stored on an earlier visit ignores OS flips', () => {
+    localStorage.setItem(COLOR_MODE_STORAGE_KEY, 'dark');
+    const system = fakeSystem(false);
+    const { result } = renderHook(() => useColorMode());
+    act(() => system.flip(false));
+    expect(result.current.mode).toBe('dark');
+  });
+
+  it('StrictMode: one OS listener and the right mode', () => {
+    const system = fakeSystem(true);
+    const { result } = renderHook(() => useColorMode(), { wrapper: StrictMode });
+    expect(result.current.mode).toBe('dark');
+    expect(system.listenerCount()).toBe(1);
   });
 
   it('ignores an unknown mode passed by an untyped caller', () => {
