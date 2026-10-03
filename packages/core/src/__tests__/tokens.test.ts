@@ -9,9 +9,9 @@ describe('semantic token list', () => {
     expect(SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('contains exactly 84 unique names, all prefixed --bit-', () => {
-    expect(SEMANTIC_TOKENS).toHaveLength(84);
-    expect(new Set(SEMANTIC_TOKENS).size).toBe(84);
+  it('contains exactly 87 unique names, all prefixed --bit-', () => {
+    expect(SEMANTIC_TOKENS).toHaveLength(87);
+    expect(new Set(SEMANTIC_TOKENS).size).toBe(87);
     for (const name of SEMANTIC_TOKENS) expect(name).toMatch(/^--bit-[a-z0-9-]+$/);
   });
 
@@ -25,9 +25,9 @@ describe('semantic token list', () => {
 
   it('includes the shape, type, space, control, and motion tokens named in the spec', () => {
     const expected = [
-      '--bit-color-bg', '--bit-color-surface', '--bit-color-ink', '--bit-color-text', '--bit-color-text-muted', '--bit-focus-band',
+      '--bit-color-bg', '--bit-color-surface', '--bit-color-ink', '--bit-color-text', '--bit-color-text-muted', '--bit-color-line', '--bit-color-shadow',
       '--bit-border-width', '--bit-radius-6px', '--bit-radius-10px', '--bit-radius-14px', '--bit-radius-full',
-      '--bit-shadow-sm', '--bit-shadow-md', '--bit-shadow-lg', '--bit-shadow-inset', '--bit-gloss',
+      '--bit-shadow-sm', '--bit-shadow-md', '--bit-shadow-lg', '--bit-shadow-inset', '--bit-focus-ring-color', '--bit-focus-ring-width', '--bit-focus-ring-offset',
       '--bit-font-display', '--bit-font-body', '--bit-font-pixel',
       '--bit-text-11px', '--bit-text-32px', '--bit-leading-tight', '--bit-leading-normal', '--bit-weight-normal', '--bit-weight-bold',
       '--bit-space-4px', '--bit-space-64px',
@@ -51,5 +51,10 @@ describe('semantic token list', () => {
 
   it('has no --bit-color-focus (D9 draws the ring in ink)', () => {
     expect(SEMANTIC_TOKENS).not.toContain('--bit-color-focus');
+  });
+
+  it('has no --bit-gloss or --bit-focus-band (dark mode spec: flat buttons, one focus ring)', () => {
+    expect(SEMANTIC_TOKENS).not.toContain('--bit-gloss');
+    expect(SEMANTIC_TOKENS).not.toContain('--bit-focus-band');
   });
 });

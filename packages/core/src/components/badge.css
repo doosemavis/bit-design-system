@@ -9,7 +9,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   line-height: 1;
-  border: 2px solid var(--bit-color-ink);
+  border: 2px solid var(--bit-color-line);
   border-radius: var(--bit-radius-full);
   box-shadow: var(--bit-shadow-sm);
   white-space: nowrap;

@@ -104,10 +104,10 @@ describe('system/reset.css browser surfaces (amendments §C)', () => {
     expect(body).toContain('color: var(--bit-color-ink);');
   });
 
-  it('the caret is primary and scrollbars are an ink thumb on a neutral-soft track', () => {
+  it('the caret is primary and scrollbars are a line-colored thumb on a neutral-soft track', () => {
     const root = block(css, ':root');
     expect(root).toContain('caret-color: var(--bit-color-primary);');
-    expect(root).toContain('scrollbar-color: var(--bit-color-ink) var(--bit-color-neutral-soft);');
+    expect(root).toContain('scrollbar-color: var(--bit-color-line) var(--bit-color-neutral-soft);');
     expect(block(css, '*')).toContain('scrollbar-width: thin;');
   });
 });
@@ -121,15 +121,23 @@ describe('components/logo.css', () => {
       expect(css).toContain(`var(${name})`);
     }
   });
+
+  it('the wordmark reads the text color, so "-bit" stays visible on a dark page', () => {
+    expect(block(css, '.bit-logo')).toContain('color: var(--bit-color-text);');
+  });
+
+  it('era outlines read line and era shadows read shadow, never ink', () => {
+    expect(css).not.toContain('var(--bit-color-ink)');
+  });
 });
 
-describe('focus ring (D9)', () => {
+describe('focus ring (dark mode spec: one ring, no band)', () => {
   const reset = readCss('system/reset.css');
 
-  it('reset.css draws a 3px ink outline at a 3px offset on :focus-visible', () => {
+  it('reset.css draws the ring from the three focus-ring tokens', () => {
     const body = block(reset, ':focus-visible');
-    expect(body).toContain('outline: 3px solid var(--bit-color-ink);');
-    expect(body).toContain('outline-offset: 3px;');
+    expect(body).toContain('outline: var(--bit-focus-ring-width) solid var(--bit-focus-ring-color);');
+    expect(body).toContain('outline-offset: var(--bit-focus-ring-offset);');
   });
 
   it('programmatic focus targets (tabindex="-1", e.g. a page heading) show no ring', () => {
@@ -142,30 +150,18 @@ describe('focus ring (D9)', () => {
     expect(reset).not.toMatch(/(^|\n)\[tabindex="-1"\]:focus\s*\{/);
   });
 
-  it.each(listCss('components'))('%s never sets outline, so nothing can override the ink ring', (file) => {
+  it.each(listCss('components'))('%s never sets outline, so nothing can override the ring', (file) => {
     expect(readCss(`components/${file}`)).not.toMatch(/^\s*outline\s*:/m);
   });
 
-  /** Interactive components carry the yellow band. PR2 adds link, input, select, switch, segmented-control, code. */
-  const INTERACTIVE = ['button.css'] as const;
-
-  describe.each(INTERACTIVE)('%s', (file) => {
+  it.each(listCss('components'))('%s has no focus band and no gloss', (file) => {
     const css = readCss(`components/${file}`);
-    const blockName = file.replace(/\.css$/, '');
+    expect(css).not.toContain('focus-band');
+    expect(css).not.toContain('--bit-gloss');
+  });
 
-    it('every box-shadow starts with the band, so no variant, hover, or active state can drop it', () => {
-      const shadows = [...css.matchAll(/box-shadow:\s*([^;]+);/g)].map((m) => m[1]!.trim());
-      expect(shadows.length).toBeGreaterThan(0);
-      for (const shadow of shadows) expect(shadow.startsWith('var(--_bit-focus-band)')).toBe(true);
-    });
-
-    it('the block resets the band, so a focused ancestor cannot leak it into this component', () => {
-      expect(block(css, `.bit-${blockName}`)).toContain('--_bit-focus-band: 0 0 #0000;');
-    });
-
-    it(':focus-visible turns the band on from the theme token', () => {
-      expect(block(css, `.bit-${blockName}:focus-visible`)).toContain('--_bit-focus-band: var(--bit-focus-band);');
-    });
+  it.each(listCss('components'))('%s draws lines with --bit-color-line, never ink', (file) => {
+    expect(readCss(`components/${file}`)).not.toContain('var(--bit-color-ink)');
   });
 });
 

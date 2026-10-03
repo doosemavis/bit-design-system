@@ -39,6 +39,8 @@
   --bit-color-text: var(--bit-palette-ink);
   --bit-color-text-muted: var(--bit-palette-slate);
   --bit-color-selection: var(--bit-palette-yellow);
+  --bit-color-line: var(--bit-palette-ink);
+  --bit-color-shadow: var(--bit-palette-ink);
 
   --bit-color-primary: var(--bit-palette-violet);
   --bit-color-primary-contrast: var(--bit-palette-white);
@@ -71,11 +73,10 @@
   --bit-radius-10px: 10px;
   --bit-radius-14px: 14px;
   --bit-radius-full: 999px;
-  --bit-shadow-sm: 2px 2px 0 var(--bit-color-ink);
-  --bit-shadow-md: 4px 4px 0 var(--bit-color-ink);
-  --bit-shadow-lg: 6px 6px 0 var(--bit-color-ink);
+  --bit-shadow-sm: 2px 2px 0 var(--bit-color-shadow);
+  --bit-shadow-md: 4px 4px 0 var(--bit-color-shadow);
+  --bit-shadow-lg: 6px 6px 0 var(--bit-color-shadow);
   --bit-shadow-inset: inset 3px 3px 0 rgba(21, 21, 21, 0.12);
-  --bit-gloss: inset 0 3px 0 rgba(255, 255, 255, 0.4);
 
   /* ---------- tier 2: typography ---------- */
   --bit-font-display: "Lilita One", "Arial Black", sans-serif;
@@ -118,8 +119,10 @@
   --bit-motion-power-up: bit-power-up;
 
   /* ---------- tier 2: focus ---------- */
-  /* The yellow band interactive components draw inside reset.css's ink outline (D9). */
-  --bit-focus-band: 0 0 0 3px var(--bit-color-warning);
+  /* One ring, drawn by reset.css on :focus-visible. The gap shows the page between button and ring. */
+  --bit-focus-ring-color: var(--bit-palette-violet);
+  --bit-focus-ring-width: 2px;
+  --bit-focus-ring-offset: 2px;
 
   /* ---------- tier 2: code ("Ink night": every color is at least 5.6:1 on --bit-code-bg) ---------- */
   --bit-code-bg: var(--bit-palette-ink);

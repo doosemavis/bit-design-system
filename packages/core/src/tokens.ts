@@ -27,7 +27,7 @@ const token = (category: string, ...parts: (string | number)[]) =>
 
 const px = (n: number) => `${n}px`;
 
-const colorRoleTokens = ['bg', 'surface', 'ink', 'text', 'text-muted', 'selection'].map((role) =>
+const colorRoleTokens = ['bg', 'surface', 'ink', 'text', 'text-muted', 'selection', 'line', 'shadow'].map((role) =>
   token('color', role),
 );
 
@@ -43,7 +43,6 @@ const shapeTokens = [
   ...RADII.map((n) => token('radius', px(n))),
   token('radius', 'full'),
   ...['sm', 'md', 'lg', 'inset'].map((s) => token('shadow', s)),
-  token('gloss'),
 ];
 
 const typeTokens = [
@@ -69,7 +68,7 @@ const motionTokens = [
   token('motion', 'power-up'),
 ];
 
-const focusTokens = [token('focus', 'band')];
+const focusTokens = ['color', 'width', 'offset'].map((part) => token('focus', 'ring', part));
 
 const codeTokens = [token('code', 'bg'), ...CODE_KINDS.map((kind) => token('code', kind))];
 

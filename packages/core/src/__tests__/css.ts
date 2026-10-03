@@ -55,3 +55,21 @@ export function contrastRatio(hexA: string, hexB: string): number {
   const [hi, lo] = [luminance(hexA), luminance(hexB)].sort((a, b) => b - a) as [number, number];
   return (hi + 0.05) / (lo + 0.05);
 }
+
+const DARK_SELECTOR = '[data-mode="dark"]';
+
+/**
+ * Split a theme file into its light (default) declarations and its `[data-mode="dark"]` overrides.
+ * `dark` is empty when the theme has no dark block. Comments in theme files must not contain the
+ * dark selector text, or this split finds the comment instead of the block.
+ */
+export function themeModes(css: string): { light: Map<string, string>; dark: Map<string, string> } {
+  const start = css.indexOf(DARK_SELECTOR);
+  if (start === -1) return { light: parseCustomProps(css), dark: new Map() };
+  const open = css.indexOf('{', start);
+  const close = css.indexOf('}', open);
+  return {
+    light: parseCustomProps(css.slice(0, start) + css.slice(close + 1)),
+    dark: parseCustomProps(css.slice(open + 1, close)),
+  };
+}
