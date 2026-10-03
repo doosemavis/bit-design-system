@@ -228,7 +228,7 @@ These move to **3c**:
 - The Props table gains a fifth column, **Class**. It shows that value as inline Code, or "—" for props without a class.
 - Under the Props table of any manifest with an axis control, a tip line reads: "Prefer classes? `className="bit-{v}"` works the same as `{prop}="{v}"`."
   - `{prop}` is the color axis if the manifest has one, otherwise its first axis.
-  - `{v}` is `danger` for color, otherwise that axis's last value.
+  - `{v}` is `danger` when the color axis offers it; otherwise the axis's last value that is not its default (so Switch teaches `bit-sm`, Link `bit-neutral`). Amended 2026-10-03 after Task 4 review: the default value is never printed in className mode, so teaching it would mislead.
 - **Contract test:** every axis control's prop row has `className` equal to `bit-{<prop>}`. A non-axis prop row has no `className`.
 
 **3. The Home naming-rule table (§5)** has these columns: **You write (prop) | Or write (className) | Class it emits | Token | Result**.
