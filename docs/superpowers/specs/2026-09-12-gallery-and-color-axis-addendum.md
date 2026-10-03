@@ -13,7 +13,7 @@
 | Layer | Before | After |
 |---|---|---|
 | Prop on Button, Badge, Alert, Spinner, Text | `tone` | `color` |
-| Constant / type in `@bit/core/tokens` and `@bit/react` | `TONES`, `Tone` | `COLORS`, `Color` |
+| Constant / type in `@bit-ds/core/tokens` and `@bit-ds/react` | `TONES`, `Tone` | `COLORS`, `Color` |
 | System CSS file | `system/tones.css` | `system/colors.css` |
 | Private variables set by `.bit-{value}` | `--_bit-tone`, `--_bit-tone-contrast`, `--_bit-tone-hover`, `--_bit-tone-soft` | `--_bit-color`, `--_bit-color-contrast`, `--_bit-color-hover`, `--_bit-color-soft` |
 | Docs | "tone" in README, CONTRIBUTING ("Add a tone"), spec §3.4, §4.1, §4.3, §5, §12 | "color" ("Add a color") |
@@ -26,21 +26,21 @@
 
 ## B. Packaging fix and consumer smoke test
 
-`@bit/react` inlines `@bit/core` at build time (tsup `noExternal`) and copies its CSS into `dist`, so `@bit/core` must be a **devDependency**, not a dependency; otherwise a tarball install in a fresh project tries to fetch `@bit/core` from the registry and fails.
+`@bit-ds/react` inlines `@bit-ds/core` at build time (tsup `noExternal`) and copies its CSS into `dist`, so `@bit-ds/core` must be a **devDependency**, not a dependency; otherwise a tarball install in a fresh project tries to fetch `@bit-ds/core` from the registry and fails.
 
-A **consumer smoke test** joins §8.3's system tests: a script packs `@bit/react` with `pnpm pack`, installs the tarball into a temporary project with `npm install`, imports the ESM and CJS entries, typechecks a small TypeScript consumer against the shipped declarations, and checks that `styles.css` and `themes/power-up.css` exist. It runs in CI. Consumers may use any package manager; the repo's own pnpm choice does not constrain them.
+A **consumer smoke test** joins §8.3's system tests: a script packs `@bit-ds/react` with `pnpm pack`, installs the tarball into a temporary project with `npm install`, imports the ESM and CJS entries, typechecks a small TypeScript consumer against the shipped declarations, and checks that `styles.css` and `themes/power-up.css` exist. It runs in CI. Consumers may use any package manager; the repo's own pnpm choice does not constrain them.
 
 ## C. The gallery replaces Storybook
 
 ### C.1 Decision
 
-`apps/docs` (Storybook), every `*.stories.tsx`, and the `storybook` / `@storybook/*` devDependencies are removed. They are replaced by **`apps/gallery`**, a standalone Vite + React + TypeScript single-page app that consumes `@bit/react` through its published `exports` map, exactly as a consumer would. The gallery is the only documentation surface and is published to GitHub Pages from `main`.
+`apps/docs` (Storybook), every `*.stories.tsx`, and the `storybook` / `@storybook/*` devDependencies are removed. They are replaced by **`apps/gallery`**, a standalone Vite + React + TypeScript single-page app that consumes `@bit-ds/react` through its published `exports` map, exactly as a consumer would. The gallery is the only documentation surface and is published to GitHub Pages from `main`.
 
 Base spec §6 (package layout, "apps/docs Storybook 9…"), §8 ("Every component ships `X.tsx`, `X.test.tsx`, `X.stories.tsx`"), §9 Phase 4 ("Storybook deploy + Chromatic"), and §10 are amended accordingly. The new rule: **every component ships `X.tsx`, `X.test.tsx`, and a manifest entry in `apps/gallery/src/manifests/`.**
 
 ### C.2 Requirements
 
-1. **Standalone.** No docs framework, no Storybook, no UI kit other than bit itself. Dependencies: `react`, `react-dom`, `react-router-dom`, `@bit/react`. Dev: `vite`, `@vitejs/plugin-react`, `typescript`, `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/user-event`, `@playwright/test`.
+1. **Standalone.** No docs framework, no Storybook, no UI kit other than bit itself. Dependencies: `react`, `react-dom`, `react-router-dom`, `@bit-ds/react`. Dev: `vite`, `@vitejs/plugin-react`, `typescript`, `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/user-event`, `@playwright/test`.
 2. **Interactive controls.** Each component page lets the visitor change every axis (`color`, `variant`, `size`) and every boolean prop live, plus a text field where the component has one (Alert `title`, Spinner `aria-label`).
 3. **Copy code.** A code panel with two tabs: **React** (the JSX for the current state, with its import line) and **HTML** (the exact markup with `bit-*` classes), each with a copy button.
 4. **Polish.** The gallery dogfoods bit's components and tokens for its own UI; keyboard-accessible controls with visible labels; a skip link; focus moves to the page heading on route change; responsive down to phone width; lazy-loaded pages; a 404 route.
@@ -79,7 +79,7 @@ interface Manifest {
 }
 ```
 
-Axis values are imported from `@bit/react` (`COLORS`, `VARIANTS`, `SIZES`, `TEXT_SIZES`), never retyped. A **manifest contract test** asserts every component export of `@bit/react` has a manifest and every manifest names a real export.
+Axis values are imported from `@bit-ds/react` (`COLORS`, `VARIANTS`, `SIZES`, `TEXT_SIZES`), never retyped. A **manifest contract test** asserts every component export of `@bit-ds/react` has a manifest and every manifest names a real export.
 
 Engine components on every component page:
 
@@ -100,8 +100,8 @@ Engine components on every component page:
 
 ### C.6 Build, scripts, deploy
 
-- `@bit/gallery` is private. Vite `base` is `/bit-design-system/` in production builds.
-- Root scripts: `pnpm gallery` (builds `@bit/react`, then dev server on :5173); `pnpm gallery:build` (builds `@bit/react`, then the gallery to `apps/gallery/dist`). A component change needs `pnpm build` again in dev; documented in CONTRIBUTING.
+- `@bit-ds/gallery` is private. Vite `base` is `/bit-design-system/` in production builds.
+- Root scripts: `pnpm gallery` (builds `@bit-ds/react`, then dev server on :5173); `pnpm gallery:build` (builds `@bit-ds/react`, then the gallery to `apps/gallery/dist`). A component change needs `pnpm build` again in dev; documented in CONTRIBUTING.
 - `.github/workflows/ci.yml`: `pnpm storybook:build` is replaced by `pnpm gallery:build`, plus the consumer smoke test and the Playwright spec.
 - `.github/workflows/deploy.yml`: on push to `main`, install → build + verify the package → build the gallery → upload artifact → deploy with the official Pages actions. Requires the one-time repo setting Settings → Pages → Source: GitHub Actions.
 - README: first link is the live gallery at `https://doosemavis.github.io/bit-design-system/`.
@@ -134,5 +134,5 @@ Phases 2–4 of the base spec follow unchanged, with "gallery manifest" substitu
 | Hosting | GitHub Pages from `main` | local only, Vercel/Netlify | free, in-repo, no accounts |
 | Highlighting | in-repo tokenizer | shiki/prism | four token classes suffice; no dependency |
 | Package manager | keep pnpm | switch to npm | strict isolation protects the zero-dep core; consumers unaffected |
-| `@bit/core` in react | devDependency | dependency | it is inlined at build; a tarball must install standalone |
-| Types in the tarball | tsup dts resolves `@bit/core` | leave `@bit/core` imports in dts | a devDependency is not in the tarball; the declarations must be self-contained |
+| `@bit-ds/core` in react | devDependency | dependency | it is inlined at build; a tarball must install standalone |
+| Types in the tarball | tsup dts resolves `@bit-ds/core` | leave `@bit-ds/core` imports in dts | a devDependency is not in the tarball; the declarations must be self-contained |

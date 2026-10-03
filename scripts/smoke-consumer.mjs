@@ -1,4 +1,4 @@
-// Proves a stranger can `npm install` the packed @bit/react into a fresh project.
+// Proves a stranger can `npm install` the packed @bit-ds/react into a fresh project.
 // Steps: build → pnpm pack → temp project → npm install <tarball> → import ESM + CJS →
 // check CSS files → typecheck a small TS consumer against the shipped declarations.
 import { execSync } from 'node:child_process';
@@ -53,14 +53,14 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import assert from 'node:assert/strict';
 const expected = ${JSON.stringify(EXPECTED)};
-const esm = await import('@bit/react');
+const esm = await import('@bit-ds/react');
 for (const n of expected) assert.ok(esm[n], 'ESM missing ' + n);
 assert.equal(esm.PREFIX, 'bit');
 assert.deepEqual([...esm.COLORS], ['primary', 'neutral', 'success', 'warning', 'danger']);
 const require = createRequire(import.meta.url);
-const cjs = require('@bit/react');
+const cjs = require('@bit-ds/react');
 for (const n of expected) assert.ok(cjs[n], 'CJS missing ' + n);
-const dist = join(dirname(require.resolve('@bit/react/package.json')), 'dist');
+const dist = join(dirname(require.resolve('@bit-ds/react/package.json')), 'dist');
 assert.ok(existsSync(join(dist, 'styles.css')), 'styles.css missing');
 assert.ok(existsSync(join(dist, 'themes', 'power-up.css')), 'themes/power-up.css missing');
 `,
@@ -68,7 +68,7 @@ assert.ok(existsSync(join(dist, 'themes', 'power-up.css')), 'themes/power-up.css
   runLoudly('node check.mjs', app, 'consumer runtime checks failed (node check.mjs)');
 
   // 4. Typecheck a small TS consumer against the shipped declarations (dist/index.d.ts):
-  // proves the tarball's types are self-contained (no unresolved `@bit/core` import).
+  // proves the tarball's types are self-contained (no unresolved `@bit-ds/core` import).
   writeFileSync(
     join(app, 'tsconfig.json'),
     JSON.stringify(
@@ -90,8 +90,8 @@ assert.ok(existsSync(join(dist, 'themes', 'power-up.css')), 'themes/power-up.css
   );
   writeFileSync(
     join(app, 'check.tsx'),
-    `import { Button, COLORS } from '@bit/react';
-import type { Color } from '@bit/react';
+    `import { Button, COLORS } from '@bit-ds/react';
+import type { Color } from '@bit-ds/react';
 
 const c: Color = COLORS[0];
 

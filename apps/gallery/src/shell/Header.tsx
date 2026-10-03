@@ -1,4 +1,4 @@
-import { BitLogo, Button } from '@bit/react';
+import { BitLogo, Button } from '@bit-ds/react';
 import { Link } from 'react-router-dom';
 import { ThemeSelect } from './ThemeSelect';
 

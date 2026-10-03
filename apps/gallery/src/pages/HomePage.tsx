@@ -1,8 +1,8 @@
-import { BitLogo, Card, CardBody, CardHeader, Stack, Text } from '@bit/react';
+import { BitLogo, Card, CardBody, CardHeader, Stack, Text } from '@bit-ds/react';
 
-const INSTALL = `pnpm add @bit/react
-import '@bit/react/styles.css';
-import '@bit/react/themes/power-up.css';`;
+const INSTALL = `pnpm add @bit-ds/react
+import '@bit-ds/react/themes/power-up.css';
+import '@bit-ds/react/styles.css';`;
 
 const REACT_WAY = `<Card><CardHeader>Stats</CardHeader></Card>`;
 const HTML_WAY = `<div class="bit-card bit-solid"><div class="bit-card__header">Stats</div></div>`;
@@ -15,13 +15,13 @@ const RULE_ROWS = [
 
 export function HomePage() {
   return (
-    <Stack gap={6}>
-      <Stack gap={3}>
+    <Stack gap={32}>
+      <Stack gap={12}>
         <BitLogo size="lg" />
-        <Text as="h1" size="2xl">
+        <Text as="h1" size={32}>
           bit
         </Text>
-        <Text size="lg">A React design system for people who are new to design systems.</Text>
+        <Text size={18}>A React design system for people who are new to design systems.</Text>
       </Stack>
 
       <Card>
@@ -63,7 +63,7 @@ export function HomePage() {
       <Card>
         <CardHeader>Two ways to use every static component</CardHeader>
         <CardBody>
-          <Stack gap={2}>
+          <Stack gap={8}>
             <pre className="gallery-pre">{REACT_WAY}</pre>
             <pre className="gallery-pre">{HTML_WAY}</pre>
             <Text color="neutral">Both render identically.</Text>

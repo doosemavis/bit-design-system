@@ -16,7 +16,7 @@ export function findManifest(slug: string): Manifest | undefined {
 }
 
 export function routeFor(manifest: Manifest): string {
-  return manifest.group === 'Brand' ? '/brand/logo' : `/components/${manifest.slug}`;
+  return manifest.group === 'brand' ? '/brand/logo' : `/components/${manifest.slug}`;
 }
 
-export type { Manifest, Control, ControlState, ControlValue, ChildSpec, Preset } from './types';
+export type { Manifest, ManifestGroup, ManifestDocs, PropDoc, Control, ControlState, ControlValue, ChildSpec, Preset } from './types';

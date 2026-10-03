@@ -1,10 +1,10 @@
-import { BitLogo, ERAS, SIZES } from '@bit/react';
+import { BitLogo, ERAS, SIZES } from '@bit-ds/react';
 import type { Manifest } from './types';
 
 export const bitLogo: Manifest = {
   name: 'BitLogo',
   slug: 'logo',
-  group: 'Brand',
+  group: 'brand',
   component: BitLogo,
   description: '#-bit. The number cycles 8 → 16 → 32 → 64, each in its era\'s type style. freeze pins one era.',
   controls: [

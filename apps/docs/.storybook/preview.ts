@@ -1,6 +1,6 @@
 import type { Decorator, Preview } from '@storybook/react-vite';
-import '@bit/core/styles.css';
-import '@bit/core/themes/power-up.css';
+import '@bit-ds/core/styles.css';
+import '@bit-ds/core/themes/power-up.css';
 
 /** Add a theme here after adding its CSS import above. */
 export const THEMES = ['power-up'] as const;

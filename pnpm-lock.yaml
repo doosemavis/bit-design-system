@@ -35,7 +35,7 @@ importers:
 
   apps/docs:
     dependencies:
-      '@bit/core':
+      '@bit-ds/core':
         specifier: workspace:*
         version: link:../../packages/core
       react:
@@ -72,7 +72,7 @@ importers:
 
   apps/gallery:
     dependencies:
-      '@bit/react':
+      '@bit-ds/react':
         specifier: workspace:*
         version: link:../../packages/react
       react:
@@ -146,7 +146,7 @@ importers:
         specifier: ^1.3.3
         version: 1.3.3(@types/react@19.2.18)(react@19.2.8)
     devDependencies:
-      '@bit/core':
+      '@bit-ds/core':
         specifier: workspace:*
         version: link:../core
       '@storybook/react-vite':

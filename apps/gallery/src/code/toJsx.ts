@@ -1,7 +1,8 @@
 import type { ChildSpec, Control, ControlState, ControlValue, Manifest } from '../manifests/types';
 import { defaultState } from '../engine/state';
+import { isOmittedSentinel } from '../manifests/sentinels';
+import { isHtmlElement } from '../manifests/registry';
 
-const OMIT_SENTINELS = new Set(['default', 'none']);
 const INDENT = '  ';
 
 function escapeAttr(value: string): string {
@@ -31,7 +32,7 @@ function printProp(control: Control, value: ControlValue, defaultValue: ControlV
     case 'number':
       return isDefault ? null : `${control.prop}={${Number(value)}}`;
     case 'select':
-      if (isDefault || (typeof value === 'string' && OMIT_SENTINELS.has(value))) return null;
+      if (isDefault || isOmittedSentinel(control, value)) return null;
       return control.numeric ? `${control.prop}={${Number(value)}}` : `${control.prop}="${escapeAttr(String(value))}"`;
     case 'axis':
       return isDefault ? null : `${control.prop}="${escapeAttr(String(value))}"`;
@@ -53,9 +54,11 @@ function printChildSpec(child: ChildSpec, depth: number): string {
 
 function importLine(manifest: Manifest): string {
   const names = [manifest.name, ...(manifest.parts ?? [])];
-  if (Array.isArray(manifest.children)) for (const child of manifest.children) names.push(child.component);
+  if (Array.isArray(manifest.children)) {
+    for (const child of manifest.children) if (!isHtmlElement(child.component)) names.push(child.component);
+  }
   const unique = [...new Set(names)].sort();
-  return `import { ${unique.join(', ')} } from '@bit/react';`;
+  return `import { ${unique.join(', ')} } from '@bit-ds/react';`;
 }
 
 /** The React snippet for the current state: import line, blank line, element. Pure. */

@@ -1,10 +1,10 @@
-import { Alert, COLORS } from '@bit/react';
+import { Alert, COLORS } from '@bit-ds/react';
 import type { Manifest } from './types';
 
 export const alert: Manifest = {
   name: 'Alert',
   slug: 'alert',
-  group: 'Components',
+  group: 'components',
   component: Alert,
   description: 'A message with an optional heading. Outline uses the soft background; solid fills.',
   controls: [

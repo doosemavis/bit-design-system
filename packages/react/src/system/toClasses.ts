@@ -1,4 +1,4 @@
-import { PREFIX } from '@bit/core/tokens';
+import { PREFIX } from '@bit-ds/core/tokens';
 
 /** One axis of a component: its prop name, the allowed values, and the value the caller passed. */
 export interface Axis {
@@ -40,12 +40,37 @@ export function toClasses(blockName: string, axes: readonly Axis[], className?: 
   return classes.join(' ');
 }
 
-function warnUnknown(blockName: string, axis: Axis): void {
+function warnUnknown(blockName: string, axis: DataAxis): void {
   if (process.env.NODE_ENV === 'production') return;
   console.warn(
     `[bit] ${block(blockName)} received ${axis.name}="${axis.value}" but only ` +
       `${axis.allowed.join(' | ')} are allowed. The value was dropped.`,
   );
+}
+
+/** A non-axis enum rendered as a `data-*` attribute: its prop name, allowed values, and the value passed. */
+export interface DataAxis {
+  name: string;
+  allowed: readonly (string | number)[];
+  value: string | number | undefined;
+}
+
+/**
+ * The attribute value for a non-axis enum (Stack `gap`, Text `size`, Badge `shape`). Returns
+ * undefined, so React omits the attribute, when no value is given or the value is not allowed.
+ * A value matches when its string form equals an allowed value's, so an untyped caller's
+ * number-like string (`gap="16"`) is accepted and emitted as the canonical string. An unknown
+ * value also warns in development, like `toClasses`. This is where untyped callers still passing
+ * the old step numbers (`gap={3}`, `gap="3"`) or size names (`size="lg"`) are caught.
+ */
+export function dataValue(blockName: string, axis: DataAxis): string | undefined {
+  if (axis.value === undefined) return undefined;
+  const match = axis.allowed.find((allowed) => String(allowed) === String(axis.value));
+  if (match === undefined) {
+    warnUnknown(blockName, axis);
+    return undefined;
+  }
+  return String(match);
 }
 
 /** Join a fixed class (usually an element class) with the caller's className, which goes last. */

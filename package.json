@@ -5,19 +5,20 @@
   "packageManager": "pnpm@9.15.9",
   "engines": { "node": ">=20" },
   "scripts": {
-    "build": "pnpm --filter @bit/react build",
-    "verify": "pnpm --filter @bit/react verify",
+    "build": "pnpm --filter @bit-ds/react build",
+    "verify": "pnpm --filter @bit-ds/react verify",
     "test": "pnpm -r --workspace-concurrency=1 test",
-    "test:coverage": "pnpm --filter @bit/react test:coverage",
+    "test:coverage": "pnpm --filter @bit-ds/react test:coverage",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
-    "storybook": "pnpm --filter @bit/docs storybook",
-    "storybook:build": "pnpm --filter @bit/docs build",
+    "storybook": "pnpm --filter @bit-ds/docs storybook",
+    "storybook:build": "pnpm --filter @bit-ds/docs build",
     "logo:svg": "node scripts/build-logo-svg.mjs",
     "smoke": "node scripts/smoke-consumer.mjs",
-    "gallery": "pnpm build && pnpm --filter @bit/gallery dev",
-    "gallery:build": "pnpm build && pnpm --filter @bit/gallery build",
-    "e2e": "pnpm --filter @bit/gallery e2e"
+    "gallery": "pnpm build && pnpm --filter @bit-ds/gallery dev",
+    "dev": "pnpm gallery",
+    "gallery:build": "pnpm build && pnpm --filter @bit-ds/gallery build",
+    "e2e": "pnpm --filter @bit-ds/gallery e2e"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

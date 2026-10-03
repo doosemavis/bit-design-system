@@ -1,5 +1,5 @@
-// Bundles @bit/core's CSS into dist/styles.css and copies theme files into dist/themes/.
-// Consumers then import '@bit/react/styles.css' and '@bit/react/themes/power-up.css'.
+// Bundles @bit-ds/core's CSS into dist/styles.css and copies theme files into dist/themes/.
+// Consumers then import '@bit-ds/react/themes/power-up.css' and then '@bit-ds/react/styles.css'.
 import { build } from 'esbuild';
 import { cpSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';

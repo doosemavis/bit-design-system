@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { toClasses, element, withClassName } from './toClasses';
+import { toClasses, element, withClassName, dataValue } from './toClasses';
 import { COLORS, SIZES, VARIANTS } from './axes';
 
 const axes = (color?: string, variant?: string, size?: string) => [
@@ -66,5 +66,44 @@ describe('withClassName', () => {
   it('appends the caller className to a base class', () => {
     expect(withClassName('bit-card__header', 'extra')).toBe('bit-card__header extra');
     expect(withClassName('bit-card__header')).toBe('bit-card__header');
+  });
+});
+
+describe('dataValue', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+  });
+
+  it('returns an allowed value as a string', () => {
+    expect(dataValue('stack', { name: 'gap', allowed: [4, 8], value: 8 })).toBe('8');
+    expect(dataValue('badge', { name: 'shape', allowed: ['pill', 'square'], value: 'square' })).toBe('square');
+  });
+
+  it('returns undefined without warning when no value is given', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(dataValue('stack', { name: 'gap', allowed: [4, 8], value: undefined })).toBeUndefined();
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('drops an unknown value and warns in development, naming the allowed values', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(dataValue('stack', { name: 'gap', allowed: [4, 8], value: 3 })).toBeUndefined();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toContain('bit-stack received gap="3"');
+    expect(warn.mock.calls[0]?.[0]).toContain('4 | 8');
+  });
+
+  it('accepts a number-like string from an untyped caller: "8" matches 8 and does not warn', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(dataValue('stack', { name: 'gap', allowed: [4, 8], value: '8' })).toBe('8');
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('does not warn in production', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    dataValue('stack', { name: 'gap', allowed: [4, 8], value: 3 });
+    expect(warn).not.toHaveBeenCalled();
   });
 });

@@ -1,10 +1,10 @@
-import { Button, Stack, Text } from '@bit/react';
+import { Button, Stack, Text } from '@bit-ds/react';
 import { Link } from 'react-router-dom';
 
 export function NotFoundPage() {
   return (
-    <Stack gap={4}>
-      <Text as="h1" size="2xl">
+    <Stack gap={16}>
+      <Text as="h1" size={32}>
         Page not found
       </Text>
       <Text>That route does not exist. The sidebar lists every page.</Text>

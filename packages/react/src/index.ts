@@ -1,4 +1,4 @@
-export { PREFIX } from '@bit/core/tokens';
+export { PREFIX } from '@bit-ds/core/tokens';
 export { COLORS, SIZES, TEXT_SIZES, SPACE_STEPS, VARIANTS } from './system/axes';
 export type { Color, Size, TextSize, SpaceStep, Variant } from './system/axes';
 

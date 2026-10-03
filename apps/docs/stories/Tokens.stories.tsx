@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { SEMANTIC_TOKENS, COLORS } from '@bit/core/tokens';
+import { SEMANTIC_TOKENS, COLORS } from '@bit-ds/core/tokens';
 
 function Swatches() {
   const style = getComputedStyle(document.documentElement);
@@ -10,7 +10,7 @@ function Swatches() {
           key={color}
           style={{
             border: 'var(--bit-border-width) solid var(--bit-color-ink)',
-            borderRadius: 'var(--bit-radius-md)',
+            borderRadius: 'var(--bit-radius-10px)',
             boxShadow: 'var(--bit-shadow-md)',
             overflow: 'hidden',
             background: 'var(--bit-color-surface)',

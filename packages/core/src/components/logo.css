@@ -12,9 +12,9 @@
   color: var(--bit-color-ink);
 }
 
-.bit-logo.bit-sm { font-size: var(--bit-text-2xl); }
-.bit-logo.bit-md { font-size: calc(var(--bit-text-2xl) * 1.5); }
-.bit-logo.bit-lg { font-size: calc(var(--bit-text-2xl) * 2.25); }
+.bit-logo.bit-sm { font-size: var(--bit-text-32px); }
+.bit-logo.bit-md { font-size: calc(var(--bit-text-32px) * 1.5); }
+.bit-logo.bit-lg { font-size: calc(var(--bit-text-32px) * 2.25); }
 
 .bit-logo__slot {
   display: inline-grid;
@@ -48,9 +48,9 @@
   font-size: 0.72em;
   background: linear-gradient(
     180deg,
-    var(--bit-color-primary-soft) 0 34%,
-    var(--bit-color-primary) 34% 67%,
-    var(--bit-color-warning) 67% 100%
+    var(--bit-logo-coin-light) 0 34%,
+    var(--bit-logo-coin) 34% 67%,
+    var(--bit-logo-coin-deep) 67% 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -74,14 +74,14 @@
 .bit-logo__era[data-era="64"] {
   font-family: var(--bit-font-display);
   font-size: 1.04em;
-  color: var(--bit-color-primary);
+  color: var(--bit-logo-coin);
   -webkit-text-stroke: 1.5px var(--bit-color-ink);
   paint-order: stroke fill;
   text-shadow:
-    1px 1px 0 var(--bit-color-primary-hover),
-    2px 2px 0 var(--bit-color-primary-hover),
-    3px 3px 0 var(--bit-color-primary-hover),
-    4px 4px 0 var(--bit-color-primary-hover),
+    1px 1px 0 var(--bit-logo-coin-shade),
+    2px 2px 0 var(--bit-logo-coin-shade),
+    3px 3px 0 var(--bit-logo-coin-shade),
+    4px 4px 0 var(--bit-logo-coin-shade),
     5px 5px 0 var(--bit-color-ink),
     6px 6px 0 var(--bit-color-ink);
 }

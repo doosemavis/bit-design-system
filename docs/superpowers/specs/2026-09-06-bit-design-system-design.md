@@ -220,14 +220,14 @@ Open item: the coin icon / iconography treatment is not decided and may change.
 ```
 bit-design-system/
 ├── packages/
-│   ├── core/                     @bit/core   framework-agnostic, zero deps
+│   ├── core/                     @bit-ds/core   framework-agnostic, zero deps
 │   │   └── src/
 │   │       ├── themes/power-up.css
 │   │       ├── tokens.ts             semantic token name list (drives completeness test)
 │   │       ├── system/               reset.css, colors.css, sizes.css, motion.css
 │   │       ├── components/           button.css, card.css, … one per component
 │   │       └── index.css             imports system + every component file
-│   └── react/                    @bit/react  inlines core at build (core is a devDependency), depends on Radix; React is a peer dep
+│   └── react/                    @bit-ds/react  inlines core at build (core is a devDependency), depends on Radix; React is a peer dep
 │       └── src/
 │           ├── system/               axes.ts (unions), toClasses(), warnUnknown()
 │           ├── components/           Button/Button.tsx, Button.test.tsx, Button.stories.tsx
@@ -241,7 +241,7 @@ bit-design-system/
 
 **Tooling:** pnpm workspaces, TypeScript strict, tsup (ESM + CJS + d.ts), Vitest + React Testing Library + vitest-axe, ESLint, Storybook 9. No Turborepo or Nx.
 
-**Package contract for `@bit/react`:**
+**Package contract for `@bit-ds/react`:**
 
 - `exports`: `.`, `./styles.css` (core index), `./themes/*.css`
 - `sideEffects: ["*.css"]`
@@ -251,9 +251,9 @@ bit-design-system/
 Consumer experience, the whole thing:
 
 ```tsx
-import '@bit/react/styles.css';
-import '@bit/react/themes/power-up.css';
-import { Button } from '@bit/react';
+import '@bit-ds/react/styles.css';
+import '@bit-ds/react/themes/power-up.css';
+import { Button } from '@bit-ds/react';
 ```
 
 ## 7. The BitLogo

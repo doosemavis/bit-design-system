@@ -1,4 +1,5 @@
-/* Stack: flex layout driven by data attributes (layout is not a design axis, so no decorator classes). */
+/* Stack: flex layout driven by data attributes (layout is not a design axis, so no decorator classes).
+   gap is a px value on the space scale; each value reads the token with the same number. */
 .bit-stack {
   display: flex;
 }
@@ -7,14 +8,14 @@
 .bit-stack[data-direction="row"] { flex-direction: row; }
 .bit-stack[data-wrap] { flex-wrap: wrap; }
 
-.bit-stack[data-gap="1"] { gap: var(--bit-space-1); }
-.bit-stack[data-gap="2"] { gap: var(--bit-space-2); }
-.bit-stack[data-gap="3"] { gap: var(--bit-space-3); }
-.bit-stack[data-gap="4"] { gap: var(--bit-space-4); }
-.bit-stack[data-gap="5"] { gap: var(--bit-space-5); }
-.bit-stack[data-gap="6"] { gap: var(--bit-space-6); }
-.bit-stack[data-gap="7"] { gap: var(--bit-space-7); }
-.bit-stack[data-gap="8"] { gap: var(--bit-space-8); }
+.bit-stack[data-gap="4"] { gap: var(--bit-space-4px); }
+.bit-stack[data-gap="8"] { gap: var(--bit-space-8px); }
+.bit-stack[data-gap="12"] { gap: var(--bit-space-12px); }
+.bit-stack[data-gap="16"] { gap: var(--bit-space-16px); }
+.bit-stack[data-gap="24"] { gap: var(--bit-space-24px); }
+.bit-stack[data-gap="32"] { gap: var(--bit-space-32px); }
+.bit-stack[data-gap="48"] { gap: var(--bit-space-48px); }
+.bit-stack[data-gap="64"] { gap: var(--bit-space-64px); }
 
 .bit-stack[data-align="start"] { align-items: flex-start; }
 .bit-stack[data-align="center"] { align-items: center; }

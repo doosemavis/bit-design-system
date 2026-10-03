@@ -5,17 +5,40 @@
   box-sizing: border-box;
 }
 
+:root {
+  caret-color: var(--bit-color-primary);
+  scrollbar-color: var(--bit-color-ink) var(--bit-color-neutral-soft);
+}
+
+/* scrollbar-width does not inherit, so every scroll container needs it. */
+* {
+  scrollbar-width: thin;
+}
+
+::selection {
+  background: var(--bit-color-selection);
+  color: var(--bit-color-ink);
+}
+
 body {
   margin: 0;
   font-family: var(--bit-font-body);
-  font-size: var(--bit-text-md);
+  font-size: var(--bit-text-15px);
   font-weight: var(--bit-weight-normal);
   line-height: var(--bit-leading-normal);
   color: var(--bit-color-text);
   background: var(--bit-color-bg);
 }
 
+/* Focus (D9): an ink outline on everything, which no component sets or overrides. Interactive
+   components add a yellow band inside it through --_bit-focus-band (see button.css). */
 :focus-visible {
-  outline: 3px solid var(--bit-color-focus);
-  outline-offset: 2px;
+  outline: 3px solid var(--bit-color-ink);
+  outline-offset: 3px;
+}
+
+/* Programmatic focus targets (a page heading or section focused after navigation, the main
+   landmark) show no ring. Widgets that use tabindex="-1" for roving focus keep theirs. */
+:is(h1, h2, h3, h4, h5, h6, main, section)[tabindex="-1"]:focus {
+  outline: none;
 }

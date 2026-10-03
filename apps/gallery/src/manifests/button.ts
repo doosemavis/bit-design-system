@@ -1,10 +1,10 @@
-import { Button, COLORS, SIZES, VARIANTS } from '@bit/react';
+import { Button, COLORS, SIZES, VARIANTS } from '@bit-ds/react';
 import type { Manifest } from './types';
 
 export const button: Manifest = {
   name: 'Button',
   slug: 'button',
-  group: 'Components',
+  group: 'components',
   component: Button,
   description: 'The primary action. Three axes, two booleans, and asChild for links.',
   controls: [

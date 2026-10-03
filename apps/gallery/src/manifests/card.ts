@@ -1,10 +1,10 @@
-import { Card } from '@bit/react';
+import { Card } from '@bit-ds/react';
 import type { Manifest } from './types';
 
 export const card: Manifest = {
   name: 'Card',
   slug: 'card',
-  group: 'Components',
+  group: 'components',
   component: Card,
   description: 'A surface with header, body, and footer parts. The parts are their own exports.',
   controls: [{ kind: 'axis', prop: 'variant', values: ['solid', 'outline'], default: 'solid' }],

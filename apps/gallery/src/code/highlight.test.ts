@@ -24,10 +24,10 @@ describe('highlight', () => {
   });
 
   it('handles HTML class attributes, self-closing tags, braces, and import lines', () => {
-    const code = `import { Button } from '@bit/react';\n\n<span class="bit-badge bit-md" data-x="" />\n<BitLogo interval={8} />`;
+    const code = `import { Button } from '@bit-ds/react';\n\n<span class="bit-badge bit-md" data-x="" />\n<BitLogo interval={8} />`;
     const tokens = highlight(code);
     expect(tokens.map((t) => t.text).join('')).toBe(code);
-    expect(tokens.some((t) => t.kind === 'string' && t.text === `'@bit/react'`)).toBe(true);
+    expect(tokens.some((t) => t.kind === 'string' && t.text === `'@bit-ds/react'`)).toBe(true);
     expect(tokens.some((t) => t.kind === 'attr' && t.text === 'data-x')).toBe(true);
     expect(tokens.some((t) => t.kind === 'punct' && t.text === '/>')).toBe(true);
     expect(tokens.some((t) => t.kind === 'punct' && t.text === '{')).toBe(true);

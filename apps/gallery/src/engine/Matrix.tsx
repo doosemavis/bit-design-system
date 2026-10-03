@@ -1,4 +1,4 @@
-import { Text } from '@bit/react';
+import { Text } from '@bit-ds/react';
 import type { AxisControl, ControlState, Manifest } from '../manifests/types';
 import { renderManifest } from './renderManifest';
 
@@ -29,7 +29,7 @@ export function Matrix({ manifest, state }: MatrixProps) {
   const cols = axes.cols?.values ?? [''];
   return (
     <section className="gallery-matrix" aria-labelledby="matrix-heading">
-      <Text as="h2" size="lg" id="matrix-heading">
+      <Text as="h2" size={18} id="matrix-heading">
         Matrix
       </Text>
       <div className="gallery-matrix__scroll">
