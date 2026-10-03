@@ -46,11 +46,13 @@ export const stack: Manifest = {
       {
         name: 'align',
         type: "'stretch' | 'start' | 'center' | 'end'",
+        default: "'stretch'",
         description: 'Cross-axis alignment: left to right in a column, top to bottom in a row. Unset, children stretch.',
       },
       {
         name: 'justify',
         type: "'start' | 'center' | 'end' | 'between'",
+        default: "'start'",
         description: 'Main-axis alignment. between pushes the first and last children to the ends.',
       },
       { name: 'wrap', type: 'boolean', default: 'false', description: 'Lets a row wrap onto more lines when it runs out of room.' },

@@ -10,7 +10,7 @@ export const alert: Manifest = {
   controls: [
     { kind: 'axis', prop: 'color', values: COLORS, default: 'neutral' },
     { kind: 'axis', prop: 'variant', values: ['solid', 'outline'], default: 'outline' },
-    { kind: 'text', prop: 'title', default: 'Heads up' },
+    { kind: 'text', prop: 'title', default: 'Heads up', alwaysPrint: true },
   ],
   children: 'Your changes were saved.',
   presets: [

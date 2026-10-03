@@ -48,14 +48,14 @@ export const box: Manifest = {
         type: '0 | 4 | 8 | 12 | 16 | 24 | 32 | 48 | 64',
         description: 'All four sides. The same scale goes for paddingTop, paddingRight, paddingBottom and paddingLeft.',
       },
-      { name: 'paddingX', type: '0 | 4 | … | 64', description: 'Left and right. Beats padding.' },
-      { name: 'paddingY', type: '0 | 4 | … | 64', description: 'Top and bottom. Beats padding; a single side beats it.' },
+      { name: 'paddingX', type: '0 | 4 | 8 | 12 | 16 | 24 | 32 | 48 | 64', description: 'Left and right. Beats padding.' },
+      { name: 'paddingY', type: '0 | 4 | 8 | 12 | 16 | 24 | 32 | 48 | 64', description: 'Top and bottom. Beats padding; a single side beats it.' },
       {
         name: 'margin',
-        type: '0 | 4 | … | 64',
+        type: '0 | 4 | 8 | 12 | 16 | 24 | 32 | 48 | 64',
         description: 'All four sides, outside the border. marginX, marginY and the four sides work like padding.',
       },
-      { name: 'marginTop', type: '0 | 4 | … | 64', description: 'Space above. Beats marginY and margin.' },
+      { name: 'marginTop', type: '0 | 4 | 8 | 12 | 16 | 24 | 32 | 48 | 64', description: 'Space above. Beats marginY and margin.' },
       {
         name: 'as',
         type: "'div' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'main' | 'nav' | 'span'",

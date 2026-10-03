@@ -74,7 +74,7 @@ export const button: Manifest = {
     ],
     a11y: [
       'Renders a native <button type="button">, so Enter and Space press it and it never submits a form by surprise.',
-      'loading sets aria-busy="true" and native disabled, so the button leaves the Tab order. The label stays, so screen readers still announce the action.',
+      'loading sets aria-busy. On a native button it also sets disabled, which takes the button out of the Tab order. With asChild it sets aria-disabled instead, and the link stays in the Tab order. The label stays, so screen readers still announce the action.',
       "The focus ring comes from reset.css, bit's base stylesheet, and nothing removes it.",
       'A Button with only an icon needs an aria-label.',
     ],

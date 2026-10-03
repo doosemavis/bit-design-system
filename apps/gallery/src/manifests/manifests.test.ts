@@ -10,7 +10,8 @@ import { box } from './box';
 import { button } from './button';
 import { codeBlock } from './codeBlock';
 import { toJsx } from '../code/toJsx';
-import type { ChildSpec, ControlState } from './types';
+import { isOmittedSentinel } from './sentinels';
+import type { ChildSpec, Control, ControlState, Manifest } from './types';
 
 /** ChildSpec names, nested parts included, that are neither a registered component nor an allowed HTML element. */
 function unknownChildren(children: readonly ChildSpec[]): string[] {
@@ -33,6 +34,62 @@ const COMPONENT_EXPORTS = Object.keys(lib)
 
 /** Compound parts are documented on their parent's page, not their own. */
 const PARTS = MANIFESTS.flatMap((m) => m.parts ?? []);
+
+/** Strips one pair of surrounding quotes, so docs written as code (`'primary'`) compare with control values (`primary`). */
+function unquote(code: string): string {
+  return /^(['"]).*\1$/.test(code) ? code.slice(1, -1) : code;
+}
+
+/**
+ * The control default that claims to be the component's own default, or undefined when it claims nothing.
+ *
+ * The printed code leaves a prop off at its control default (toJsx), so that default had better be what
+ * the component does without the prop. That holds for booleans, numbers and axes, for selects that are
+ * not alwaysPrint and do not default to a "leave it off" sentinel, and for text that is not alwaysPrint,
+ * not a required aria-* label and not empty. Every other control default is sample content the code
+ * always prints (Heading's level, Field's label) or "leave it off", and says nothing about the component.
+ */
+function claimedDefault(c: Control): string | undefined {
+  switch (c.kind) {
+    case 'select':
+      return c.alwaysPrint || isOmittedSentinel(c, c.default) ? undefined : c.default;
+    case 'text':
+      return c.alwaysPrint || c.prop.includes('-') || c.default === '' ? undefined : c.default;
+    default:
+      return String(c.default);
+  }
+}
+
+/**
+ * Each control whose default disagrees with its prop row's default, as "Manifest.prop: ...". Docs write
+ * defaults as code (`'primary'`, `16`, `false`): one pair of surrounding quotes is stripped, then the two
+ * compare as strings. A row with no default fails when the control claims one.
+ */
+function defaultMismatches(m: Manifest): string[] {
+  return m.controls.flatMap((c) => {
+    const row = m.docs.props.find((p) => p.name === c.prop);
+    const claimed = claimedDefault(c);
+    if (row === undefined || claimed === undefined) return [];
+    const documented = row.default === undefined ? undefined : unquote(row.default);
+    return documented === claimed ? [] : [`${m.name}.${c.prop}: docs default ${row.default ?? '(none)'}, control default ${claimed}`];
+  });
+}
+
+/**
+ * Each axis or select value missing from its prop row's type union, as "Manifest.prop: ...". The union is
+ * split on |, and each part trimmed and unquoted. Sentinels (none, default) leave the prop off, so they
+ * are not prop values and are skipped.
+ */
+function valueMismatches(m: Manifest): string[] {
+  return m.controls.flatMap((c) => {
+    const row = m.docs.props.find((p) => p.name === c.prop);
+    if (row === undefined || (c.kind !== 'axis' && c.kind !== 'select')) return [];
+    const union = row.type.split('|').map((part) => unquote(part.trim()));
+    return c.values
+      .filter((v) => !isOmittedSentinel(c, v) && !union.includes(v))
+      .map((v) => `${m.name}.${c.prop}: ${v} is offered but not in the type ${row.type}`);
+  });
+}
 
 describe('manifest contract', () => {
   it('every component export has a manifest or is a documented part', () => {
@@ -181,6 +238,34 @@ describe('manifest contract', () => {
     for (const row of m.docs.props) {
       expect(row.className, row.name).toBe(axes.has(row.name) ? `bit-{${row.name}}` : undefined);
     }
+  });
+
+  it.each(MANIFESTS.map((m) => [m.name, m] as const))('%s documents the same default its controls start at', (_name, m) => {
+    expect(defaultMismatches(m)).toEqual([]);
+  });
+
+  it.each(MANIFESTS.map((m) => [m.name, m] as const))('%s documents every value its axis and select controls offer', (_name, m) => {
+    expect(valueMismatches(m)).toEqual([]);
+  });
+
+  it('the default and value checks name the manifest and the prop, and catch a wrong default, a missing one and a missing value', () => {
+    const docs = {
+      ...button.docs,
+      props: [
+        { name: 'color', type: "'primary' | 'neutral'", default: "'neutral'", description: 'x' },
+        { name: 'size', type: "'sm' | 'md' | 'lg'", description: 'x' },
+      ],
+    };
+    const broken: Manifest = { ...button, docs };
+    expect(defaultMismatches(broken)).toEqual([
+      "Button.color: docs default 'neutral', control default primary",
+      'Button.size: docs default (none), control default md',
+    ]);
+    expect(valueMismatches(broken)).toEqual([
+      "Button.color: success is offered but not in the type 'primary' | 'neutral'",
+      "Button.color: warning is offered but not in the type 'primary' | 'neutral'",
+      "Button.color: danger is offered but not in the type 'primary' | 'neutral'",
+    ]);
   });
 
   it('only manifests with a children text control carry an empty-children error', () => {
