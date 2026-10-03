@@ -111,7 +111,7 @@ Error handling:
 - **Gallery tests** that used the logo's `interval`, `animated` or `freeze` as fixtures switch to the new `era` control, or to a synthetic manifest where a test needs a number or boolean control.
 - **Storybook:** stories show each era pinned and each size. It only has to keep building, because PR3 removes it.
 - **`assets/bit-logo.svg`** (README) becomes a **static 64-bit stacked mark**. An image can't rotate per page load, and a timed animation would contradict decision 4.
-  - `scripts/build-logo-svg.mjs` embeds only Lilita One (the word) and Press Start 2P (the caption).
+  - `scripts/build-logo-svg.mjs` embeds only Lilita One (the word) and Press Start 2P (the caption). (Superseded by Amendment 3: the word is now Audiowide.)
   - The `@fontsource/bungee` dev dependency is removed.
 - **`verify-dist.mjs`:** the `@keyframes bit-power-up` needle becomes `.bit-logo__caption`.
 - **README:** no text change. The BitLogo props are documented by the gallery.
