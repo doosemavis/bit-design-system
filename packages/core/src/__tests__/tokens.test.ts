@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SEMANTIC_TOKENS, COLORS, SIZES, SPACE_STEPS, TEXT_SIZES, CODE_KINDS } from '../tokens';
+import { SEMANTIC_TOKENS, MODE_TOKENS, COLORS, SIZES, SPACE_STEPS, TEXT_SIZES, CODE_KINDS } from '../tokens';
 
 describe('semantic token list', () => {
   it('has the five colors, three control sizes, six px text sizes, eight px space steps', () => {
@@ -9,9 +9,9 @@ describe('semantic token list', () => {
     expect(SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('contains exactly 87 unique names, all prefixed --bit-', () => {
-    expect(SEMANTIC_TOKENS).toHaveLength(87);
-    expect(new Set(SEMANTIC_TOKENS).size).toBe(87);
+  it('contains exactly 92 unique names, all prefixed --bit-', () => {
+    expect(SEMANTIC_TOKENS).toHaveLength(92);
+    expect(new Set(SEMANTIC_TOKENS).size).toBe(92);
     for (const name of SEMANTIC_TOKENS) expect(name).toMatch(/^--bit-[a-z0-9-]+$/);
   });
 
@@ -48,6 +48,15 @@ describe('semantic token list', () => {
       '--bit-logo-coin', '--bit-logo-coin-light', '--bit-logo-coin-shade', '--bit-logo-coin-deep', '--bit-logo-violet',
     ];
     for (const name of expected) expect(SEMANTIC_TOKENS).toContain(name);
+  });
+
+  it('includes the five PR2 color roles; four of them change with the mode, the knob is shared', () => {
+    const pr2 = ['--bit-color-accent', '--bit-color-link', '--bit-color-link-visited', '--bit-color-danger-text', '--bit-color-knob'];
+    for (const name of pr2) expect(SEMANTIC_TOKENS).toContain(name);
+    expect(MODE_TOKENS).toHaveLength(22);
+    expect(new Set(MODE_TOKENS).size).toBe(22);
+    for (const name of pr2.slice(0, 4)) expect(MODE_TOKENS).toContain(name);
+    expect(MODE_TOKENS).not.toContain('--bit-color-knob');
   });
 
   it('has no --bit-color-focus (the focus ring has its own tokens)', () => {
