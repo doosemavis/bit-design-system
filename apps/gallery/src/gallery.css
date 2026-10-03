@@ -140,27 +140,6 @@ html {
   outline: none;
 }
 
-/* Ink-night code panel (both modes). PR2's CodeBlock replaces this and adds syntax colors. */
-.gallery-pre {
-  margin: 0;
-  padding: var(--bit-space-12px);
-  overflow-x: auto;
-  font-family: var(--bit-font-mono);
-  /* JetBrains Mono ships 400 and 700; the page's 600 would snap to bold. */
-  font-weight: 400;
-  font-size: var(--bit-text-13px);
-  line-height: var(--bit-leading-normal);
-  font-variant-ligatures: none;
-  background: var(--bit-code-bg);
-  color: var(--bit-code-text);
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-10px);
-}
-
-.gallery-pre code {
-  font: inherit;
-}
-
 .gallery-table {
   border-collapse: collapse;
   width: 100%;
@@ -228,7 +207,7 @@ html {
 }
 
 .gallery-control__label {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--bit-font-mono);
   font-size: var(--bit-text-13px);
   color: var(--bit-color-text-muted);
 }
@@ -325,7 +304,7 @@ html {
 }
 
 .gallery-matrix__table th {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--bit-font-mono);
   font-size: var(--bit-text-13px);
   font-weight: var(--bit-weight-normal);
   color: var(--bit-color-text-muted);

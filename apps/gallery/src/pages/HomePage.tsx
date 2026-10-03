@@ -1,4 +1,4 @@
-import { BitLogo, Card, CardBody, CardHeader, Stack, Text } from '@bit-ds/react';
+import { BitLogo, Card, CardBody, CardHeader, CodeBlock, Stack, Text } from '@bit-ds/react';
 
 const INSTALL = `pnpm add @bit-ds/react
 import '@bit-ds/react/themes/power-up.css';
@@ -26,7 +26,7 @@ export function HomePage() {
       <Card>
         <CardHeader>Install</CardHeader>
         <CardBody>
-          <pre className="gallery-pre">{INSTALL}</pre>
+          <CodeBlock code={INSTALL} language="shell" />
         </CardBody>
       </Card>
 
@@ -63,8 +63,8 @@ export function HomePage() {
         <CardHeader>Two ways to use every static component</CardHeader>
         <CardBody>
           <Stack gap={8}>
-            <pre className="gallery-pre">{REACT_WAY}</pre>
-            <pre className="gallery-pre">{HTML_WAY}</pre>
+            <CodeBlock code={REACT_WAY} language="jsx" />
+            <CodeBlock code={HTML_WAY} language="html" />
             <Text color="neutral">Both render identically.</Text>
           </Stack>
         </CardBody>
