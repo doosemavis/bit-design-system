@@ -29,8 +29,11 @@ interface VariantsTableProps {
 export function VariantsTable({ manifest, axes, state }: VariantsTableProps) {
   const { row, column } = axes;
   const cell = (rowValue: string | undefined, columnValue: string) => {
-    const cellState: ControlState = { ...state, [column.prop]: columnValue };
-    if (row && rowValue !== undefined) cellState[row.prop] = rowValue;
+    const cellState: ControlState = {
+      ...state,
+      [column.prop]: columnValue,
+      ...(row && rowValue !== undefined ? { [row.prop]: rowValue } : {}),
+    };
     return <TableCell key={columnValue}>{renderManifest(manifest, cellState)}</TableCell>;
   };
   return (

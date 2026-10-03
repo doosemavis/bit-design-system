@@ -51,13 +51,15 @@ export const PROP_COLUMNS: readonly PropColumn[] = [
 
 /**
  * The example the tip under the Props table uses: the color axis if there is one, otherwise the first axis,
- * at `danger` for color (when the axis offers it), otherwise at the axis's last value. Null without an axis.
+ * at `danger` for color (when the axis offers it), otherwise at the axis's last value that is not its
+ * default (a default prints nothing, so it would teach nothing). Null without an axis.
  */
 export function classTip(manifest: Manifest): { prop: string; value: string } | null {
   const axes = manifest.controls.filter((control): control is AxisControl => control.kind === 'axis');
   const axis = axes.find((control) => control.prop === 'color') ?? axes[0];
   if (!axis) return null;
-  const value = axis.prop === 'color' && axis.values.includes('danger') ? 'danger' : axis.values[axis.values.length - 1]!;
+  const changed = axis.values.filter((v) => v !== axis.default);
+  const value = axis.prop === 'color' && axis.values.includes('danger') ? 'danger' : changed[changed.length - 1]!;
   return { prop: axis.prop, value };
 }
 

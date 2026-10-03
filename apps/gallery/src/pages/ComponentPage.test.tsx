@@ -3,8 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect } from 'vitest';
 import { renderAt } from '../test/renderRoute';
 import { button } from '../manifests/button';
+import { modeToggle } from '../manifests/modeToggle';
+import { switchManifest } from '../manifests/switch';
 import { importChip } from './component/ComponentHeader';
-import { PROP_COLUMNS } from './component/DocsSections';
+import { classTip, PROP_COLUMNS } from './component/DocsSections';
 
 async function open(path: string, name: string) {
   const utils = renderAt(path);
@@ -95,10 +97,17 @@ describe('ComponentPage (layout C)', () => {
     ['/components/button', 'Button', 'className="bit-danger"', 'color="danger"'],
     ['/components/card', 'Card', 'className="bit-outline"', 'variant="outline"'],
     ['/components/link', 'Link', 'className="bit-neutral"', 'color="neutral"'],
+    ['/components/switch', 'Switch', 'className="bit-sm"', 'size="sm"'],
   ])('%s: the tip under Props says className works the same as the prop', async (path, name, asClass, asProp) => {
     await open(path, name);
     const tip = screen.getByText(/^Prefer classes\?/);
     expect(tip).toHaveTextContent(`Prefer classes? ${asClass} works the same as ${asProp}.`);
+  });
+
+  it("the tip never teaches an axis's default: Switch and ModeToggle (sm | md, default md) use sm", () => {
+    expect(classTip(switchManifest)).toEqual({ prop: 'size', value: 'sm' });
+    expect(classTip(modeToggle)).toEqual({ prop: 'size', value: 'sm' });
+    expect(classTip(button)).toEqual({ prop: 'color', value: 'danger' });
   });
 
   it('no axis, no tip', async () => {
@@ -133,10 +142,17 @@ describe('ComponentPage (layout C)', () => {
     expect(screen.getByLabelText('children')).toHaveAccessibleDescription(button.docs.emptyChildrenError!);
   });
 
-  it('the code footer switches to HTML for a static component, and has no format switch for an interactive one', async () => {
+  it('the code footer switches to HTML for a static component', async () => {
     await open('/components/badge', 'Badge');
     await userEvent.click(screen.getByRole('radio', { name: 'HTML' }));
     expect(region('Example code').textContent).toBe('<span class="bit-badge bit-neutral bit-solid bit-md" data-shape="pill">New</span>');
+  });
+
+  it('an interactive component with no axis (CodeBlock) has no format switch, only Props and Full file', async () => {
+    await open('/components/codeblock', 'CodeBlock');
+    expect(screen.queryByRole('group', { name: 'Code format' })).toBeNull();
+    expect(screen.queryByRole('radio', { name: 'HTML' })).toBeNull();
+    expect(screen.getByRole('switch', { name: 'Full file' })).toBeInTheDocument();
   });
 
   it('the logo page lives under Brand', async () => {

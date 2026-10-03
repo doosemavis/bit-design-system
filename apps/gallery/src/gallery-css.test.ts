@@ -80,4 +80,10 @@ describe('gallery.css', () => {
     expect(presets).toContain('min-width: 0;');
     expect(presets).not.toContain('flex-wrap');
   });
+
+  it("the presets' scroll box leaves room for the focus ring and the active shadow, without shifting the bar", () => {
+    const presets = /\.gallery-presets \{([^}]*)\}/.exec(galleryCss)![1]!;
+    expect(presets).toContain('padding: var(--bit-space-4px);');
+    expect(presets).toContain('margin: calc(-1 * var(--bit-space-4px));');
+  });
 });

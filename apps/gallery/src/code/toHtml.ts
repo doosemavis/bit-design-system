@@ -45,7 +45,19 @@ export function prettyHtml(html: string): string {
   return lines.join('\n');
 }
 
+/** A React `useId` name, such as `_R_0_`. */
+const REACT_ID = /_R_\w*_/g;
+
+/**
+ * React's generated ids (`_R_0_`) as `example-1`, `example-2`, … in order of first use. The same id always
+ * gets the same name, so a label's `for` still matches its input's `id` and radios keep one `name`.
+ */
+export function readableIds(html: string): string {
+  const ids = [...new Set(html.match(REACT_ID) ?? [])];
+  return html.replace(REACT_ID, (id) => `example-${ids.indexOf(id) + 1}`);
+}
+
 /** The markup the preview's element renders, so the HTML tab can never drift from what you see. */
 export function toHtml(element: ReactElement): string {
-  return prettyHtml(renderToStaticMarkup(element));
+  return prettyHtml(readableIds(renderToStaticMarkup(element)));
 }
