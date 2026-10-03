@@ -1,15 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { BitLogo, ERAS } from './BitLogo';
+import { BitLogo } from './BitLogo';
+import { ERAS } from './logoEra';
 import { SIZES } from '../system/axes';
 
 const meta = {
   title: 'Brand/BitLogo',
   component: BitLogo,
-  args: { size: 'md', interval: 5, animated: true },
+  args: { size: 'md' },
   argTypes: {
     size: { control: 'select', options: SIZES },
-    freeze: { control: 'select', options: [undefined, ...ERAS] },
-    interval: { control: { type: 'number', min: 0.5, step: 0.5 } },
+    era: { control: 'select', options: [undefined, ...ERAS] },
   },
 } satisfies Meta<typeof BitLogo>;
 
@@ -19,11 +19,11 @@ type Story = StoryObj<typeof meta>;
 export const Playground: Story = {};
 
 export const Eras: Story = {
-  name: 'The four eras (frozen)',
+  name: 'The four eras (pinned)',
   render: (args) => (
-    <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap', alignItems: 'baseline' }}>
+    <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap', alignItems: 'flex-start' }}>
       {ERAS.map((era) => (
-        <BitLogo key={era} {...args} freeze={era} />
+        <BitLogo key={era} {...args} era={era} />
       ))}
     </div>
   ),
@@ -33,7 +33,7 @@ export const Sizes: Story = {
   render: (args) => (
     <div style={{ display: 'grid', gap: 32 }}>
       {SIZES.map((size) => (
-        <BitLogo key={size} {...args} size={size} freeze={64} />
+        <BitLogo key={size} {...args} size={size} era={64} />
       ))}
     </div>
   ),
