@@ -3809,3 +3809,3382 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ---
 
+### Task 4: The layout-C ComponentPage (spec §3, Amendment 1 §1–2)
+
+**Files** (paths under `apps/gallery/src/`):
+- Create:
+  - `code/toHtml.ts`, `code/toHtml.test.tsx`, `code/fullFile.ts` and `code/fullFile.test.ts`
+  - `code/codeFormats.ts`, `code/CodePanel.tsx`, `code/CodePanel.test.tsx` and `code/toJsx.className.test.tsx`
+  - `engine/VariantsTable.tsx` and `engine/VariantsTable.test.tsx`
+  - `pages/component/ComponentHeader.tsx`, `pages/component/DocsSections.tsx`, `pages/component/Playground.tsx` and `pages/component/sections.ts`
+  - `pages/ComponentPage.test.tsx`
+- Modify:
+  - `code/toJsx.ts`
+  - `engine/Presets.tsx`, `engine/Preview.tsx` and `engine/ControlsPanel.tsx`, with their tests
+  - `pages/ComponentPage.tsx`
+  - `routes.test.tsx` and `routes.dark.test.tsx`
+  - `gallery.css` (the component-page section) and `gallery-css.test.ts`
+- Delete: `engine/Matrix.tsx` and `engine/Matrix.test.tsx`
+
+**Interfaces:**
+- **Consumes:**
+  - **From T2:** `PageHeader`, `PageSection`, `SectionBar`, `SectionLink`, `CopyButton`, `STYLE_IMPORTS`, and `useControlState` (`ControlStateApi`)
+  - **From T3c:** the required `Manifest.docs`, `Manifest.interactive` and `PropDoc.className`
+- **Produces:**
+  - **Code output:**
+    - `toJsx(manifest, state, options?: { decorators?: 'props' | 'className' })`
+    - `toHtml(element)` and `prettyHtml(html)`
+    - `fullFile(jsx)` and `STYLE_COMMENT`
+    - `CODE_FORMATS: readonly CodeFormat[]` and `codeFor(format, manifest, state, wholeFile)`
+  - **Page logic:**
+    - `variantAxes(manifest): { row?: AxisControl; column: AxisControl } | null`
+    - `isPresetActive(preset, state)`
+    - `PROP_COLUMNS`, `classTip(manifest)` and `importChip(manifest)`
+    - `SECTIONS` and `componentSections(manifest)`
+  - **Section ids:** `section-playground`, `section-variants`, `section-usage`, `section-props` and `section-accessibility`
+
+- [ ] **Step 1: Write the failing code tests**
+
+Create `apps/gallery/src/code/toHtml.test.tsx`:
+
+```tsx
+import { describe, it, expect } from 'vitest';
+import { prettyHtml, toHtml } from './toHtml';
+import { renderManifest } from '../engine/renderManifest';
+import { defaultState } from '../engine/state';
+import { button } from '../manifests/button';
+import { card } from '../manifests/card';
+import { input } from '../manifests/input';
+import { select } from '../manifests/select';
+
+describe('prettyHtml', () => {
+  it('puts one element per line with two-space indents and keeps text-only elements on one line', () => {
+    expect(prettyHtml('<div class="a"><span>hi</span><p>there</p></div>')).toBe(
+      '<div class="a">\n  <span>hi</span>\n  <p>there</p>\n</div>',
+    );
+  });
+
+  it('void and self-closed elements take one line and no closing tag', () => {
+    expect(prettyHtml('<label>Name<input type="text"/></label><br/>')).toBe('<label>Name\n  <input type="text"/>\n</label>\n<br/>');
+  });
+});
+
+describe('toHtml', () => {
+  it("prints the preview's element: Button's classes, type and label", () => {
+    expect(toHtml(renderManifest(button, { ...defaultState(button), color: 'danger' }))).toBe(
+      '<button class="bit-button bit-danger bit-solid bit-md" type="button">Save</button>',
+    );
+  });
+
+  it('prints compound parts nested and indented', () => {
+    expect(toHtml(renderManifest(card, defaultState(card)))).toBe(
+      [
+        '<div class="bit-card bit-solid">',
+        '  <div class="bit-card__header">Stats</div>',
+        '  <div class="bit-card__body">3 coins collected</div>',
+        '  <div class="bit-card__footer">Updated today</div>',
+        '</div>',
+      ].join('\n'),
+    );
+  });
+
+  it('prints plain HTML children (Select options) and void elements (Input)', () => {
+    expect(toHtml(renderManifest(select, defaultState(select)))).toContain('  <option value="success">success</option>');
+    expect(toHtml(renderManifest(input, defaultState(input)))).toMatch(/^<input class="bit-input bit-md"[^>]*\/>$/);
+  });
+
+  it('escapes markup typed into the children control', () => {
+    expect(toHtml(renderManifest(button, { ...defaultState(button), children: '<b>"hi"</b>' }))).toContain(
+      '>&lt;b&gt;&quot;hi&quot;&lt;/b&gt;</button>',
+    );
+  });
+});
+```
+
+Create `apps/gallery/src/code/fullFile.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import { fullFile, STYLE_COMMENT } from './fullFile';
+import { STYLE_IMPORTS } from '../content/styleImports';
+import { toJsx } from './toJsx';
+import { defaultState } from '../engine/state';
+import { card } from '../manifests/card';
+
+describe('fullFile', () => {
+  it('wraps a one-line element in the style imports, the component import and an Example component', () => {
+    expect(fullFile("import { Button } from '@bit-ds/react';\n\n<Button>Save</Button>")).toBe(
+      [
+        STYLE_COMMENT,
+        "import '@bit-ds/react/themes/power-up.css';",
+        "import '@bit-ds/react/styles.css';",
+        "import { Button } from '@bit-ds/react';",
+        '',
+        'export function Example() {',
+        '  return (',
+        '    <Button>Save</Button>',
+        '  );',
+        '}',
+        '',
+      ].join('\n'),
+    );
+  });
+
+  it('puts the theme first (its font @import must lead the CSS) and says the styles go in once', () => {
+    const file = fullFile(toJsx(card, defaultState(card)));
+    expect(file.startsWith(`// once per app: skip if already in your entry file\n${STYLE_IMPORTS}\n`)).toBe(true);
+  });
+
+  it('indents every line of a multi-line element inside return ( … )', () => {
+    const file = fullFile(toJsx(card, defaultState(card)));
+    expect(file).toContain('  return (\n    <Card>\n      <CardHeader>Stats</CardHeader>\n');
+    expect(file).toContain('      <CardFooter>Updated today</CardFooter>\n    </Card>\n  );\n}\n');
+  });
+});
+```
+
+Create `apps/gallery/src/code/toJsx.className.test.tsx`. Its round trip covers every non-default value of every axis on every manifest, 41 cases:
+
+```tsx
+import { createElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { render } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { toJsx } from './toJsx';
+import { defaultState } from '../engine/state';
+import { buildProps } from '../engine/buildProps';
+import { renderManifest } from '../engine/renderManifest';
+import { MANIFESTS } from '../manifests';
+import { button } from '../manifests/button';
+import { segmentedControl } from '../manifests/segmentedControl';
+import { stack } from '../manifests/stack';
+import type { AxisControl, ControlState, Manifest } from '../manifests/types';
+
+const AS_CLASSES = { decorators: 'className' } as const;
+
+describe("toJsx with { decorators: 'className' } (Amendment 1)", () => {
+  it('prints the changed axes as one className, in control order, and leaves their props out', () => {
+    expect(toJsx(button, { ...defaultState(button), color: 'danger', variant: 'outline' }, AS_CLASSES)).toBe(
+      "import { Button } from '@bit-ds/react';\n\n<Button className=\"bit-danger bit-outline\">Save</Button>",
+    );
+  });
+
+  it('with every axis at its default it prints no className, the same as Props mode', () => {
+    expect(toJsx(button, defaultState(button), AS_CLASSES)).toBe(toJsx(button, defaultState(button)));
+  });
+
+  it('keeps every other prop where Props mode prints it', () => {
+    expect(toJsx(button, { ...defaultState(button), size: 'lg', loading: true }, AS_CLASSES)).toContain(
+      '<Button className="bit-lg" loading>Save</Button>',
+    );
+    expect(toJsx(segmentedControl, { ...defaultState(segmentedControl), color: 'success' }, AS_CLASSES)).toContain(
+      '<SegmentedControl legend="Range" className="bit-success" options=',
+    );
+  });
+
+  it('a manifest with no axis prints exactly what Props mode does', () => {
+    const state = { ...defaultState(stack), gap: '24' };
+    expect(toJsx(stack, state, AS_CLASSES)).toBe(toJsx(stack, state));
+  });
+});
+
+/** The className the className-mode snippet prints, or undefined when it prints none. */
+const printedClassName = (manifest: Manifest, state: ControlState) => /className="([^"]*)"/.exec(toJsx(manifest, state, AS_CLASSES))?.[1];
+
+/** The element the className-mode snippet describes: the changed axis props swapped for its className. */
+function classNameElement(manifest: Manifest, state: ControlState): ReactElement {
+  const defaults = defaultState(manifest);
+  const changedAxis = (prop: string) => manifest.controls.some((c) => c.kind === 'axis' && c.prop === prop && state[prop] !== defaults[prop]);
+  const props = Object.fromEntries(Object.entries(buildProps(manifest, state)).filter(([prop]) => !changedAxis(prop)));
+  const { children } = renderManifest(manifest, state).props as { children?: ReactNode };
+  return createElement(manifest.component, { ...props, className: printedClassName(manifest, state) }, children);
+}
+
+const rootClasses = (element: ReactElement) => {
+  const { container, unmount } = render(element);
+  const classes = [...container.firstElementChild!.classList].sort();
+  unmount();
+  return classes;
+};
+
+const AXIS_CASES = MANIFESTS.flatMap((manifest) =>
+  manifest.controls
+    .filter((c): c is AxisControl => c.kind === 'axis')
+    .flatMap((axis) =>
+      axis.values.filter((v) => v !== axis.default).map((value) => [manifest.name, axis.prop, value, manifest] as const),
+    ),
+);
+
+describe('className mode round trip', () => {
+  it.each(AXIS_CASES)('%s %s="%s": the className snippet renders the same root classes as the props snippet', (_n, prop, value, manifest) => {
+    const state = { ...defaultState(manifest), [prop]: value };
+    expect(printedClassName(manifest, state)).toBe(`bit-${value}`);
+    expect(rootClasses(classNameElement(manifest, state))).toEqual(rootClasses(renderManifest(manifest, state)));
+  });
+});
+```
+
+Create `apps/gallery/src/code/CodePanel.test.tsx`:
+
+```tsx
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import { CodePanel } from './CodePanel';
+import { CODE_FORMATS } from './codeFormats';
+import { defaultState } from '../engine/state';
+import { button } from '../manifests/button';
+import { code as codeManifest } from '../manifests/code';
+import { modeToggle } from '../manifests/modeToggle';
+import { stack } from '../manifests/stack';
+import { codeBlock } from '../manifests/codeBlock';
+import { expectNoA11yViolations } from '../test/a11y';
+
+const shown = () => screen.getByRole('region', { name: 'Example code' }).textContent;
+const formatNames = () =>
+  within(screen.getByRole('group', { name: 'Code format' }))
+    .getAllByRole('radio')
+    .map((radio) => radio.closest('label')!.textContent);
+
+afterEach(() => {
+  Reflect.deleteProperty(navigator, 'clipboard');
+});
+
+describe('CodePanel', () => {
+  it('starts on Props: the toJsx snippet in a jsx CodeBlock named "Example code"', async () => {
+    const { container } = render(<CodePanel manifest={button} state={{ ...defaultState(button), color: 'danger' }} />);
+    expect(screen.getByRole('radio', { name: 'Props' })).toBeChecked();
+    expect(shown()).toBe("import { Button } from '@bit-ds/react';\n\n<Button color=\"danger\">Save</Button>");
+    expect(container.querySelector('.bit-code__block')).toHaveAttribute('data-language', 'jsx');
+    await expectNoA11yViolations(container);
+  });
+
+  it('className prints the changed axes as classes', async () => {
+    render(<CodePanel manifest={button} state={{ ...defaultState(button), color: 'danger', variant: 'outline' }} />);
+    await userEvent.click(screen.getByRole('radio', { name: 'className' }));
+    expect(shown()).toBe("import { Button } from '@bit-ds/react';\n\n<Button className=\"bit-danger bit-outline\">Save</Button>");
+  });
+
+  it('HTML shows the markup the preview renders, and hides the Full file switch', async () => {
+    const { container } = render(<CodePanel manifest={button} state={defaultState(button)} />);
+    await userEvent.click(screen.getByRole('radio', { name: 'HTML' }));
+    expect(shown()).toBe('<button class="bit-button bit-primary bit-solid bit-md" type="button">Save</button>');
+    expect(container.querySelector('.bit-code__block')).toHaveAttribute('data-language', 'html');
+    expect(screen.queryByRole('switch', { name: 'Full file' })).toBeNull();
+  });
+
+  it('Full file wraps Props and className code alike', async () => {
+    render(<CodePanel manifest={button} state={{ ...defaultState(button), color: 'danger' }} />);
+    await userEvent.click(screen.getByRole('switch', { name: 'Full file' }));
+    expect(shown()).toContain("// once per app: skip if already in your entry file\nimport '@bit-ds/react/themes/power-up.css';");
+    expect(shown()).toContain('export function Example() {\n  return (\n    <Button color="danger">Save</Button>\n  );\n}');
+    await userEvent.click(screen.getByRole('radio', { name: 'className' }));
+    expect(shown()).toContain('    <Button className="bit-danger">Save</Button>\n');
+  });
+
+  it('Copy copies whichever mode is showing', async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    render(<CodePanel manifest={button} state={{ ...defaultState(button), size: 'lg' }} />);
+    await userEvent.click(screen.getByRole('radio', { name: 'className' }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+    });
+    expect(writeText).toHaveBeenCalledWith("import { Button } from '@bit-ds/react';\n\n<Button className=\"bit-lg\">Save</Button>");
+  });
+
+  it.each([
+    ['Button (axes, static)', button, ['Props', 'className', 'HTML']],
+    ['ModeToggle (an axis, interactive)', modeToggle, ['Props', 'className']],
+    ['Code (no axis, static)', codeManifest, ['Props', 'HTML']],
+  ] as const)('%s offers %j', (_name, manifest, formats) => {
+    render(<CodePanel manifest={manifest} state={defaultState(manifest)} />);
+    expect(formatNames()).toEqual(formats);
+  });
+
+  it('CodeBlock has no axis and is interactive: only Props is left, so the switch is hidden', () => {
+    render(<CodePanel manifest={codeBlock} state={defaultState(codeBlock)} />);
+    expect(screen.queryByRole('group', { name: 'Code format' })).toBeNull();
+    expect(screen.getByRole('switch', { name: 'Full file' })).toBeInTheDocument();
+  });
+
+  it('Stack has no axis: no className option', () => {
+    render(<CodePanel manifest={stack} state={defaultState(stack)} />);
+    expect(formatNames()).toEqual(['Props', 'HTML']);
+  });
+
+  it('the switcher lists CODE_FORMATS in order, so a new format is one entry', () => {
+    render(<CodePanel manifest={button} state={defaultState(button)} />);
+    expect(screen.getAllByRole('radio').map((r) => r.getAttribute('value'))).toEqual(CODE_FORMATS.map((f) => f.id));
+  });
+});
+```
+
+- [ ] **Step 2: Run them and confirm they fail**
+
+Run: `pnpm build && pnpm --filter @bit-ds/gallery test -- src/code`
+Expected: FAIL.
+- `./toHtml`, `./fullFile`, `./CodePanel` and `./codeFormats` don't resolve.
+- In `toJsx.className.test.tsx`, toJsx ignores the third argument, so it prints `color="danger" variant="outline"` and the round trip finds no className.
+
+- [ ] **Step 3: Write `toHtml`, `fullFile`, the className option, the formats and the panel**
+
+Create `apps/gallery/src/code/toHtml.ts`:
+
+```ts
+import type { ReactElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+
+const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
+const INDENT = '  ';
+
+/**
+ * One element per line with two-space indents; an element holding only text stays on one line. React
+ * escapes `<`, `>` and quotes inside text and attributes, so splitting on tags is safe.
+ */
+export function prettyHtml(html: string): string {
+  const parts = html.match(/<[^>]+>|[^<]+/g) ?? [];
+  const lines: string[] = [];
+  let depth = 0;
+  let open: string | null = null; // an opening tag, held back to see whether only text follows
+
+  const flush = () => {
+    if (open === null) return;
+    lines.push(INDENT.repeat(depth) + open);
+    depth += 1;
+    open = null;
+  };
+
+  for (const part of parts) {
+    if (part.startsWith('</')) {
+      if (open !== null) {
+        lines.push(INDENT.repeat(depth) + open + part);
+        open = null;
+      } else {
+        depth = Math.max(0, depth - 1);
+        lines.push(INDENT.repeat(depth) + part);
+      }
+    } else if (part.startsWith('<')) {
+      flush();
+      const name = /^<([a-zA-Z][\w-]*)/.exec(part)?.[1]?.toLowerCase() ?? '';
+      if (VOID.has(name) || part.endsWith('/>')) lines.push(INDENT.repeat(depth) + part);
+      else open = part;
+    } else if (open !== null) {
+      open += part;
+    } else {
+      lines.push(INDENT.repeat(depth) + part);
+    }
+  }
+  flush();
+  return lines.join('\n');
+}
+
+/** The markup the preview's element renders, so the HTML tab can never drift from what you see. */
+export function toHtml(element: ReactElement): string {
+  return prettyHtml(renderToStaticMarkup(element));
+}
+```
+
+Create `apps/gallery/src/code/fullFile.ts`:
+
+```ts
+import { STYLE_IMPORTS } from '../content/styleImports';
+
+/** Above the style imports in the full file: they belong in the app's entry file, once. */
+export const STYLE_COMMENT = '// once per app: skip if already in your entry file';
+
+const BODY_INDENT = '    ';
+
+/**
+ * Wrap a toJsx snippet (import line, blank line, element) in a file you can paste and run: the style
+ * imports, the component import, and an `Example` component that returns the element. Gallery-private.
+ */
+export function fullFile(jsx: string): string {
+  const split = jsx.indexOf('\n\n');
+  const importLine = jsx.slice(0, split);
+  const element = jsx.slice(split + 2);
+  const body = element
+    .split('\n')
+    .map((line) => BODY_INDENT + line)
+    .join('\n');
+  return `${STYLE_COMMENT}\n${STYLE_IMPORTS}\n${importLine}\n\nexport function Example() {\n  return (\n${body}\n  );\n}\n`;
+}
+```
+
+In `apps/gallery/src/code/toJsx.ts`, add the option:
+
+```diff
+--- a/apps/gallery/src/code/toJsx.ts
++++ b/apps/gallery/src/code/toJsx.ts
+@@ -85,12 +85,40 @@ function importLine(manifest: Manifest): string {
+   return `import { ${unique.join(', ')} } from '@bit-ds/react';`;
+ }
+ 
++export interface ToJsxOptions {
++  /**
++   * `'props'` (the default) prints every axis as its prop: `color="danger"`. `'className'` prints the
++   * non-default axes as one `className="bit-danger bit-outline"`, in control order, where the first of
++   * them would have been, and leaves those props out. Both render the same classes.
++   */
++  decorators?: 'props' | 'className';
++}
++
++/** True when an axis control's value differs from its default, so it emits a class worth printing. */
++function axisChanged(control: Control, state: ControlState, defaults: ControlState): boolean {
++  return control.kind === 'axis' && (state[control.prop] ?? defaults[control.prop]) !== defaults[control.prop];
++}
++
++/** `className="bit-danger bit-outline"`: one class per changed axis, in control order. */
++function decoratorClassName(manifest: Manifest, state: ControlState, defaults: ControlState): string {
++  const classes = manifest.controls
++    .filter((control) => axisChanged(control, state, defaults))
++    .map((control) => `bit-${String(state[control.prop])}`);
++  return `className="${escapeAttr(classes.join(' '))}"`;
++}
++
+ /** The React snippet for the current state: import line, blank line, element. Pure. */
+-export function toJsx(manifest: Manifest, state: ControlState): string {
++export function toJsx(manifest: Manifest, state: ControlState, options: ToJsxOptions = {}): string {
+   const defaults = defaultState(manifest);
+   const fixed = Object.entries(manifest.fixedProps ?? {}).map(([name, value]) => printFixed(name, value));
++  const asClasses = options.decorators === 'className';
++  // In className mode the attribute takes the place of the first changed axis; -1 when none changed.
++  const classAt = asClasses ? manifest.controls.findIndex((control) => axisChanged(control, state, defaults)) : -1;
+   const props = manifest.controls
+-    .map((control) => printProp(control, state[control.prop] ?? defaults[control.prop]!, defaults[control.prop]!))
++    .map((control, index) => {
++      if (asClasses && control.kind === 'axis') return index === classAt ? decoratorClassName(manifest, state, defaults) : null;
++      return printProp(control, state[control.prop] ?? defaults[control.prop]!, defaults[control.prop]!);
++    })
+     .filter((p): p is string => p !== null)
+     .concat(fixed)
+     .map((p) => ` ${p}`)
+```
+
+Create `apps/gallery/src/code/codeFormats.ts`. A new code mode is one entry here.
+
+```ts
+import type { CodeLanguage } from '@bit-ds/react';
+import type { ControlState, Manifest } from '../manifests/types';
+import { renderManifest } from '../engine/renderManifest';
+import { toJsx } from './toJsx';
+import { toHtml } from './toHtml';
+import { fullFile } from './fullFile';
+
+/**
+ * One option in the Playground's code switcher. To add a mode, add an entry here: the SegmentedControl,
+ * the CodeBlock and the tests all read this list.
+ */
+export interface CodeFormat {
+  /** The SegmentedControl value. */
+  id: string;
+  /** The SegmentedControl label. */
+  label: string;
+  language: CodeLanguage;
+  /** False hides the option for this manifest. */
+  available: (manifest: Manifest) => boolean;
+  /** Whether the "Full file" Switch applies to this format. */
+  fullFile: boolean;
+  code: (manifest: Manifest, state: ControlState) => string;
+}
+
+/** Props, then className (only with an axis to write as a class), then HTML (only for static components). */
+export const CODE_FORMATS: readonly CodeFormat[] = [
+  {
+    id: 'props',
+    label: 'Props',
+    language: 'jsx',
+    available: () => true,
+    fullFile: true,
+    code: (manifest, state) => toJsx(manifest, state),
+  },
+  {
+    id: 'className',
+    label: 'className',
+    language: 'jsx',
+    available: (manifest) => manifest.controls.some((control) => control.kind === 'axis'),
+    fullFile: true,
+    code: (manifest, state) => toJsx(manifest, state, { decorators: 'className' }),
+  },
+  {
+    id: 'html',
+    label: 'HTML',
+    language: 'html',
+    // An interactive component's markup alone doesn't work.
+    available: (manifest) => !manifest.interactive,
+    fullFile: false,
+    code: (manifest, state) => toHtml(renderManifest(manifest, state)),
+  },
+];
+
+/** The code to show for one format, wrapped in the full file when asked and the format allows it. */
+export function codeFor(format: CodeFormat, manifest: Manifest, state: ControlState, wholeFile: boolean): string {
+  const code = format.code(manifest, state);
+  return wholeFile && format.fullFile ? fullFile(code) : code;
+}
+```
+
+Create `apps/gallery/src/code/CodePanel.tsx`:
+
+```tsx
+import { useState } from 'react';
+import { CodeBlock, SegmentedControl, Switch } from '@bit-ds/react';
+import type { ControlState, Manifest } from '../manifests/types';
+import { CODE_FORMATS, codeFor } from './codeFormats';
+
+interface CodePanelProps {
+  manifest: Manifest;
+  state: ControlState;
+}
+
+/**
+ * The Playground's footer: a SegmentedControl picks the format (Props | className | HTML, whichever
+ * apply), a "Full file" Switch wraps the JSX in a file you can paste, and a CodeBlock shows the code with
+ * Copy. The choice is local to the page; an unavailable one falls back to Props.
+ */
+export function CodePanel({ manifest, state }: CodePanelProps) {
+  const formats = CODE_FORMATS.filter((format) => format.available(manifest));
+  const [formatId, setFormatId] = useState(formats[0]!.id);
+  const [wholeFile, setWholeFile] = useState(false);
+  const format = formats.find((f) => f.id === formatId) ?? formats[0]!;
+  return (
+    <div className="gallery-codepanel">
+      <div className="gallery-codepanel__bar">
+        {formats.length > 1 ? (
+          <SegmentedControl
+            legend="Code format"
+            legendHidden
+            size="sm"
+            options={formats.map((f) => ({ value: f.id, label: f.label }))}
+            value={format.id}
+            onValueChange={setFormatId}
+          />
+        ) : null}
+        {format.fullFile ? (
+          <Switch size="sm" checked={wholeFile} onChange={(event) => setWholeFile(event.target.checked)}>
+            Full file
+          </Switch>
+        ) : null}
+      </div>
+      <CodeBlock code={codeFor(format, manifest, state, wholeFile)} language={format.language} label="Example code" />
+    </div>
+  );
+}
+```
+
+Run: `pnpm --filter @bit-ds/gallery test -- src/code`
+Expected: PASS.
+
+- [ ] **Step 4: Write the failing engine tests (presets, preview, controls, variants)**
+
+Replace `apps/gallery/src/engine/Presets.test.tsx` with:
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi } from 'vitest';
+import { isPresetActive, Presets } from './Presets';
+import { defaultState } from './state';
+import { button } from '../manifests/button';
+import { spinner } from '../manifests/spinner';
+
+describe('isPresetActive', () => {
+  it('is true while every value the preset sets holds', () => {
+    const preset = { label: 'Danger outline', state: { color: 'danger', variant: 'outline' } };
+    expect(isPresetActive(preset, defaultState(button))).toBe(false);
+    expect(isPresetActive(preset, { ...defaultState(button), color: 'danger' })).toBe(false);
+    expect(isPresetActive(preset, { ...defaultState(button), color: 'danger', variant: 'outline', size: 'lg' })).toBe(true);
+  });
+});
+
+describe('Presets', () => {
+  it('renders one ghost button per preset in a "Presets" group and applies its state', async () => {
+    const onApply = vi.fn();
+    render(<Presets manifest={button} state={defaultState(button)} onApply={onApply} />);
+    const buttons = screen.getAllByRole('button');
+    expect(screen.getByRole('group', { name: 'Presets' })).toBeInTheDocument();
+    expect(buttons.map((b) => b.textContent)).toEqual(['Danger outline', 'Ghost small', 'Loading']);
+    for (const b of buttons) {
+      expect(b).toHaveClass('bit-ghost', 'bit-sm');
+      expect(b).toHaveAttribute('aria-pressed', 'false');
+    }
+    await userEvent.click(buttons[0]!);
+    expect(onApply).toHaveBeenCalledWith({ color: 'danger', variant: 'outline' });
+  });
+
+  it('the preset matching the current state is pressed and solid', () => {
+    render(<Presets manifest={button} state={{ ...defaultState(button), variant: 'ghost', size: 'sm' }} onApply={() => {}} />);
+    const active = screen.getByRole('button', { name: 'Ghost small' });
+    expect(active).toHaveAttribute('aria-pressed', 'true');
+    expect(active).toHaveClass('bit-solid', 'bit-primary');
+    expect(screen.getByRole('button', { name: 'Loading' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('renders nothing when a manifest has no presets', () => {
+    const { container } = render(<Presets manifest={{ ...spinner, presets: undefined }} state={{}} onApply={() => {}} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+});
+```
+
+Replace `apps/gallery/src/engine/Preview.test.tsx` with:
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect } from 'vitest';
+import { Preview } from './Preview';
+
+describe('Preview', () => {
+  it('renders its children on a labelled stage and toggles the checkerboard with a bit Switch', async () => {
+    render(
+      <Preview label="Button preview" presets={<span>presets here</span>}>
+        <button>hi</button>
+      </Preview>,
+    );
+    const stage = screen.getByRole('region', { name: 'Button preview' });
+    expect(stage).toContainElement(screen.getByRole('button', { name: 'hi' }));
+    expect(stage).toContainElement(screen.getByText('presets here'));
+    expect(stage).not.toHaveAttribute('data-checkerboard');
+    const toggle = screen.getByRole('switch', { name: 'Checkerboard' });
+    expect(toggle).toHaveClass('bit-switch__input');
+    await userEvent.click(toggle);
+    expect(stage).toHaveAttribute('data-checkerboard', '');
+  });
+});
+```
+
+In `apps/gallery/src/engine/ControlsPanel.test.tsx`:
+
+```diff
+--- a/apps/gallery/src/engine/ControlsPanel.test.tsx
++++ b/apps/gallery/src/engine/ControlsPanel.test.tsx
+@@ -7,6 +7,7 @@ import { defaultState } from './state';
+ import type { ControlState, ControlValue, Manifest } from '../manifests/types';
+ import { button } from '../manifests/button';
+ import { spinner } from '../manifests/spinner';
++import { badge as badgeManifest } from '../manifests/badge';
+ import { expectNoA11yViolations } from '../test/a11y';
+ 
+ interface HarnessProps {
+@@ -81,6 +82,31 @@ describe('ControlsPanel', () => {
+     expect(screen.getByLabelText('aria-label')).toHaveValue('Loading coins');
+   });
+ 
++  it('Controls is an h3 under the Playground h2', () => {
++    render(<ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={() => {}} />);
++    expect(screen.getByRole('heading', { level: 3, name: 'Controls' })).toBeInTheDocument();
++  });
++
++  it("emptied children show the manifest's error, tied to the field and marking it invalid", async () => {
++    const { container } = render(
++      <ControlsPanel manifest={button} state={{ ...defaultState(button), children: '' }} onChange={() => {}} onReset={() => {}} />,
++    );
++    const field = screen.getByLabelText('children');
++    expect(field).toHaveAttribute('aria-invalid', 'true');
++    expect(field).toHaveAccessibleDescription('A Button needs text or an aria-label, or screen readers announce just "button".');
++    expect(container.querySelector('.gallery-control__error')).toHaveTextContent('⚠ A Button needs text');
++    await expectNoA11yViolations(container);
++  });
++
++  it('a manifest without an empty-children error shows none, and children with text show none', () => {
++    const { container, rerender } = render(
++      <ControlsPanel manifest={badgeManifest} state={{ ...defaultState(badgeManifest), children: '' }} onChange={() => {}} onReset={() => {}} />,
++    );
++    expect(container.querySelector('.gallery-control__error')).toBeNull();
++    rerender(<ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={() => {}} />);
++    expect(screen.getByLabelText('children')).not.toHaveAttribute('aria-invalid');
++  });
++
+   it('Reset calls onReset', async () => {
+     const onReset = vi.fn();
+     render(<ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={onReset} />);
+```
+
+Create `apps/gallery/src/engine/VariantsTable.test.tsx`:
+
+```tsx
+import { render, screen, within } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { variantAxes, VariantsTable } from './VariantsTable';
+import { defaultState } from './state';
+import { button } from '../manifests/button';
+import { card } from '../manifests/card';
+import { spinner } from '../manifests/spinner';
+import { stack } from '../manifests/stack';
+import { expectNoA11yViolations } from '../test/a11y';
+
+describe('variantAxes', () => {
+  it('uses color as rows and variant as columns when both exist', () => {
+    expect(variantAxes(button)).toMatchObject({ row: { prop: 'color' }, column: { prop: 'variant' } });
+  });
+
+  it('falls back to the first axis alone, and to null with no axis', () => {
+    expect(variantAxes(card)).toEqual({ column: card.controls[0] });
+    expect(variantAxes(spinner)?.column.prop).toBe('color');
+    expect(variantAxes(spinner)?.row).toBeUndefined();
+    expect(variantAxes(stack)).toBeNull();
+  });
+});
+
+describe('VariantsTable', () => {
+  it('draws one cell per color × variant, carrying the playground state into each', async () => {
+    const { container } = render(
+      <VariantsTable manifest={button} axes={variantAxes(button)!} state={{ ...defaultState(button), size: 'lg', children: 'Go' }} />,
+    );
+    const table = screen.getByRole('region', { name: 'Button variants' });
+    const cells = within(table).getAllByRole('button', { name: 'Go' });
+    expect(cells).toHaveLength(5 * 3);
+    expect(cells.every((c) => c.classList.contains('bit-lg'))).toBe(true);
+    expect(cells.filter((c) => c.classList.contains('bit-danger') && c.classList.contains('bit-ghost'))).toHaveLength(1);
+    expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['color', 'solid', 'outline', 'ghost']);
+    expect(within(table).getAllByRole('rowheader').map((th) => th.textContent)).toEqual(['primary', 'neutral', 'success', 'warning', 'danger']);
+    await expectNoA11yViolations(container);
+  });
+
+  it('a single axis is one row under a head of its values', () => {
+    const { container } = render(<VariantsTable manifest={card} axes={variantAxes(card)!} state={defaultState(card)} />);
+    expect(screen.getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['solid', 'outline']);
+    expect(screen.queryAllByRole('rowheader')).toEqual([]);
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(1);
+    expect(container.querySelectorAll('tbody .bit-card')).toHaveLength(2);
+  });
+});
+```
+
+Delete the Matrix and its test:
+
+```bash
+git rm apps/gallery/src/engine/Matrix.tsx apps/gallery/src/engine/Matrix.test.tsx
+```
+
+Run: `pnpm --filter @bit-ds/gallery test -- src/engine`
+Expected: FAIL.
+- `isPresetActive` and `./VariantsTable` don't exist.
+- Presets has no `state` prop and no group.
+- The checkerboard is still a raw `gallery-switch`.
+- Controls is an h2.
+- No children error shows.
+
+- [ ] **Step 5: Write the engine changes**
+
+Replace `apps/gallery/src/engine/Presets.tsx` with:
+
+```tsx
+import { Button } from '@bit-ds/react';
+import type { ControlState, Manifest, Preset } from '../manifests/types';
+
+/** A preset is active while every value it sets holds in the current state. Two compatible ones can both be. */
+export function isPresetActive(preset: Preset, state: ControlState): boolean {
+  return Object.entries(preset.state).every(([prop, value]) => value === undefined || state[prop] === value);
+}
+
+interface PresetsProps {
+  manifest: Manifest;
+  state: ControlState;
+  onApply: (partial: Partial<ControlState>) => void;
+}
+
+/**
+ * Quick states in the preview bar, as ghost Buttons. Each applies its values on top of the current state.
+ * An active preset is pressed (aria-pressed="true") and solid. On a phone the row scrolls sideways.
+ */
+export function Presets({ manifest, state, onApply }: PresetsProps) {
+  if (!manifest.presets || manifest.presets.length === 0) return null;
+  return (
+    <div className="gallery-presets" role="group" aria-label="Presets">
+      {manifest.presets.map((preset) => {
+        const active = isPresetActive(preset, state);
+        return (
+          <Button
+            key={preset.label}
+            size="sm"
+            color={active ? 'primary' : 'neutral'}
+            variant={active ? 'solid' : 'ghost'}
+            aria-pressed={active}
+            onClick={() => onApply(preset.state)}
+          >
+            {preset.label}
+          </Button>
+        );
+      })}
+    </div>
+  );
+}
+```
+
+Replace `apps/gallery/src/engine/Preview.tsx` with:
+
+```tsx
+import { useState } from 'react';
+import type { ReactNode } from 'react';
+import { Switch } from '@bit-ds/react';
+
+interface PreviewProps {
+  label: string;
+  /** The preset buttons, shown in the bar between the title and the checkerboard switch. */
+  presets?: ReactNode;
+  children: ReactNode;
+}
+
+/** The stage the live component sits on. Checkerboard helps judge ghost and outline variants. */
+export function Preview({ label, presets, children }: PreviewProps) {
+  const [checkerboard, setCheckerboard] = useState(false);
+  return (
+    <section className="gallery-preview" aria-label={label} data-checkerboard={checkerboard ? '' : undefined}>
+      <div className="gallery-preview__bar">
+        <span className="gallery-preview__title">Preview</span>
+        {presets}
+        <Switch size="sm" checked={checkerboard} onChange={(event) => setCheckerboard(event.target.checked)}>
+          Checkerboard
+        </Switch>
+      </div>
+      <div className="gallery-preview__stage">{children}</div>
+    </section>
+  );
+}
+```
+
+In `apps/gallery/src/engine/ControlsPanel.tsx`:
+
+```diff
+--- a/apps/gallery/src/engine/ControlsPanel.tsx
++++ b/apps/gallery/src/engine/ControlsPanel.tsx
+@@ -1,4 +1,4 @@
+-import { Button, Text } from '@bit-ds/react';
++import { Button, Heading } from '@bit-ds/react';
+ import type { Control, ControlState, ControlValue, Manifest } from '../manifests/types';
+ 
+ interface ControlsPanelProps {
+@@ -12,10 +12,12 @@ interface FieldProps {
+   control: Control;
+   value: ControlValue | undefined;
+   onChange: (prop: string, value: ControlValue) => void;
++  /** Shown under a text field, which is then marked invalid (the emptied children of a Button, say). */
++  error?: string;
+ }
+ 
+ /** One form control per manifest entry. Labels are the prop names so the panel doubles as API docs. */
+-function Field({ control, value, onChange }: FieldProps) {
++function Field({ control, value, onChange, error }: FieldProps) {
+   const label = ('label' in control && control.label) || control.prop;
+   const id = `control-${control.prop}`;
+ 
+@@ -80,7 +82,8 @@ function Field({ control, value, onChange }: FieldProps) {
+           />
+         </div>
+       );
+-    case 'text':
++    case 'text': {
++      const errorId = `${id}-error`;
+       return (
+         <div className="gallery-control">
+           <label className="gallery-control__label" htmlFor={id}>
+@@ -91,22 +94,33 @@ function Field({ control, value, onChange }: FieldProps) {
+             className="gallery-control__input"
+             type="text"
+             value={String(value ?? control.default)}
++            aria-invalid={error ? true : undefined}
++            aria-describedby={error ? errorId : undefined}
+             onChange={(event) => onChange(control.prop, event.target.value)}
+           />
++          {error ? (
++            <p className="gallery-control__error" id={errorId}>
++              <span aria-hidden="true">⚠ </span>
++              {error}
++            </p>
++          ) : null}
+         </div>
+       );
++    }
+   }
+ }
+ 
+ export function ControlsPanel({ manifest, state, onChange, onReset }: ControlsPanelProps) {
+   const childrenControl: Control | null =
+     typeof manifest.children === 'string' ? { kind: 'text', prop: 'children', default: manifest.children } : null;
++  // Emptied children: the preview and code show the empty component, and the field says what that costs.
++  const childrenError = state.children === '' ? manifest.docs.emptyChildrenError : undefined;
+   return (
+     <section className="gallery-controls" aria-labelledby="controls-heading">
+       <div className="gallery-controls__head">
+-        <Text as="h2" size={18} id="controls-heading">
++        <Heading level={3} id="controls-heading">
+           Controls
+-        </Text>
++        </Heading>
+         <Button variant="ghost" size="sm" color="neutral" onClick={onReset}>
+           Reset
+         </Button>
+@@ -115,7 +129,9 @@ export function ControlsPanel({ manifest, state, onChange, onReset }: ControlsPa
+         {manifest.controls.map((control) => (
+           <Field key={control.prop} control={control} value={state[control.prop]} onChange={onChange} />
+         ))}
+-        {childrenControl ? <Field control={childrenControl} value={state.children} onChange={onChange} /> : null}
++        {childrenControl ? (
++          <Field control={childrenControl} value={state.children} onChange={onChange} error={childrenError} />
++        ) : null}
+       </div>
+     </section>
+   );
+```
+
+Create `apps/gallery/src/engine/VariantsTable.tsx`:
+
+```tsx
+import { Table, TableBody, TableCell, TableHead, TableRow } from '@bit-ds/react';
+import type { AxisControl, ControlState, Manifest } from '../manifests/types';
+import { renderManifest } from './renderManifest';
+
+/** One row per color and one column per variant; or a single axis as one row (no `row`). */
+export interface VariantAxes {
+  row?: AxisControl;
+  column: AxisControl;
+}
+
+/** color × variant when both exist; otherwise the first axis alone; null when there is no axis. */
+export function variantAxes(manifest: Manifest): VariantAxes | null {
+  const axes = manifest.controls.filter((c): c is AxisControl => c.kind === 'axis');
+  if (axes.length === 0) return null;
+  const color = axes.find((a) => a.prop === 'color');
+  const variant = axes.find((a) => a.prop === 'variant');
+  if (color && variant) return { row: color, column: variant };
+  return { column: axes[0]! };
+}
+
+interface VariantsTableProps {
+  manifest: Manifest;
+  axes: VariantAxes;
+  /** The playground's state, so size, text and booleans carry into every cell. */
+  state: ControlState;
+}
+
+/** Every combination, drawn live, in a bit Table. */
+export function VariantsTable({ manifest, axes, state }: VariantsTableProps) {
+  const { row, column } = axes;
+  const cell = (rowValue: string | undefined, columnValue: string) => {
+    const cellState: ControlState = { ...state, [column.prop]: columnValue };
+    if (row && rowValue !== undefined) cellState[row.prop] = rowValue;
+    return <TableCell key={columnValue}>{renderManifest(manifest, cellState)}</TableCell>;
+  };
+  return (
+    <Table aria-label={`${manifest.name} variants`}>
+      <TableHead>
+        <TableRow>
+          {row ? <TableCell>{row.prop}</TableCell> : null}
+          {column.values.map((value) => (
+            <TableCell key={value}>{value}</TableCell>
+          ))}
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {row ? (
+          row.values.map((rowValue) => (
+            <TableRow key={rowValue}>
+              <TableCell as="th" scope="row">
+                {rowValue}
+              </TableCell>
+              {column.values.map((columnValue) => cell(rowValue, columnValue))}
+            </TableRow>
+          ))
+        ) : (
+          <TableRow>{column.values.map((columnValue) => cell(undefined, columnValue))}</TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+}
+```
+
+Run: `pnpm --filter @bit-ds/gallery test -- src/engine`
+Expected: PASS.
+
+- [ ] **Step 6: Write the failing page tests**
+
+Create `apps/gallery/src/pages/ComponentPage.test.tsx`:
+
+```tsx
+import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect } from 'vitest';
+import { renderAt } from '../test/renderRoute';
+import { button } from '../manifests/button';
+import { importChip } from './component/ComponentHeader';
+import { PROP_COLUMNS } from './component/DocsSections';
+
+async function open(path: string, name: string) {
+  const utils = renderAt(path);
+  await screen.findByRole('heading', { level: 1, name });
+  return utils;
+}
+
+const region = (name: string) => screen.getByRole('region', { name });
+const main = () => screen.getByRole('main');
+
+describe('ComponentPage (layout C)', () => {
+  it('the header: eyebrow, h1, description, the import chip with Copy, and the badges', async () => {
+    await open('/components/card', 'Card');
+    expect(within(main()).getByText('Components')).toHaveClass('gallery-eyebrow');
+    const chip = screen.getByText("import { Card, CardHeader, CardBody, CardFooter } from '@bit-ds/react';");
+    expect(chip).toHaveClass('bit-code');
+    expect(screen.getByRole('button', { name: 'Copy import line' })).toBeInTheDocument();
+    expect(screen.getByText('Compound')).toHaveClass('bit-badge', 'bit-outline');
+  });
+
+  it('importChip lists the component, then its parts', () => {
+    expect(importChip(button)).toBe("import { Button } from '@bit-ds/react';");
+  });
+
+  it('renders the five sections in order, and the section bar links to each', async () => {
+    await open('/components/button', 'Button');
+    const titles = ['Playground', 'Variants', 'Usage', 'Props', 'Accessibility'];
+    expect(within(main()).getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(titles);
+    const bar = screen.getByRole('navigation', { name: 'On this page' });
+    expect(within(bar).getAllByRole('link').map((link) => link.textContent)).toEqual(titles);
+  });
+
+  it('a section-bar link focuses its h2 and leaves the route and the state alone', async () => {
+    const { router } = await open('/components/button?color=danger', 'Button');
+    await userEvent.click(within(screen.getByRole('navigation', { name: 'On this page' })).getByRole('link', { name: 'Props' }));
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Props' }));
+    expect(router.state.location.pathname).toBe('/components/button');
+    expect(router.state.location.search).toBe('?color=danger');
+  });
+
+  it('a component with no axis has no Variants section and no Variants link', async () => {
+    await open('/components/stack', 'Stack');
+    expect(within(main()).queryByRole('heading', { level: 2, name: 'Variants' })).toBeNull();
+    expect(within(screen.getByRole('navigation', { name: 'On this page' })).queryByRole('link', { name: 'Variants' })).toBeNull();
+  });
+
+  it('the active preset is pressed; applying another moves the press', async () => {
+    await open('/components/button?variant=ghost&size=sm', 'Button');
+    const presets = within(region('Button preview')).getByRole('group', { name: 'Presets' });
+    expect(within(presets).getByRole('button', { name: 'Ghost small' })).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(within(presets).getByRole('button', { name: 'Loading' }));
+    expect(within(presets).getByRole('button', { name: 'Loading' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('the Variants table has one cell per color × variant', async () => {
+    await open('/components/button', 'Button');
+    expect(within(region('Button variants')).getAllByRole('button', { name: 'Save' })).toHaveLength(15);
+  });
+
+  it('Usage shows Do and Don\'t as soft success and danger notes', async () => {
+    await open('/components/button', 'Button');
+    const notes = screen.getAllByRole('note');
+    expect(notes.map((n) => n.querySelector('.bit-alert__title')!.textContent)).toEqual(['Do', "Don't"]);
+    expect(notes[0]).toHaveClass('bit-success', 'bit-outline');
+    expect(notes[1]).toHaveClass('bit-danger', 'bit-outline');
+    expect(within(notes[0]!).getAllByRole('listitem')).toHaveLength(button.docs.usage.do.length);
+  });
+
+  it('Props is a Table of prop, type, default and description from docs.props', async () => {
+    await open('/components/button', 'Button');
+    const table = region('Button props');
+    expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(PROP_COLUMNS.map((c) => c.header));
+    expect(within(table).getAllByRole('row')).toHaveLength(button.docs.props.length + 1);
+    const color = within(table).getByText('color').closest('tr')!;
+    expect(within(color).getByText("'primary'")).toHaveClass('bit-code');
+  });
+
+  it('the Props table has a Class column: bit-{prop} on axis rows, — elsewhere', async () => {
+    await open('/components/button', 'Button');
+    const table = region('Button props');
+    const classOf = (name: string) => within(table).getByText(name, { selector: 'code' }).closest('tr')!.cells[3]!;
+    expect(classOf('variant')).toHaveTextContent('bit-{variant}');
+    expect(within(classOf('variant')).getByText('bit-{variant}')).toHaveClass('bit-code');
+    expect(classOf('loading')).toHaveTextContent('—');
+  });
+
+  it.each([
+    ['/components/button', 'Button', 'className="bit-danger"', 'color="danger"'],
+    ['/components/card', 'Card', 'className="bit-outline"', 'variant="outline"'],
+    ['/components/link', 'Link', 'className="bit-neutral"', 'color="neutral"'],
+  ])('%s: the tip under Props says className works the same as the prop', async (path, name, asClass, asProp) => {
+    await open(path, name);
+    const tip = screen.getByText(/^Prefer classes\?/);
+    expect(tip).toHaveTextContent(`Prefer classes? ${asClass} works the same as ${asProp}.`);
+  });
+
+  it('no axis, no tip', async () => {
+    await open('/components/stack', 'Stack');
+    expect(screen.queryByText(/^Prefer classes\?/)).toBeNull();
+  });
+
+  it('the code footer offers Props, className and HTML, and each switches the code', async () => {
+    await open('/components/button?color=danger', 'Button');
+    expect(region('Example code').textContent).toContain('<Button color="danger">Save</Button>');
+    await userEvent.click(screen.getByRole('radio', { name: 'className' }));
+    expect(region('Example code').textContent).toContain('<Button className="bit-danger">Save</Button>');
+    await userEvent.click(screen.getByRole('radio', { name: 'HTML' }));
+    expect(region('Example code').textContent).toContain('<button class="bit-button bit-danger bit-solid bit-md" type="button">Save</button>');
+  });
+
+  it('a component without an axis has no className option', async () => {
+    await open('/components/stack', 'Stack');
+    expect(screen.queryByRole('radio', { name: 'className' })).toBeNull();
+  });
+
+  it('Accessibility is a bullet list from docs.a11y', async () => {
+    await open('/components/button', 'Button');
+    const section = region('Accessibility');
+    expect(within(section).getAllByRole('listitem').map((li) => li.textContent)).toEqual([...button.docs.a11y]);
+  });
+
+  it("emptied children: the preview shows the empty component, the code a self-closing tag, the field the manifest's error", async () => {
+    await open('/components/button?children=', 'Button');
+    expect(within(region('Button preview')).getByRole('button', { name: '' })).toBeEmptyDOMElement();
+    expect(region('Example code').textContent).toBe("import { Button } from '@bit-ds/react';\n\n<Button />");
+    expect(screen.getByLabelText('children')).toHaveAccessibleDescription(button.docs.emptyChildrenError!);
+  });
+
+  it('the code footer switches to HTML for a static component, and has no format switch for an interactive one', async () => {
+    await open('/components/badge', 'Badge');
+    await userEvent.click(screen.getByRole('radio', { name: 'HTML' }));
+    expect(region('Example code').textContent).toBe('<span class="bit-badge bit-neutral bit-solid bit-md" data-shape="pill">New</span>');
+  });
+
+  it('the logo page lives under Brand', async () => {
+    await open('/brand/logo', 'BitLogo');
+    expect(within(main()).getByText('Brand')).toHaveClass('gallery-eyebrow');
+  });
+});
+```
+
+In `apps/gallery/src/routes.test.tsx`:
+- Find the code panel by its region.
+- Controls is now an h3, and four h2s are checked on every page.
+- `/tokens` joins the axe smoke.
+
+```diff
+--- a/apps/gallery/src/routes.test.tsx
++++ b/apps/gallery/src/routes.test.tsx
+@@ -5,14 +5,14 @@ import { MANIFESTS, routeFor } from './manifests';
+ import { renderAt } from './test/renderRoute';
+ import { expectNoA11yViolations } from './test/a11y';
+ 
+-/** The React code panel: the CodeBlock in the section headed "React". */
++/** The Playground's code panel: the CodeBlock whose code region is "Example code". */
+ function reactPanel(): HTMLElement {
+-  const section = screen.getByRole('heading', { level: 2, name: 'React' }).closest('section')!;
+-  return section.querySelector<HTMLElement>('.bit-code__block')!;
++  return screen.getByRole('region', { name: 'Example code' }).closest<HTMLElement>('.bit-code__block')!;
+ }
+ 
+ /** The Foundations guide pages and their h1s. */
+ const FOUNDATION_PAGES = [
++  ['/tokens', 'Tokens'],
+   ['/typography', 'Typography'],
+   ['/spacing', 'Spacing'],
+ ] as const;
+@@ -23,13 +23,16 @@ describe('component routes (route smoke, D14)', () => {
+   });
+ 
+   it.each(MANIFESTS.map((m) => [m.name, m] as const))(
+-    '%s: heading, live preview, controls and code, with no axe violations',
++    '%s: heading, the five sections, live preview, controls and code, with no axe violations',
+     async (_name, manifest) => {
+       const { container } = renderAt(routeFor(manifest));
+       expect(await screen.findByRole('heading', { level: 1, name: manifest.name })).toBeInTheDocument();
+       const preview = screen.getByRole('region', { name: `${manifest.name} preview` });
+       expect(preview.querySelector('[class*="bit-"]')).not.toBeNull();
+-      expect(screen.getByRole('heading', { level: 2, name: 'Controls' })).toBeInTheDocument();
++      expect(screen.getByRole('heading', { level: 3, name: 'Controls' })).toBeInTheDocument();
++      for (const name of ['Playground', 'Usage', 'Props', 'Accessibility']) {
++        expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument();
++      }
+       expect(reactPanel()).toHaveAttribute('data-language', 'jsx');
+       expect(reactPanel().querySelector('pre')!.textContent).toMatch(/^import \{ .+ \} from '@bit-ds\/react';\n\n</);
+       await expectNoA11yViolations(container);
+```
+
+In `apps/gallery/src/routes.dark.test.tsx`, add `/tokens` to the dark axe smoke:
+
+```diff
+--- a/apps/gallery/src/routes.dark.test.tsx
++++ b/apps/gallery/src/routes.dark.test.tsx
+@@ -6,6 +6,7 @@ import { expectNoA11yViolations } from './test/a11y';
+ 
+ /** The Foundations guide pages and their h1s. */
+ const FOUNDATION_PAGES = [
++  ['/tokens', 'Tokens'],
+   ['/typography', 'Typography'],
+   ['/spacing', 'Spacing'],
+ ] as const;
+```
+
+Run: `pnpm --filter @bit-ds/gallery test -- ComponentPage routes`
+Expected: FAIL. The page still has the old layout:
+- no section bar
+- no Variants, Usage, Props or Accessibility
+- no "Example code" switch
+
+- [ ] **Step 7: Write the page**
+
+Create `apps/gallery/src/pages/component/ComponentHeader.tsx`:
+
+```tsx
+import { Badge, Code, Stack, Text } from '@bit-ds/react';
+import type { Manifest, ManifestGroup } from '../../manifests/types';
+import { PageHeader } from '../../ui/PageHeader';
+import { CopyButton } from '../../ui/CopyButton';
+
+const GROUP_LABELS: Record<ManifestGroup, string> = { components: 'Components', forms: 'Forms', brand: 'Brand' };
+
+/** `import { Name, ...parts } from '@bit-ds/react';`: the component first, then its parts in page order. */
+export function importChip(manifest: Manifest): string {
+  return `import { ${[manifest.name, ...(manifest.parts ?? [])].join(', ')} } from '@bit-ds/react';`;
+}
+
+/** Eyebrow, h1, description, the import chip with Copy, and the manifest's badges. */
+export function ComponentHeader({ manifest }: { manifest: Manifest }) {
+  const line = importChip(manifest);
+  return (
+    <PageHeader eyebrow={GROUP_LABELS[manifest.group]} title={manifest.name}>
+      <Text size={18}>{manifest.description}</Text>
+      <Stack direction="row" gap={8} align="center" wrap>
+        <Code>{line}</Code>
+        <CopyButton text={line} label="Copy import line" />
+      </Stack>
+      {manifest.docs.badges.length > 0 ? (
+        <Stack direction="row" gap={8} wrap>
+          {manifest.docs.badges.map((badge) => (
+            <Badge key={badge} variant="outline" shape="square">
+              {badge}
+            </Badge>
+          ))}
+        </Stack>
+      ) : null}
+    </PageHeader>
+  );
+}
+```
+
+Create `apps/gallery/src/pages/component/DocsSections.tsx`. A new Props-table column is one entry in `PROP_COLUMNS`.
+
+```tsx
+import type { ReactNode } from 'react';
+import { Alert, Box, Code, Stack, Table, TableBody, TableCell, TableHead, TableRow, Text } from '@bit-ds/react';
+import type { AxisControl, Manifest, ManifestDocs, PropDoc } from '../../manifests/types';
+
+/** Do and Don't: soft success and soft danger, read as notes rather than live status. */
+export function UsageLists({ usage }: { usage: ManifestDocs['usage'] }) {
+  return (
+    <Box className="gallery-grid">
+      <Alert color="success" title="Do" role="note">
+        <ul className="gallery-bullets">
+          {usage.do.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      </Alert>
+      <Alert color="danger" title="Don't" role="note">
+        <ul className="gallery-bullets">
+          {usage.dont.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      </Alert>
+    </Box>
+  );
+}
+
+/** A cell with nothing to show: no default, or no class. */
+function None() {
+  return (
+    <Text as="span" color="neutral">
+      —
+    </Text>
+  );
+}
+
+/** One Props-table column. To add a column, add an entry here. */
+export interface PropColumn {
+  header: string;
+  cell: (prop: PropDoc) => ReactNode;
+  /** Keep the cell on one line (short code); long types and descriptions wrap. */
+  nowrap?: boolean;
+}
+
+export const PROP_COLUMNS: readonly PropColumn[] = [
+  { header: 'Prop', cell: (prop) => <Code>{prop.name}</Code>, nowrap: true },
+  { header: 'Type', cell: (prop) => <Code>{prop.type}</Code> },
+  { header: 'Default', cell: (prop) => (prop.default === undefined ? <None /> : <Code>{prop.default}</Code>), nowrap: true },
+  { header: 'Class', cell: (prop) => (prop.className === undefined ? <None /> : <Code>{prop.className}</Code>), nowrap: true },
+  { header: 'Description', cell: (prop) => prop.description },
+];
+
+/**
+ * The example the tip under the Props table uses: the color axis if there is one, otherwise the first axis,
+ * at `danger` for color (when the axis offers it), otherwise at the axis's last value. Null without an axis.
+ */
+export function classTip(manifest: Manifest): { prop: string; value: string } | null {
+  const axes = manifest.controls.filter((control): control is AxisControl => control.kind === 'axis');
+  const axis = axes.find((control) => control.prop === 'color') ?? axes[0];
+  if (!axis) return null;
+  const value = axis.prop === 'color' && axis.values.includes('danger') ? 'danger' : axis.values[axis.values.length - 1]!;
+  return { prop: axis.prop, value };
+}
+
+export function PropsTable({ manifest }: { manifest: Manifest }) {
+  const tip = classTip(manifest);
+  return (
+    <Stack gap={8}>
+      <Table aria-label={`${manifest.name} props`}>
+        <TableHead>
+          <TableRow>
+            {PROP_COLUMNS.map((column) => (
+              <TableCell key={column.header}>{column.header}</TableCell>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {manifest.docs.props.map((prop) => (
+            <TableRow key={prop.name}>
+              {PROP_COLUMNS.map((column) => (
+                <TableCell key={column.header} className={column.nowrap ? 'gallery-nowrap' : undefined}>
+                  {column.cell(prop)}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {tip ? (
+        <Text size={13}>
+          Prefer classes? <Code>{`className="bit-${tip.value}"`}</Code> works the same as <Code>{`${tip.prop}="${tip.value}"`}</Code>.
+        </Text>
+      ) : null}
+    </Stack>
+  );
+}
+
+export function A11yList({ lines }: { lines: readonly string[] }) {
+  return (
+    <ul className="gallery-bullets">
+      {lines.map((line) => (
+        <li key={line}>{line}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+Create `apps/gallery/src/pages/component/Playground.tsx`:
+
+```tsx
+import type { Manifest } from '../../manifests/types';
+import type { ControlStateApi } from '../../engine/useControlState';
+import { renderManifest } from '../../engine/renderManifest';
+import { Presets } from '../../engine/Presets';
+import { Preview } from '../../engine/Preview';
+import { ControlsPanel } from '../../engine/ControlsPanel';
+import { CodePanel } from '../../code/CodePanel';
+
+interface PlaygroundProps {
+  manifest: Manifest;
+  controls: ControlStateApi;
+}
+
+/** Preview (with presets) beside the controls, and the code under both. Under 720px the controls stack. */
+export function Playground({ manifest, controls }: PlaygroundProps) {
+  const { state, setProp, apply, reset } = controls;
+  return (
+    <div className="gallery-playground">
+      <div className="gallery-playground__top">
+        <Preview label={`${manifest.name} preview`} presets={<Presets manifest={manifest} state={state} onApply={apply} />}>
+          {renderManifest(manifest, state)}
+        </Preview>
+        <ControlsPanel manifest={manifest} state={state} onChange={setProp} onReset={reset} />
+      </div>
+      <CodePanel manifest={manifest} state={state} />
+    </div>
+  );
+}
+```
+
+Create `apps/gallery/src/pages/component/sections.ts`:
+
+```ts
+import type { Manifest } from '../../manifests/types';
+import type { SectionLink } from '../../ui/PageSection';
+import { variantAxes } from '../../engine/VariantsTable';
+
+export const SECTIONS = {
+  playground: { id: 'section-playground', title: 'Playground' },
+  variants: { id: 'section-variants', title: 'Variants' },
+  usage: { id: 'section-usage', title: 'Usage' },
+  props: { id: 'section-props', title: 'Props' },
+  accessibility: { id: 'section-accessibility', title: 'Accessibility' },
+} as const satisfies Record<string, SectionLink>;
+
+/** The page's sections in order. Variants only when the component has an axis to draw. */
+export function componentSections(manifest: Manifest): SectionLink[] {
+  return [
+    SECTIONS.playground,
+    ...(variantAxes(manifest) ? [SECTIONS.variants] : []),
+    SECTIONS.usage,
+    SECTIONS.props,
+    SECTIONS.accessibility,
+  ];
+}
+```
+
+Replace `apps/gallery/src/pages/ComponentPage.tsx` with:
+
+```tsx
+import { Stack } from '@bit-ds/react';
+import type { Manifest } from '../manifests';
+import { useControlState } from '../engine/useControlState';
+import { variantAxes, VariantsTable } from '../engine/VariantsTable';
+import { PageSection } from '../ui/PageSection';
+import { SectionBar } from '../ui/SectionBar';
+import { ComponentHeader } from './component/ComponentHeader';
+import { Playground } from './component/Playground';
+import { A11yList, PropsTable, UsageLists } from './component/DocsSections';
+import { componentSections, SECTIONS } from './component/sections';
+
+interface ComponentPageProps {
+  manifest: Manifest;
+}
+
+/** Layout C: header, section bar, then Playground, Variants, Usage, Props and Accessibility. State lives in the URL. */
+export function ComponentPage({ manifest }: ComponentPageProps) {
+  const controls = useControlState(manifest);
+  const axes = variantAxes(manifest);
+  return (
+    <Stack gap={32}>
+      <Stack gap={16}>
+        <ComponentHeader manifest={manifest} />
+        <SectionBar sections={componentSections(manifest)} />
+      </Stack>
+      <PageSection {...SECTIONS.playground}>
+        <Playground manifest={manifest} controls={controls} />
+      </PageSection>
+      {axes ? (
+        <PageSection {...SECTIONS.variants}>
+          <VariantsTable manifest={manifest} axes={axes} state={controls.state} />
+        </PageSection>
+      ) : null}
+      <PageSection {...SECTIONS.usage}>
+        <UsageLists usage={manifest.docs.usage} />
+      </PageSection>
+      <PageSection {...SECTIONS.props}>
+        <PropsTable manifest={manifest} />
+      </PageSection>
+      <PageSection {...SECTIONS.accessibility}>
+        <A11yList lines={manifest.docs.a11y} />
+      </PageSection>
+    </Stack>
+  );
+}
+```
+
+- [ ] **Step 8: The CSS and its tests**
+
+In `apps/gallery/src/gallery-css.test.ts`:
+
+```diff
+--- a/apps/gallery/src/gallery-css.test.ts
++++ b/apps/gallery/src/gallery-css.test.ts
+@@ -51,7 +51,6 @@ describe('gallery.css', () => {
+   it('never hardcodes a font stack: mono labels read --bit-font-mono', () => {
+     expect(galleryCss).not.toMatch(/monospace/);
+     expect(galleryCss).toMatch(/\.gallery-control__label\s*\{[^}]*font-family: var\(--bit-font-mono\);/);
+-    expect(galleryCss).toMatch(/\.gallery-matrix__table th\s*\{[^}]*font-family: var\(--bit-font-mono\);/);
+   });
+ 
+   it('every face sample is one height and sits on its floor, so the token chips line up across the cards', () => {
+@@ -63,4 +62,22 @@ describe('gallery.css', () => {
+   it('script-moved focus on main and on tabIndex -1 targets draws no ring; real controls keep theirs', () => {
+     expect(galleryCss).toMatch(/\.gallery-main:focus,\s*\.gallery-main \[tabindex="-1"\]:focus \{\s*outline: none;\s*\}/);
+   });
++
++  it('the Matrix is gone: Variants is a bit Table', () => {
++    expect(galleryCss).not.toMatch(/gallery-matrix/);
++  });
++
++  it('the playground puts the controls beside the preview, and under it below 720px', () => {
++    expect(galleryCss).toMatch(/\.gallery-playground__top \{[^}]*grid-template-columns: minmax\(0, 1fr\) 16rem;/);
++    expect(galleryCss).toMatch(
++      /@media \(max-width: 720px\) \{\s*\.gallery-playground__top \{\s*grid-template-columns: minmax\(0, 1fr\);\s*\}\s*\}/,
++    );
++  });
++
++  it('the presets scroll sideways in one row instead of widening the page', () => {
++    const presets = /\.gallery-presets \{([^}]*)\}/.exec(galleryCss)![1]!;
++    expect(presets).toContain('overflow-x: auto;');
++    expect(presets).toContain('min-width: 0;');
++    expect(presets).not.toContain('flex-wrap');
++  });
+ });
+```
+
+In `apps/gallery/src/gallery.css`:
+- Add `gap` to `.gallery-preview__bar`.
+- Delete the whole "presets and matrix" section.
+- Insert the component-page block directly under `/* ---------- component page ---------- */`.
+
+```diff
+--- a/apps/gallery/src/gallery.css
++++ b/apps/gallery/src/gallery.css
+@@ -295,6 +295,7 @@ html {
+ .gallery-preview__bar {
+   display: flex;
+   align-items: center;
++  gap: var(--bit-space-12px);
+   justify-content: space-between;
+   padding: var(--bit-space-8px) var(--bit-space-12px);
+   border-bottom: var(--bit-border-width) solid var(--bit-color-line);
+@@ -332,36 +333,6 @@ html {
+   outline: 2px dashed var(--bit-color-accent);
+ }
+ 
+-/* ---------- presets and matrix ---------- */
+-.gallery-presets__row {
+-  display: flex;
+-  flex-wrap: wrap;
+-  gap: var(--bit-space-8px);
+-  margin-top: var(--bit-space-8px);
+-}
+-
+-.gallery-matrix__scroll {
+-  overflow-x: auto;
+-  margin-top: var(--bit-space-8px);
+-}
+-
+-.gallery-matrix__table {
+-  border-collapse: separate;
+-  border-spacing: var(--bit-space-12px);
+-}
+-
+-.gallery-matrix__table th {
+-  font-family: var(--bit-font-mono);
+-  font-size: var(--bit-text-13px);
+-  font-weight: var(--bit-weight-normal);
+-  color: var(--bit-color-text-muted);
+-  text-align: left;
+-}
+-
+-.gallery-matrix__table td {
+-  vertical-align: middle;
+-}
+-
+ /* ---------- foundations pages ---------- */
+ /* Cards side by side, as many as fit at 12rem or wider: the faces, Do and Don't, Stack or Box. */
+ .gallery-grid {
+@@ -431,6 +402,69 @@ html {
+ }
+ 
+ /* ---------- component page ---------- */
++/* Preview and controls side by side, the code under both. Under 720px the controls stack under the preview. */
++.gallery-playground {
++  display: grid;
++  gap: var(--bit-space-16px);
++}
++
++.gallery-playground__top {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) 16rem;
++  align-items: start;
++  gap: var(--bit-space-16px);
++}
++
++.gallery-codepanel {
++  display: grid;
++  gap: var(--bit-space-8px);
++}
++
++.gallery-codepanel__bar {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  gap: var(--bit-space-16px);
++}
++
++/* The presets sit in the preview bar between the title and the checkerboard switch. They take the room
++   left over and scroll sideways in one row when it runs out. */
++.gallery-presets {
++  flex: 1;
++  min-width: 0;
++  display: flex;
++  gap: var(--bit-space-8px);
++  overflow-x: auto;
++}
++
++.gallery-presets > * {
++  flex: none;
++}
++
++/* Short code (a prop name, a default, a class) stays on one line in the Props table; long types wrap. */
++.gallery-nowrap {
++  white-space: nowrap;
++}
++
++.gallery-control__error {
++  margin: 0;
++  font-size: var(--bit-text-13px);
++  color: var(--bit-color-danger-text);
++}
++
++/* Do and Don't, and the Accessibility list. */
++.gallery-bullets {
++  margin: 0;
++  padding-left: var(--bit-space-24px);
++  display: grid;
++  gap: var(--bit-space-4px);
++}
++
++@media (max-width: 720px) {
++  .gallery-playground__top {
++    grid-template-columns: minmax(0, 1fr);
++  }
++}
+ 
+ /* ---------- tokens page ---------- */
+ 
+```
+
+- [ ] **Step 9: Run the gallery tests**
+
+Run: `pnpm build && pnpm --filter @bit-ds/gallery test`
+Expected: PASS, `Tests  392 passed (392)` on wave 1.
+
+- [ ] **Step 10: Run every gate**
+
+Run: `pnpm build && pnpm verify && pnpm test && pnpm test:coverage && pnpm typecheck && pnpm lint && pnpm smoke && pnpm storybook:build`
+Expected: all green.
+
+- [ ] **Step 11: Commit**
+
+```bash
+git add -A apps/gallery/src
+git commit -m "feat(gallery): layout-C component page: header, section bar, Playground with Props | className | HTML, Variants table, Usage, Props with classes, Accessibility
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 5: The Tokens page (spec §4) and `SEMANTIC_TOKENS` from `@bit-ds/react`
+
+**Files:**
+- Modify:
+  - `packages/react/src/index.ts` and `packages/react/src/index.test.tsx`
+  - `packages/react/scripts/verify-dist.mjs` (the export check)
+  - `apps/gallery/src/pages/TokensPage.tsx`
+  - `apps/gallery/src/gallery.css` (the tokens-page section)
+- Create:
+  - `apps/gallery/src/pages/tokens/tokenValues.ts`, `ColorSection.tsx`, `CompactRows.tsx`, `ShapeSection.tsx` and `AllTokens.tsx`
+  - `apps/gallery/src/pages/TokensPage.test.tsx`
+
+**Interfaces:**
+- **Consumes:**
+  - From T2: `PageHeader`, `PageSection`, `SectionBar` and `CopyButton`
+  - From bit: `useColorMode`, `COLORS`, `TEXT_SIZES` and `SPACE_STEPS`
+  - Existing gallery classes: `.gallery-face[data-face]`, `.gallery-ruler__bar` and `.gallery-grid`
+- **Produces:**
+  - `SEMANTIC_TOKENS: readonly string[]` (92 names), exported from `@bit-ds/react`
+  - `readTokenValues(mode, names?)` and `useTokenValues(): TokenValues`
+  - `filterTokens(names, filter)` and `SURFACE_TOKENS`
+  - the section ids `tokens-color`, `tokens-type`, `tokens-space`, `tokens-shape` and `tokens-all`
+
+- [ ] **Step 1: Export `SEMANTIC_TOKENS` from `@bit-ds/react`, test first**
+
+In `packages/react/src/index.test.tsx`:
+
+```diff
+--- a/packages/react/src/index.test.tsx
++++ b/packages/react/src/index.test.tsx
+@@ -78,6 +78,13 @@ describe('public index', () => {
+     expect(lib.SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
+   });
+ 
++  it('exports SEMANTIC_TOKENS, the 92 tier-2 token names every theme declares, from @bit-ds/core', () => {
++    expect(lib.SEMANTIC_TOKENS).toHaveLength(92);
++    expect(lib.SEMANTIC_TOKENS).toContain('--bit-color-primary');
++    expect(lib.SEMANTIC_TOKENS).toContain('--bit-space-64px');
++    expect(lib.SEMANTIC_TOKENS.every((name) => name.startsWith('--bit-'))).toBe(true);
++  });
++
+   it.each(componentNames)('%s renders the root class the naming rule predicts', (name) => {
+     const Component = (lib as Record<string, unknown>)[name] as ComponentType<Record<string, unknown>>;
+     const sample = createElement(Component, { 'aria-label': 'x', children: 'x', ...SAMPLE_PROPS[name] });
+```
+
+Run: `pnpm --filter @bit-ds/react test -- index`
+Expected: FAIL, because `lib.SEMANTIC_TOKENS` is undefined.
+
+```diff
+--- a/packages/react/src/index.ts
++++ b/packages/react/src/index.ts
+@@ -1,4 +1,4 @@
+-export { PREFIX } from '@bit-ds/core/tokens';
++export { PREFIX, SEMANTIC_TOKENS } from '@bit-ds/core/tokens';
+ export { COLORS, SIZES, TEXT_SIZES, SPACE_STEPS, VARIANTS } from './system/axes';
+ export type { Color, Size, TextSize, SpaceStep, Variant } from './system/axes';
+ 
+```
+
+```diff
+--- a/packages/react/scripts/verify-dist.mjs
++++ b/packages/react/scripts/verify-dist.mjs
+@@ -27,12 +27,14 @@ for (const name of EXPECTED) assert.ok(cjs[name], `CJS export missing: ${name}`)
+ assert.equal(cjs.PREFIX, 'bit');
+ assert.equal(typeof cjs.COLOR_MODE_SCRIPT, 'string', 'CJS export missing: COLOR_MODE_SCRIPT');
+ assert.equal(typeof cjs.useColorMode, 'function', 'CJS export missing: useColorMode');
++assert.equal(cjs.SEMANTIC_TOKENS?.length, 92, 'CJS export missing: SEMANTIC_TOKENS (92 names)');
+ 
+ // 2. ESM entry
+ const esm = await import(resolve(dist, 'index.js'));
+ for (const name of EXPECTED) assert.ok(esm[name], `ESM export missing: ${name}`);
+ assert.equal(typeof esm.COLOR_MODE_SCRIPT, 'string', 'ESM export missing: COLOR_MODE_SCRIPT');
+ assert.equal(typeof esm.useColorMode, 'function', 'ESM export missing: useColorMode');
++assert.equal(esm.SEMANTIC_TOKENS?.length, 92, 'ESM export missing: SEMANTIC_TOKENS (92 names)');
+ 
+ // 3. Types
+ assert.ok(existsSync(resolve(dist, 'index.d.cts')), 'index.d.cts missing (CJS types entry)');
+```
+
+Run: `pnpm build && pnpm verify && pnpm test:coverage`
+Expected: `dist OK: 27 components`, and react `409` at `100%`.
+
+- [ ] **Step 2: Write the failing page test**
+
+Create `apps/gallery/src/pages/TokensPage.test.tsx`. jsdom computes custom properties from a `<style>`, including the `[data-mode="dark"]` rule, but it loads no CSS files and doesn't resolve `var()`. So the test injects literal values.
+
+```tsx
+import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterAll, afterEach, beforeAll, describe, it, expect } from 'vitest';
+import { SEMANTIC_TOKENS } from '@bit-ds/react';
+import { renderAt } from '../test/renderRoute';
+import { filterTokens } from './tokens/AllTokens';
+import { expectNoA11yViolations } from '../test/a11y';
+
+/** jsdom loads no CSS, so give it a few literal token values, light and dark, to compute. */
+const THEME = `
+  :root { --bit-color-primary: #7C3AED; --bit-color-neutral: #FFFFFF; --bit-color-bg: #EEEFE9; --bit-radius-6px: 6px; }
+  [data-mode="dark"] { --bit-color-neutral: #2B2B37; --bit-color-bg: #15151C; }
+`;
+let style: HTMLStyleElement;
+
+beforeAll(() => {
+  style = document.createElement('style');
+  style.textContent = THEME;
+  document.head.append(style);
+});
+
+afterAll(() => style.remove());
+
+afterEach(() => {
+  localStorage.clear();
+});
+
+async function open() {
+  const utils = renderAt('/tokens');
+  await screen.findByRole('heading', { level: 1, name: 'Tokens' });
+  return utils;
+}
+
+const card = (color: string) => screen.getByRole('group', { name: `${color} tokens` });
+
+describe('TokensPage', () => {
+  it('has the Foundations eyebrow, a section bar, and the five sections in order, with no axe violations', async () => {
+    const { container } = await open();
+    const main = screen.getByRole('main');
+    expect(within(main).getByText('Foundations')).toHaveClass('gallery-eyebrow');
+    const titles = ['Color', 'Type', 'Space', 'Shape', 'All tokens'];
+    expect(within(main).getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(titles);
+    const bar = screen.getByRole('navigation', { name: 'On this page' });
+    expect(within(bar).getAllByRole('link').map((l) => l.textContent)).toEqual(titles);
+    await expectNoA11yViolations(container);
+  });
+
+  it('the color cards show values computed from the live page, on the first render', async () => {
+    await open();
+    expect(within(card('primary')).getByText('#7C3AED')).toHaveClass('bit-code');
+    expect(within(card('neutral')).getByText('#FFFFFF')).toBeInTheDocument();
+    expect(within(card('danger')).getAllByText(/fill|hover|soft|contrast/).map((el) => el.textContent)).toEqual([
+      'fill',
+      'hover',
+      'soft',
+      'contrast',
+    ]);
+    expect(within(screen.getByRole('group', { name: 'Surface tokens' })).getByText('#EEEFE9')).toBeInTheDocument();
+  });
+
+  it('switching the mode re-reads the values', async () => {
+    await open();
+    await userEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Dark' }));
+    expect(within(card('neutral')).getByText('#2B2B37')).toBeInTheDocument();
+    expect(within(screen.getByRole('group', { name: 'Surface tokens' })).getByText('#15151C')).toBeInTheDocument();
+    await userEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Light' }));
+    expect(within(card('neutral')).getByText('#FFFFFF')).toBeInTheDocument();
+  });
+
+  it('Type and Space are one compact row each, linking to their pages', async () => {
+    await open();
+    expect(screen.getByRole('link', { name: 'See Typography' })).toHaveAttribute('href', '/typography');
+    expect(screen.getByRole('link', { name: 'See Spacing' })).toHaveAttribute('href', '/spacing');
+    const type = screen.getByRole('region', { name: 'Type' });
+    expect([...type.querySelectorAll('.gallery-face')].map((el) => el.textContent)).toEqual([
+      'Lilita One',
+      'Nunito',
+      'Press Start',
+      'JetBrains Mono',
+    ]);
+    expect(screen.getByRole('region', { name: 'Space' }).querySelectorAll('.gallery-ruler__bar')).toHaveLength(8);
+  });
+
+  it('Shape has a tile per radius and shadow token, with its name and value', async () => {
+    await open();
+    const shape = screen.getByRole('region', { name: 'Shape' });
+    expect(shape.querySelectorAll('.gallery-shape')).toHaveLength(8);
+    expect(within(shape).getByText('--bit-radius-6px')).toHaveClass('bit-code');
+    expect(within(shape).getByText('6px')).toBeInTheDocument();
+  });
+
+  it('All tokens: every token with a count, and a Copy for each that copies var(--name)', async () => {
+    await open();
+    const count = screen.getByText(`${SEMANTIC_TOKENS.length} of ${SEMANTIC_TOKENS.length} tokens`);
+    expect(count).toHaveClass('bit-badge');
+    expect(count).toHaveAttribute('role', 'status');
+    const table = screen.getByRole('region', { name: 'Token values' });
+    expect(within(table).getAllByRole('row')).toHaveLength(SEMANTIC_TOKENS.length + 1);
+    expect(within(table).getByRole('button', { name: 'Copy var(--bit-color-primary)' })).toBeInTheDocument();
+  });
+
+  it('the filter narrows the table and the count', async () => {
+    await open();
+    await userEvent.type(screen.getByLabelText('Filter'), 'SPACE');
+    const table = screen.getByRole('region', { name: 'Token values' });
+    expect(within(table).getAllByRole('row')).toHaveLength(8 + 1);
+    expect(screen.getByText(`8 of ${SEMANTIC_TOKENS.length} tokens`)).toBeInTheDocument();
+  });
+
+  it('no match: the message, the name format, and Clear filter, which restores the list and focuses the field', async () => {
+    await open();
+    const field = screen.getByLabelText('Filter');
+    await userEvent.type(field, 'sparkle');
+    expect(screen.queryByRole('region', { name: 'Token values' })).toBeNull();
+    expect(screen.getByText('No tokens match “sparkle”.')).toBeInTheDocument();
+    expect(screen.getByText('--bit-color-primary', { selector: 'code' })).toBeInTheDocument();
+    expect(screen.getByText(`0 of ${SEMANTIC_TOKENS.length} tokens`)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Clear filter' }));
+    expect(field).toHaveValue('');
+    expect(document.activeElement).toBe(field);
+    expect(screen.getByRole('region', { name: 'Token values' })).toBeInTheDocument();
+  });
+});
+
+describe('filterTokens', () => {
+  it('matches part of a name, ignoring case and outer spaces; empty keeps every name', () => {
+    expect(filterTokens(['--bit-color-bg', '--bit-space-4px'], ' COLOR ')).toEqual(['--bit-color-bg']);
+    expect(filterTokens(['--bit-color-bg'], '')).toEqual(['--bit-color-bg']);
+    expect(filterTokens(['--bit-color-bg'], 'zzz')).toEqual([]);
+  });
+});
+```
+
+Run: `pnpm --filter @bit-ds/gallery test -- TokensPage`
+Expected: FAIL, because `./tokens/AllTokens` doesn't resolve.
+
+- [ ] **Step 3: Write the parts**
+
+Create `apps/gallery/src/pages/tokens/tokenValues.ts`. It reads the values during render, so the first paint has them, and reads them again when the mode changes.
+
+```ts
+import { useMemo } from 'react';
+import { SEMANTIC_TOKENS, useColorMode } from '@bit-ds/react';
+import type { ColorMode } from '@bit-ds/react';
+
+/** Every public token's value as the page computes it right now. */
+export interface TokenValues {
+  /** The mode these values were read in. */
+  mode: ColorMode;
+  /** Token name → computed value, e.g. `--bit-color-primary` → `#7C3AED`. Empty when the theme lacks one. */
+  values: ReadonlyMap<string, string>;
+}
+
+/** Read each token from the live document's computed style, so the values match the theme and the mode. */
+export function readTokenValues(mode: ColorMode, names: readonly string[] = SEMANTIC_TOKENS): TokenValues {
+  const style = getComputedStyle(document.documentElement);
+  return { mode, values: new Map(names.map((name) => [name, style.getPropertyValue(name).trim()])) };
+}
+
+/**
+ * The token values for the current mode. Read during render, so the first paint already has them (no blank
+ * flash), and read again whenever the mode changes.
+ */
+export function useTokenValues(): TokenValues {
+  const { mode } = useColorMode();
+  return useMemo(() => readTokenValues(mode), [mode]);
+}
+```
+
+Create `apps/gallery/src/pages/tokens/ColorSection.tsx`:
+
+```tsx
+import { Card, CardBody, CardHeader, Code, COLORS, Stack, Text } from '@bit-ds/react';
+import type { TokenValues } from './tokenValues';
+
+const ROLES = [
+  ['fill', ''],
+  ['hover', '-hover'],
+  ['soft', '-soft'],
+  ['contrast', '-contrast'],
+] as const;
+
+/** The page-wide colors that aren't one of the five roles. */
+export const SURFACE_TOKENS = [
+  ['bg', '--bit-color-bg'],
+  ['surface', '--bit-color-surface'],
+  ['text', '--bit-color-text'],
+  ['text-muted', '--bit-color-text-muted'],
+  ['ink', '--bit-color-ink'],
+  ['focus', '--bit-focus-ring-color'],
+] as const;
+
+/** A square of the token's own color, read live through var(). Decoration: the name and value say it. */
+function Swatch({ token }: { token: string }) {
+  return <span className="gallery-swatch" style={{ background: `var(${token})` }} aria-hidden="true" />;
+}
+
+function SwatchRow({ name, token, values }: { name: string; token: string; values: TokenValues }) {
+  return (
+    <Stack direction="row" gap={8} align="center">
+      <Swatch token={token} />
+      <Stack gap={4}>
+        <Text as="span" size={13} weight="bold">
+          {name}
+        </Text>
+        <Code>{values.values.get(token)}</Code>
+      </Stack>
+    </Stack>
+  );
+}
+
+/** One Card per color role, headed in its fill and contrast, then the surface tokens in a row. */
+export function ColorSection({ values }: { values: TokenValues }) {
+  return (
+    <Stack gap={16}>
+      <div className="gallery-grid">
+        {COLORS.map((color) => (
+          <Card key={color} aria-label={`${color} tokens`} role="group">
+            <CardHeader style={{ background: `var(--bit-color-${color})`, color: `var(--bit-color-${color}-contrast)` }}>
+              {color}
+            </CardHeader>
+            <CardBody>
+              <Stack gap={8}>
+                {ROLES.map(([role, suffix]) => (
+                  <SwatchRow key={role} name={role} token={`--bit-color-${color}${suffix}`} values={values} />
+                ))}
+              </Stack>
+            </CardBody>
+          </Card>
+        ))}
+      </div>
+      <Stack direction="row" gap={16} wrap role="group" aria-label="Surface tokens">
+        {SURFACE_TOKENS.map(([name, token]) => (
+          <SwatchRow key={token} name={name} token={token} values={values} />
+        ))}
+      </Stack>
+    </Stack>
+  );
+}
+```
+
+Create `apps/gallery/src/pages/tokens/CompactRows.tsx`:
+
+```tsx
+import { Box, Link, Stack, SPACE_STEPS, Text, TEXT_SIZES } from '@bit-ds/react';
+import { Link as RouterLink } from 'react-router-dom';
+
+const FACES = [
+  ['display', 'Lilita One'],
+  ['body', 'Nunito'],
+  ['pixel', 'Press Start'],
+  ['mono', 'JetBrains Mono'],
+] as const;
+
+function SeeMore({ to, page }: { to: string; page: string }) {
+  return (
+    <Link asChild>
+      <RouterLink to={to}>
+        See {page} <span aria-hidden="true">→</span>
+      </RouterLink>
+    </Link>
+  );
+}
+
+/** The four faces by name, each in its own face, the text sizes as samples, and a link to Typography. */
+export function TypeRow() {
+  return (
+    <Stack direction="row" gap={24} align="end" wrap>
+      {FACES.map(([face, name]) => (
+        <Text key={face} as="span" size={24} className="gallery-face" data-face={face}>
+          {name}
+        </Text>
+      ))}
+      <Stack direction="row" gap={12} align="end" wrap>
+        {TEXT_SIZES.map((size) => (
+          <Text key={size} as="span" size={size}>
+            {size}
+          </Text>
+        ))}
+      </Stack>
+      <SeeMore to="/typography" page="Typography" />
+    </Stack>
+  );
+}
+
+/** The eight space steps as bars drawn by Box padding, with their numbers, and a link to Spacing. */
+export function SpaceRow() {
+  return (
+    <Stack direction="row" gap={24} align="end" wrap>
+      <Stack direction="row" gap={12} align="end" wrap>
+        {SPACE_STEPS.map((step) => (
+          <Stack key={step} gap={4} align="center">
+            <Box paddingLeft={step} className="gallery-ruler__bar" aria-hidden="true" />
+            <Text as="span" size={13} color="neutral">
+              {step}
+            </Text>
+          </Stack>
+        ))}
+      </Stack>
+      <SeeMore to="/spacing" page="Spacing" />
+    </Stack>
+  );
+}
+```
+
+Create `apps/gallery/src/pages/tokens/ShapeSection.tsx`:
+
+```tsx
+import { Code, SEMANTIC_TOKENS, Stack, Text } from '@bit-ds/react';
+import type { CSSProperties } from 'react';
+import type { TokenValues } from './tokenValues';
+
+const RADII = SEMANTIC_TOKENS.filter((name) => name.startsWith('--bit-radius-'));
+const SHADOWS = SEMANTIC_TOKENS.filter((name) => name.startsWith('--bit-shadow-'));
+
+function ShapeTile({ token, style, values }: { token: string; style: CSSProperties; values: TokenValues }) {
+  return (
+    <Stack gap={8} align="start">
+      <span className="gallery-shape" style={style} aria-hidden="true" />
+      <Code>{token}</Code>
+      <Text as="span" size={13} color="neutral">
+        {values.values.get(token)}
+      </Text>
+    </Stack>
+  );
+}
+
+/** A tile per radius and per shadow, drawn with the token itself, labelled with its name and value. */
+export function ShapeSection({ values }: { values: TokenValues }) {
+  return (
+    <div className="gallery-grid">
+      {RADII.map((token) => (
+        <ShapeTile key={token} token={token} style={{ borderRadius: `var(${token})` }} values={values} />
+      ))}
+      {SHADOWS.map((token) => (
+        <ShapeTile key={token} token={token} style={{ boxShadow: `var(${token})` }} values={values} />
+      ))}
+    </div>
+  );
+}
+```
+
+Create `apps/gallery/src/pages/tokens/AllTokens.tsx`:
+
+```tsx
+import { useRef, useState } from 'react';
+import {
+  Badge,
+  Button,
+  Code,
+  Field,
+  Input,
+  SEMANTIC_TOKENS,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Text,
+} from '@bit-ds/react';
+import { CopyButton } from '../../ui/CopyButton';
+import type { TokenValues } from './tokenValues';
+
+/** Names containing the filter text, ignoring case and surrounding spaces. An empty filter keeps them all. */
+export function filterTokens(names: readonly string[], filter: string): readonly string[] {
+  const query = filter.trim().toLowerCase();
+  return query === '' ? names : names.filter((name) => name.toLowerCase().includes(query));
+}
+
+/** Every public token: a filter with its count, then name, current value and Copy (`var(--name)`). */
+export function AllTokens({ values }: { values: TokenValues }) {
+  const [filter, setFilter] = useState('');
+  const input = useRef<HTMLInputElement>(null);
+  const shown = filterTokens(SEMANTIC_TOKENS, filter);
+  const clear = () => {
+    setFilter('');
+    input.current?.focus();
+  };
+  return (
+    <Stack gap={12}>
+      <Stack direction="row" gap={12} align="end" wrap>
+        <Field label="Filter">
+          <Input ref={input} type="search" value={filter} onChange={(event) => setFilter(event.target.value)} />
+        </Field>
+        <Badge role="status" variant="outline" shape="square">
+          {`${shown.length} of ${SEMANTIC_TOKENS.length} tokens`}
+        </Badge>
+      </Stack>
+      {shown.length === 0 ? (
+        <Stack gap={8} align="start">
+          <Text>No tokens match “{filter.trim()}”.</Text>
+          <Text size={13} color="neutral">
+            Token names look like <Code>--bit-color-primary</Code> or <Code>--bit-space-16px</Code>. Try part of one, such as
+            color or space.
+          </Text>
+          <Button variant="outline" color="neutral" size="sm" onClick={clear}>
+            Clear filter
+          </Button>
+        </Stack>
+      ) : (
+        <Table aria-label="Token values">
+          <TableHead>
+            <TableRow>
+              <TableCell>Token</TableCell>
+              <TableCell>Value</TableCell>
+              <TableCell>Copy</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {shown.map((name) => (
+              <TableRow key={name}>
+                <TableCell>
+                  <Code>{name}</Code>
+                </TableCell>
+                <TableCell>{values.values.get(name)}</TableCell>
+                <TableCell>
+                  <CopyButton text={`var(${name})`} label={`Copy var(${name})`} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </Stack>
+  );
+}
+```
+
+Replace `apps/gallery/src/pages/TokensPage.tsx` with:
+
+```tsx
+import { Stack, Text } from '@bit-ds/react';
+import { PageHeader } from '../ui/PageHeader';
+import { PageSection } from '../ui/PageSection';
+import { SectionBar } from '../ui/SectionBar';
+import { useTokenValues } from './tokens/tokenValues';
+import { ColorSection } from './tokens/ColorSection';
+import { SpaceRow, TypeRow } from './tokens/CompactRows';
+import { ShapeSection } from './tokens/ShapeSection';
+import { AllTokens } from './tokens/AllTokens';
+
+const SECTIONS = {
+  color: { id: 'tokens-color', title: 'Color' },
+  type: { id: 'tokens-type', title: 'Type' },
+  space: { id: 'tokens-space', title: 'Space' },
+  shape: { id: 'tokens-shape', title: 'Shape' },
+  all: { id: 'tokens-all', title: 'All tokens' },
+} as const;
+
+/** Foundations: the theme's whole public API, with values computed live in the current mode. */
+export function TokensPage() {
+  const values = useTokenValues();
+  return (
+    <Stack gap={32}>
+      <Stack gap={16}>
+        <PageHeader eyebrow="Foundations" title="Tokens">
+          <Text size={18}>
+            Every value a theme sets, read live from this page, so they follow the light and dark switch.
+          </Text>
+        </PageHeader>
+        <SectionBar sections={Object.values(SECTIONS)} />
+      </Stack>
+      <PageSection {...SECTIONS.color}>
+        <ColorSection values={values} />
+      </PageSection>
+      <PageSection {...SECTIONS.type}>
+        <TypeRow />
+      </PageSection>
+      <PageSection {...SECTIONS.space}>
+        <SpaceRow />
+      </PageSection>
+      <PageSection {...SECTIONS.shape}>
+        <ShapeSection values={values} />
+      </PageSection>
+      <PageSection {...SECTIONS.all}>
+        <AllTokens values={values} />
+      </PageSection>
+    </Stack>
+  );
+}
+```
+
+- [ ] **Step 4: The CSS**
+
+In `apps/gallery/src/gallery.css`, insert this directly under `/* ---------- tokens page ---------- */`:
+
+```css
+/* A color sample: the token's own color, set inline through var(), edged so white and the page bg show. */
+.gallery-swatch {
+  flex: none;
+  width: var(--bit-space-24px);
+  height: var(--bit-space-24px);
+  border: 2px solid var(--bit-color-line);
+  border-radius: var(--bit-radius-6px);
+}
+
+/* A shape sample: a surface square that takes one radius or shadow token inline. */
+.gallery-shape {
+  width: var(--bit-space-64px);
+  height: var(--bit-space-48px);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+}
+```
+
+- [ ] **Step 5: Run the gallery tests**
+
+Run: `pnpm --filter @bit-ds/gallery test`
+Expected: PASS: `Tests  306 passed (306)` on wave 1, or `401` after T4.
+
+- [ ] **Step 6: Run every gate**
+
+Run: `pnpm build && pnpm verify && pnpm test && pnpm test:coverage && pnpm typecheck && pnpm lint && pnpm smoke && pnpm storybook:build`
+Expected: all green, with react `409`.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add packages/react apps/gallery/src/pages apps/gallery/src/gallery.css
+git commit -m "feat(gallery): Tokens page with live computed values, compact Type and Space rows, Shape, and the All tokens filter; SEMANTIC_TOKENS exported
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 6: Home, InstallCommand and the version (spec §5–6, Amendment 1 §3)
+
+**Files** (bare paths are under `apps/gallery/src/`):
+- Create:
+  - `content/install.ts`, `content/InstallCommand.tsx` and `content/InstallCommand.test.tsx`
+  - `pages/home/ComponentTiles.tsx`, `pages/home/GetStarted.tsx` and `pages/home/NamingRule.tsx`
+  - `pages/HomePage.test.tsx`, `env.d.ts` and `version.test.ts`
+- Modify:
+  - `pages/HomePage.tsx` and `shell/Shell.test.tsx`
+  - `apps/gallery/vite.config.ts` and `apps/gallery/vitest.config.ts`
+  - `gallery.css` (the home-page section) and `README.md`
+
+**Interfaces:**
+- **Consumes:**
+  - From T1: CodeBlock `actions`
+  - From T2: `STYLE_IMPORTS`
+  - Existing: `NAV` (`shell/Sidebar.tsx`), `MANIFESTS`, `routeFor`, `renderManifest` and `defaultState`
+- **Produces:**
+  - **For PR3c's `snippets.mjs`:**
+    - `PACKAGE_NAME`, `PACKAGE_MANAGERS` and `PackageManager`
+    - `INSTALL_COMMANDS`, `DEFAULT_PACKAGE_MANAGER` and `PACKAGE_MANAGER_STORAGE_KEY`
+    - `isPackageManager`, `readPackageManager` and `writePackageManager`
+  - **Components:** `InstallCommand()`
+  - **Version:** `__BIT_VERSION__` (a global const), plus `BIT_VERSION` and `DEFINE` from `vite.config.ts`
+  - **Home:** `BROWSE_TARGET`, `isLargeTile`, `NAMING_ROWS` and `NAMING_COLUMNS`. A new naming-rule column is one entry in `NAMING_COLUMNS`.
+
+- [ ] **Step 1: Write the failing tests**
+
+Create `apps/gallery/src/content/InstallCommand.test.tsx`:
+
+```tsx
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import { InstallCommand } from './InstallCommand';
+import { INSTALL_COMMANDS, PACKAGE_MANAGER_STORAGE_KEY, readPackageManager, writePackageManager } from './install';
+import { expectNoA11yViolations } from '../test/a11y';
+
+const command = () => screen.getByRole('region', { name: 'Install command' }).textContent;
+
+afterEach(() => {
+  localStorage.clear();
+  vi.restoreAllMocks();
+  Reflect.deleteProperty(navigator, 'clipboard');
+});
+
+describe('install commands', () => {
+  it('are pnpm add, npm install and yarn add, for @bit-ds/react', () => {
+    expect(INSTALL_COMMANDS).toEqual({
+      pnpm: 'pnpm add @bit-ds/react',
+      npm: 'npm install @bit-ds/react',
+      yarn: 'yarn add @bit-ds/react',
+    });
+    expect(PACKAGE_MANAGER_STORAGE_KEY).toBe('bit-gallery-package-manager');
+  });
+
+  it('nothing stored, an unknown value, or blocked storage all read as pnpm', () => {
+    expect(readPackageManager()).toBe('pnpm');
+    localStorage.setItem(PACKAGE_MANAGER_STORAGE_KEY, 'bun');
+    expect(readPackageManager()).toBe('pnpm');
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('SecurityError');
+    });
+    expect(readPackageManager()).toBe('pnpm');
+  });
+
+  it('a blocked write is silent', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError');
+    });
+    expect(() => writePackageManager('yarn')).not.toThrow();
+  });
+});
+
+describe('InstallCommand', () => {
+  it('shows pnpm by default, in a shell CodeBlock with the switcher in its bar, left of Copy', async () => {
+    const { container } = render(<InstallCommand />);
+    expect(command()).toBe('pnpm add @bit-ds/react');
+    expect(screen.getByRole('radio', { name: 'pnpm' })).toBeChecked();
+    const bar = container.querySelector('.bit-code__bar')!;
+    expect(bar.querySelector('.bit-code__actions')).toContainElement(screen.getByRole('group', { name: 'Package manager' }));
+    expect(bar.querySelector('.bit-code__actions + .bit-code__copy')).not.toBeNull();
+    expect(container.querySelector('.bit-segmented-control')).toHaveClass('bit-sm');
+    await expectNoA11yViolations(container);
+  });
+
+  it('each manager shows its command', async () => {
+    render(<InstallCommand />);
+    await userEvent.click(screen.getByRole('radio', { name: 'npm' }));
+    expect(command()).toBe('npm install @bit-ds/react');
+    await userEvent.click(screen.getByRole('radio', { name: 'yarn' }));
+    expect(command()).toBe('yarn add @bit-ds/react');
+  });
+
+  it('Copy copies the selected command', async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    render(<InstallCommand />);
+    await userEvent.click(screen.getByRole('radio', { name: 'yarn' }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+    });
+    expect(writeText).toHaveBeenCalledWith('yarn add @bit-ds/react');
+  });
+
+  it('the pick persists and is restored on the next visit', async () => {
+    const first = render(<InstallCommand />);
+    await userEvent.click(screen.getByRole('radio', { name: 'npm' }));
+    expect(localStorage.getItem(PACKAGE_MANAGER_STORAGE_KEY)).toBe('npm');
+    first.unmount();
+    render(<InstallCommand />);
+    expect(screen.getByRole('radio', { name: 'npm' })).toBeChecked();
+    expect(command()).toBe('npm install @bit-ds/react');
+  });
+
+  it('blocked storage falls back to pnpm and the switcher still works for the visit', async () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('SecurityError');
+    });
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('SecurityError');
+    });
+    render(<InstallCommand />);
+    expect(command()).toBe('pnpm add @bit-ds/react');
+    await userEvent.click(screen.getByRole('radio', { name: 'yarn' }));
+    expect(command()).toBe('yarn add @bit-ds/react');
+  });
+
+  it('an unknown stored value falls back to pnpm', () => {
+    localStorage.setItem(PACKAGE_MANAGER_STORAGE_KEY, 'bun');
+    render(<InstallCommand />);
+    expect(command()).toBe('pnpm add @bit-ds/react');
+  });
+});
+```
+
+Create `apps/gallery/src/version.test.ts`:
+
+```ts
+// @vitest-environment node
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { describe, it, expect } from 'vitest';
+import { BIT_VERSION } from '../vite.config';
+
+const require = createRequire(import.meta.url);
+const pkg = JSON.parse(readFileSync(require.resolve('@bit-ds/react/package.json'), 'utf8')) as { version: string };
+
+describe('__BIT_VERSION__', () => {
+  it("is @bit-ds/react's package.json version, inlined at build time", () => {
+    expect(BIT_VERSION).toBe(pkg.version);
+    expect(__BIT_VERSION__).toBe(pkg.version);
+  });
+
+  it('is a semver version (0.0.0 until PR3c sets the release)', () => {
+    expect(__BIT_VERSION__).toMatch(/^\d+\.\d+\.\d+/);
+  });
+});
+```
+
+Create `apps/gallery/src/pages/HomePage.test.tsx`:
+
+```tsx
+import { screen, within } from '@testing-library/react';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { renderAt } from '../test/renderRoute';
+import { expectNoA11yViolations } from '../test/a11y';
+import { MANIFESTS, routeFor } from '../manifests';
+import { NAV } from '../shell/Sidebar';
+import { STYLE_IMPORTS } from '../content/styleImports';
+import { NAMING_COLUMNS } from './home/NamingRule';
+import { BROWSE_TARGET } from './HomePage';
+
+async function open() {
+  const utils = renderAt('/');
+  await screen.findByRole('heading', { level: 1, name: 'bit Design System' });
+  return utils;
+}
+
+const main = () => screen.getByRole('main');
+
+describe('HomePage', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('the hero: BitLogo as the h1, the tagline, and two Buttons, with no axe violations', async () => {
+    const { container } = await open();
+    const h1 = screen.getByRole('heading', { level: 1 });
+    expect(within(h1).getByRole('img', { name: 'bit Design System' })).toHaveClass('bit-lg');
+    expect(
+      screen.getByText(
+        'A retro-game React design system for people new to design systems. The prop you type is the class it emits is the token it reads.',
+      ),
+    ).toBeInTheDocument();
+    const browse = screen.getByRole('link', { name: 'Browse components' });
+    expect(browse).toHaveClass('bit-button', 'bit-primary', 'bit-solid');
+    expect(browse).toHaveAttribute('href', BROWSE_TARGET);
+    expect(screen.getByRole('link', { name: 'See the tokens' })).toHaveClass('bit-outline');
+    expect(screen.getByRole('link', { name: 'See the tokens' })).toHaveAttribute('href', '/tokens');
+    await expectNoA11yViolations(container);
+  });
+
+  it('Browse components goes to the first component in the sidebar', () => {
+    expect(BROWSE_TARGET).toBe(NAV.find((item) => item.group === 'Components')!.to);
+  });
+
+  it('Components and Forms are h2s with counts from the manifests', async () => {
+    await open();
+    for (const [title, group] of [
+      ['Components', 'components'],
+      ['Forms', 'forms'],
+    ] as const) {
+      const heading = within(main()).getByRole('heading', { level: 2, name: title });
+      expect(heading.parentElement).toHaveTextContent(`${title}${MANIFESTS.filter((m) => m.group === group).length}`);
+    }
+  });
+
+  it('one tile per manifest except the logo, each one Link to its page', async () => {
+    await open();
+    const tiles = MANIFESTS.filter((m) => m.group !== 'brand');
+    for (const m of tiles) {
+      const links = within(main()).getAllByRole('link', { name: m.name });
+      expect(links.map((l) => l.getAttribute('href')), m.name).toEqual([routeFor(m)]);
+    }
+    expect(within(main()).queryByRole('link', { name: 'BitLogo' })).toBeNull();
+  });
+
+  it('large tiles show a live, inert preview: Alert, Button, Card, SegmentedControl and the four Forms', async () => {
+    const { container } = await open();
+    const large = [...container.querySelectorAll('.gallery-tile')].map((tile) => tile.querySelector('a')!.textContent!.replace(' →', ''));
+    expect(large).toEqual(['Button', 'Alert', 'Card', 'SegmentedControl', 'Field', 'Input', 'Select', 'Switch']);
+    for (const preview of container.querySelectorAll('.gallery-tile__preview')) {
+      expect(preview).toHaveAttribute('inert');
+      expect(preview.querySelector('[class*="bit-"]')).not.toBeNull();
+    }
+  });
+
+  it('Get started: three numbered steps, the version Badge, the install switcher and the style imports', async () => {
+    await open();
+    const steps = within(main()).getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
+    expect(steps).toEqual(['Install', 'Add the styles once', 'Use a component']);
+    // version.test.ts pins __BIT_VERSION__ to @bit-ds/react's package.json.
+    expect(screen.getByText(`v${__BIT_VERSION__}`)).toHaveClass('bit-badge');
+    expect(screen.getByRole('region', { name: 'Install command' }).textContent).toBe('pnpm add @bit-ds/react');
+    expect(screen.getByRole('region', { name: 'Style imports' }).textContent).toBe(STYLE_IMPORTS);
+    expect(screen.getByRole('region', { name: 'First component' }).textContent).toBe(
+      "import { Button } from '@bit-ds/react';\n\n<Button>Save</Button>",
+    );
+  });
+
+  it('the naming rule has five columns, and its Result column renders real Buttons', async () => {
+    await open();
+    const table = screen.getByRole('region', { name: 'The naming rule' });
+    expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual([
+      'You write (prop)',
+      'Or write (className)',
+      'Class it emits',
+      'Token',
+      'Result',
+    ]);
+    expect(NAMING_COLUMNS).toHaveLength(5);
+    const buttons = within(table).getAllByRole('button', { name: 'Save' });
+    expect(buttons.map((b) => b.className)).toEqual([
+      'bit-button bit-primary bit-solid bit-md',
+      'bit-button bit-primary bit-outline bit-md',
+      'bit-button bit-primary bit-solid bit-lg',
+    ]);
+    expect(within(table).getByText('className="bit-outline"')).toHaveClass('bit-code');
+    expect(within(table).getByText('--bit-control-height-lg')).toHaveClass('bit-code');
+  });
+});
+```
+
+In `apps/gallery/src/shell/Shell.test.tsx`, delete the two old Home tests. `HomePage.test.tsx` replaces them, and the old install block and the "two ways" card are gone:
+
+```diff
+--- a/apps/gallery/src/shell/Shell.test.tsx
++++ b/apps/gallery/src/shell/Shell.test.tsx
+@@ -9,34 +9,6 @@ describe('Shell', () => {
+     document.documentElement.dataset.theme = 'power-up';
+   });
+ 
+-  it('home shows the logo, the install lines, and the naming rule', async () => {
+-    const { container } = renderAt('/');
+-    expect((await screen.findAllByRole('img', { name: 'bit Design System' })).length).toBeGreaterThan(0);
+-    const heading = screen.getByRole('heading', { level: 1, name: 'bit Design System' });
+-    expect(within(heading).getByRole('img', { name: 'bit Design System' })).toBeInTheDocument();
+-    // The old separate "bit" h1 is gone: the logo is the heading.
+-    expect(screen.queryByText('bit', { selector: 'h1' })).toBeNull();
+-    const install = container.querySelector('.bit-code__block[data-language="shell"] pre');
+-    expect(install?.textContent).toBe(
+-      "pnpm add @bit-ds/react\nimport '@bit-ds/react/themes/power-up.css';\nimport '@bit-ds/react/styles.css';",
+-    );
+-    expect(screen.getByText('bit-primary')).toBeInTheDocument();
+-    await expectNoA11yViolations(container);
+-  });
+-
+-  it('home shows its three snippets as CodeBlocks: install in shell, then the React and HTML ways', async () => {
+-    const { container } = renderAt('/');
+-    await screen.findByRole('heading', { level: 1 });
+-    const blocks = [...container.querySelectorAll('.bit-code__block')];
+-    expect(blocks.map((b) => b.getAttribute('data-language'))).toEqual(['shell', 'jsx', 'html']);
+-    expect(blocks[1]!.querySelector('pre')!.textContent).toBe('<Card><CardHeader>Stats</CardHeader></Card>');
+-    expect(blocks[2]!.querySelector('pre')!.textContent).toBe(
+-      '<div class="bit-card bit-solid"><div class="bit-card__header">Stats</div></div>',
+-    );
+-    expect(blocks[1]!.querySelector('[data-kind="component"]')).toHaveTextContent('Card');
+-    expect(container.querySelector('pre.gallery-pre')).toBeNull();
+-  });
+-
+   it('has a skip link that targets main', async () => {
+     renderAt('/');
+     const skip = await screen.findByRole('link', { name: 'Skip to content' });
+```
+
+- [ ] **Step 2: Run them and confirm they fail**
+
+Run: `pnpm build && pnpm --filter @bit-ds/gallery test -- InstallCommand version HomePage`
+Expected: FAIL.
+- `./InstallCommand` and `./install` don't resolve.
+- `BIT_VERSION` isn't exported from `vite.config`.
+- `__BIT_VERSION__` is not defined.
+- Home has no tiles or naming columns.
+
+- [ ] **Step 3: The install module and the switcher**
+
+Create `apps/gallery/src/content/install.ts`:
+
+```ts
+/**
+ * The install commands, in one place. The gallery's InstallCommand reads them; PR3c's snippets.mjs and the
+ * consumer smoke test will import them too, so every install line anywhere matches.
+ */
+export const PACKAGE_NAME = '@bit-ds/react';
+
+export const PACKAGE_MANAGERS = ['pnpm', 'npm', 'yarn'] as const;
+export type PackageManager = (typeof PACKAGE_MANAGERS)[number];
+
+export const INSTALL_COMMANDS: Readonly<Record<PackageManager, string>> = {
+  pnpm: `pnpm add ${PACKAGE_NAME}`,
+  npm: `npm install ${PACKAGE_NAME}`,
+  yarn: `yarn add ${PACKAGE_NAME}`,
+};
+
+export const DEFAULT_PACKAGE_MANAGER: PackageManager = 'pnpm';
+
+/** Where the visitor's pick is remembered. */
+export const PACKAGE_MANAGER_STORAGE_KEY = 'bit-gallery-package-manager';
+
+export function isPackageManager(value: unknown): value is PackageManager {
+  return typeof value === 'string' && (PACKAGE_MANAGERS as readonly string[]).includes(value);
+}
+
+/** The remembered pick. Blocked storage, nothing stored, or an unknown value all give pnpm. */
+export function readPackageManager(): PackageManager {
+  try {
+    const stored = window.localStorage.getItem(PACKAGE_MANAGER_STORAGE_KEY);
+    return isPackageManager(stored) ? stored : DEFAULT_PACKAGE_MANAGER;
+  } catch {
+    return DEFAULT_PACKAGE_MANAGER;
+  }
+}
+
+/** Remember the pick. Blocked storage (private browsing) keeps it for this visit only, silently. */
+export function writePackageManager(manager: PackageManager): void {
+  try {
+    window.localStorage.setItem(PACKAGE_MANAGER_STORAGE_KEY, manager);
+  } catch {
+    // Storage is blocked: the pick lasts until the page closes.
+  }
+}
+```
+
+Create `apps/gallery/src/content/InstallCommand.tsx`:
+
+```tsx
+import { useState } from 'react';
+import { CodeBlock, SegmentedControl } from '@bit-ds/react';
+import { INSTALL_COMMANDS, isPackageManager, PACKAGE_MANAGERS, readPackageManager, writePackageManager } from './install';
+import type { PackageManager } from './install';
+
+const OPTIONS = PACKAGE_MANAGERS.map((manager) => ({ value: manager, label: manager }));
+
+/**
+ * The install command in the visitor's package manager. A small SegmentedControl in the CodeBlock's bar
+ * picks pnpm, npm or yarn; the pick is remembered, and Copy copies the command shown.
+ */
+export function InstallCommand() {
+  const [manager, setManager] = useState<PackageManager>(readPackageManager);
+  const choose = (value: string) => {
+    if (!isPackageManager(value)) return;
+    setManager(value);
+    writePackageManager(value);
+  };
+  return (
+    <CodeBlock
+      code={INSTALL_COMMANDS[manager]}
+      language="shell"
+      label="Install command"
+      actions={
+        <SegmentedControl
+          legend="Package manager"
+          legendHidden
+          size="sm"
+          options={OPTIONS}
+          value={manager}
+          onValueChange={choose}
+        />
+      }
+    />
+  );
+}
+```
+
+- [ ] **Step 4: The version, through Vite `define`**
+
+Replace `apps/gallery/vite.config.ts` with:
+
+```ts
+import { createRequire } from 'node:module';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+/** Served from https://doosemavis.github.io/bit-design-system/ in production, from / in dev. */
+export const PAGES_BASE = '/bit-design-system/';
+
+const require = createRequire(import.meta.url);
+
+/** @bit-ds/react's version, read at build time from its package.json. Home shows it as `v{version}`. */
+export const BIT_VERSION: string = (require('@bit-ds/react/package.json') as { version: string }).version;
+
+/** Compile-time constants, shared with vitest.config.ts so tests see the same values. */
+export const DEFINE = { __BIT_VERSION__: JSON.stringify(BIT_VERSION) };
+
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? PAGES_BASE : '/',
+  define: DEFINE,
+  plugins: [react()],
+  server: { port: 5173, strictPort: true },
+  preview: { port: 4173, strictPort: true },
+}));
+```
+
+In `apps/gallery/vitest.config.ts`, add the same constant, so tests see it:
+
+```diff
+--- a/apps/gallery/vitest.config.ts
++++ b/apps/gallery/vitest.config.ts
+@@ -1,8 +1,10 @@
+ import { defineConfig } from 'vitest/config';
+ import react from '@vitejs/plugin-react';
++import { DEFINE } from './vite.config';
+ 
+ export default defineConfig({
+   plugins: [react()],
++  define: DEFINE,
+   test: {
+     environment: 'jsdom',
+     setupFiles: ['./vitest.setup.ts'],
+```
+
+Create `apps/gallery/src/env.d.ts` (`tsconfig.json` already includes `src`):
+
+```ts
+/** @bit-ds/react's version, inlined at build time by Vite `define` (see vite.config.ts). */
+declare const __BIT_VERSION__: string;
+```
+
+- [ ] **Step 5: Home**
+
+Create `apps/gallery/src/pages/home/ComponentTiles.tsx`:
+
+```tsx
+import { Badge, Heading, Link, Stack } from '@bit-ds/react';
+import { Link as RouterLink } from 'react-router-dom';
+import { MANIFESTS, routeFor } from '../../manifests';
+import type { Manifest } from '../../manifests';
+import { renderManifest } from '../../engine/renderManifest';
+import { defaultState } from '../../engine/state';
+
+/** Components that get a large live tile. Every Forms component does too. */
+const HEADLINERS: readonly string[] = ['alert', 'button', 'card', 'segmentedcontrol'];
+
+/** The icon chip on a compact tile. A component missing here shows its first letter. */
+const GLYPHS: Readonly<Record<string, string>> = {
+  badge: '+1',
+  box: '□',
+  code: '<>',
+  codeblock: '{}',
+  heading: 'H',
+  link: 'a',
+  modetoggle: '◐',
+  spinner: '◌',
+  stack: '≡',
+  table: '▦',
+  text: 'Aa',
+};
+
+export function isLargeTile(manifest: Manifest): boolean {
+  return manifest.group === 'forms' || HEADLINERS.includes(manifest.slug);
+}
+
+/**
+ * A live preview on top, the name and → below; the whole tile is one Link. The preview is inert: it shows
+ * the component but takes no clicks or focus, so the tile stays a single link.
+ */
+function LargeTile({ manifest }: { manifest: Manifest }) {
+  return (
+    <div className="gallery-tile">
+      <div className="gallery-tile__preview" inert>
+        {renderManifest(manifest, defaultState(manifest))}
+      </div>
+      <Link asChild color="neutral" className="gallery-tile__link">
+        <RouterLink to={routeFor(manifest)}>
+          {manifest.name} <span aria-hidden="true">→</span>
+        </RouterLink>
+      </Link>
+    </div>
+  );
+}
+
+function CompactTile({ manifest }: { manifest: Manifest }) {
+  return (
+    <Link asChild color="neutral" className="gallery-chip">
+      <RouterLink to={routeFor(manifest)}>
+        <span className="gallery-chip__glyph" aria-hidden="true">
+          {GLYPHS[manifest.slug] ?? manifest.name.charAt(0)}
+        </span>
+        {manifest.name}
+        <span aria-hidden="true">→</span>
+      </RouterLink>
+    </Link>
+  );
+}
+
+function TileGroup({ title, manifests }: { title: string; manifests: readonly Manifest[] }) {
+  const large = manifests.filter(isLargeTile);
+  const compact = manifests.filter((m) => !isLargeTile(m));
+  return (
+    <Stack gap={16}>
+      <Stack direction="row" gap={8} align="center">
+        <Heading level={2}>{title}</Heading>
+        <Badge variant="outline">{String(manifests.length)}</Badge>
+      </Stack>
+      {large.length > 0 ? (
+        <div className="gallery-tiles">
+          {large.map((m) => (
+            <LargeTile key={m.slug} manifest={m} />
+          ))}
+        </div>
+      ) : null}
+      {compact.length > 0 ? (
+        <div className="gallery-chips">
+          {compact.map((m) => (
+            <CompactTile key={m.slug} manifest={m} />
+          ))}
+        </div>
+      ) : null}
+    </Stack>
+  );
+}
+
+/** Every component and form control as a tile, from the manifests, so a new one shows up by itself. */
+export function ComponentTiles() {
+  return (
+    <Stack gap={32}>
+      <TileGroup title="Components" manifests={MANIFESTS.filter((m) => m.group === 'components')} />
+      <TileGroup title="Forms" manifests={MANIFESTS.filter((m) => m.group === 'forms')} />
+    </Stack>
+  );
+}
+```
+
+Create `apps/gallery/src/pages/home/GetStarted.tsx`:
+
+```tsx
+import type { ReactNode } from 'react';
+import { Badge, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
+import { InstallCommand } from '../../content/InstallCommand';
+import { STYLE_IMPORTS } from '../../content/styleImports';
+
+const FIRST_COMPONENT = "import { Button } from '@bit-ds/react';\n\n<Button>Save</Button>";
+
+interface StepProps {
+  n: number;
+  title: string;
+  /** Shown after the title, outside the heading: the version on the Install step. */
+  aside?: ReactNode;
+  help: string;
+  children: ReactNode;
+}
+
+function Step({ n, title, aside, help, children }: StepProps) {
+  return (
+    <Stack gap={8}>
+      <Stack direction="row" gap={8} align="center" wrap>
+        <Badge color="warning" shape="square">
+          {String(n)}
+        </Badge>
+        <Heading level={3}>{title}</Heading>
+        {aside}
+      </Stack>
+      <Text>{help}</Text>
+      {children}
+    </Stack>
+  );
+}
+
+/** Three numbered steps: install, add the styles once, use a component. */
+export function GetStarted() {
+  return (
+    <Stack gap={24}>
+      <Step
+        n={1}
+        title="Install"
+        aside={
+          <Badge variant="outline" shape="square">
+            {`v${__BIT_VERSION__}`}
+          </Badge>
+        }
+        help="Add the React package with your package manager."
+      >
+        <InstallCommand />
+      </Step>
+      <Step n={2} title="Add the styles once" help="In your app's entry file. The theme comes first, then the component styles.">
+        <CodeBlock code={STYLE_IMPORTS} language="jsx" label="Style imports" />
+      </Step>
+      <Step n={3} title="Use a component" help="Import it and write the props. The prop you type is the class it emits.">
+        <CodeBlock code={FIRST_COMPONENT} language="jsx" label="First component" />
+      </Step>
+    </Stack>
+  );
+}
+```
+
+Create `apps/gallery/src/pages/home/NamingRule.tsx`:
+
+```tsx
+import type { ReactNode } from 'react';
+import { Button, Code, Table, TableBody, TableCell, TableHead, TableRow, Text } from '@bit-ds/react';
+import type { ButtonProps } from '@bit-ds/react';
+
+/** One decorator, three ways to say it, and what it reads. */
+interface NamingRow {
+  prop: string;
+  className: string;
+  emits: string;
+  /** A real token name, or null when each component's own CSS decides. */
+  token: string | null;
+  /** The live Button the Result column renders. */
+  result: ButtonProps;
+}
+
+export const NAMING_ROWS: readonly NamingRow[] = [
+  { prop: 'color="primary"', className: 'className="bit-primary"', emits: 'bit-primary', token: '--bit-color-primary', result: { color: 'primary' } },
+  { prop: 'variant="outline"', className: 'className="bit-outline"', emits: 'bit-outline', token: null, result: { variant: 'outline' } },
+  { prop: 'size="lg"', className: 'className="bit-lg"', emits: 'bit-lg', token: '--bit-control-height-lg', result: { size: 'lg' } },
+];
+
+/** One naming-rule column. To add a column, add an entry here. */
+export interface NamingColumn {
+  header: string;
+  cell: (row: NamingRow) => ReactNode;
+}
+
+export const NAMING_COLUMNS: readonly NamingColumn[] = [
+  { header: 'You write (prop)', cell: (row) => <Code>{row.prop}</Code> },
+  { header: 'Or write (className)', cell: (row) => <Code>{row.className}</Code> },
+  { header: 'Class it emits', cell: (row) => <Code>{row.emits}</Code> },
+  {
+    header: 'Token',
+    cell: (row) =>
+      row.token === null ? (
+        <Text as="span" size={13} color="neutral">
+          per component CSS
+        </Text>
+      ) : (
+        <Code>{row.token}</Code>
+      ),
+  },
+  { header: 'Result', cell: (row) => <Button {...row.result}>Save</Button> },
+];
+
+/** The prop you type is the class it emits is the token it reads, with a real Button in each row. */
+export function NamingRule() {
+  return (
+    <Table aria-label="The naming rule">
+      <TableHead>
+        <TableRow>
+          {NAMING_COLUMNS.map((column) => (
+            <TableCell key={column.header}>{column.header}</TableCell>
+          ))}
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {NAMING_ROWS.map((row) => (
+          <TableRow key={row.emits}>
+            {NAMING_COLUMNS.map((column) => (
+              <TableCell key={column.header}>{column.cell(row)}</TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+```
+
+Replace `apps/gallery/src/pages/HomePage.tsx` with:
+
+```tsx
+import { BitLogo, Button, Heading, Stack, Text } from '@bit-ds/react';
+import { Link } from 'react-router-dom';
+import { NAV } from '../shell/Sidebar';
+import { ComponentTiles } from './home/ComponentTiles';
+import { GetStarted } from './home/GetStarted';
+import { NamingRule } from './home/NamingRule';
+
+/** Where "Browse components" goes: the first component in the sidebar, whatever that becomes. */
+export const BROWSE_TARGET = NAV.find((item) => item.group === 'Components')!.to;
+
+export function HomePage() {
+  return (
+    <Stack gap={48}>
+      <Stack gap={16} align="start">
+        <Heading level={1}>
+          <BitLogo size="lg" />
+        </Heading>
+        <Text size={18}>
+          A retro-game React design system for people new to design systems. The prop you type is the class it emits is
+          the token it reads.
+        </Text>
+        <Stack direction="row" gap={12} wrap>
+          <Button asChild size="lg">
+            <Link to={BROWSE_TARGET}>
+              Browse components <span aria-hidden="true">→</span>
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" color="neutral">
+            <Link to="/tokens">See the tokens</Link>
+          </Button>
+        </Stack>
+      </Stack>
+      <ComponentTiles />
+      <Stack gap={16}>
+        <Heading level={2}>Get started</Heading>
+        <GetStarted />
+      </Stack>
+      <Stack gap={16}>
+        <Heading level={2}>The naming rule</Heading>
+        <NamingRule />
+      </Stack>
+    </Stack>
+  );
+}
+```
+
+In `apps/gallery/src/gallery.css`, insert this directly under `/* ---------- home page ---------- */`:
+
+```css
+/* Large tiles: a live preview over a footer link. The link's ::after covers the tile, so the whole tile
+   is one link while the preview inside stays inert. */
+.gallery-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--bit-space-16px);
+}
+
+.gallery-tile {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(8rem, auto) auto;
+  overflow: hidden;
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-14px);
+  box-shadow: var(--bit-shadow-md);
+}
+
+.gallery-tile__preview {
+  display: grid;
+  place-items: center;
+  padding: var(--bit-space-16px);
+  overflow: hidden;
+  border-bottom: var(--bit-border-width) solid var(--bit-color-line);
+}
+
+.gallery-tile__link {
+  padding: var(--bit-space-12px) var(--bit-space-16px);
+}
+
+.gallery-tile__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+/* Compact tiles: a glyph chip, the name and →, all one link. */
+.gallery-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bit-space-12px);
+}
+
+.gallery-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bit-space-8px);
+  padding: var(--bit-space-8px) var(--bit-space-12px);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+}
+
+.gallery-chip__glyph {
+  display: inline-grid;
+  place-items: center;
+  width: var(--bit-space-24px);
+  height: var(--bit-space-24px);
+  font-family: var(--bit-font-mono);
+  font-size: var(--bit-text-13px);
+  background: var(--bit-color-neutral-soft);
+  border: 2px solid var(--bit-color-line);
+  border-radius: var(--bit-radius-6px);
+}
+```
+
+- [ ] **Step 6: README: all three install commands and the className column**
+
+```diff
+--- a/README.md
++++ b/README.md
+@@ -14,14 +14,17 @@ Themes are swappable and named after retro-game eras. The first theme is **power
+ 
+ ## Install
+ 
+-The packages are workspace-private for now. Clone the repo and run Storybook:
++Once `@bit-ds/react` is published, install it with your package manager:
+ 
+ ```bash
+-pnpm install
+-pnpm storybook
++pnpm add @bit-ds/react
++# or
++npm install @bit-ds/react
++# or
++yarn add @bit-ds/react
+ ```
+ 
+-When published, using it will be three lines:
++Then add the styles once, theme first, and use a component:
+ 
+ ```tsx
+ import '@bit-ds/react/themes/power-up.css';
+@@ -29,14 +32,16 @@ import '@bit-ds/react/styles.css';
+ import { Button } from '@bit-ds/react';
+ ```
+ 
++Until then the packages are workspace-private. Clone the repo, run `pnpm install`, then `pnpm gallery` to browse every component.
++
+ ## The naming rule
+ 
+-| You write | Class | Token |
+-| --- | --- | --- |
+-| `color="primary"` | `bit-primary` | `--bit-color-primary` |
+-| `variant="outline"` | `bit-outline` | (per component CSS) |
+-| `size="lg"` | `bit-lg` | `--bit-control-height-lg` |
+-| `<CardHeader>` | `bit-card__header` | |
++| You write (prop) | Or write (className) | Class it emits | Token |
++| --- | --- | --- | --- |
++| `color="primary"` | `className="bit-primary"` | `bit-primary` | `--bit-color-primary` |
++| `variant="outline"` | `className="bit-outline"` | `bit-outline` | (per component CSS) |
++| `size="lg"` | `className="bit-lg"` | `bit-lg` | `--bit-control-height-lg` |
++| `<CardHeader>` | | `bit-card__header` | |
+ 
+ Three axes, same names on every component that has them:
+ 
+```
+
+- [ ] **Step 7: Run the gallery tests**
+
+Run: `pnpm build && pnpm --filter @bit-ds/gallery test`
+Expected: PASS: `Tests  313 passed (313)` on wave 1, or `417` after T4 and T5.
+
+- [ ] **Step 8: Run every gate, and build the gallery**
+
+Run: `pnpm build && pnpm verify && pnpm test && pnpm test:coverage && pnpm typecheck && pnpm lint && pnpm smoke && pnpm storybook:build && pnpm gallery:build`
+Expected: all green, and the gallery builds (`✓ built in …`).
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add README.md apps/gallery
+git commit -m "feat(gallery): Home with live tiles, get-started steps, install switcher and the five-column naming rule; version via Vite define
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
+### Task 7: Verification board (real browser; fixes only for real bugs)
+
+Run this after wave 2 is merged and every gate is green on the merged branch.
+
+**Files:**
+- Create, outside the repo:
+  - the PNGs, under `/private/tmp/bit-pr3a-board/`. The browse CLI writes only under `/private/tmp`.
+  - `~/.gstack/projects/doosemavis-bit-design-system/designs/pr3a-20261003/final/board.html`, with the PNGs copied beside it
+- The repo changes only to fix a real bug found here. Each fix gets:
+  - a failing test first
+  - the full gate
+  - its own `fix(gallery):` commit
+
+**Interfaces:**
+- **Consumes:** the built gallery: `pnpm gallery:build`, output in `apps/gallery/dist`.
+
+Use the gstack browse CLI at `~/.claude/skills/gstack/browse/dist/browse`. Never use `mcp__claude-in-chrome__*`.
+
+- [ ] **Step 1: Build and serve**
+
+Run `pnpm gallery:build`. Then run this in the background, from `apps/gallery`:
+
+```bash
+npx vite preview --base /bit-design-system/
+```
+
+Expected: `Local: http://localhost:4173/bit-design-system/`. Every URL below starts with `http://localhost:4173/bit-design-system/#`.
+
+- [ ] **Step 2: Set the mode, then reload**
+
+A hash `goto` doesn't reload the page. So set the stored mode, then reload:
+
+```bash
+B=~/.claude/skills/gstack/browse/dist/browse
+mkdir -p /private/tmp/bit-pr3a-board
+$B viewport 1200x1600
+$B goto "http://localhost:4173/bit-design-system/#/"
+$B js "localStorage.setItem('bit-color-mode','light')"   # 'dark' for the second pass
+$B js "location.reload()"
+$B js "document.documentElement.dataset.mode"            # prints light (then dark)
+```
+
+- [ ] **Step 3: Capture the five pages, at both widths and in both modes**
+
+Loop over:
+- each mode: light, then dark
+- each width: `$B viewport 1200x1600`, then `$B viewport 390x1600`
+- each route:
+  - `/` (home)
+  - `/tokens`
+  - `/components/button`
+  - `/components/table`
+  - `/components/nope` (the 404)
+
+For each combination, run:
+
+```bash
+$B goto "<url>"
+$B wait "main h1"
+$B screenshot /private/tmp/bit-pr3a-board/<mode>-<width>-<name>.png
+```
+
+That makes 20 PNGs.
+
+- [ ] **Step 4: Check that no page scrolls sideways at 390px**
+
+Set `$B viewport 390x900`. Then, for each route below, run `$B goto`, `$B wait "main h1"`, and:
+
+```bash
+$B js "document.documentElement.scrollWidth"
+```
+
+The routes:
+- `/`, `/tokens`, `/typography`, `/spacing`, `/brand/logo`, `/nope` and `/components/nope`
+- every `/components/<slug>` in `MANIFESTS`:
+  - button, badge, alert, card, stack, box and text
+  - heading, spinner, modetoggle, link, code and codeblock
+  - segmentedcontrol, table, field, input, select and switch
+
+Expected: `390` or less on every route. Record the numbers on the board.
+
+- [ ] **Step 5: Check by hand, at 390 and at 1200**
+
+- **The sheet:**
+  - Menu opens it, and GitHub is inside it.
+  - Escape closes it, and focus returns to Menu.
+- **The section bars:** a link focuses its h2, and the hash in the address bar doesn't change.
+- **The skip link:**
+  - Tab once from the address bar, then press Enter: focus lands on main.
+  - The route doesn't change.
+- **The code footer:**
+  - Open `/components/button?color=danger` and pick className.
+  - The code reads `<Button className="bit-danger">Save</Button>`.
+- **The tokens filter:**
+  - Type `sparkle`, and the empty state shows.
+  - Clear filter brings the list back.
+- **The install switcher:** pick yarn and reload; yarn is still picked.
+- **The Typography faces:** the four token chips line up.
+
+- [ ] **Step 6: Assemble `final/board.html`**
+
+```bash
+mkdir -p ~/.gstack/projects/doosemavis-bit-design-system/designs/pr3a-20261003/final
+cp /private/tmp/bit-pr3a-board/*.png ~/.gstack/projects/doosemavis-bit-design-system/designs/pr3a-20261003/final/
+```
+
+Write `board.html` beside them:
+- **Layout:** a grid with light on the left and dark on the right, one row per page and width, each with a caption.
+- **At the top:**
+  - the `scrollWidth` table from Step 4
+  - the Step 5 checklist, each item marked pass or fail
+  - this plan's decisions 1–15
+  - anything that looks wrong
+
+- [ ] **Step 7: Stop and report**
+
+Run `$B stop`, and stop the preview server. Report:
+- the board path
+- every problem found
+- every fix commit
+
+If nothing needed fixing, there is no commit.
+
+---
+
+## Self-review (run 2026-10-03)
+
+**1. Spec coverage**
+
+| Spec requirement | Where |
+|---|---|
+| §1 CodeBlock `actions`: markup, layout, Copy copies the current code, and tests at 100% | T1 |
+| §1 manifest doc line for `actions` | T3a, the CodeBlock manifest's `actions` row |
+| §2 Table `vertical-align: middle`, with its core test | T1 |
+| §3 header: eyebrow, h1, description, import chip with Copy, badges | T4 `ComponentHeader`; T2 `PageHeader` and `CopyButton` |
+| §3 section bar: preventDefault, scroll, focus the h2, no URL change | T2 `SectionBar`, `InPageLink` and `scrollToSection`; T4 page test |
+| §3 presets: ghost Buttons, and the active one pressed and solid | T4 `Presets` and `isPresetActive` |
+| §3 checkerboard Switch | T4 `Preview` |
+| §3 controls beside the preview, stacked under 720px | T4 CSS and CSS test |
+| §3 footer: format switch, Full file and CodeBlock | T4 `CodePanel` and `codeFormats` |
+| §3 HTML only for static components; full file gallery-private | T4 `toHtml` and `fullFile` |
+| §3 Variants: a Table, the Matrix deleted, the axis rules | T4 `VariantsTable` |
+| §3 Variants omitted from the page and the bar when there's no axis | T4 `sections.ts` |
+| §3 Usage in soft success and danger, the Props Table, the Accessibility list | T4 `DocsSections`; see contradiction 6 |
+| §3 docs required and complete | T3a, T3b, T3c |
+| §3 contract test: Do, Don't, prop, a11y; control props in docs; presets | T3a commit 1, then T3c |
+| §3 empty children: empty preview, self-closing code, the manifest's error | T4 `ControlsPanel` and page test; T3a and T3b set the errors |
+| §4 Tokens: values computed on first render and on a mode change | T5 `tokenValues` |
+| §4 Tokens: header, section bar, Color, compact Type and Space, Shape | T5 |
+| §4 Tokens: All tokens with filter, count, empty state, Clear and Copy | T5 `AllTokens` |
+| §4 the token list from `SEMANTIC_TOKENS` | T5, which also adds the export |
+| §5 Home: hero; tiles grouped, with counts from the manifests | T6 |
+| §5 Home: large and compact tiles, one Link each | T6 `ComponentTiles` |
+| §5 Home: Get started with the version, naming rule with real Buttons | T6 |
+| §5 version through Vite `define`, with a test; `v0.0.0` | T6 `vite.config.ts` and `version.test.ts` |
+| §6 InstallCommand: markup, commands and `content/install.ts` | T6 |
+| §6 InstallCommand: default, storage and its fallbacks; README | T6 |
+| §7.1 focus moves on a pathname change only | T2 `useFocusHeading` |
+| §7.2 push and replace history, 400ms | T2 `useControlState` |
+| §7.2 tests: a keystroke keeps focus, Back undoes a select | T2 `focusAndHistory.test.tsx` |
+| §7.3 skip link | T2 `Shell` and `InPageLink` |
+| §7.4 Spinner after 300ms, and the errorElement | T2 `PageLoading`, `PageError` and `router.tsx` |
+| §7.5 unknown slug: the closest name, and every component as a Link | T2 |
+| §7.5 other bad paths keep the generic 404 | T2 |
+| §7.6 bad values reset, and the URL is rewritten with replace | T2; see contradiction 5 |
+| §7.7 phone header and sheet | T2 |
+| §7.7 controls stack and presets scroll; tables scroll | T4 CSS; T7 measures `scrollWidth` |
+| §7.8 Heading titles | T2 (404 and unknown slug); T4, T5 and T6 on their pages. Typography and Spacing already used Heading. |
+| §7.9 face-chip baseline | T2 CSS and test; T7 checks it by eye |
+| §8 route smoke: axe in light and dark, `/tokens` included | T4 `routes.test.tsx` and `routes.dark.test.tsx` |
+| §8 by eye: board at 1200 and 390, light and dark, with `scrollWidth` | T7 |
+| A1 §1 Props, className and HTML: availability and the toJsx option | T4 `codeFormats` and `toJsx.ts` |
+| A1 §1 Full file, Copy, and falling back to Props | T4 `CodePanel` and its tests |
+| A1 §2 `PropDoc.className` and its contract test | T3a commit 1, then T3c |
+| A1 §2 the Class column and the tip line | T4 `PROP_COLUMNS` and `classTip` |
+| A1 §3 five-column naming rule, and the README column | T6 |
+| A1 tests: toJsx example and defaults, round trip | T4 |
+| A1 tests: ComponentPage modes and Copy, Props column and tip | T4 |
+| A1 tests: Home table columns | T6 |
+
+No gaps.
+
+**2. Placeholder scan:**
+- No "TBD", "TODO", "similar to Task N" or code-free code steps.
+- Every new file is given in full.
+- Every edit is a diff from the task's own starting point.
+- Wave-2 CSS is an exact block under a named marker.
+
+**3. Type consistency:**
+- `SectionLink` is defined once, in `ui/PageSection.tsx`. `SectionBar`, T4's `sections.ts` and T5's `SECTIONS` all use it.
+- `Manifest.docs` is optional from T3a commit 1 until T3c, and required after. Nothing outside the manifests reads `docs` before T3c; T4 runs after it.
+- `PackageManager` and `INSTALL_COMMANDS` match across `install.ts`, `InstallCommand` and the tests.
+- `__BIT_VERSION__` is declared in `env.d.ts`, and `DEFINE` defines it in both Vite configs.
+- `AxisControl` is reused by `variantAxes` and `classTip`.
+- `ToJsxOptions.decorators` is `'props' | 'className'` everywhere it appears.
+- **Labels** match between components and tests:
+  - regions "Example code", "Install command", "Token values" and "All tokens"
+  - the groups "Presets" and "Package manager"
+  - the nav "On this page"
+- `PROP_COLUMNS`, `CODE_FORMATS` and `NAMING_COLUMNS` are each the single source their tests read.
+
+**4. Review Focus:** five items, each pinned to a named test in its owning task (T2, T2, T2, T6, T6). Also covered by tests, but not in the five:
+- a Link tip that would teach an unsupported class (T4)
+- the duplicate "All tokens" region name (T5, through axe)
+- script-moved focus leaving a ring on main (T2, CSS test)
