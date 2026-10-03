@@ -1,6 +1,7 @@
-import { BitLogo, Button } from '@bit-ds/react';
+import { BitLogo, Button, ModeToggle } from '@bit-ds/react';
 import { Link } from 'react-router-dom';
 import { ThemeSelect } from './ThemeSelect';
+import { THEMES } from './themes';
 
 export const REPO_URL = 'https://github.com/doosemavis/bit-design-system';
 
@@ -27,7 +28,9 @@ export function Header({ menuOpen, onToggleMenu }: HeaderProps) {
       </Link>
       <span className="gallery-header__name">gallery</span>
       <div className="gallery-header__tools">
-        <ThemeSelect />
+        {/* The theme dropdown appears once a second theme exists (plan §H.5); light/dark is a mode. */}
+        {THEMES.length > 1 ? <ThemeSelect /> : null}
+        <ModeToggle size="sm" />
         <Button asChild variant="outline" size="sm" color="neutral">
           <a href={REPO_URL} target="_blank" rel="noreferrer">
             GitHub

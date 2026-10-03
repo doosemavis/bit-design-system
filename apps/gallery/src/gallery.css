@@ -29,7 +29,7 @@ html {
   padding: var(--bit-space-8px) var(--bit-space-12px);
   background: var(--bit-color-surface);
   color: var(--bit-color-text);
-  border: var(--bit-border-width) solid var(--bit-color-ink);
+  border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-10px);
   transform: translateY(-200%);
 }
@@ -45,7 +45,7 @@ html {
   gap: var(--bit-space-12px);
   padding-inline: var(--_gallery-gutter);
   background: var(--bit-color-surface);
-  border-bottom: var(--bit-border-width) solid var(--bit-color-ink);
+  border-bottom: var(--bit-border-width) solid var(--bit-color-line);
 }
 
 .gallery-header__menu {
@@ -82,7 +82,7 @@ html {
   font: inherit;
   color: var(--bit-color-text);
   background: var(--bit-color-surface);
-  border: var(--bit-border-width) solid var(--bit-color-ink);
+  border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-6px);
   padding: var(--bit-space-4px) var(--bit-space-8px);
   min-height: var(--bit-control-height-sm);
@@ -91,7 +91,7 @@ html {
 .gallery-sidebar {
   grid-area: sidebar;
   padding: var(--_gallery-gutter);
-  border-right: var(--bit-border-width) solid var(--bit-color-ink);
+  border-right: var(--bit-border-width) solid var(--bit-color-line);
   background: var(--bit-color-surface);
   overflow-y: auto;
 }
@@ -153,7 +153,7 @@ html {
   font-size: var(--bit-text-13px);
   line-height: var(--bit-leading-normal);
   background: var(--bit-color-bg);
-  border: var(--bit-border-width) solid var(--bit-color-ink);
+  border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-10px);
 }
 
@@ -167,7 +167,7 @@ html {
 .gallery-table td {
   text-align: left;
   padding: var(--bit-space-8px);
-  border-bottom: var(--bit-border-width) solid var(--bit-color-ink);
+  border-bottom: var(--bit-border-width) solid var(--bit-color-line);
 }
 
 .gallery-loading {
@@ -237,7 +237,7 @@ html {
   width: 2.75rem;
   height: 1.5rem;
   padding: 2px;
-  border: var(--bit-border-width) solid var(--bit-color-ink);
+  border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-full);
   background: var(--bit-color-surface);
   cursor: pointer;
@@ -250,7 +250,7 @@ html {
   width: 1rem;
   height: 1rem;
   border-radius: var(--bit-radius-full);
-  background: var(--bit-color-ink);
+  background: var(--bit-color-line);
   transition: transform var(--bit-duration-fast);
 }
 
@@ -265,7 +265,7 @@ html {
 
 /* ---------- preview ---------- */
 .gallery-preview {
-  border: var(--bit-border-width) solid var(--bit-color-ink);
+  border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-14px);
   background: var(--bit-color-surface);
   box-shadow: var(--bit-shadow-md);
@@ -277,7 +277,7 @@ html {
   align-items: center;
   justify-content: space-between;
   padding: var(--bit-space-8px) var(--bit-space-12px);
-  border-bottom: var(--bit-border-width) solid var(--bit-color-ink);
+  border-bottom: var(--bit-border-width) solid var(--bit-color-line);
   background: var(--bit-color-bg);
 }
 
