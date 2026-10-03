@@ -1,34 +1,25 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import { Switch } from '@bit-ds/react';
 
 interface PreviewProps {
   label: string;
+  /** The preset buttons, shown in the bar between the title and the checkerboard switch. */
+  presets?: ReactNode;
   children: ReactNode;
 }
 
 /** The stage the live component sits on. Checkerboard helps judge ghost and outline variants. */
-export function Preview({ label, children }: PreviewProps) {
+export function Preview({ label, presets, children }: PreviewProps) {
   const [checkerboard, setCheckerboard] = useState(false);
   return (
     <section className="gallery-preview" aria-label={label} data-checkerboard={checkerboard ? '' : undefined}>
       <div className="gallery-preview__bar">
         <span className="gallery-preview__title">Preview</span>
-        <span className="gallery-control gallery-inline">
-          <span className="gallery-control__label" id="checkerboard-label">
-            Checkerboard
-          </span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={checkerboard}
-            aria-labelledby="checkerboard-label"
-            className="gallery-switch"
-            data-on={checkerboard ? '' : undefined}
-            onClick={() => setCheckerboard((v) => !v)}
-          >
-            <span className="gallery-switch__knob" aria-hidden="true" />
-          </button>
-        </span>
+        {presets}
+        <Switch size="sm" checked={checkerboard} onChange={(event) => setCheckerboard(event.target.checked)}>
+          Checkerboard
+        </Switch>
       </div>
       <div className="gallery-preview__stage">{children}</div>
     </section>

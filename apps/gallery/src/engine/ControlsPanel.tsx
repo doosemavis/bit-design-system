@@ -1,4 +1,4 @@
-import { Button, Text } from '@bit-ds/react';
+import { Button, Heading } from '@bit-ds/react';
 import type { Control, ControlState, ControlValue, Manifest } from '../manifests/types';
 
 interface ControlsPanelProps {
@@ -12,10 +12,12 @@ interface FieldProps {
   control: Control;
   value: ControlValue | undefined;
   onChange: (prop: string, value: ControlValue) => void;
+  /** Shown under a text field, which is then marked invalid (the emptied children of a Button, say). */
+  error?: string;
 }
 
 /** One form control per manifest entry. Labels are the prop names so the panel doubles as API docs. */
-function Field({ control, value, onChange }: FieldProps) {
+function Field({ control, value, onChange, error }: FieldProps) {
   const label = ('label' in control && control.label) || control.prop;
   const id = `control-${control.prop}`;
 
@@ -80,7 +82,8 @@ function Field({ control, value, onChange }: FieldProps) {
           />
         </div>
       );
-    case 'text':
+    case 'text': {
+      const errorId = `${id}-error`;
       return (
         <div className="gallery-control">
           <label className="gallery-control__label" htmlFor={id}>
@@ -91,22 +94,33 @@ function Field({ control, value, onChange }: FieldProps) {
             className="gallery-control__input"
             type="text"
             value={String(value ?? control.default)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
             onChange={(event) => onChange(control.prop, event.target.value)}
           />
+          {error ? (
+            <p className="gallery-control__error" id={errorId}>
+              <span aria-hidden="true">⚠ </span>
+              {error}
+            </p>
+          ) : null}
         </div>
       );
+    }
   }
 }
 
 export function ControlsPanel({ manifest, state, onChange, onReset }: ControlsPanelProps) {
   const childrenControl: Control | null =
     typeof manifest.children === 'string' ? { kind: 'text', prop: 'children', default: manifest.children } : null;
+  // Emptied children: the preview and code show the empty component, and the field says what that costs.
+  const childrenError = state.children === '' ? manifest.docs.emptyChildrenError : undefined;
   return (
     <section className="gallery-controls" aria-labelledby="controls-heading">
       <div className="gallery-controls__head">
-        <Text as="h2" size={18} id="controls-heading">
+        <Heading level={3} id="controls-heading">
           Controls
-        </Text>
+        </Heading>
         <Button variant="ghost" size="sm" color="neutral" onClick={onReset}>
           Reset
         </Button>
@@ -115,7 +129,9 @@ export function ControlsPanel({ manifest, state, onChange, onReset }: ControlsPa
         {manifest.controls.map((control) => (
           <Field key={control.prop} control={control} value={state[control.prop]} onChange={onChange} />
         ))}
-        {childrenControl ? <Field control={childrenControl} value={state.children} onChange={onChange} /> : null}
+        {childrenControl ? (
+          <Field control={childrenControl} value={state.children} onChange={onChange} error={childrenError} />
+        ) : null}
       </div>
     </section>
   );

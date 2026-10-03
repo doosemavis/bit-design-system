@@ -295,6 +295,7 @@ html {
 .gallery-preview__bar {
   display: flex;
   align-items: center;
+  gap: var(--bit-space-12px);
   justify-content: space-between;
   padding: var(--bit-space-8px) var(--bit-space-12px);
   border-bottom: var(--bit-border-width) solid var(--bit-color-line);
@@ -330,36 +331,6 @@ html {
    draws nothing. An outline takes no space, so the space on screen is exactly what the props set. */
 .gallery-preview__stage > .bit-box {
   outline: 2px dashed var(--bit-color-accent);
-}
-
-/* ---------- presets and matrix ---------- */
-.gallery-presets__row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--bit-space-8px);
-  margin-top: var(--bit-space-8px);
-}
-
-.gallery-matrix__scroll {
-  overflow-x: auto;
-  margin-top: var(--bit-space-8px);
-}
-
-.gallery-matrix__table {
-  border-collapse: separate;
-  border-spacing: var(--bit-space-12px);
-}
-
-.gallery-matrix__table th {
-  font-family: var(--bit-font-mono);
-  font-size: var(--bit-text-13px);
-  font-weight: var(--bit-weight-normal);
-  color: var(--bit-color-text-muted);
-  text-align: left;
-}
-
-.gallery-matrix__table td {
-  vertical-align: middle;
 }
 
 /* ---------- foundations pages ---------- */
@@ -431,6 +402,73 @@ html {
 }
 
 /* ---------- component page ---------- */
+/* Preview and controls side by side, the code under both. Under 720px the controls stack under the preview. */
+.gallery-playground {
+  display: grid;
+  gap: var(--bit-space-16px);
+}
+
+.gallery-playground__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16rem;
+  align-items: start;
+  gap: var(--bit-space-16px);
+}
+
+.gallery-codepanel {
+  display: grid;
+  gap: var(--bit-space-8px);
+}
+
+.gallery-codepanel__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bit-space-16px);
+}
+
+/* The presets sit in the preview bar between the title and the checkerboard switch. They take the room
+   left over and scroll sideways in one row when it runs out. Scrolling clips on both axes, so the padding
+   (taken back by the margin) keeps the focus ring (2px at a 2px offset) and the active preset's 4px shadow
+   inside the scroll box. */
+.gallery-presets {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: var(--bit-space-8px);
+  overflow-x: auto;
+  padding: var(--bit-space-4px);
+  margin: calc(-1 * var(--bit-space-4px));
+}
+
+.gallery-presets > * {
+  flex: none;
+}
+
+/* Short code (a prop name, a default, a class) stays on one line in the Props table; long types wrap. */
+.gallery-nowrap {
+  white-space: nowrap;
+}
+
+.gallery-control__error {
+  margin: 0;
+  font-size: var(--bit-text-13px);
+  color: var(--bit-color-danger-text);
+}
+
+/* Do and Don't, and the Accessibility list. */
+.gallery-bullets {
+  margin: 0;
+  padding-left: var(--bit-space-24px);
+  display: grid;
+  gap: var(--bit-space-4px);
+}
+
+@media (max-width: 720px) {
+  .gallery-playground__top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 
 /* ---------- tokens page ---------- */
 
