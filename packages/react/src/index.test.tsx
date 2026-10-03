@@ -60,7 +60,7 @@ describe('public index', () => {
   it('exports exactly the public components', () => {
     expect(componentNames.sort()).toEqual(
       [
-        'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
+        'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text', 'Box',
         'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
         'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
       ].sort(),

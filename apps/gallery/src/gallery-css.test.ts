@@ -26,6 +26,10 @@ describe('gallery.css', () => {
     expect(galleryCss).not.toMatch(/\.gallery-pre[\s{,]/);
   });
 
+  it('outlines a previewed Box, dashed in the mode accent, and only the Box the stage shows', () => {
+    expect(galleryCss).toMatch(/\.gallery-preview__stage > \.bit-box \{\s*outline: 2px dashed var\(--bit-color-accent\);\s*\}/);
+  });
+
   it('never hardcodes a font stack: mono labels read --bit-font-mono', () => {
     expect(galleryCss).not.toMatch(/monospace/);
     expect(galleryCss).toMatch(/\.gallery-control__label\s*\{[^}]*font-family: var\(--bit-font-mono\);/);
