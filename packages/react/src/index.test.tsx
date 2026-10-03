@@ -36,7 +36,7 @@ function expectedRootClass(name: string): string {
 describe('public index', () => {
   it('exports exactly the Phase 1 components', () => {
     expect(componentNames.sort()).toEqual(
-      ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'Spinner', 'Stack', 'Text'].sort(),
+      ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text'].sort(),
     );
   });
 

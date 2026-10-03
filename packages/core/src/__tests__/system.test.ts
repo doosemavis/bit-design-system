@@ -172,3 +172,17 @@ describe('components/badge.css', () => {
     expect(block(css, '.bit-badge[data-shape="square"]')).toContain('border-radius: var(--bit-radius-6px);');
   });
 });
+
+describe('components/mode-toggle.css', () => {
+  const css = readCss('components/mode-toggle.css');
+  it('the pressed option takes the warning fill and its contrast text', () => {
+    const body = block(css, '.bit-mode-toggle__option[aria-pressed="true"]');
+    expect(body).toContain('background: var(--bit-color-warning);');
+    expect(body).toContain('color: var(--bit-color-warning-contrast);');
+  });
+  it('the pill is outlined with the line color and has the small hard shadow', () => {
+    const body = block(css, '.bit-mode-toggle');
+    expect(body).toContain('border: var(--bit-border-width) solid var(--bit-color-line);');
+    expect(body).toContain('box-shadow: var(--bit-shadow-sm);');
+  });
+});
