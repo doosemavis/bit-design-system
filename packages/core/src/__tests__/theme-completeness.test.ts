@@ -38,8 +38,12 @@ describe('themes', () => {
       expect(css).toMatch(/(^|\n)\[data-mode="dark"\] \{/);
     });
 
-    it('the shared block also applies to any [data-mode] element, so derived tokens (shadows) re-resolve in a dark subtree', () => {
-      expect(css).toMatch(/:root,\s*\[data-theme="[^"]+"\],\s*\[data-mode\]\s*\{/);
+    it('the shared block also applies to [data-mode="light"] and [data-mode="dark"] elements, so derived tokens (shadows) re-resolve in a dark subtree', () => {
+      expect(css).toMatch(/:root,\s*\[data-theme="[^"]+"\],\s*\[data-mode="light"\],\s*\[data-mode="dark"\]\s*\{/);
+    });
+
+    it('never uses the bare [data-mode] selector (without a value)', () => {
+      expect(css).not.toMatch(/\[data-mode\]\s*[,{]/);
     });
 
     it('each mode tells the browser its color scheme, so native controls match', () => {

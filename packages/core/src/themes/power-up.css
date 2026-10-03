@@ -5,11 +5,12 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800&family=Press+Start+2P&family=Bungee&family=JetBrains+Mono:wght@400;700&display=swap");
 
-/* [data-mode] re-declares the shared tokens on any element that sets a mode, so tokens built from mode
+/* Any element that sets a mode (light or dark) re-declares the shared tokens, so tokens built from mode
    tokens (the shadows) re-resolve there instead of inheriting the root's light values. */
 :root,
 [data-theme="power-up"],
-[data-mode] {
+[data-mode="light"],
+[data-mode="dark"] {
   color-scheme: light;
   /* ---------- tier 1: palette ---------- */
   --bit-palette-violet: #7C3AED;
