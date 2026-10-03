@@ -55,7 +55,7 @@ export const button: Manifest = {
         type: 'boolean',
         default: 'false',
         description:
-          'Shows a spinner and sets aria-busy, which tells screen readers it is working. It blocks clicks and takes the button out of the Tab order. The label stays, so people still know what it does.',
+          'Shows a spinner and sets aria-busy. On a native button it also sets disabled, so it blocks clicks and leaves the Tab order. With asChild it sets aria-disabled, and the link stays focusable.',
       },
       {
         name: 'disabled',
@@ -74,7 +74,7 @@ export const button: Manifest = {
     ],
     a11y: [
       'Renders a native <button type="button">, so Enter and Space press it and it never submits a form by surprise.',
-      'loading sets aria-busy="true" and native disabled, so the button leaves the Tab order. The label stays, so screen readers still announce the action.',
+      'loading sets aria-busy. On a native button it also sets disabled, which takes the button out of the Tab order. With asChild it sets aria-disabled instead, and the link stays in the Tab order. The label stays, so screen readers still announce the action.',
       "The focus ring comes from reset.css, bit's base stylesheet, and nothing removes it.",
       'A Button with only an icon needs an aria-label.',
     ],

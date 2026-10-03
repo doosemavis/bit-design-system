@@ -33,7 +33,7 @@ export const text: Manifest = {
     props: [
       {
         name: 'as',
-        type: "'p' | 'span' | 'div' | 'label' | 'h1' | … | 'h6'",
+        type: "'p' | 'span' | 'div' | 'label' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'",
         default: "'p'",
         description: 'Which element to render. The look comes from size, not from the tag.',
       },

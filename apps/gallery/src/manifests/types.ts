@@ -112,11 +112,8 @@ export interface Manifest {
   presets?: readonly Preset[];
   /** Compound parts documented on this page; the import line lists them. */
   parts?: readonly string[];
-  /**
-   * Page content beyond the playground: badges, usage, props and accessibility. Optional only until T3a and
-   * T3b have written every manifest's docs; T3c makes it required.
-   */
-  docs?: ManifestDocs;
+  /** Page content beyond the playground: badges, usage, props and accessibility. */
+  docs: ManifestDocs;
   /**
    * The component needs React to work (state, storage, the clipboard), so its page offers React code only.
    * Every other component's markup works as plain HTML with bit's CSS, and its page offers an HTML tab.
