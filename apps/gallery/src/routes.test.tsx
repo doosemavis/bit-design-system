@@ -68,6 +68,12 @@ describe('component routes (route smoke, D14)', () => {
     expect(preview.querySelector('.bit-stack')).toHaveAttribute('data-gap', '12');
   });
 
+  it("the Box page's dashed outline selector matches: the previewed Box is the stage's direct child", async () => {
+    const { container } = renderAt('/components/box');
+    await screen.findByRole('heading', { level: 1, name: 'Box' });
+    expect(container.querySelector('.gallery-preview__stage > .bit-box')).not.toBeNull();
+  });
+
   it.each(['/components/nope', '/components/logo'])('%s renders the 404 (the logo lives at /brand/logo)', async (path) => {
     renderAt(path);
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Page not found');
