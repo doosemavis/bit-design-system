@@ -20,4 +20,20 @@ describe('gallery.css', () => {
   it('never reads tier-1 palette values', () => {
     expect(reads.filter((name) => name.startsWith('--bit-palette-'))).toEqual([]);
   });
+
+  it('code panels use the Ink-night code tokens and the mono font in both modes', () => {
+    const rule = /\.gallery-pre\s*\{([^}]*)\}/.exec(galleryCss)?.[1] ?? '';
+    expect(rule).toContain('background: var(--bit-code-bg);');
+    expect(rule).toContain('color: var(--bit-code-text);');
+    expect(rule).toContain('font-family: var(--bit-font-mono);');
+  });
+
+  it('code panels use the regular mono weight (JetBrains Mono ships 400 and 700)', () => {
+    const rule = /\.gallery-pre\s*\{([^}]*)\}/.exec(galleryCss)?.[1] ?? '';
+    expect(rule).toContain('font-weight: 400;');
+  });
+
+  it('code inside a panel inherits the panel font, not the browser monospace default', () => {
+    expect(galleryCss).toMatch(/\.gallery-pre code\s*\{[^}]*font: inherit;/);
+  });
 });

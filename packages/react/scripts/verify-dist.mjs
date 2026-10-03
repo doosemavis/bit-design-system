@@ -8,16 +8,26 @@ import assert from 'node:assert/strict';
 const dist = resolve(dirname(fileURLToPath(import.meta.url)), '../dist');
 const require = createRequire(import.meta.url);
 
-const EXPECTED = ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'Spinner', 'Stack', 'Text'];
+const EXPECTED = ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text'];
+
+// 0. Client boundary: the hooks and toggle need a 'use client' directive for React Server Components.
+for (const file of ['index.js', 'index.cjs']) {
+  const source = readFileSync(resolve(dist, file), 'utf8');
+  assert.ok(/^\s*'use client';/.test(source), `dist/${file} must start with 'use client'; (tsup banner missing)`);
+}
 
 // 1. CJS entry
 const cjs = require(resolve(dist, 'index.cjs'));
 for (const name of EXPECTED) assert.ok(cjs[name], `CJS export missing: ${name}`);
 assert.equal(cjs.PREFIX, 'bit');
+assert.equal(typeof cjs.COLOR_MODE_SCRIPT, 'string', 'CJS export missing: COLOR_MODE_SCRIPT');
+assert.equal(typeof cjs.useColorMode, 'function', 'CJS export missing: useColorMode');
 
 // 2. ESM entry
 const esm = await import(resolve(dist, 'index.js'));
 for (const name of EXPECTED) assert.ok(esm[name], `ESM export missing: ${name}`);
+assert.equal(typeof esm.COLOR_MODE_SCRIPT, 'string', 'ESM export missing: COLOR_MODE_SCRIPT');
+assert.equal(typeof esm.useColorMode, 'function', 'ESM export missing: useColorMode');
 
 // 3. Types
 assert.ok(existsSync(resolve(dist, 'index.d.cts')), 'index.d.cts missing (CJS types entry)');
@@ -39,7 +49,7 @@ for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size']) {
 
 // 4. CSS bundle: system layer + every component, no unresolved local imports
 const css = readFileSync(resolve(dist, 'styles.css'), 'utf8');
-for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '@keyframes bit-power-up', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo']) {
+for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '@keyframes bit-power-up', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo', '.bit-mode-toggle']) {
   assert.ok(css.includes(needle), `styles.css missing: ${needle}`);
 }
 assert.ok(!/@import\s+"\.\//.test(css), 'styles.css still contains a relative @import (bundling failed)');

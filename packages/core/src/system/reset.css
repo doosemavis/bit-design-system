@@ -5,9 +5,14 @@
   box-sizing: border-box;
 }
 
-:root {
+/* The page root, and any element that sets a mode, re-declares the inherited colors so a dark (or
+   light) subtree gets its own text, caret, and scrollbar colors. A subtree paints its own background. */
+:root,
+[data-mode="light"],
+[data-mode="dark"] {
   caret-color: var(--bit-color-primary);
-  scrollbar-color: var(--bit-color-ink) var(--bit-color-neutral-soft);
+  scrollbar-color: var(--bit-color-line) var(--bit-color-neutral-soft);
+  color: var(--bit-color-text);
 }
 
 /* scrollbar-width does not inherit, so every scroll container needs it. */
@@ -30,11 +35,12 @@ body {
   background: var(--bit-color-bg);
 }
 
-/* Focus (D9): an ink outline on everything, which no component sets or overrides. Interactive
-   components add a yellow band inside it through --_bit-focus-band (see button.css). */
+/* Focus: one ring on everything, which no component sets or overrides. Color, width and gap come
+   from the theme (violet 2px/2px in light, yellow 2px/1px in dark). Containers with a colored fill
+   set --_bit-focus-ring so rings inside them stay visible. */
 :focus-visible {
-  outline: 3px solid var(--bit-color-ink);
-  outline-offset: 3px;
+  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
+  outline-offset: var(--bit-focus-ring-offset);
 }
 
 /* Programmatic focus targets (a page heading or section focused after navigation, the main

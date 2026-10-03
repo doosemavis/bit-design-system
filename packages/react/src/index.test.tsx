@@ -36,7 +36,7 @@ function expectedRootClass(name: string): string {
 describe('public index', () => {
   it('exports exactly the Phase 1 components', () => {
     expect(componentNames.sort()).toEqual(
-      ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'Spinner', 'Stack', 'Text'].sort(),
+      ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text'].sort(),
     );
   });
 
@@ -65,5 +65,15 @@ describe('public index', () => {
         : false;
     });
     expect(offenders).toEqual([]);
+  });
+
+  it('exports the color mode service but not its test helpers', () => {
+    expect(lib.COLOR_MODES).toEqual(['light', 'dark']);
+    expect(lib.COLOR_MODE_STORAGE_KEY).toBe('bit-color-mode');
+    expect(typeof lib.COLOR_MODE_SCRIPT).toBe('string');
+    expect(typeof lib.useColorMode).toBe('function');
+    expect('resetColorModeStore' in lib).toBe(false);
+    expect('setColorMode' in lib).toBe(false);
+    expect('resolveColorMode' in lib).toBe(false);
   });
 });

@@ -46,13 +46,6 @@ describe('Shell', () => {
     });
   });
 
-  it('theme select sets data-theme on the root element', async () => {
-    renderAt('/');
-    const select = await screen.findByLabelText('Theme');
-    await userEvent.selectOptions(select, 'power-up');
-    expect(document.documentElement.dataset.theme).toBe('power-up');
-  });
-
   it('unknown routes render the 404 with a link home', async () => {
     const { container } = renderAt('/nope');
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Page not found');

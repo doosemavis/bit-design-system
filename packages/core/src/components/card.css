@@ -2,7 +2,7 @@
 .bit-card {
   display: flex;
   flex-direction: column;
-  border: var(--bit-border-width) solid var(--bit-color-ink);
+  border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-14px);
   overflow: hidden;
   color: var(--bit-color-text);
@@ -24,7 +24,7 @@
   font-size: var(--bit-text-18px);
   line-height: var(--bit-leading-tight);
   letter-spacing: 0.01em;
-  border-bottom: var(--bit-border-width) solid var(--bit-color-ink);
+  border-bottom: var(--bit-border-width) solid var(--bit-color-line);
 }
 
 .bit-card__body {
@@ -36,6 +36,6 @@
   justify-content: flex-end;
   gap: var(--bit-space-8px);
   padding: var(--bit-space-12px) var(--bit-space-16px);
-  border-top: var(--bit-border-width) solid var(--bit-color-ink);
+  border-top: var(--bit-border-width) solid var(--bit-color-line);
   background: var(--bit-color-neutral-soft);
 }

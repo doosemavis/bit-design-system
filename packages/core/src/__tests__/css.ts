@@ -55,3 +55,24 @@ export function contrastRatio(hexA: string, hexB: string): number {
   const [hi, lo] = [luminance(hexA), luminance(hexB)].sort((a, b) => b - a) as [number, number];
   return (hi + 0.05) / (lo + 0.05);
 }
+
+/** A `[data-mode="dark"]` that starts a line and isn't continuing a comma-separated selector list. */
+const DARK_RULE = /(?<!,\s*)(^|\n)\[data-mode="dark"\]\s*\{/;
+
+/**
+ * Split a theme file into its light (default) declarations and its `[data-mode="dark"]` overrides.
+ * The dark block is found with `/(?<!,\s*)(^|\n)\[data-mode="dark"\]\s*\{/`: a `[data-mode="dark"]`
+ * that starts a line and isn't continuing a comma-separated selector list. Its declarations run from
+ * that match's `{` to the next `}`; light is everything else. `dark` is empty when there is no such rule.
+ */
+export function themeModes(css: string): { light: Map<string, string>; dark: Map<string, string> } {
+  const match = DARK_RULE.exec(css);
+  if (!match) return { light: parseCustomProps(css), dark: new Map() };
+  const start = match.index;
+  const open = start + match[0].length - 1;
+  const close = css.indexOf('}', open);
+  return {
+    light: parseCustomProps(css.slice(0, start) + css.slice(close + 1)),
+    dark: parseCustomProps(css.slice(open + 1, close)),
+  };
+}

@@ -4,13 +4,14 @@
   flex-direction: column;
   gap: var(--bit-space-4px);
   padding: var(--bit-space-16px);
-  border: var(--bit-border-width) solid var(--bit-color-ink);
+  border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-10px);
 }
 
 .bit-alert.bit-solid {
   background: var(--_bit-color);
   color: var(--_bit-color-contrast);
+  --_bit-focus-ring: var(--_bit-color-contrast);
   box-shadow: var(--bit-shadow-md);
 }
 

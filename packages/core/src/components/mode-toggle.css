@@ -1,0 +1,37 @@
+/* ModeToggle: the light/dark pill. Two buttons in one outlined pill; the pressed one takes the
+   warning fill. Size comes from .bit-sm / .bit-md on the root (--_bit-size-*). No overflow: hidden,
+   so an option's focus ring is never clipped. */
+.bit-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-full);
+  box-shadow: var(--bit-shadow-sm);
+  background: var(--bit-color-surface);
+}
+
+.bit-mode-toggle__option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bit-space-4px);
+  height: calc(var(--_bit-size-height) - 2 * var(--bit-border-width));
+  padding: 0 var(--_bit-size-padding);
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-bold);
+  line-height: 1;
+  color: var(--bit-color-text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--bit-radius-full);
+  cursor: pointer;
+}
+
+.bit-mode-toggle__option:hover:not([aria-pressed="true"]) {
+  background: var(--bit-color-neutral-soft);
+}
+
+.bit-mode-toggle__option[aria-pressed="true"] {
+  background: var(--bit-color-warning);
+  color: var(--bit-color-warning-contrast);
+}

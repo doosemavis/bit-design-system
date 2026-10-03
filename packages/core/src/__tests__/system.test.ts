@@ -104,10 +104,12 @@ describe('system/reset.css browser surfaces (amendments §C)', () => {
     expect(body).toContain('color: var(--bit-color-ink);');
   });
 
-  it('the caret is primary and scrollbars are an ink thumb on a neutral-soft track', () => {
-    const root = block(css, ':root');
+  it('the root and any mode element set text, a primary caret, and a line-on-neutral-soft scrollbar', () => {
+    const root = block(css, ':root,\n[data-mode="light"],\n[data-mode="dark"]');
+    expect(root).not.toBeNull();
     expect(root).toContain('caret-color: var(--bit-color-primary);');
-    expect(root).toContain('scrollbar-color: var(--bit-color-ink) var(--bit-color-neutral-soft);');
+    expect(root).toContain('scrollbar-color: var(--bit-color-line) var(--bit-color-neutral-soft);');
+    expect(root).toContain('color: var(--bit-color-text);');
     expect(block(css, '*')).toContain('scrollbar-width: thin;');
   });
 });
@@ -121,15 +123,29 @@ describe('components/logo.css', () => {
       expect(css).toContain(`var(${name})`);
     }
   });
+
+  it('the wordmark reads the text color, so "-bit" stays visible on a dark page', () => {
+    expect(block(css, '.bit-logo')).toContain('color: var(--bit-color-text);');
+  });
+
+  it('era outlines read line and era shadows read shadow, never ink', () => {
+    expect(css).not.toContain('var(--bit-color-ink)');
+  });
 });
 
-describe('focus ring (D9)', () => {
+describe('focus ring (dark mode spec: one ring, no band)', () => {
   const reset = readCss('system/reset.css');
 
-  it('reset.css draws a 3px ink outline at a 3px offset on :focus-visible', () => {
+  it('reset.css draws the ring from the three focus-ring tokens, unless a colored container overrides its color', () => {
     const body = block(reset, ':focus-visible');
-    expect(body).toContain('outline: 3px solid var(--bit-color-ink);');
-    expect(body).toContain('outline-offset: 3px;');
+    expect(body).toContain('outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));');
+    expect(body).toContain('outline-offset: var(--bit-focus-ring-offset);');
+  });
+
+  it('a solid alert draws rings inside it in its contrast color, so they stay visible on the fill', () => {
+    expect(block(readCss('components/alert.css'), '.bit-alert.bit-solid')).toContain(
+      '--_bit-focus-ring: var(--_bit-color-contrast);',
+    );
   });
 
   it('programmatic focus targets (tabindex="-1", e.g. a page heading) show no ring', () => {
@@ -142,30 +158,18 @@ describe('focus ring (D9)', () => {
     expect(reset).not.toMatch(/(^|\n)\[tabindex="-1"\]:focus\s*\{/);
   });
 
-  it.each(listCss('components'))('%s never sets outline, so nothing can override the ink ring', (file) => {
+  it.each(listCss('components'))('%s never sets outline, so nothing can override the ring', (file) => {
     expect(readCss(`components/${file}`)).not.toMatch(/^\s*outline\s*:/m);
   });
 
-  /** Interactive components carry the yellow band. PR2 adds link, input, select, switch, segmented-control, code. */
-  const INTERACTIVE = ['button.css'] as const;
-
-  describe.each(INTERACTIVE)('%s', (file) => {
+  it.each(listCss('components'))('%s has no focus band and no gloss', (file) => {
     const css = readCss(`components/${file}`);
-    const blockName = file.replace(/\.css$/, '');
+    expect(css).not.toContain('focus-band');
+    expect(css).not.toContain('--bit-gloss');
+  });
 
-    it('every box-shadow starts with the band, so no variant, hover, or active state can drop it', () => {
-      const shadows = [...css.matchAll(/box-shadow:\s*([^;]+);/g)].map((m) => m[1]!.trim());
-      expect(shadows.length).toBeGreaterThan(0);
-      for (const shadow of shadows) expect(shadow.startsWith('var(--_bit-focus-band)')).toBe(true);
-    });
-
-    it('the block resets the band, so a focused ancestor cannot leak it into this component', () => {
-      expect(block(css, `.bit-${blockName}`)).toContain('--_bit-focus-band: 0 0 #0000;');
-    });
-
-    it(':focus-visible turns the band on from the theme token', () => {
-      expect(block(css, `.bit-${blockName}:focus-visible`)).toContain('--_bit-focus-band: var(--bit-focus-band);');
-    });
+  it.each(listCss('components'))('%s draws lines with --bit-color-line, never ink', (file) => {
+    expect(readCss(`components/${file}`)).not.toContain('var(--bit-color-ink)');
   });
 });
 
@@ -174,5 +178,19 @@ describe('components/badge.css', () => {
   it('a pill reads radius-full; data-shape="square" reads the 6px radius', () => {
     expect(block(css, '.bit-badge')).toContain('border-radius: var(--bit-radius-full);');
     expect(block(css, '.bit-badge[data-shape="square"]')).toContain('border-radius: var(--bit-radius-6px);');
+  });
+});
+
+describe('components/mode-toggle.css', () => {
+  const css = readCss('components/mode-toggle.css');
+  it('the pressed option takes the warning fill and its contrast text', () => {
+    const body = block(css, '.bit-mode-toggle__option[aria-pressed="true"]');
+    expect(body).toContain('background: var(--bit-color-warning);');
+    expect(body).toContain('color: var(--bit-color-warning-contrast);');
+  });
+  it('the pill is outlined with the line color and has the small hard shadow', () => {
+    const body = block(css, '.bit-mode-toggle');
+    expect(body).toContain('border: var(--bit-border-width) solid var(--bit-color-line);');
+    expect(body).toContain('box-shadow: var(--bit-shadow-sm);');
   });
 });

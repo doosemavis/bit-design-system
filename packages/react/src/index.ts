@@ -23,5 +23,11 @@ export type { TextProps, TextElement } from './components/Text/Text';
 export { Spinner } from './components/Spinner/Spinner';
 export type { SpinnerProps } from './components/Spinner/Spinner';
 
+export { ModeToggle } from './components/ModeToggle/ModeToggle';
+export type { ModeToggleProps } from './components/ModeToggle/ModeToggle';
+
 export { BitLogo, ERAS } from './logo/BitLogo';
 export type { BitLogoProps, Era } from './logo/BitLogo';
+
+export { useColorMode, COLOR_MODES, COLOR_MODE_STORAGE_KEY, COLOR_MODE_SCRIPT } from './mode/colorMode';
+export type { ColorMode } from './mode/colorMode';
