@@ -64,7 +64,7 @@ describe('public index', () => {
         'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
         'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
         'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
-        'Heading',
+        'Heading', 'Box',
       ].sort(),
     );
   });

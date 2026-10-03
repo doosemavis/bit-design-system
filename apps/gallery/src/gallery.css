@@ -285,6 +285,12 @@ html {
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
 }
 
+/* A previewed Box gets a dashed outline in the mode accent, so its padding shows. Gallery only: Box itself
+   draws nothing. An outline takes no space, so the space on screen is exactly what the props set. */
+.gallery-preview__stage > .bit-box {
+  outline: 2px dashed var(--bit-color-accent);
+}
+
 /* ---------- presets and matrix ---------- */
 .gallery-presets__row {
   display: flex;

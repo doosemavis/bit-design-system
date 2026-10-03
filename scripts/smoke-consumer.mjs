@@ -16,7 +16,7 @@ const EXPECTED = [
   'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
   'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
   'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
-  'Heading',
+  'Heading', 'Box',
 ];
 
 // Run a command, printing its stdout/stderr and rethrowing on failure so a broken

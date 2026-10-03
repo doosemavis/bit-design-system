@@ -12,7 +12,7 @@ const EXPECTED = [
   'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
   'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
   'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
-  'Heading',
+  'Heading', 'Box',
 ];
 
 // 0. Client boundary: the hooks and toggle need a 'use client' directive for React Server Components.
@@ -48,13 +48,13 @@ for (const [file, contents] of Object.entries(dtsFiles)) {
   assert.ok(/declare\s+const\s+COLORS\b/.test(contents), `${file} missing local declaration: COLORS`);
   assert.ok(/type\s+Color\b/.test(contents), `${file} missing exported type: Color`);
 }
-for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size', 'FieldProps', 'InputProps', 'SelectProps', 'SwitchProps', 'LinkProps', 'CodeProps', 'CodeBlockProps', 'SegmentedControlProps', 'TableProps', 'TableCellProps', 'HeadingProps', 'HeadingLevel']) {
+for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size', 'FieldProps', 'InputProps', 'SelectProps', 'SwitchProps', 'LinkProps', 'CodeProps', 'CodeBlockProps', 'SegmentedControlProps', 'TableProps', 'TableCellProps', 'HeadingProps', 'HeadingLevel', 'BoxProps', 'BoxElement']) {
   assert.ok(dtsFiles['index.d.ts'].includes(name), `index.d.ts missing type: ${name}`);
 }
 
 // 4. CSS bundle: system layer + every component, no unresolved local imports
 const css = readFileSync(resolve(dist, 'styles.css'), 'utf8');
-for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '.bit-logo__caption', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo', '.bit-mode-toggle', '.bit-field__error', '.bit-input', '.bit-select__control', '.bit-switch__track', '.bit-link', '.bit-code', '.bit-code__token', '.bit-code__copy', '.bit-segmented-control__label', '.bit-table__cell', '.bit-heading[data-level="6"]']) {
+for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '.bit-logo__caption', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo', '.bit-mode-toggle', '.bit-field__error', '.bit-input', '.bit-select__control', '.bit-switch__track', '.bit-link', '.bit-code', '.bit-code__token', '.bit-code__copy', '.bit-segmented-control__label', '.bit-table__cell', '.bit-heading[data-level="6"]', '.bit-box[data-ml="64"]']) {
   assert.ok(css.includes(needle), `styles.css missing: ${needle}`);
 }
 assert.ok(!/@import\s+"\.\//.test(css), 'styles.css still contains a relative @import (bundling failed)');
