@@ -26,6 +26,12 @@ export type { SpinnerProps } from './components/Spinner/Spinner';
 export { ModeToggle } from './components/ModeToggle/ModeToggle';
 export type { ModeToggleProps } from './components/ModeToggle/ModeToggle';
 
+export { Field } from './components/Field/Field';
+export type { FieldProps } from './components/Field/Field';
+
+export { Input } from './components/Input/Input';
+export type { InputProps } from './components/Input/Input';
+
 export { BitLogo } from './logo/BitLogo';
 export type { BitLogoProps } from './logo/BitLogo';
 export { ERAS, LOGO_ERA_STORAGE_KEY } from './logo/logoEra';

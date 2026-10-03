@@ -9,6 +9,8 @@ import { text } from '../manifests/text';
 import { spinner } from '../manifests/spinner';
 import { bitLogo } from '../manifests/bitLogo';
 import { badge } from '../manifests/badge';
+import { field } from '../manifests/field';
+import { input } from '../manifests/input';
 import type { Manifest } from '../manifests/types';
 import { numberControlFixture } from '../test/fixtures';
 
@@ -68,6 +70,18 @@ describe('toJsx', () => {
       text,
       { color: 'neutral', as: 'h2' },
       `import { Text } from '@bit-ds/react';\n\n<Text as="h2" color="neutral">The quick brown fox jumps over the lazy dog.</Text>`,
+    ],
+    [
+      'an alwaysPrint text prop prints at its default, and a ChildSpec with no children self-closes',
+      field,
+      {},
+      `import { Field, Input } from '@bit-ds/react';\n\n<Field label="Email">\n  <Input type="email" placeholder="you@example.com" />\n</Field>`,
+    ],
+    [
+      'a component with no children self-closes; aria-label and alwaysPrint props print at their defaults',
+      input,
+      { invalid: true },
+      `import { Input } from '@bit-ds/react';\n\n<Input aria-label="Email" placeholder="you@example.com" invalid />`,
     ],
     [
       'a data-attribute enum prints like any select',

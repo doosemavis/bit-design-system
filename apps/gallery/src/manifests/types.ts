@@ -39,18 +39,21 @@ export interface TextControl {
   prop: string;
   default: string;
   label?: string;
+  /** Print the prop in the code even at its default, because the component requires it (Field `label`). */
+  alwaysPrint?: boolean;
 }
 export type Control = AxisControl | SelectControl | BooleanControl | NumberControl | TextControl;
 
 /**
  * One child element of a compound component, as data so toJsx can print it. A PascalCase
  * `component` is a registered bit component; a lowercase one is a plain HTML element
- * (Select's `option`), following JSX's own rule.
+ * (Select's `option`), following JSX's own rule. No `children` renders and prints a
+ * self-closing element (Field's Input).
  */
 export interface ChildSpec {
   component: string;
   props?: Record<string, string>;
-  children: string;
+  children?: string;
 }
 
 export interface Preset {

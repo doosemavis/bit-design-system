@@ -5,6 +5,7 @@ import { defaultState } from './state';
 import { button } from '../manifests/button';
 import { card } from '../manifests/card';
 import { stack } from '../manifests/stack';
+import { field } from '../manifests/field';
 import type { Manifest } from '../manifests/types';
 
 describe('renderManifest', () => {
@@ -25,6 +26,14 @@ describe('renderManifest', () => {
     const { container } = render(renderManifest(stack, defaultState(stack)));
     expect(container.querySelectorAll('.bit-badge')).toHaveLength(3);
     expect(container.querySelector('.bit-badge.bit-success')).toHaveTextContent('Two');
+  });
+
+  it('renders a ChildSpec with no children as a childless element (Field wraps a void Input)', () => {
+    render(renderManifest(field, { ...defaultState(field), error: 'Enter your email.' }));
+    const input = screen.getByRole('textbox', { name: 'Email' });
+    expect(input).toHaveClass('bit-input');
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAccessibleDescription('Enter your email.');
   });
 
   it('renders a lowercase ChildSpec as a plain HTML element (Select needs <option>)', () => {

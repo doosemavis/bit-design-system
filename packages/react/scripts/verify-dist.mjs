@@ -8,7 +8,10 @@ import assert from 'node:assert/strict';
 const dist = resolve(dirname(fileURLToPath(import.meta.url)), '../dist');
 const require = createRequire(import.meta.url);
 
-const EXPECTED = ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text'];
+const EXPECTED = [
+  'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
+  'Field', 'Input',
+];
 
 // 0. Client boundary: the hooks and toggle need a 'use client' directive for React Server Components.
 for (const file of ['index.js', 'index.cjs']) {
@@ -43,13 +46,13 @@ for (const [file, contents] of Object.entries(dtsFiles)) {
   assert.ok(/declare\s+const\s+COLORS\b/.test(contents), `${file} missing local declaration: COLORS`);
   assert.ok(/type\s+Color\b/.test(contents), `${file} missing exported type: Color`);
 }
-for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size']) {
+for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size', 'FieldProps', 'InputProps']) {
   assert.ok(dtsFiles['index.d.ts'].includes(name), `index.d.ts missing type: ${name}`);
 }
 
 // 4. CSS bundle: system layer + every component, no unresolved local imports
 const css = readFileSync(resolve(dist, 'styles.css'), 'utf8');
-for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '.bit-logo__caption', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo', '.bit-mode-toggle']) {
+for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '.bit-logo__caption', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo', '.bit-mode-toggle', '.bit-field__error', '.bit-input']) {
   assert.ok(css.includes(needle), `styles.css missing: ${needle}`);
 }
 assert.ok(!/@import\s+"\.\//.test(css), 'styles.css still contains a relative @import (bundling failed)');

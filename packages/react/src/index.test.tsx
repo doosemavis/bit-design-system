@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
+import { createElement } from 'react';
 import type { ComponentType } from 'react';
 import * as lib from './index';
 
@@ -24,6 +25,14 @@ function isComponent(value: unknown): value is ComponentType<Record<string, unkn
 
 const componentNames = Object.keys(lib).filter((name) => /^[A-Z]/.test(name) && isComponent((lib as Record<string, unknown>)[name]));
 
+/**
+ * What each component renders with in the naming-rule test: `aria-label="x"` and the child "x", plus
+ * these props where a component needs more to render at all. A void element (Input) takes no children.
+ */
+const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
+  Input: { children: undefined },
+};
+
 /** The naming rule from the spec, as code. */
 function expectedRootClass(name: string): string {
   const parent = componentNames
@@ -34,9 +43,12 @@ function expectedRootClass(name: string): string {
 }
 
 describe('public index', () => {
-  it('exports exactly the Phase 1 components', () => {
+  it('exports exactly the public components', () => {
     expect(componentNames.sort()).toEqual(
-      ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text'].sort(),
+      [
+        'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
+        'Field', 'Input',
+      ].sort(),
     );
   });
 
@@ -51,7 +63,7 @@ describe('public index', () => {
 
   it.each(componentNames)('%s renders the root class the naming rule predicts', (name) => {
     const Component = (lib as Record<string, unknown>)[name] as ComponentType<Record<string, unknown>>;
-    const { container } = render(<Component aria-label="x">x</Component>);
+    const { container } = render(createElement(Component, { 'aria-label': 'x', children: 'x', ...SAMPLE_PROPS[name] }));
     const root = container.firstElementChild;
     expect(root).not.toBeNull();
     expect(root!.classList.contains(expectedRootClass(name))).toBe(true);

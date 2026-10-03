@@ -39,7 +39,7 @@ function printProp(control: Control, value: ControlValue, defaultValue: ControlV
     case 'text': {
       const str = String(value);
       if (str === '') return null;
-      if (isDefault && !isRequiredAria(control)) return null;
+      if (isDefault && !control.alwaysPrint && !isRequiredAria(control)) return null;
       return `${control.prop}="${escapeAttr(str)}"`;
     }
   }
@@ -49,7 +49,9 @@ function printChildSpec(child: ChildSpec, depth: number): string {
   const props = Object.entries(child.props ?? {})
     .map(([k, v]) => ` ${k}="${escapeAttr(v)}"`)
     .join('');
-  return `${INDENT.repeat(depth)}<${child.component}${props}>${printChildren(child.children)}</${child.component}>`;
+  const open = `${INDENT.repeat(depth)}<${child.component}${props}`;
+  if (child.children === undefined) return `${open} />`;
+  return `${open}>${printChildren(child.children)}</${child.component}>`;
 }
 
 function importLine(manifest: Manifest): string {

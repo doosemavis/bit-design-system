@@ -12,7 +12,10 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const reactPkg = join(root, 'packages', 'react');
 const run = (cmd, cwd) => execSync(cmd, { cwd, stdio: 'pipe', encoding: 'utf8' });
 
-const EXPECTED = ['Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text'];
+const EXPECTED = [
+  'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
+  'Field', 'Input',
+];
 
 // Run a command, printing its stdout/stderr and rethrowing on failure so a broken
 // consumer step fails loudly instead of an opaque non-zero exit.

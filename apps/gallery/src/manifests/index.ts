@@ -8,9 +8,11 @@ import { text } from './text';
 import { spinner } from './spinner';
 import { modeToggle } from './modeToggle';
 import { bitLogo } from './bitLogo';
+import { field } from './field';
+import { input } from './input';
 
-/** Sidebar order. */
-export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, text, spinner, modeToggle, bitLogo];
+/** Sidebar order within each group (Components, then Forms, then Brand). */
+export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, text, spinner, modeToggle, field, input, bitLogo];
 
 export function findManifest(slug: string): Manifest | undefined {
   return MANIFESTS.find((m) => m.slug === slug);
