@@ -162,3 +162,11 @@ describe('focus ring (D9)', () => {
     });
   });
 });
+
+describe('components/badge.css', () => {
+  const css = readCss('components/badge.css');
+  it('a pill reads radius-full; data-shape="square" reads the 6px radius', () => {
+    expect(block(css, '.bit-badge')).toContain('border-radius: var(--bit-radius-full);');
+    expect(block(css, '.bit-badge[data-shape="square"]')).toContain('border-radius: var(--bit-radius-6px);');
+  });
+});

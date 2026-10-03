@@ -34,3 +34,7 @@
   background: var(--_bit-color-soft);
   color: var(--bit-color-text);
 }
+
+.bit-badge[data-shape="square"] {
+  border-radius: var(--bit-radius-6px);
+}

@@ -8,6 +8,7 @@ import { stack } from '../manifests/stack';
 import { text } from '../manifests/text';
 import { spinner } from '../manifests/spinner';
 import { bitLogo } from '../manifests/bitLogo';
+import { badge } from '../manifests/badge';
 
 describe('toJsx', () => {
   it.each([
@@ -65,6 +66,12 @@ describe('toJsx', () => {
       text,
       { color: 'neutral', as: 'h2' },
       `import { Text } from '@bit-ds/react';\n\n<Text as="h2" color="neutral">The quick brown fox jumps over the lazy dog.</Text>`,
+    ],
+    [
+      'a data-attribute enum prints like any select',
+      badge,
+      { shape: 'square' },
+      `import { Badge } from '@bit-ds/react';\n\n<Badge shape="square">New</Badge>`,
     ],
   ])('%s', (_name, manifest, partial, expected) => {
     expect(toJsx(manifest, { ...defaultState(manifest), ...partial })).toBe(expected);

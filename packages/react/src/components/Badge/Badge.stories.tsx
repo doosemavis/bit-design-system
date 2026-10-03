@@ -7,11 +7,12 @@ const row = { display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }
 const meta = {
   title: 'Components/Badge',
   component: Badge,
-  args: { children: 'New', color: 'neutral', variant: 'solid', size: 'md' },
+  args: { children: 'New', color: 'neutral', variant: 'solid', size: 'md', shape: 'pill' },
   argTypes: {
     color: { control: 'select', options: COLORS },
     variant: { control: 'select', options: ['solid', 'outline'] },
     size: { control: 'select', options: ['sm', 'md'] },
+    shape: { control: 'radio', options: ['pill', 'square'] },
   },
 } satisfies Meta<typeof Badge>;
 

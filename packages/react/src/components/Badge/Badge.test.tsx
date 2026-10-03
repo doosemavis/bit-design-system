@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { Badge } from './Badge';
@@ -23,6 +23,26 @@ describe('Badge', () => {
     render(<Badge ref={ref} className="extra" data-testid="b">X</Badge>);
     expect(screen.getByTestId('b').className).toBe('bit-badge bit-neutral bit-solid bit-md extra');
     expect(ref.current).toBe(screen.getByTestId('b'));
+  });
+
+  it('is a pill by default and square on request, as data-shape (not a class)', () => {
+    render(<Badge data-testid="pill">A</Badge>);
+    render(<Badge shape="square" data-testid="square">B</Badge>);
+    expect(screen.getByTestId('pill')).toHaveAttribute('data-shape', 'pill');
+    expect(screen.getByTestId('square')).toHaveAttribute('data-shape', 'square');
+    expect(screen.getByTestId('square').className).toBe('bit-badge bit-neutral bit-solid bit-md');
+  });
+
+  describe('unknown shape', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it('is dropped with a dev warning', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      // @ts-expect-error only pill and square exist
+      render(<Badge shape="round" data-testid="b">C</Badge>);
+      expect(screen.getByTestId('b')).not.toHaveAttribute('data-shape');
+      expect(warn.mock.calls[0]?.[0]).toContain('shape="round"');
+    });
   });
 
   const variants = ['solid', 'outline'] as const;
