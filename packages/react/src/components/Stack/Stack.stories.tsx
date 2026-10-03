@@ -6,7 +6,7 @@ import { SPACE_STEPS } from '../../system/axes';
 const meta = {
   title: 'Components/Stack',
   component: Stack,
-  args: { direction: 'column', gap: 3, wrap: false },
+  args: { direction: 'column', gap: 12, wrap: false },
   argTypes: {
     direction: { control: 'radio', options: ['row', 'column'] },
     gap: { control: 'select', options: SPACE_STEPS },
@@ -28,4 +28,4 @@ export const Playground: Story = {
   ),
 };
 
-export const Row: Story = { ...Playground, args: { direction: 'row', gap: 2, align: 'center' } };
+export const Row: Story = { ...Playground, args: { direction: 'row', gap: 8, align: 'center' } };

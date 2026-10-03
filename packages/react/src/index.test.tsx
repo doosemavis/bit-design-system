@@ -45,6 +45,8 @@ describe('public index', () => {
     expect(lib.COLORS).toHaveLength(5);
     expect(lib.VARIANTS).toEqual(['solid', 'outline', 'ghost']);
     expect(lib.SIZES).toEqual(['sm', 'md', 'lg']);
+    expect(lib.TEXT_SIZES).toEqual([11, 13, 15, 18, 24, 32]);
+    expect(lib.SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
   it.each(componentNames)('%s renders the root class the naming rule predicts', (name) => {
