@@ -49,13 +49,13 @@ export type Control = AxisControl | SelectControl | BooleanControl | NumberContr
 /**
  * One child element of a compound component, as data so toJsx can print it. A PascalCase
  * `component` is a registered bit component; a lowercase one is a plain HTML element
- * (Select's `option`), following JSX's own rule. No `children` renders and prints a
- * self-closing element (Field's Input).
+ * (Select's `option`), following JSX's own rule. `children` is text, nested parts (Table's
+ * head, rows and cells), or nothing for a self-closing element (Field's Input).
  */
 export interface ChildSpec {
   component: string;
   props?: Record<string, string>;
-  children?: string;
+  children?: string | readonly ChildSpec[];
 }
 
 export interface Preset {

@@ -13,6 +13,7 @@ import { field } from '../manifests/field';
 import { input } from '../manifests/input';
 import { select } from '../manifests/select';
 import { codeBlock } from '../manifests/codeBlock';
+import { table } from '../manifests/table';
 import type { Manifest } from '../manifests/types';
 import { numberControlFixture } from '../test/fixtures';
 
@@ -125,6 +126,18 @@ describe('toJsx', () => {
   it('prints plain children with quotes and backslashes raw', () => {
     const state = { ...defaultState(button), children: "it's C:\\dir" };
     expect(toJsx(button, state)).toBe(`import { Button } from '@bit-ds/react';\n\n<Button>it's C:\\dir</Button>`);
+  });
+
+  it('prints nested parts indented one level per depth, and imports every part once', () => {
+    const small: Manifest = {
+      ...table,
+      children: [
+        { component: 'TableBody', children: [{ component: 'TableRow', children: [{ component: 'TableCell', children: 'a' }] }] },
+      ],
+    };
+    expect(toJsx(small, { ...defaultState(small), striped: true })).toBe(
+      `import { Table, TableBody, TableCell, TableHead, TableRow } from '@bit-ds/react';\n\n<Table striped aria-label="Button props">\n  <TableBody>\n    <TableRow>\n      <TableCell>a</TableCell>\n    </TableRow>\n  </TableBody>\n</Table>`,
+    );
   });
 
   it('prints HTML ChildSpecs as JSX but leaves them out of the import line', () => {
