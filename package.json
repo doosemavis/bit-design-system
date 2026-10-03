@@ -14,7 +14,10 @@
     "storybook": "pnpm --filter @bit/docs storybook",
     "storybook:build": "pnpm --filter @bit/docs build",
     "logo:svg": "node scripts/build-logo-svg.mjs",
-    "smoke": "node scripts/smoke-consumer.mjs"
+    "smoke": "node scripts/smoke-consumer.mjs",
+    "gallery": "pnpm build && pnpm --filter @bit/gallery dev",
+    "gallery:build": "pnpm build && pnpm --filter @bit/gallery build",
+    "e2e": "pnpm --filter @bit/gallery e2e"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
