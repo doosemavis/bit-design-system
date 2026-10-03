@@ -6,7 +6,7 @@ export const bitLogo: Manifest = {
   slug: 'logo',
   group: 'brand',
   component: BitLogo,
-  description: 'bit, with "Design System" beneath. Each page load shows the next era: 8 → 16 → 32 → 64. era pins one.',
+  description: 'bit, with "Design System" in two lines to its right. Each page load shows the next era: 8 → 16 → 32 → 64. era pins one.',
   controls: [
     { kind: 'axis', prop: 'size', values: SIZES, default: 'md' },
     { kind: 'select', prop: 'era', values: ['none', ...ERAS.map(String)], default: 'none', numeric: true },

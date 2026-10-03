@@ -15,7 +15,7 @@ export interface BitLogoProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'col
   era?: Era;
 }
 
-/** The bit wordmark: "bit" drawn in one console era's style, over a small "Design System" caption. */
+/** The bit wordmark: "bit" drawn in one console era's style, with a small "Design System" caption to its right. */
 export const BitLogo = forwardRef<HTMLSpanElement, BitLogoProps>(function BitLogo(
   { size = 'md', era, className, ...rest },
   ref,

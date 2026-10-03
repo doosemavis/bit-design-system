@@ -1,12 +1,13 @@
 /* Exempt from --_bit-size-* and --bit-border-width: the logo is not a control, so it scales from
    the type scale directly rather than the control size scale, and has no border. */
-/* BitLogo: "bit" over a small "DESIGN SYSTEM" caption. The word is drawn in one era's style, chosen
-   by data-era on the root (8, 16, 32 or 64). Nothing moves; the era changes between page loads. */
+/* BitLogo: "bit" with a small "DESIGN / SYSTEM" caption in two lines to its right, centred on the word.
+   The word is drawn in one era's style, chosen by data-era on the root (8, 16, 32 or 64). Nothing moves;
+   the era changes between page loads. */
 .bit-logo {
   display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.18em;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4em;
   line-height: 1;
   white-space: nowrap;
   color: var(--bit-color-text);
@@ -20,15 +21,18 @@
   line-height: 1;
 }
 
-/* The caption stays the same in every era. 0.25em of the root: 8px at sm, 12px at md, 18px at lg. */
+/* The caption stays the same in every era. It is one text node, "Design System"; min-content width
+   makes it wrap at its one space, so it reads DESIGN over SYSTEM beside the word.
+   0.26em of the root: ~8px at sm, 12.5px at md, ~18.7px at lg. */
 .bit-logo__caption {
   font-family: var(--bit-font-pixel);
-  font-size: 0.25em;
-  letter-spacing: 0.18em;
+  font-size: 0.26em;
+  letter-spacing: 0.14em;
+  line-height: 1.3;
   text-transform: uppercase;
   color: var(--bit-color-text-muted);
-  line-height: 1;
-  white-space: nowrap;
+  width: min-content;
+  white-space: normal;
 }
 
 /* ---------- era treatments (a theme may override any of these by selector) ---------- */

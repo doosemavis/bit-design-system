@@ -140,11 +140,12 @@ describe('components/logo.css', () => {
     expect(css).not.toContain('data-animated');
   });
 
-  it('stacks the word over the caption, left-aligned', () => {
+  it('sets the caption beside the word, centred', () => {
     const root = block(css, '.bit-logo')!;
     expect(root).toContain('display: inline-flex;');
-    expect(root).toContain('flex-direction: column;');
-    expect(root).toContain('align-items: flex-start;');
+    expect(root).toContain('flex-direction: row;');
+    expect(root).toContain('align-items: center;');
+    expect(root).toContain('gap: 0.4em;');
   });
 
   it('sizes the mark from the 32px type step', () => {
@@ -165,15 +166,17 @@ describe('components/logo.css', () => {
     expect(css).not.toContain('Bungee');
   });
 
-  it('the caption is small muted pixel type in capitals', () => {
+  it('the caption is small muted pixel type in capitals, wrapping to two lines at its one space', () => {
     const caption = block(css, '.bit-logo__caption')!;
     for (const line of [
       'font-family: var(--bit-font-pixel);',
-      'font-size: 0.25em;',
-      'letter-spacing: 0.18em;',
+      'font-size: 0.26em;',
+      'letter-spacing: 0.14em;',
+      'line-height: 1.3;',
       'text-transform: uppercase;',
       'color: var(--bit-color-text-muted);',
-      'white-space: nowrap;',
+      'width: min-content;',
+      'white-space: normal;',
     ]) {
       expect(caption).toContain(line);
     }
