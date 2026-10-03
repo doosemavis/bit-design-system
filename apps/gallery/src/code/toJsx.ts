@@ -1,7 +1,7 @@
 import type { ChildSpec, Control, ControlState, ControlValue, Manifest } from '../manifests/types';
 import { defaultState } from '../engine/state';
+import { isOmittedSentinel } from '../manifests/sentinels';
 
-const OMIT_SENTINELS = new Set(['default', 'none']);
 const INDENT = '  ';
 
 function escapeAttr(value: string): string {
@@ -31,7 +31,7 @@ function printProp(control: Control, value: ControlValue, defaultValue: ControlV
     case 'number':
       return isDefault ? null : `${control.prop}={${Number(value)}}`;
     case 'select':
-      if (isDefault || (typeof value === 'string' && OMIT_SENTINELS.has(value))) return null;
+      if (isDefault || isOmittedSentinel(control, value)) return null;
       return control.numeric ? `${control.prop}={${Number(value)}}` : `${control.prop}="${escapeAttr(String(value))}"`;
     case 'axis':
       return isDefault ? null : `${control.prop}="${escapeAttr(String(value))}"`;

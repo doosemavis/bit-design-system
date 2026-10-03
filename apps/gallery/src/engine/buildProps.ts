@@ -1,7 +1,5 @@
 import type { ControlState, Manifest } from '../manifests/types';
-
-/** Select values that mean "leave the prop off". */
-const OMIT_SENTINELS = new Set(['default', 'none']);
+import { isOmittedSentinel } from '../manifests/sentinels';
 
 /** Turn control state into the props object the component receives. `children` is rendered separately. */
 export function buildProps(manifest: Manifest, state: ControlState): Record<string, unknown> {
@@ -9,7 +7,7 @@ export function buildProps(manifest: Manifest, state: ControlState): Record<stri
   for (const control of manifest.controls) {
     const value = state[control.prop];
     if (value === undefined) continue;
-    if (control.kind === 'select' && typeof value === 'string' && OMIT_SENTINELS.has(value)) continue;
+    if (isOmittedSentinel(control, value)) continue;
     if (control.kind === 'number' || (control.kind === 'select' && control.numeric)) {
       props[control.prop] = Number(value);
       continue;
