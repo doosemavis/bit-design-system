@@ -23,4 +23,37 @@ export const select: Manifest = {
     { label: 'Small', state: { size: 'sm' } },
     { label: 'Disabled', state: { disabled: true } },
   ],
+  docs: {
+    badges: ['Native <select>', 'Native options list'],
+    usage: {
+      do: [
+        'Use Select to pick one of five or more options. Put it in a Field for a visible label.',
+        'Use SegmentedControl instead when there are two to four options and all should show.',
+      ],
+      dont: [
+        'Use a Select for yes or no. Use a Switch.',
+        'Use a Select to navigate to another page.',
+      ],
+    },
+    props: [
+      { name: 'size', className: 'bit-{size}', type: "'sm' | 'md' | 'lg'", default: "'md'", description: 'Control height. The class goes on the wrapper.' },
+      {
+        name: 'aria-label',
+        type: 'string',
+        description: "Names the select when there's no visible label. Inside a Field, leave it off.",
+      },
+      {
+        name: 'invalid',
+        type: 'boolean',
+        default: 'false',
+        description: 'Marks the choice wrong: aria-invalid="true" and a danger border.',
+      },
+      { name: 'disabled', type: 'boolean', default: 'false', description: 'The native disabled attribute.' },
+      { name: 'children', type: 'ReactNode', description: 'The <option> elements.' },
+    ],
+    a11y: [
+      "The browser's own <select> and options list, so every keyboard and screen reader already knows it.",
+      "Inside a Field it takes the Field's id, hint and error.",
+    ],
+  },
 };
