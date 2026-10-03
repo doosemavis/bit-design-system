@@ -16,16 +16,18 @@ const PAPER = '#EEEFE9';
 const SLATE = '#4A4A5E';
 const COIN = '#FFCC00';
 const COIN_SHADE = '#E0B000';
+const VIOLET = '#7C3AED'; // --bit-logo-violet (--bit-palette-violet): 64-bit's hard drop
 
 // Lockup proportions, matching components/logo.css, all in units of the root font-size:
-// - the 64-bit word is 0.998em with 0.513em letter-spacing (em of the word), so its ink is as tall as the
-//   8-bit reference (Press Start 2P "bit" at 0.82em with -0.11em tracking) and ends at the same x;
+// - the 64-bit word is Audiowide, like 32-bit and at its values: 0.955em with 0.4em letter-spacing (em of the
+//   word), so its ink is as tall as the 8-bit reference (Press Start 2P "bit" at 0.82em with -0.11em tracking)
+//   and ends at the same x;
 // - its box is the reference's box: 0.82 × (3 glyphs − 0.11 × 2 inner tracking) = 2.2796em
 //   (in CSS a margin-right takes back the trailing spacing);
 // - the caption is 0.26em with 0.14em tracking and 1.3 leading, 0.4em after the word box.
 const ROOT = 70;
-const WORD_SIZE = 0.998 * ROOT;
-const WORD_TRACKING = 0.513 * WORD_SIZE;
+const WORD_SIZE = 0.955 * ROOT;
+const WORD_TRACKING = 0.4 * WORD_SIZE;
 const WORD_BOX = 0.82 * (3 - 0.11 * 2) * ROOT;
 const CAPTION_SIZE = 0.26 * ROOT;
 const CAPTION_TRACKING = 0.14 * CAPTION_SIZE;
@@ -39,16 +41,16 @@ const DROP = 6;
 const STROKE = 3;
 
 // Ink metrics per em, measured from the embedded fonts (canvas measureText).
-const LILITA_BIT = { inkLeft: 0.05, advance: 1.161, ascent: 0.709, descent: 0.01 };
+const AUDIOWIDE_BIT = { inkLeft: 0.05664, advance: 1.50439, ascent: 0.75098, descent: 0 };
 const PS2P = { capTop: 1, capBottom: 0.125, lastGlyphInk: 0.875 };
 
 const round = (n) => Math.round(n * 10) / 10;
 
 // The word: ink starts at the left margin and its ascender at the top margin.
-const X = round(MARGIN - LILITA_BIT.inkLeft * WORD_SIZE + STROKE / 2);
-const WORD_Y = round(MARGIN + LILITA_BIT.ascent * WORD_SIZE + STROKE / 2);
+const X = round(MARGIN - AUDIOWIDE_BIT.inkLeft * WORD_SIZE + STROKE / 2);
+const WORD_Y = round(MARGIN + AUDIOWIDE_BIT.ascent * WORD_SIZE + STROKE / 2);
 // The drop layers are unstroked, so the lowest ink is the deepest drop (or the face stroke, if deeper).
-const WORD_INK_BOTTOM = WORD_Y + LILITA_BIT.descent * WORD_SIZE + Math.max(DROP, STROKE / 2);
+const WORD_INK_BOTTOM = WORD_Y + AUDIOWIDE_BIT.descent * WORD_SIZE + Math.max(DROP, STROKE / 2);
 const WORD_MIDDLE = (MARGIN + WORD_INK_BOTTOM) / 2;
 
 // The caption: two lines whose ink block is centred on the word's ink (face plus extrusion).
@@ -71,15 +73,15 @@ function fontFace(family, pkg, file) {
 
 const fonts = [
   fontFace('Press Start 2P', '@fontsource/press-start-2p', 'press-start-2p-latin-400-normal.woff2'),
-  fontFace('Lilita One', '@fontsource/lilita-one', 'lilita-one-latin-400-normal.woff2'),
+  fontFace('Audiowide', '@fontsource/audiowide', 'audiowide-latin-400-normal.woff2'),
 ].join('\n');
 
 const word = (dx, fill, extra = '') =>
-  `<text x="${round(X + dx)}" y="${round(WORD_Y + dx)}" font-family="'Lilita One'" font-size="${round(WORD_SIZE)}" letter-spacing="${round(WORD_TRACKING)}" fill="${fill}"${extra}>bit</text>`;
+  `<text x="${round(X + dx)}" y="${round(WORD_Y + dx)}" font-family="'Audiowide'" font-size="${round(WORD_SIZE)}" letter-spacing="${round(WORD_TRACKING)}" fill="${fill}"${extra}>bit</text>`;
 
-// 64-bit: two ink layers for the hard drop, four coin-shade layers for the extrusion, then the face.
+// 64-bit: two violet layers for the hard drop, four coin-shade layers for the extrusion, then the face.
 const word64 = [
-  ...[DROP, DROP - 1].map((o) => word(o, INK)),
+  ...[DROP, DROP - 1].map((o) => word(o, VIOLET)),
   ...[4, 3, 2, 1].map((o) => word(o, COIN_SHADE)),
   word(0, COIN, ` stroke="${INK}" stroke-width="${STROKE}" paint-order="stroke fill"`),
 ].join('\n  ');
