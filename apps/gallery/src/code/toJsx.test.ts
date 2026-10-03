@@ -21,16 +21,10 @@ describe('toJsx', () => {
       `import { Button } from '@bit-ds/react';\n\n<Button color="danger" variant="outline" loading>Save</Button>`,
     ],
     [
-      'a boolean turned off from a true default',
+      'a numeric select uses braces',
       bitLogo,
-      { animated: false },
-      `import { BitLogo } from '@bit-ds/react';\n\n<BitLogo animated={false} />`,
-    ],
-    [
-      'numbers use braces',
-      bitLogo,
-      { interval: '8', freeze: '32' },
-      `import { BitLogo } from '@bit-ds/react';\n\n<BitLogo interval={8} freeze={32} />`,
+      { era: '32' },
+      `import { BitLogo } from '@bit-ds/react';\n\n<BitLogo era={32} />`,
     ],
     [
       'numeric selects use braces and sentinels are omitted',

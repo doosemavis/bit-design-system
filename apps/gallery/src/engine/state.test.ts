@@ -3,6 +3,16 @@ import { defaultState, parseState, serializeState } from './state';
 import { button } from '../manifests/button';
 import { stack } from '../manifests/stack';
 import { bitLogo } from '../manifests/bitLogo';
+import type { Manifest } from '../manifests/types';
+
+/** The engine still supports number controls and true-default booleans; no shipped manifest uses them now. */
+const fixture: Manifest = {
+  ...bitLogo,
+  controls: [
+    { kind: 'number', prop: 'interval', default: 5, min: 1, max: 30, step: 1 },
+    { kind: 'boolean', prop: 'animated', default: true },
+  ],
+};
 
 describe('defaultState', () => {
   it('collects every control default and string children', () => {
@@ -17,7 +27,8 @@ describe('defaultState', () => {
   });
 
   it('stores numbers as strings', () => {
-    expect(defaultState(bitLogo)).toMatchObject({ interval: '5', animated: true, freeze: 'none' });
+    expect(defaultState(fixture)).toMatchObject({ interval: '5', animated: true });
+    expect(defaultState(bitLogo)).toMatchObject({ size: 'md', era: 'none' });
   });
 });
 
@@ -36,14 +47,14 @@ describe('parseState', () => {
 
   it('reads booleans as 1/0 and rejects other spellings', () => {
     expect(parseState(button, new URLSearchParams('loading=1')).loading).toBe(true);
-    expect(parseState(bitLogo, new URLSearchParams('animated=0')).animated).toBe(false);
+    expect(parseState(fixture, new URLSearchParams('animated=0')).animated).toBe(false);
     expect(parseState(button, new URLSearchParams('loading=true')).loading).toBe(false);
   });
 
   it('clamps numbers to the control range and rejects non-numbers', () => {
-    expect(parseState(bitLogo, new URLSearchParams('interval=12')).interval).toBe('12');
-    expect(parseState(bitLogo, new URLSearchParams('interval=99')).interval).toBe('30');
-    expect(parseState(bitLogo, new URLSearchParams('interval=abc')).interval).toBe('5');
+    expect(parseState(fixture, new URLSearchParams('interval=12')).interval).toBe('12');
+    expect(parseState(fixture, new URLSearchParams('interval=99')).interval).toBe('30');
+    expect(parseState(fixture, new URLSearchParams('interval=abc')).interval).toBe('5');
   });
 
   it('accepts numeric select values by string', () => {
@@ -61,8 +72,8 @@ describe('serializeState', () => {
   it('writes only changed values, booleans as 1/0, in control order', () => {
     const state = { ...defaultState(button), variant: 'ghost', loading: true, children: 'Go' };
     expect(serializeState(button, state).toString()).toBe('variant=ghost&loading=1&children=Go');
-    const off = { ...defaultState(bitLogo), animated: false };
-    expect(serializeState(bitLogo, off).toString()).toBe('animated=0');
+    const off = { ...defaultState(fixture), animated: false };
+    expect(serializeState(fixture, off).toString()).toBe('animated=0');
   });
 
   it('round-trips through parseState', () => {

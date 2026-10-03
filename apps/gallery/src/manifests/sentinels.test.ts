@@ -7,7 +7,7 @@ import { toJsx } from '../code/toJsx';
 import { alert } from './alert';
 import { bitLogo } from './bitLogo';
 
-const select: Control = { kind: 'select', prop: 'freeze', values: ['none', '8'], default: 'none' };
+const select: Control = { kind: 'select', prop: 'era', values: ['none', '8'], default: 'none' };
 const text: Control = { kind: 'text', prop: 'title', default: 'Heads up' };
 const boolean: Control = { kind: 'boolean', prop: 'loading', default: false };
 
@@ -38,7 +38,7 @@ describe('preview and code agree on sentinels (D12)', () => {
 
   it('a select sentinel is left off both', () => {
     const state = defaultState(bitLogo);
-    expect('freeze' in buildProps(bitLogo, state)).toBe(false);
-    expect(toJsx(bitLogo, state)).not.toContain('freeze');
+    expect('era' in buildProps(bitLogo, state)).toBe(false);
+    expect(toJsx(bitLogo, state)).not.toContain('era');
   });
 });

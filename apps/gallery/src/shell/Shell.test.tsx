@@ -11,7 +11,7 @@ describe('Shell', () => {
 
   it('home shows the logo, the install lines, and the naming rule', async () => {
     const { container } = renderAt('/');
-    expect((await screen.findAllByRole('img', { name: 'bit' })).length).toBeGreaterThan(0);
+    expect((await screen.findAllByRole('img', { name: 'bit Design System' })).length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('bit');
     const install = screen.getByText(/pnpm add @bit-ds\/react/);
     expect(install.textContent).toContain(

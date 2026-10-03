@@ -15,13 +15,13 @@ describe('buildProps', () => {
 
   it('converts numeric selects and number controls to numbers', () => {
     expect(buildProps(stack, { ...defaultState(stack), gap: '32' }).gap).toBe(32);
-    expect(buildProps(bitLogo, { ...defaultState(bitLogo), interval: '8', freeze: '32' })).toMatchObject({ interval: 8, freeze: 32 });
+    expect(buildProps(bitLogo, { ...defaultState(bitLogo), era: '32' })).toMatchObject({ era: 32 });
   });
 
   it('drops the default and none sentinels so the component sees an omitted prop', () => {
     expect('color' in buildProps(text, defaultState(text))).toBe(false);
     expect(buildProps(text, { ...defaultState(text), color: 'neutral' }).color).toBe('neutral');
-    expect('freeze' in buildProps(bitLogo, defaultState(bitLogo))).toBe(false);
+    expect('era' in buildProps(bitLogo, defaultState(bitLogo))).toBe(false);
   });
 
   it('keeps aria-label as a prop name', () => {
