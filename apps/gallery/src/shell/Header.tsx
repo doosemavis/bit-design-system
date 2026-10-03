@@ -23,7 +23,7 @@ export function Header({ menuOpen, onToggleMenu }: HeaderProps) {
       >
         Menu
       </Button>
-      <Link to="/" className="gallery-header__brand" aria-label="bit gallery home">
+      <Link to="/" className="gallery-header__brand" aria-label="bit Design System, gallery home">
         <BitLogo size="sm" />
       </Link>
       <span className="gallery-header__name">gallery</span>

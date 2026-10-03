@@ -16,6 +16,12 @@ describe('Header color mode', () => {
     expect(screen.queryByLabelText('Theme')).toBeNull();
   });
 
+  it('names the home link with the visible wordmark text (WCAG 2.5.3)', async () => {
+    renderAt('/');
+    const header = await screen.findByRole('banner');
+    expect(within(header).getByRole('link', { name: 'bit Design System, gallery home' })).toHaveAttribute('href', '/');
+  });
+
   it('clicking Dark switches the whole site, and the choice survives a remount', async () => {
     const first = renderAt('/');
     const header = await screen.findByRole('banner');
