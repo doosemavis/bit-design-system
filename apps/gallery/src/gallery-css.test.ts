@@ -30,6 +30,11 @@ describe('gallery.css', () => {
     expect(galleryCss).toMatch(/\.gallery-preview__stage > \.bit-box \{\s*outline: 2px dashed var\(--bit-color-accent\);\s*\}/);
   });
 
+  it.each(['display', 'body', 'pixel', 'mono'])('a %s face sample reads its own font token', (face) => {
+    const rule = new RegExp(`\\.gallery-face\\[data-face="${face}"\\]\\s*\\{[^}]*font-family: var\\(--bit-font-${face}\\);`);
+    expect(galleryCss).toMatch(rule);
+  });
+
   it('never hardcodes a font stack: mono labels read --bit-font-mono', () => {
     expect(galleryCss).not.toMatch(/monospace/);
     expect(galleryCss).toMatch(/\.gallery-control__label\s*\{[^}]*font-family: var\(--bit-font-mono\);/);

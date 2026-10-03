@@ -11,6 +11,9 @@ function reactPanel(): HTMLElement {
   return section.querySelector<HTMLElement>('.bit-code__block')!;
 }
 
+/** The Foundations guide pages and their h1s. */
+const FOUNDATION_PAGES = [['/typography', 'Typography']] as const;
+
 describe('component routes (route smoke, D14)', () => {
   beforeEach(() => {
     document.documentElement.dataset.theme = 'power-up';
@@ -29,6 +32,12 @@ describe('component routes (route smoke, D14)', () => {
       await expectNoA11yViolations(container);
     },
   );
+
+  it.each(FOUNDATION_PAGES)('%s: its heading, with no axe violations', async (path, title) => {
+    const { container } = renderAt(path);
+    expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
+    await expectNoA11yViolations(container);
+  });
 
   it('a control change updates the preview, the code, and the URL', async () => {
     const { router } = renderAt('/components/button');

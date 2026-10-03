@@ -8,6 +8,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 
 // Pages other than home are lazy so the first paint ships only the shell and home.
 const TokensPage = lazy(() => import('./pages/TokensPage').then((m) => ({ default: m.TokensPage })));
+const TypographyPage = lazy(() => import('./pages/TypographyPage').then((m) => ({ default: m.TypographyPage })));
 const ComponentRoute = lazy(() => import('./pages/ComponentPage').then((m) => ({ default: m.ComponentRoute })));
 const LogoRoute = lazy(() => import('./pages/ComponentPage').then((m) => ({ default: m.LogoRoute })));
 
@@ -27,6 +28,7 @@ export function buildRoutes(): RouteObject[] {
       children: [
         { index: true, element: <HomePage /> },
         { path: 'tokens', element: lazyPage(<TokensPage />) },
+        { path: 'typography', element: lazyPage(<TypographyPage />) },
         { path: 'components/:slug', element: lazyPage(<ComponentRoute />) },
         { path: 'brand/logo', element: lazyPage(<LogoRoute />) },
         { path: '*', element: <NotFoundPage /> },

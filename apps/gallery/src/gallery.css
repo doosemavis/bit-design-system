@@ -320,3 +320,36 @@ html {
 .gallery-matrix__table td {
   vertical-align: middle;
 }
+
+/* ---------- foundations pages ---------- */
+/* Cards side by side, as many as fit at 12rem or wider: the faces, Do and Don't, Stack or Box. */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--bit-space-12px);
+}
+
+/* A face sample on the Typography page, set in the font token data-face names. Text size 24 gives the
+   base size; the pixel and mono samples step down so their wide letters fit a card. */
+.gallery-face[data-face="display"] {
+  font-family: var(--bit-font-display);
+  font-weight: 400;
+}
+
+.gallery-face[data-face="body"] {
+  font-family: var(--bit-font-body);
+  font-weight: var(--bit-weight-bold);
+}
+
+.gallery-face[data-face="pixel"] {
+  font-family: var(--bit-font-pixel);
+  font-weight: 400;
+  font-size: var(--bit-text-13px);
+  text-transform: uppercase;
+}
+
+.gallery-face[data-face="mono"] {
+  font-family: var(--bit-font-mono);
+  font-weight: 400;
+  font-size: var(--bit-text-18px);
+}

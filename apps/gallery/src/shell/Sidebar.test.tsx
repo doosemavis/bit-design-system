@@ -33,6 +33,12 @@ describe('Sidebar', () => {
     expect(screen.getByRole('link', { name: 'Input' })).toHaveAttribute('href', '/components/input');
   });
 
+  it('Foundations lists the guide pages: Tokens, then Typography', () => {
+    renderSidebar(NAV);
+    expect(linksUnder('Foundations')).toEqual(['Tokens', 'Typography']);
+    expect(screen.getByRole('link', { name: 'Typography' })).toHaveAttribute('href', '/typography');
+  });
+
   it('hides a group with no items', () => {
     expect(renderSidebar(NAV.filter((item) => item.group !== 'Forms'))).toEqual(['Foundations', 'Components', 'Brand']);
   });
