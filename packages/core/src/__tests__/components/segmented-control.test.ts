@@ -49,6 +49,15 @@ describe('components/segmented-control.css', () => {
     expect(block(css, checked)).toContain('--_bit-focus-ring: var(--_bit-color-contrast);');
   });
 
+  it('in forced-colors mode the chosen segment fills with Highlight, since the radio is hidden', () => {
+    // block() stops at the first '}', so the media body holds the inner selector and its declarations.
+    const forced = block(css, '@media (forced-colors: active)')!;
+    expect(forced).toContain(`${checked} {`);
+    for (const line of ['forced-color-adjust: none;', 'background: Highlight;', 'color: HighlightText;']) {
+      expect(forced).toContain(line);
+    }
+  });
+
   it('a disabled option is half opacity with a not-allowed cursor', () => {
     const disabled = block(css, '.bit-segmented-control__input:disabled + .bit-segmented-control__label')!;
     expect(disabled).toContain('opacity: 0.5;');

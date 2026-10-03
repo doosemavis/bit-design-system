@@ -80,3 +80,12 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Forced colors drop the fill, and the radio is hidden, so mark the chosen segment with system colours. */
+@media (forced-colors: active) {
+  .bit-segmented-control__input:checked + .bit-segmented-control__label {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+}

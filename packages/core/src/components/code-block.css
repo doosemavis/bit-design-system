@@ -8,6 +8,9 @@
   border: var(--bit-border-width) solid var(--bit-color-accent);
   border-radius: var(--bit-radius-10px);
   box-shadow: var(--bit-shadow-md);
+  /* A solid Alert sets the ring to its contrast colour, which can be ink: invisible on code-bg.
+     Reset it so the pre and Copy rings fall back to --bit-focus-ring-color, tested on code-bg. */
+  --_bit-focus-ring: initial;
 }
 
 .bit-code__bar {

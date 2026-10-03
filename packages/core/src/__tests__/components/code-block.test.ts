@@ -19,6 +19,13 @@ describe('components/code-block.css', () => {
     }
   });
 
+  it('resets the inherited ring colour, so a solid Alert around it cannot paint an ink ring on code-bg', () => {
+    // A solid Alert sets --_bit-focus-ring to its contrast colour. For neutral (light), success and
+    // warning that is ink, about 1:1 on code-bg, so the pre and Copy rings would vanish. `initial`
+    // makes var() fall back to --bit-focus-ring-color, which is contrast-tested on code-bg.
+    expect(block(css, '.bit-code__block')).toContain('--_bit-focus-ring: initial;');
+  });
+
   it('the bar has a 2px accent rule; the language is pixel type at 11px in the punct color', () => {
     expect(block(css, '.bit-code__bar')).toContain('border-bottom: 2px solid var(--bit-color-accent);');
     const lang = block(css, '.bit-code__lang')!;
