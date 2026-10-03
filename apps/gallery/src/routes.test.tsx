@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MANIFESTS, routeFor } from './manifests';
@@ -74,15 +74,44 @@ describe('component routes (route smoke, D14)', () => {
     expect(container.querySelector('.gallery-preview__stage > .bit-box')).not.toBeNull();
   });
 
-  it.each(['/components/nope', '/components/logo'])('%s renders the 404 (the logo lives at /brand/logo)', async (path) => {
-    renderAt(path);
-    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Page not found');
+  it.each([
+    ['/components/nope', 'nope', 'Go to Code', '/components/code'],
+    ['/components/buton', 'buton', 'Go to Button', '/components/button'],
+    ['/components/logo', 'logo', 'Go to BitLogo', '/brand/logo'],
+  ])('%s names the typo and suggests the closest component', async (path, slug, suggestion, href) => {
+    const { container } = renderAt(path);
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(`No component called “${slug}”`);
+    expect(screen.getByRole('link', { name: suggestion })).toHaveAttribute('href', href);
+    await expectNoA11yViolations(container);
+  });
+
+  it('an unknown slug with nothing close lists every component as a Link, and suggests none', async () => {
+    renderAt('/components/accordion');
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('No component called “accordion”');
+    expect(screen.queryByRole('link', { name: /^Go to / })).toBeNull();
+    const list = screen.getByRole('heading', { level: 2, name: 'Every component' }).parentElement!;
+    expect(within(list).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(MANIFESTS.map(routeFor));
+  });
+
+  it('a slug that looks like markup is shown as text', async () => {
+    renderAt('/components/%3Cimg%20src%3Dx%3E');
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('No component called “<img src=x>”');
+    expect(document.querySelector('main img')).toBeNull();
+  });
+
+  it('bad shared values reset to their defaults and the URL is rewritten with replace (§E)', async () => {
+    const { router } = renderAt('/components/button?color=purple&size=lg');
+    await screen.findByRole('heading', { level: 1, name: 'Button' });
+    const preview = screen.getByRole('region', { name: 'Button preview' });
+    expect(within(preview).getByRole('button', { name: 'Save' })).toHaveClass('bit-primary', 'bit-lg');
+    await waitFor(() => expect(router.state.location.search).toBe('?size=lg'));
+    expect(router.state.historyAction).toBe('REPLACE');
   });
 
   it('sidebar links reach component pages', async () => {
     renderAt('/');
     await screen.findByRole('heading', { level: 1 });
-    await userEvent.click(screen.getByRole('link', { name: 'Badge' }));
+    await userEvent.click(within(screen.getByRole('navigation', { name: 'Gallery' })).getByRole('link', { name: 'Badge' }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Badge' })).toBeInTheDocument();
   });
 });

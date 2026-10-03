@@ -53,4 +53,14 @@ describe('gallery.css', () => {
     expect(galleryCss).toMatch(/\.gallery-control__label\s*\{[^}]*font-family: var\(--bit-font-mono\);/);
     expect(galleryCss).toMatch(/\.gallery-matrix__table th\s*\{[^}]*font-family: var\(--bit-font-mono\);/);
   });
+
+  it('every face sample is one height and sits on its floor, so the token chips line up across the cards', () => {
+    expect(galleryCss).toMatch(
+      /\.gallery-face \{\s*min-height: var\(--bit-space-48px\);\s*display: flex;\s*align-items: flex-end;\s*\}/,
+    );
+  });
+
+  it('script-moved focus on main and on tabIndex -1 targets draws no ring; real controls keep theirs', () => {
+    expect(galleryCss).toMatch(/\.gallery-main:focus,\s*\.gallery-main \[tabindex="-1"\]:focus \{\s*outline: none;\s*\}/);
+  });
 });
