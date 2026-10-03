@@ -169,7 +169,10 @@ export function TypographyPage() {
         <Heading level={2}>Text sizes</Heading>
         <TextSizes />
       </Stack>
-      <DoAndDont />
+      <Stack gap={12}>
+        <Heading level={2}>Do and Don't</Heading>
+        <DoAndDont />
+      </Stack>
     </Stack>
   );
 }

@@ -18,7 +18,7 @@ describe('Typography page', () => {
     const outline = within(main)
       .getAllByRole('heading')
       .map((h) => `${h.tagName} ${h.textContent}`);
-    expect(outline).toEqual(['H1 Typography', 'H2 Faces', 'H2 Headings', 'H2 Text sizes']);
+    expect(outline).toEqual(['H1 Typography', 'H2 Faces', 'H2 Headings', 'H2 Text sizes', "H2 Do and Don't"]);
   });
 
   it('shows the four faces, each with its font token', async () => {
