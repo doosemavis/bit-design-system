@@ -38,6 +38,10 @@ describe('themes', () => {
       expect(css).toMatch(/(^|\n)\[data-mode="dark"\] \{/);
     });
 
+    it('the shared block also applies to any [data-mode] element, so derived tokens (shadows) re-resolve in a dark subtree', () => {
+      expect(css).toMatch(/:root,\s*\[data-theme="[^"]+"\],\s*\[data-mode\]\s*\{/);
+    });
+
     it('each mode tells the browser its color scheme, so native controls match', () => {
       expect(css).toContain('color-scheme: light;');
       expect(css).toContain('color-scheme: dark;');
