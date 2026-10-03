@@ -55,11 +55,23 @@ A decorator in `className` replaces the prop's decorator for that axis: `<Button
 <div className="bit-card bit-solid"><div className="bit-card__header">Stats</div></div>
 ```
 
-Both render identically. For interactive components (coming in Phase 3) the classes give the look; the React component gives the keyboard and screen-reader behavior.
+Both render identically. For interactive components (Switch, SegmentedControl, CodeBlock's Copy button) the classes give the look; the React component gives the keyboard and screen-reader behavior.
 
-## Components (Phase 1)
+## Components
 
-Button, Badge, Alert, Card (+ CardHeader, CardBody, CardFooter), Stack, Text, Spinner, BitLogo, ModeToggle.
+- **Actions and status:** Button, Badge, Alert, Spinner
+- **Layout and type:** Card (+ CardHeader, CardBody, CardFooter), Stack, Text
+- **Forms:** Field, Input, Select, Switch
+- **Content:** Link, Code, CodeBlock, Table (+ TableHead, TableBody, TableRow, TableCell)
+- **Choice:** SegmentedControl, ModeToggle
+- **Brand:** BitLogo
+
+Every one works in light and dark mode, sits on the native element (a real `<input>`, `<select>`, radio or checkbox), and shows the one focus ring from `reset.css`.
+
+- `Switch` carries its own label; don't wrap it in `Field`.
+- `SegmentedControl` is native radios, so the arrow keys move the choice.
+- `Link` takes `color="primary"` or `color="neutral"` only.
+- `CodeBlock` takes an optional `label` (default `` `${language} code` ``). Its code area is a named region, so give each CodeBlock a unique `label` when a page has several in the same language. A failed copy turns the Copy button solid danger red.
 
 ## Themes
 
