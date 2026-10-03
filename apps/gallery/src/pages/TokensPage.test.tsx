@@ -1,8 +1,11 @@
-import { screen, within } from '@testing-library/react';
+import { useLayoutEffect } from 'react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterAll, afterEach, beforeAll, describe, it, expect } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, it, expect, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { SEMANTIC_TOKENS } from '@bit-ds/react';
 import { renderAt } from '../test/renderRoute';
+import { TokensPage } from './TokensPage';
 import { filterTokens } from './tokens/AllTokens';
 import { expectNoA11yViolations } from '../test/a11y';
 
@@ -23,6 +26,7 @@ afterAll(() => style.remove());
 
 afterEach(() => {
   localStorage.clear();
+  Reflect.deleteProperty(navigator, 'clipboard');
 });
 
 async function open() {
@@ -30,6 +34,12 @@ async function open() {
   await screen.findByRole('heading', { level: 1, name: 'Tokens' });
   return utils;
 }
+
+/** How many public tokens share a name prefix, so the expected counts follow the token list. */
+const countPrefix = (...prefixes: string[]) =>
+  SEMANTIC_TOKENS.filter((name) => prefixes.some((prefix) => name.startsWith(prefix))).length;
+const SPACE_COUNT = countPrefix('--bit-space-');
+const SHAPE_COUNT = countPrefix('--bit-radius-', '--bit-shadow-');
 
 const card = (color: string) => screen.getByRole('group', { name: `${color} tokens` });
 
@@ -45,7 +55,7 @@ describe('TokensPage', () => {
     await expectNoA11yViolations(container);
   });
 
-  it('the color cards show values computed from the live page, on the first render', async () => {
+  it('the color cards show values computed from the live page', async () => {
     await open();
     expect(within(card('primary')).getByText('#7C3AED')).toHaveClass('bit-code');
     expect(within(card('neutral')).getByText('#FFFFFF')).toBeInTheDocument();
@@ -56,6 +66,25 @@ describe('TokensPage', () => {
       'contrast',
     ]);
     expect(within(screen.getByRole('group', { name: 'Surface tokens' })).getByText('#EEEFE9')).toBeInTheDocument();
+  });
+
+  it('the values are in the first commit, not filled in by a later effect', () => {
+    // A layout effect in a later sibling runs in the same commit as the page's own DOM, before any effect's
+    // setState could re-render, so it sees exactly what the first paint would show.
+    let firstCommit: string | null = null;
+    function FirstCommitProbe() {
+      useLayoutEffect(() => {
+        firstCommit = document.querySelector('[aria-label="primary tokens"]')?.textContent ?? '';
+      }, []);
+      return null;
+    }
+    render(
+      <MemoryRouter>
+        <TokensPage />
+        <FirstCommitProbe />
+      </MemoryRouter>,
+    );
+    expect(firstCommit).toContain('#7C3AED');
   });
 
   it('switching the mode re-reads the values', async () => {
@@ -78,13 +107,13 @@ describe('TokensPage', () => {
       'Press Start',
       'JetBrains Mono',
     ]);
-    expect(screen.getByRole('region', { name: 'Space' }).querySelectorAll('.gallery-ruler__bar')).toHaveLength(8);
+    expect(screen.getByRole('region', { name: 'Space' }).querySelectorAll('.gallery-ruler__bar')).toHaveLength(SPACE_COUNT);
   });
 
   it('Shape has a tile per radius and shadow token, with its name and value', async () => {
     await open();
     const shape = screen.getByRole('region', { name: 'Shape' });
-    expect(shape.querySelectorAll('.gallery-shape')).toHaveLength(8);
+    expect(shape.querySelectorAll('.gallery-shape')).toHaveLength(SHAPE_COUNT);
     expect(within(shape).getByText('--bit-radius-6px')).toHaveClass('bit-code');
     expect(within(shape).getByText('6px')).toBeInTheDocument();
   });
@@ -99,12 +128,23 @@ describe('TokensPage', () => {
     expect(within(table).getByRole('button', { name: 'Copy var(--bit-color-primary)' })).toBeInTheDocument();
   });
 
+  it("a row's Copy puts var(--name) on the clipboard", async () => {
+    await open();
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    const table = screen.getByRole('region', { name: 'Token values' });
+    await act(async () => {
+      fireEvent.click(within(table).getByRole('button', { name: 'Copy var(--bit-color-primary)' }));
+    });
+    expect(writeText).toHaveBeenCalledExactlyOnceWith('var(--bit-color-primary)');
+  });
+
   it('the filter narrows the table and the count', async () => {
     await open();
     await userEvent.type(screen.getByLabelText('Filter'), 'SPACE');
     const table = screen.getByRole('region', { name: 'Token values' });
-    expect(within(table).getAllByRole('row')).toHaveLength(8 + 1);
-    expect(screen.getByText(`8 of ${SEMANTIC_TOKENS.length} tokens`)).toBeInTheDocument();
+    expect(within(table).getAllByRole('row')).toHaveLength(SPACE_COUNT + 1);
+    expect(screen.getByText(`${SPACE_COUNT} of ${SEMANTIC_TOKENS.length} tokens`)).toBeInTheDocument();
   });
 
   it('no match: the message, the name format, and Clear filter, which restores the list and focuses the field', async () => {

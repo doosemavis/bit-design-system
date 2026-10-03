@@ -439,7 +439,7 @@ html {
   flex: none;
   width: var(--bit-space-24px);
   height: var(--bit-space-24px);
-  border: 2px solid var(--bit-color-line);
+  border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-6px);
 }
 
