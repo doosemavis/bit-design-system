@@ -206,3 +206,47 @@ These move to **3c**:
 - `snippets.mjs`, which imports this PR's `content/install.ts`
 - the release version bump
 - the first publish
+
+## Amendment 1: className decorators (owner, 2026-10-03)
+
+**Why:** the naming rule promises that users can write the decorator class instead of the prop: `className="bit-primary"` works the same as `color="primary"`. `toClasses` has supported this since Phase 1, and `Button.test.tsx` tests it, but the gallery only ever showed props. The owner chose **K1 plus K3's Class column** on `designs/pr3a-20261003/board-classname.html`.
+
+**1. A third code mode (ComponentPage footer, §3).**
+- The footer SegmentedControl becomes **Props | className | HTML**. The label "Props" replaces "React".
+- **className** appears only when the manifest has at least one `axis` control. **HTML** keeps today's static-only rule. If only Props would remain, the switch is hidden.
+- **className output** comes from `toJsx(manifest, state, { decorators: 'className' })`.
+  - Every axis control whose value differs from its default becomes one `bit-{value}` class.
+  - The classes are joined in control order into a single `className="..."` attribute, and the matching props are left out.
+  - Example, Button at danger and outline: `<Button className="bit-danger bit-outline">Save</Button>`.
+  - With every axis at its default, no `className` is printed, the same as Props mode.
+- **"Full file"** wraps both Props and className code.
+- **Copy** copies whichever mode is showing.
+- **Code mode state:** it lives wherever the React/HTML choice lives today. An unknown or unavailable mode falls back to Props.
+
+**2. A Class column in every Props table (§3).**
+- `PropDoc` gains `className?: string`. Each axis prop's row sets it to `bit-{color}`, `bit-{variant}` or `bit-{size}`.
+- The Props table gains a fifth column, **Class**. It shows that value as inline Code, or "—" for props without a class.
+- Under the Props table of any manifest with an axis control, a tip line reads: "Prefer classes? `className="bit-{v}"` works the same as `{prop}="{v}"`."
+  - `{prop}` is the color axis if the manifest has one, otherwise its first axis.
+  - `{v}` is `danger` for color, otherwise that axis's last value.
+- **Contract test:** every axis control's prop row has `className` equal to `bit-{<prop>}`. A non-axis prop row has no `className`.
+
+**3. The Home naming-rule table (§5)** has these columns: **You write (prop) | Or write (className) | Class it emits | Token | Result**.
+
+| You write (prop) | Or write (className) | Class it emits | Token | Result |
+|---|---|---|---|---|
+| `color="primary"` | `className="bit-primary"` | `bit-primary` | `--bit-color-primary` | a live primary Button |
+| `variant="outline"` | `className="bit-outline"` | `bit-outline` | per component CSS | a live outline Button |
+| `size="lg"` | `className="bit-lg"` | `bit-lg` | `--bit-control-height-lg` | a live large Button |
+
+The README's naming-rule table gains the same "Or write (className)" column.
+
+**Tests:**
+- **toJsx className mode:** the Button danger/outline example prints exactly as written above, and defaults print no `className`.
+- **Round trip:** for every manifest with an axis control, rendering the className-mode JSX produces the same root class list as rendering the Props-mode JSX, for each non-default value of each axis.
+- **ComponentPage:**
+  - Each mode switches the code.
+  - The className segment is absent for manifests without an axis control.
+  - Copy copies the className code.
+- **Props table:** the Class column and the tip line render.
+- **Home:** the table has five columns, and the Result column shows real Buttons.
