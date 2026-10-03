@@ -6,6 +6,7 @@ import { stack } from '../manifests/stack';
 import { text } from '../manifests/text';
 import { bitLogo } from '../manifests/bitLogo';
 import { spinner } from '../manifests/spinner';
+import { segmentedControl } from '../manifests/segmentedControl';
 import { numberControlFixture as fixture } from '../test/fixtures';
 
 describe('buildProps', () => {
@@ -24,6 +25,12 @@ describe('buildProps', () => {
     expect('color' in buildProps(text, defaultState(text))).toBe(false);
     expect(buildProps(text, { ...defaultState(text), color: 'neutral' }).color).toBe('neutral');
     expect('era' in buildProps(bitLogo, defaultState(bitLogo))).toBe(false);
+  });
+
+  it('starts from the manifest fixed props (SegmentedControl options), then adds the controls', () => {
+    const props = buildProps(segmentedControl, defaultState(segmentedControl));
+    expect(props.options).toBe(segmentedControl.fixedProps!.options);
+    expect(props).toMatchObject({ legend: 'Range', color: 'primary', size: 'md', legendHidden: false });
   });
 
   it('keeps aria-label as a prop name', () => {

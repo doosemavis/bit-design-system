@@ -47,6 +47,9 @@ export type { CodeProps } from './components/Code/Code';
 export { CodeBlock } from './components/CodeBlock/CodeBlock';
 export type { CodeBlockProps, CodeLanguage } from './components/CodeBlock/CodeBlock';
 
+export { SegmentedControl } from './components/SegmentedControl/SegmentedControl';
+export type { SegmentedControlProps, SegmentedOption } from './components/SegmentedControl/SegmentedControl';
+
 export { BitLogo } from './logo/BitLogo';
 export type { BitLogoProps } from './logo/BitLogo';
 export { ERAS, LOGO_ERA_STORAGE_KEY } from './logo/logoEra';

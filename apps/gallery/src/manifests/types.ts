@@ -58,6 +58,9 @@ export interface ChildSpec {
   children?: string;
 }
 
+/** A JSON-like value toJsx can print as a JS literal (SegmentedControl's options). */
+export type LiteralValue = string | number | boolean | readonly LiteralValue[] | { readonly [key: string]: LiteralValue };
+
 export interface Preset {
   label: string;
   state: Partial<ControlState>;
@@ -96,6 +99,8 @@ export interface Manifest {
   controls: readonly Control[];
   /** A string is editable through a `children` text control; ChildSpec[] renders parts. */
   children?: string | readonly ChildSpec[];
+  /** Props every render gets that the page doesn't let you change. They print after the controls' props. */
+  fixedProps?: Readonly<Record<string, LiteralValue>>;
   presets?: readonly Preset[];
   /** Compound parts documented on this page; the import line lists them. */
   parts?: readonly string[];

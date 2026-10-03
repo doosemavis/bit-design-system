@@ -50,6 +50,12 @@ body {
   outline-offset: var(--bit-focus-ring-offset);
 }
 
+/* A segment is flush with its neighbours, so its ring sits inside it, 2px in from the edge. */
+.bit-segmented-control__input:focus-visible + .bit-segmented-control__label {
+  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
+  outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);
+}
+
 /* CodeBlock's scrollable pre sits inside a panel with overflow: hidden, which would clip a ring drawn
    outside it. Pull the ring 2px inside the pre instead, onto the code background. */
 .bit-code__pre:focus-visible {
