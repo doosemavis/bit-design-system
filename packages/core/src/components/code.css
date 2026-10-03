@@ -1,0 +1,14 @@
+/* Code: inline code, a small mono chip in running text. The border follows the mode accent
+   (violet in light, yellow in dark; decision 3). */
+.bit-code {
+  padding: 1px 6px;
+  font-family: var(--bit-font-mono);
+  font-size: 0.9em;
+  /* JetBrains Mono ships 400 and 700; the page's 600 would snap to bold. */
+  font-weight: 400;
+  font-variant-ligatures: none;
+  color: var(--bit-color-text);
+  background: var(--bit-color-neutral-soft);
+  border: 2px solid var(--bit-color-accent);
+  border-radius: var(--bit-radius-6px);
+}

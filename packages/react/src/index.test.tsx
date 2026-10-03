@@ -31,6 +31,7 @@ const componentNames = Object.keys(lib).filter((name) => /^[A-Z]/.test(name) && 
  */
 const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
   Input: { children: undefined },
+  CodeBlock: { code: 'x', language: 'shell', children: undefined },
 };
 
 /** The naming rule from the spec, as code. */
@@ -47,7 +48,7 @@ describe('public index', () => {
     expect(componentNames.sort()).toEqual(
       [
         'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
-        'Field', 'Input', 'Select', 'Switch', 'Link',
+        'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock',
       ].sort(),
     );
   });
@@ -97,5 +98,9 @@ describe('public index', () => {
 
   it('keeps Slot internal: Link asChild uses it, the package does not export it', () => {
     for (const name of ['Slot', 'composeRefs', 'mergeProps']) expect(name in lib).toBe(false);
+  });
+
+  it('keeps the tokenizer and the copy button internal', () => {
+    for (const name of ['tokenize', 'CODE_LANGUAGES', 'CopyButton', 'COPY_RESET_MS']) expect(name in lib).toBe(false);
   });
 });

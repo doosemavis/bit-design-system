@@ -32,7 +32,7 @@ function printProp(control: Control, value: ControlValue, defaultValue: ControlV
     case 'number':
       return isDefault ? null : `${control.prop}={${Number(value)}}`;
     case 'select':
-      if (isDefault || isOmittedSentinel(control, value)) return null;
+      if ((isDefault && !control.alwaysPrint) || isOmittedSentinel(control, value)) return null;
       return control.numeric ? `${control.prop}={${Number(value)}}` : `${control.prop}="${escapeAttr(String(value))}"`;
     case 'axis':
       return isDefault ? null : `${control.prop}="${escapeAttr(String(value))}"`;

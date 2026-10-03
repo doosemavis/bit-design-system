@@ -18,6 +18,8 @@ export interface SelectControl {
   /** Parse the chosen value with Number() before passing it as a prop (Stack gap, BitLogo era). */
   numeric?: boolean;
   label?: string;
+  /** Print the prop in the code even at its default, because the component requires it (CodeBlock `language`). */
+  alwaysPrint?: boolean;
 }
 export interface BooleanControl {
   kind: 'boolean';

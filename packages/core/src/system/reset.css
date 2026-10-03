@@ -50,6 +50,12 @@ body {
   outline-offset: var(--bit-focus-ring-offset);
 }
 
+/* CodeBlock's scrollable pre sits inside a panel with overflow: hidden, which would clip a ring drawn
+   outside it. Pull the ring 2px inside the pre instead, onto the code background. */
+.bit-code__pre:focus-visible {
+  outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);
+}
+
 /* Programmatic focus targets (a page heading or section focused after navigation, the main
    landmark) show no ring. Widgets that use tabindex="-1" for roving focus keep theirs. */
 :is(h1, h2, h3, h4, h5, h6, main, section)[tabindex="-1"]:focus {

@@ -41,6 +41,12 @@ export type { SwitchProps } from './components/Switch/Switch';
 export { Link } from './components/Link/Link';
 export type { LinkProps } from './components/Link/Link';
 
+export { Code } from './components/Code/Code';
+export type { CodeProps } from './components/Code/Code';
+
+export { CodeBlock } from './components/CodeBlock/CodeBlock';
+export type { CodeBlockProps, CodeLanguage } from './components/CodeBlock/CodeBlock';
+
 export { BitLogo } from './logo/BitLogo';
 export type { BitLogoProps } from './logo/BitLogo';
 export { ERAS, LOGO_ERA_STORAGE_KEY } from './logo/logoEra';

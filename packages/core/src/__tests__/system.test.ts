@@ -12,6 +12,8 @@ const INK_EXCEPTIONS: Readonly<Record<string, readonly string[]>> = {
     '.bit-switch__input:checked + .bit-switch__track',
     '.bit-switch__input:checked + .bit-switch__track .bit-switch__thumb',
   ],
+  // The Copy button is a light button on the dark code bar, edged and labelled in ink (board 1).
+  'code-block.css': ['.bit-code__copy'],
 };
 
 describe('system/colors.css', () => {

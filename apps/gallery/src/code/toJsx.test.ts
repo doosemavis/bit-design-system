@@ -12,6 +12,7 @@ import { badge } from '../manifests/badge';
 import { field } from '../manifests/field';
 import { input } from '../manifests/input';
 import { select } from '../manifests/select';
+import { codeBlock } from '../manifests/codeBlock';
 import type { Manifest } from '../manifests/types';
 import { numberControlFixture } from '../test/fixtures';
 
@@ -89,6 +90,12 @@ describe('toJsx', () => {
       select,
       { size: 'sm' },
       `import { Select } from '@bit-ds/react';\n\n<Select size="sm" aria-label="Color">\n  <option value="primary">primary</option>\n  <option value="success">success</option>\n  <option value="danger">danger</option>\n</Select>`,
+    ],
+    [
+      'an alwaysPrint select prints at its default; a true-default boolean turned off prints ={false}',
+      codeBlock,
+      { copy: false },
+      `import { CodeBlock } from '@bit-ds/react';\n\n<CodeBlock language="jsx" code="const coins = 42; // collected" copy={false} />`,
     ],
     [
       'a data-attribute enum prints like any select',

@@ -76,6 +76,10 @@ describe.each(MODES)('%s contrast', (_name, map) => {
     }
   });
 
+  it('PR2: the Copy button label (ink on the code text color) is readable', () => {
+    expect(contrastRatio(resolveColor('--bit-color-ink'), resolveColor('--bit-code-text'))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
   it('PR2: field error text is readable on the page and on surfaces', () => {
     for (const bg of ['--bit-color-bg', '--bit-color-surface']) {
       expect(contrastRatio(resolveColor('--bit-color-danger-text'), resolveColor(bg)), bg).toBeGreaterThanOrEqual(AA_TEXT);
