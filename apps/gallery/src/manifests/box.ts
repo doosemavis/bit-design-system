@@ -20,7 +20,7 @@ export const box: Manifest = {
     {
       kind: 'select',
       prop: 'as',
-      values: ['div', 'section', 'article', 'aside', 'header', 'footer', 'main', 'nav', 'span'],
+      values: ['div', 'section', 'article', 'header', 'footer', 'nav', 'span'],
       default: 'div',
     },
   ],

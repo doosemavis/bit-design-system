@@ -141,6 +141,11 @@ describe('manifest contract', () => {
     ]);
   });
 
+  it('the gallery offers Box every as tag but main and aside (the Box API keeps them)', () => {
+    const as = box.controls.find((c) => c.prop === 'as');
+    expect(as?.kind === 'select' && as.values).toEqual(['div', 'section', 'article', 'header', 'footer', 'nav', 'span']);
+  });
+
   it('every preset sets only real controls, to values those controls accept (§H.3)', () => {
     for (const m of MANIFESTS) {
       for (const preset of m.presets ?? []) {
