@@ -4,18 +4,12 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { MANIFESTS, routeFor } from './manifests';
 import { renderAt } from './test/renderRoute';
 import { expectNoA11yViolations } from './test/a11y';
+import { PAGE_ROUTES } from './test/smokeRoutes';
 
 /** The Playground's code panel: the CodeBlock whose code region is "Example code". */
 function reactPanel(): HTMLElement {
   return screen.getByRole('region', { name: 'Example code' }).closest<HTMLElement>('.bit-code__block')!;
 }
-
-/** The Foundations guide pages and their h1s. */
-const FOUNDATION_PAGES = [
-  ['/tokens', 'Tokens'],
-  ['/typography', 'Typography'],
-  ['/spacing', 'Spacing'],
-] as const;
 
 describe('component routes (route smoke, D14)', () => {
   beforeEach(() => {
@@ -39,9 +33,9 @@ describe('component routes (route smoke, D14)', () => {
     },
   );
 
-  it.each(FOUNDATION_PAGES)('%s: its heading, with no axe violations', async (path, title) => {
+  it.each(PAGE_ROUTES)('%s: its heading, with no axe violations', async (path, heading) => {
     const { container } = renderAt(path);
-    expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
     await expectNoA11yViolations(container);
   });
 

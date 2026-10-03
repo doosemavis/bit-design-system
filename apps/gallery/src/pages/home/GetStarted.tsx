@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Badge, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
+import { Badge, Code, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
 import { InstallCommand } from '../../content/InstallCommand';
 import { STYLE_IMPORTS } from '../../content/styleImports';
 
@@ -10,7 +10,8 @@ interface StepProps {
   title: string;
   /** Shown after the title, outside the heading: the version on the Install step. */
   aside?: ReactNode;
-  help: string;
+  /** One line under the heading. JSX, so it can hold inline Code. */
+  help: ReactNode;
   children: ReactNode;
 }
 
@@ -49,7 +50,15 @@ export function GetStarted() {
       <Step n={2} title="Add the styles once" help="In your app's entry file. The theme comes first, then the component styles.">
         <CodeBlock code={STYLE_IMPORTS} language="jsx" label="Style imports" />
       </Step>
-      <Step n={3} title="Use a component" help="Import it and write the props. The prop you type is the class it emits.">
+      <Step
+        n={3}
+        title="Use a component"
+        help={
+          <>
+            Import it and use it. <Code>color="danger"</Code> and <Code>className="bit-danger"</Code> give the same look.
+          </>
+        }
+      >
         <CodeBlock code={FIRST_COMPONENT} language="jsx" label="First component" />
       </Step>
     </Stack>

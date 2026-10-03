@@ -60,7 +60,7 @@ A decorator in `className` replaces the prop's decorator for that axis: `<Button
 <div className="bit-card bit-solid"><div className="bit-card__header">Stats</div></div>
 ```
 
-Both render identically. For interactive components (Switch, SegmentedControl, CodeBlock's Copy button) the classes give the look; the React component gives the keyboard and screen-reader behavior.
+Both render identically. Switch and SegmentedControl are native inputs, so their markup works as plain HTML too. ModeToggle and CodeBlock's Copy button need React: the classes give the look, and the React component gives the behavior (the stored mode, the clipboard).
 
 ## Components
 
