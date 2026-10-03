@@ -13,9 +13,12 @@
   --_bit-focus-ring: initial;
 }
 
-/* The label sits left; its auto end margin pushes the actions and Copy together to the right. */
+/* The label sits left; its auto end margin pushes the actions and Copy together to the right. On a
+   narrow phone, when the label, the actions and Copy don't fit on one row, they wrap to a second row
+   instead of Copy being clipped by the panel's overflow: hidden. */
 .bit-code__bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--bit-space-8px);
   padding: var(--bit-space-8px) var(--bit-space-8px) var(--bit-space-8px) var(--bit-space-16px);

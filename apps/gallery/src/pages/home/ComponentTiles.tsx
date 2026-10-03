@@ -23,6 +23,11 @@ const GLYPHS: Readonly<Record<string, string>> = {
   text: 'Aa',
 };
 
+/** The compact tile's chip: the component's glyph, or its first letter when it has none. */
+export function glyphFor(manifest: Manifest): string {
+  return GLYPHS[manifest.slug] ?? manifest.name.charAt(0);
+}
+
 export function isLargeTile(manifest: Manifest): boolean {
   return manifest.group === 'forms' || HEADLINERS.includes(manifest.slug);
 }
@@ -51,7 +56,7 @@ function CompactTile({ manifest }: { manifest: Manifest }) {
     <Link asChild color="neutral" className="gallery-chip">
       <RouterLink to={routeFor(manifest)}>
         <span className="gallery-chip__glyph" aria-hidden="true">
-          {GLYPHS[manifest.slug] ?? manifest.name.charAt(0)}
+          {glyphFor(manifest)}
         </span>
         {manifest.name}
         <span aria-hidden="true">→</span>

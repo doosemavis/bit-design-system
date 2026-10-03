@@ -473,6 +473,17 @@ html {
   inset: 0;
 }
 
+/* The link covers the whole tile, so the whole tile shows its keyboard focus: reset.css's ring, drawn on
+   the tile instead of around the link text (which the tile's overflow: hidden would clip). */
+.gallery-tile:has(.gallery-tile__link:focus-visible) {
+  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
+  outline-offset: var(--bit-focus-ring-offset);
+}
+
+.gallery-tile__link:focus-visible {
+  outline: none;
+}
+
 /* Compact tiles: a glyph chip, the name and →, all one link. */
 .gallery-chips {
   display: flex;
@@ -498,6 +509,11 @@ html {
   font-family: var(--bit-font-mono);
   font-size: var(--bit-text-13px);
   background: var(--bit-color-neutral-soft);
-  border: 2px solid var(--bit-color-line);
+  border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-6px);
+}
+
+/* The naming rule: a code never wraps mid-word; on a phone the Table scrolls sideways inside its border. */
+.gallery-naming .bit-code {
+  white-space: nowrap;
 }

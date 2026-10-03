@@ -46,7 +46,7 @@ export const NAMING_COLUMNS: readonly NamingColumn[] = [
 /** The prop you type is the class it emits is the token it reads, with a real Button in each row. */
 export function NamingRule() {
   return (
-    <Table aria-label="The naming rule">
+    <Table aria-label="The naming rule" className="gallery-naming">
       <TableHead>
         <TableRow>
           {NAMING_COLUMNS.map((column) => (

@@ -6,7 +6,9 @@ import { MANIFESTS, routeFor } from '../manifests';
 import { NAV } from '../shell/Sidebar';
 import { STYLE_IMPORTS } from '../content/styleImports';
 import { NAMING_COLUMNS } from './home/NamingRule';
+import { glyphFor } from './home/ComponentTiles';
 import { BROWSE_TARGET } from './HomePage';
+import { bitLogo } from '../manifests/bitLogo';
 
 async function open() {
   const utils = renderAt('/');
@@ -105,5 +107,25 @@ describe('HomePage', () => {
     ]);
     expect(within(table).getByText('className="bit-outline"')).toHaveClass('bit-code');
     expect(within(table).getByText('--bit-control-height-lg')).toHaveClass('bit-code');
+  });
+
+  it('a compact tile shows its glyph chip, hidden from screen readers, before the name', async () => {
+    await open();
+    const badge = within(main()).getByRole('link', { name: 'Badge' });
+    const glyph = badge.querySelector('.gallery-chip__glyph')!;
+    expect(glyph).toHaveTextContent('+1');
+    expect(glyph).toHaveAttribute('aria-hidden', 'true');
+    expect(badge.firstElementChild).toBe(glyph);
+  });
+
+  it('a manifest with no glyph entry shows its first letter', () => {
+    expect(glyphFor({ ...bitLogo, slug: 'widget', name: 'Widget' })).toBe('W');
+    expect(glyphFor(MANIFESTS.find((m) => m.slug === 'codeblock')!)).toBe('{}');
+  });
+
+  it('the naming-rule codes never wrap mid-word: the table scrolls sideways instead', async () => {
+    await open();
+    expect(screen.getByRole('region', { name: 'The naming rule' })).toHaveClass('bit-table', 'gallery-naming');
+    // home/homeCss.test.ts pins the nowrap rule this class turns on.
   });
 });
