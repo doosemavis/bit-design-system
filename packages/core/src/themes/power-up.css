@@ -7,6 +7,7 @@
 
 :root,
 [data-theme="power-up"] {
+  color-scheme: light;
   /* ---------- tier 1: palette ---------- */
   --bit-palette-violet: #7C3AED;
   --bit-palette-violet-dark: #6527D4;
@@ -31,6 +32,21 @@
   --bit-palette-coin-light: #FFF3BF;
   --bit-palette-coin-shade: #E0B000;
   --bit-palette-coin-deep: #F5A623;
+
+  /* tier 1, dark mode ("Arcade Night") */
+  --bit-palette-night: #15151C;
+  --bit-palette-night-surface: #20202A;
+  --bit-palette-night-raised: #2B2B37;
+  --bit-palette-night-raised-hover: #343442;
+  --bit-palette-night-code: #0B0B10;
+  --bit-palette-chalk: #EDEBE4;
+  --bit-palette-chalk-muted: #A9A9BC;
+  --bit-palette-slate-line: #79798F;
+  --bit-palette-slate-shadow: #464658;
+  --bit-palette-violet-night: #2E2352;
+  --bit-palette-green-night: #173A25;
+  --bit-palette-yellow-night: #3B3212;
+  --bit-palette-red-night: #40191B;
 
   /* ---------- tier 2: color ---------- */
   --bit-color-bg: var(--bit-palette-paper);
@@ -142,4 +158,28 @@
   --bit-logo-coin-light: var(--bit-palette-coin-light);
   --bit-logo-coin-shade: var(--bit-palette-coin-shade);
   --bit-logo-coin-deep: var(--bit-palette-coin-deep);
+}
+
+/* Dark mode ("Arcade Night"). Overrides only the mode tokens (MODE_TOKENS in tokens.ts); every other
+   token is shared. Works on the root or on any element, so a subtree can be dark inside a light page. */
+[data-mode="dark"] {
+  color-scheme: dark;
+  --bit-color-bg: var(--bit-palette-night);
+  --bit-color-surface: var(--bit-palette-night-surface);
+  --bit-color-text: var(--bit-palette-chalk);
+  --bit-color-text-muted: var(--bit-palette-chalk-muted);
+  --bit-color-line: var(--bit-palette-slate-line);
+  --bit-color-shadow: var(--bit-palette-slate-shadow);
+  --bit-color-neutral: var(--bit-palette-night-raised);
+  --bit-color-neutral-contrast: var(--bit-palette-chalk);
+  --bit-color-neutral-hover: var(--bit-palette-night-raised-hover);
+  --bit-color-neutral-soft: var(--bit-palette-night-raised);
+  --bit-color-primary-soft: var(--bit-palette-violet-night);
+  --bit-color-success-soft: var(--bit-palette-green-night);
+  --bit-color-warning-soft: var(--bit-palette-yellow-night);
+  --bit-color-danger-soft: var(--bit-palette-red-night);
+  --bit-shadow-inset: inset 3px 3px 0 rgba(0, 0, 0, 0.4);
+  --bit-code-bg: var(--bit-palette-night-code);
+  --bit-focus-ring-color: var(--bit-palette-yellow);
+  --bit-focus-ring-offset: 1px;
 }

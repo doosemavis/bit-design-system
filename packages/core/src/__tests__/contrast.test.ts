@@ -6,8 +6,15 @@ const AA_TEXT = 4.5;
 const AA_NON_TEXT = 3;
 const CODE_MIN = 5.6;
 
-describe.each(listCss('themes'))('%s color contrast', (file) => {
-  const map = themeModes(readCss(`themes/${file}`)).light;
+/** Every theme in light, plus light with its dark overrides applied when the theme has a dark block. */
+const MODES: readonly (readonly [name: string, map: Map<string, string>])[] = listCss('themes').flatMap((file) => {
+  const { light, dark } = themeModes(readCss(`themes/${file}`));
+  const cases: [string, Map<string, string>][] = [[`${file} light`, light]];
+  if (dark.size > 0) cases.push([`${file} dark`, new Map([...light, ...dark])]);
+  return cases;
+});
+
+describe.each(MODES)('%s contrast', (_name, map) => {
   const resolveColor = (name: string) => resolveVar(map, name);
 
   it.each(COLORS)('color %s: contrast text readable on fill and on hover fill', (color) => {
@@ -43,5 +50,31 @@ describe.each(listCss('themes'))('%s color contrast', (file) => {
 
   it('selected text (ink on the selection color) is readable', () => {
     expect(contrastRatio(resolveColor('--bit-color-ink'), resolveColor('--bit-color-selection'))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+});
+
+describe('dark mode values (owner-locked 2026-10-03)', () => {
+  const css = readCss('themes/power-up.css');
+  const { light, dark } = themeModes(css);
+  const merged = new Map([...light, ...dark]);
+  const dk = (name: string) => resolveVar(merged, name);
+
+  it.each([
+    ['--bit-color-bg', '#15151C'], ['--bit-color-surface', '#20202A'],
+    ['--bit-color-text', '#EDEBE4'], ['--bit-color-text-muted', '#A9A9BC'],
+    ['--bit-color-line', '#79798F'], ['--bit-color-shadow', '#464658'],
+    ['--bit-color-neutral', '#2B2B37'], ['--bit-color-neutral-contrast', '#EDEBE4'],
+    ['--bit-color-neutral-hover', '#343442'], ['--bit-color-neutral-soft', '#2B2B37'],
+    ['--bit-color-primary-soft', '#2E2352'], ['--bit-color-success-soft', '#173A25'],
+    ['--bit-color-warning-soft', '#3B3212'], ['--bit-color-danger-soft', '#40191B'],
+    ['--bit-code-bg', '#0B0B10'], ['--bit-focus-ring-color', '#FFC800'],
+  ])('%s is %s in dark', (token, value) => {
+    expect(dk(token)).toBe(value);
+  });
+
+  it('the dark ring keeps the 2px width with a 1px gap; inset shadow darkens instead of fading', () => {
+    expect(merged.get('--bit-focus-ring-width')).toBe('2px');
+    expect(dark.get('--bit-focus-ring-offset')).toBe('1px');
+    expect(dark.get('--bit-shadow-inset')).toBe('inset 3px 3px 0 rgba(0, 0, 0, 0.4)');
   });
 });

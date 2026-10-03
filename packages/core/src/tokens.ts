@@ -91,3 +91,25 @@ export const SEMANTIC_TOKENS: readonly string[] = [
   ...codeTokens,
   ...logoTokens,
 ];
+
+/**
+ * The tokens a theme's dark block overrides (`[data-mode="dark"]` in the theme file). Everything
+ * else is shared by both modes. The completeness test requires the dark block to declare exactly these.
+ */
+export const MODE_TOKENS: readonly string[] = [
+  token('color', 'bg'),
+  token('color', 'surface'),
+  token('color', 'text'),
+  token('color', 'text-muted'),
+  token('color', 'line'),
+  token('color', 'shadow'),
+  token('color', 'neutral'),
+  token('color', 'neutral', 'contrast'),
+  token('color', 'neutral', 'hover'),
+  token('color', 'neutral', 'soft'),
+  ...['primary', 'success', 'warning', 'danger'].map((color) => token('color', color, 'soft')),
+  token('shadow', 'inset'),
+  token('code', 'bg'),
+  token('focus', 'ring', 'color'),
+  token('focus', 'ring', 'offset'),
+];
