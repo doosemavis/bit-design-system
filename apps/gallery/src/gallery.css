@@ -151,6 +151,8 @@ html {
   padding: var(--bit-space-12px);
   overflow-x: auto;
   font-family: var(--bit-font-mono);
+  /* JetBrains Mono ships 400 and 700; the page's 600 would snap to bold. */
+  font-weight: 400;
   font-size: var(--bit-text-13px);
   line-height: var(--bit-leading-normal);
   font-variant-ligatures: none;

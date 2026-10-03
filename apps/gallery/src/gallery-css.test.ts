@@ -28,6 +28,11 @@ describe('gallery.css', () => {
     expect(rule).toContain('font-family: var(--bit-font-mono);');
   });
 
+  it('code panels use the regular mono weight (JetBrains Mono ships 400 and 700)', () => {
+    const rule = /\.gallery-pre\s*\{([^}]*)\}/.exec(galleryCss)?.[1] ?? '';
+    expect(rule).toContain('font-weight: 400;');
+  });
+
   it('code inside a panel inherits the panel font, not the browser monospace default', () => {
     expect(galleryCss).toMatch(/\.gallery-pre code\s*\{[^}]*font: inherit;/);
   });
