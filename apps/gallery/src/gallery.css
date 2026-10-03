@@ -148,19 +148,6 @@ html {
   outline: none;
 }
 
-.gallery-table {
-  border-collapse: collapse;
-  width: 100%;
-  margin-top: var(--bit-space-12px);
-}
-
-.gallery-table th,
-.gallery-table td {
-  text-align: left;
-  padding: var(--bit-space-8px);
-  border-bottom: var(--bit-border-width) solid var(--bit-color-line);
-}
-
 /* The unknown-component page lists every component as a row of Links that wraps. */
 .gallery-link-list {
   list-style: none;
@@ -239,12 +226,6 @@ html {
 .gallery-control {
   display: grid;
   gap: var(--bit-space-4px);
-}
-
-.gallery-inline {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--bit-space-8px);
 }
 
 .gallery-control__label {
