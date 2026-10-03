@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { CODE_KINDS } from '../../tokens';
-import { VISUALLY_HIDDEN, block, readCss } from '../css';
+import { CODE_KINDS, SEMANTIC_TOKENS } from '../../tokens';
+import { OUTLINE_DECLARATION, VISUALLY_HIDDEN, block, decl, readCss } from '../css';
 
 describe('components/code-block.css', () => {
   const css = readCss('components/code-block.css');
@@ -32,6 +32,28 @@ describe('components/code-block.css', () => {
     expect(lang).toContain('font-family: var(--bit-font-pixel);');
     expect(lang).toContain('font-size: var(--bit-text-11px);');
     expect(lang).toContain('color: var(--bit-code-punct);');
+  });
+
+  it('the bar keeps the label left and groups the actions and Copy on the right, 8px apart (PR3a §1)', () => {
+    const bar = block(css, '.bit-code__bar')!;
+    expect(decl(bar, 'display')).toBe('flex');
+    expect(decl(bar, 'gap')).toBe('var(--bit-space-8px)');
+    // The label's auto end margin takes the free space, so whatever follows it sits together on the right.
+    expect(decl(block(css, '.bit-code__lang')!, 'margin-inline-end')).toBe('auto');
+  });
+
+  it('the actions wrapper lays its controls out in a row, 8px apart, reading only tokens', () => {
+    const actions = block(css, '.bit-code__actions')!;
+    expect(actions).not.toBeNull();
+    expect(decl(actions, 'display')).toBe('flex');
+    expect(decl(actions, 'align-items')).toBe('center');
+    expect(decl(actions, 'gap')).toBe('var(--bit-space-8px)');
+    const reads = [...actions.matchAll(/var\((--[a-zA-Z0-9_-]+)/g)].map((m) => m[1]!);
+    expect(reads.length).toBeGreaterThan(0);
+    for (const name of reads) expect(SEMANTIC_TOKENS).toContain(name);
+    // No raw lengths or colours outside the token reads: every measure comes from a token.
+    expect(actions.replace(/var\([^)]*\)/g, '')).not.toMatch(/\d(px|rem|em)\b|#[0-9a-f]{3,8}\b|rgba?\(/i);
+    expect(actions).not.toMatch(OUTLINE_DECLARATION);
   });
 
   it('the pre scrolls sideways in 13px mono at line-height 1.6, without ligatures', () => {
