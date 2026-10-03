@@ -27,4 +27,8 @@ describe('gallery.css', () => {
     expect(rule).toContain('color: var(--bit-code-text);');
     expect(rule).toContain('font-family: var(--bit-font-mono);');
   });
+
+  it('code inside a panel inherits the panel font, not the browser monospace default', () => {
+    expect(galleryCss).toMatch(/\.gallery-pre code\s*\{[^}]*font: inherit;/);
+  });
 });

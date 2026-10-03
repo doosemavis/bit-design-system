@@ -160,6 +160,10 @@ html {
   border-radius: var(--bit-radius-10px);
 }
 
+.gallery-pre code {
+  font: inherit;
+}
+
 .gallery-table {
   border-collapse: collapse;
   width: 100%;
