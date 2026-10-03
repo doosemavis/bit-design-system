@@ -17,7 +17,8 @@
 .bit-table__cell {
   padding: var(--bit-space-12px) var(--bit-space-16px);
   text-align: left;
-  vertical-align: top;
+  /* Centred, so a Button, Badge or Switch in one cell lines up with plain text in the next. */
+  vertical-align: middle;
 }
 
 .bit-table__head .bit-table__cell {

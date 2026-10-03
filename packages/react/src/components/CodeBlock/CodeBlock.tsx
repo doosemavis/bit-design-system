@@ -20,6 +20,8 @@ export interface CodeBlockProps extends Omit<HTMLAttributes<HTMLDivElement>, 'ch
    * Give each CodeBlock on a page a unique label when several share a language; the code area is a named region.
    */
   label?: string;
+  /** Extra controls in the bar, rendered between the language label and Copy. */
+  actions?: ReactNode;
 }
 
 /** Plain text stays a bare string; every other token is a span the CSS colors by `data-kind`. */
@@ -32,9 +34,9 @@ function renderToken(token: CodeToken, index: number): ReactNode {
   );
 }
 
-/** A dark code panel with editor colors, a language label and a Copy button. */
+/** A dark code panel with editor colors, a language label, optional actions and a Copy button. */
 export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(function CodeBlock(
-  { code, language, copy = true, label, className, ...rest },
+  { code, language, copy = true, label, actions, className, ...rest },
   ref,
 ) {
   const tokens = useMemo(() => tokenize(code, language), [code, language]);
@@ -42,6 +44,7 @@ export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(function Cod
     <div ref={ref} className={withClassName(element('code', 'block'), className)} data-language={language} {...dropLegacyColor(rest)}>
       <div className={element('code', 'bar')}>
         <span className={element('code', 'lang')}>{language}</span>
+        {actions == null ? null : <div className={element('code', 'actions')}>{actions}</div>}
         {copy ? <CopyButton code={code} /> : null}
       </div>
       <pre className={element('code', 'pre')} tabIndex={0} role="region" aria-label={label || `${language} code`}>

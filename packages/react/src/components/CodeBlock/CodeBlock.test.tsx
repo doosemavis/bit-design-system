@@ -5,6 +5,7 @@ import { CodeBlock } from './CodeBlock';
 import { COPY_RESET_MS } from './CopyButton';
 import { CODE_LANGUAGES } from './tokenize';
 import { expectNoA11yViolations } from '../../test/a11y';
+import { SegmentedControl } from '../SegmentedControl/SegmentedControl';
 
 const JSX = `<Button color="danger">Delete</Button>`;
 
@@ -201,6 +202,77 @@ describe('CodeBlock', () => {
     // @ts-expect-error color is not part of CodeBlockProps
     const { container } = render(<CodeBlock code="x" language="css" color="danger" />);
     expect(container.firstElementChild).not.toHaveAttribute('color');
+  });
+
+  describe('actions', () => {
+    const PM_OPTIONS = [
+      { value: 'pnpm', label: 'pnpm' },
+      { value: 'npm', label: 'npm' },
+    ] as const;
+    const switcher = <SegmentedControl legend="Package manager" legendHidden options={PM_OPTIONS} size="sm" />;
+
+    it('renders the slot in a bit-code__actions wrapper inside the bar', () => {
+      const { container } = render(
+        <CodeBlock code="x" language="shell" actions={<button type="button">Extra</button>} />,
+      );
+      const actions = container.querySelector('.bit-code__actions')!;
+      expect(actions).not.toBeNull();
+      expect(actions.tagName).toBe('DIV');
+      // The element grammar: bit-{block}__{element}, and CodeBlock's block is bit-code.
+      expect(actions.className).toMatch(/^bit-code__[a-z]+$/);
+      expect(actions.parentElement).toBe(container.querySelector('.bit-code__bar'));
+      expect(actions).toContainElement(screen.getByRole('button', { name: 'Extra' }));
+    });
+
+    it('renders no wrapper when actions is absent', () => {
+      const { container } = render(<CodeBlock code="x" language="shell" />);
+      expect(container.querySelector('.bit-code__actions')).toBeNull();
+      expect([...container.querySelector('.bit-code__bar')!.children].map((el) => el.className)).toEqual([
+        'bit-code__lang',
+        'bit-code__copy',
+        'bit-code__status',
+      ]);
+    });
+
+    it('puts the actions after the language label and before the Copy button', () => {
+      const { container } = render(
+        <CodeBlock code="x" language="shell" actions={<button type="button">Extra</button>} />,
+      );
+      const bar = container.querySelector('.bit-code__bar')!;
+      expect([...bar.children].map((el) => el.className)).toEqual([
+        'bit-code__lang',
+        'bit-code__actions',
+        'bit-code__copy',
+        'bit-code__status',
+      ]);
+      const extra = screen.getByRole('button', { name: 'Extra' });
+      const copy = screen.getByRole('button', { name: 'Copy' });
+      expect(extra.compareDocumentPosition(copy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('copy={false} still renders the actions, with no Copy button', () => {
+      const { container } = render(
+        <CodeBlock code="x" language="shell" copy={false} actions={<button type="button">Extra</button>} />,
+      );
+      expect(container.querySelector('.bit-code__actions')).toContainElement(screen.getByRole('button', { name: 'Extra' }));
+      expect(screen.queryByRole('button', { name: 'Copy' })).toBeNull();
+      expect(container.querySelector('.bit-code__status')).toBeNull();
+    });
+
+    it('Copy copies the current code prop, so a switcher that swaps code swaps what Copy copies', async () => {
+      const writeText = vi.fn(() => Promise.resolve());
+      stubClipboard(writeText);
+      const { rerender } = render(<CodeBlock code="pnpm add x" language="shell" actions={switcher} />);
+      rerender(<CodeBlock code="npm install x" language="shell" actions={switcher} />);
+      await click(screen.getByRole('button', { name: 'Copy' }));
+      expect(writeText).toHaveBeenCalledWith('npm install x');
+    });
+
+    it('has no accessibility violations with a SegmentedControl in the slot', async () => {
+      const { container } = render(<CodeBlock code="pnpm add @bit-ds/react" language="shell" actions={switcher} />);
+      expect(container.querySelector('.bit-code__actions fieldset.bit-segmented-control')).not.toBeNull();
+      await expectNoA11yViolations(container);
+    });
   });
 
   it.each(CODE_LANGUAGES)('%s: has no accessibility violations', async (language) => {
