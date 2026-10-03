@@ -14,14 +14,17 @@ Themes are swappable and named after retro-game eras. The first theme is **power
 
 ## Install
 
-The packages are workspace-private for now. Clone the repo and run Storybook:
+Once `@bit-ds/react` is published, install it with your package manager:
 
 ```bash
-pnpm install
-pnpm storybook
+pnpm add @bit-ds/react
+# or
+npm install @bit-ds/react
+# or
+yarn add @bit-ds/react
 ```
 
-When published, using it will be three lines:
+Then add the styles once, theme first, and use a component:
 
 ```tsx
 import '@bit-ds/react/themes/power-up.css';
@@ -29,14 +32,16 @@ import '@bit-ds/react/styles.css';
 import { Button } from '@bit-ds/react';
 ```
 
+Until then the packages are workspace-private. Clone the repo, run `pnpm install`, then `pnpm gallery` to browse every component.
+
 ## The naming rule
 
-| You write | Class | Token |
-| --- | --- | --- |
-| `color="primary"` | `bit-primary` | `--bit-color-primary` |
-| `variant="outline"` | `bit-outline` | (per component CSS) |
-| `size="lg"` | `bit-lg` | `--bit-control-height-lg` |
-| `<CardHeader>` | `bit-card__header` | |
+| You write (prop) | Or write (className) | Class it emits | Token |
+| --- | --- | --- | --- |
+| `color="primary"` | `className="bit-primary"` | `bit-primary` | `--bit-color-primary` |
+| `variant="outline"` | `className="bit-outline"` | `bit-outline` | (per component CSS) |
+| `size="lg"` | `className="bit-lg"` | `bit-lg` | `--bit-control-height-lg` |
+| `<CardHeader>` | | `bit-card__header` | |
 
 Three axes, same names on every component that has them:
 
