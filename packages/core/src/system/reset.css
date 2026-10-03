@@ -37,8 +37,8 @@ body {
   outline-offset: 3px;
 }
 
-/* Programmatic focus targets (a page heading focused after navigation) show no ring.
-   Real controls are never tabindex="-1", so they keep theirs. */
-[tabindex="-1"]:focus {
+/* Programmatic focus targets (a page heading or section focused after navigation, the main
+   landmark) show no ring. Widgets that use tabindex="-1" for roving focus keep theirs. */
+:is(h1, h2, h3, h4, h5, h6, main, section)[tabindex="-1"]:focus {
   outline: none;
 }

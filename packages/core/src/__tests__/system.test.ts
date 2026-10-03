@@ -133,7 +133,13 @@ describe('focus ring (D9)', () => {
   });
 
   it('programmatic focus targets (tabindex="-1", e.g. a page heading) show no ring', () => {
-    expect(block(reset, '[tabindex="-1"]:focus')).toContain('outline: none;');
+    expect(block(reset, ':is(h1, h2, h3, h4, h5, h6, main, section)[tabindex="-1"]:focus')).toContain(
+      'outline: none;',
+    );
+  });
+
+  it('roving-tabindex widgets keep their ring: no bare [tabindex="-1"]:focus rule', () => {
+    expect(reset).not.toMatch(/(^|\n)\[tabindex="-1"\]:focus\s*\{/);
   });
 
   it.each(listCss('components'))('%s never sets outline, so nothing can override the ink ring', (file) => {
