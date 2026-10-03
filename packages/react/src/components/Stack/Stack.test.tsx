@@ -46,6 +46,13 @@ describe('Stack', () => {
     expect(warn.mock.calls[0]?.[0]).toContain('gap="3"');
   });
 
+  it('accepts a number-like string gap from an untyped caller without warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(<Stack gap={'16' as never} data-testid="s">x</Stack>);
+    expect(screen.getByTestId('s')).toHaveAttribute('data-gap', '16');
+    expect(warn).not.toHaveBeenCalled();
+  });
+
   it('appends className last', () => {
     render(<Stack className="extra" data-testid="s">x</Stack>);
     expect(screen.getByTestId('s').className).toBe('bit-stack extra');

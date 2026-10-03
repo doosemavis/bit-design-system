@@ -94,9 +94,10 @@ describe('dataValue', () => {
     expect(warn.mock.calls[0]?.[0]).toContain('4 | 8');
   });
 
-  it('a numeric string is not the number: "8" is unknown when the scale is numbers', () => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-    expect(dataValue('stack', { name: 'gap', allowed: [4, 8], value: '8' })).toBeUndefined();
+  it('accepts a number-like string from an untyped caller: "8" matches 8 and does not warn', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(dataValue('stack', { name: 'gap', allowed: [4, 8], value: '8' })).toBe('8');
+    expect(warn).not.toHaveBeenCalled();
   });
 
   it('does not warn in production', () => {

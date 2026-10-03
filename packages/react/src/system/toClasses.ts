@@ -58,16 +58,19 @@ export interface DataAxis {
 /**
  * The attribute value for a non-axis enum (Stack `gap`, Text `size`, Badge `shape`). Returns
  * undefined, so React omits the attribute, when no value is given or the value is not allowed.
- * An unknown value also warns in development, like `toClasses`. This is where untyped callers
- * still passing the old step numbers (`gap={3}`) or size names (`size="lg"`) are caught.
+ * A value matches when its string form equals an allowed value's, so an untyped caller's
+ * number-like string (`gap="16"`) is accepted and emitted as the canonical string. An unknown
+ * value also warns in development, like `toClasses`. This is where untyped callers still passing
+ * the old step numbers (`gap={3}`, `gap="3"`) or size names (`size="lg"`) are caught.
  */
 export function dataValue(blockName: string, axis: DataAxis): string | undefined {
   if (axis.value === undefined) return undefined;
-  if (!axis.allowed.includes(axis.value)) {
+  const match = axis.allowed.find((allowed) => String(allowed) === String(axis.value));
+  if (match === undefined) {
     warnUnknown(blockName, axis);
     return undefined;
   }
-  return String(axis.value);
+  return String(match);
 }
 
 /** Join a fixed class (usually an element class) with the caller's className, which goes last. */
