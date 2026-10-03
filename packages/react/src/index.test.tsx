@@ -47,7 +47,7 @@ describe('public index', () => {
     expect(componentNames.sort()).toEqual(
       [
         'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
-        'Field', 'Input', 'Select',
+        'Field', 'Input', 'Select', 'Switch',
       ].sort(),
     );
   });

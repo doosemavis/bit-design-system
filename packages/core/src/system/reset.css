@@ -43,6 +43,13 @@ body {
   outline-offset: var(--bit-focus-ring-offset);
 }
 
+/* Visually hidden inputs can't show a ring, so the part drawn beside them shows it: the same ring,
+   from the same tokens. */
+.bit-switch__input:focus-visible + .bit-switch__track {
+  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
+  outline-offset: var(--bit-focus-ring-offset);
+}
+
 /* Programmatic focus targets (a page heading or section focused after navigation, the main
    landmark) show no ring. Widgets that use tabindex="-1" for roving focus keep theirs. */
 :is(h1, h2, h3, h4, h5, h6, main, section)[tabindex="-1"]:focus {

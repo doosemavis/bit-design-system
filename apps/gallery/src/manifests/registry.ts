@@ -13,6 +13,7 @@ import {
   Select,
   Spinner,
   Stack,
+  Switch,
   Text,
 } from '@bit-ds/react';
 
@@ -32,6 +33,7 @@ export const COMPONENTS: Record<string, ComponentType<any>> = {
   Select,
   Spinner,
   Stack,
+  Switch,
   Text,
 };
 

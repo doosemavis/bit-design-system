@@ -6,7 +6,13 @@ import { OUTLINE_DECLARATION, block, decl, listCss, readCss, resolveVar, themeMo
  * The only places a component may read --bit-color-ink, by file and exact selector. Everything else
  * draws lines with --bit-color-line so they lift in dark mode. Each entry is an owner decision.
  */
-const INK_EXCEPTIONS: Readonly<Record<string, readonly string[]>> = {};
+const INK_EXCEPTIONS: Readonly<Record<string, readonly string[]>> = {
+  // Decision 2: an on Switch outlines its track and thumb in ink so it stays crisp in dark mode.
+  'switch.css': [
+    '.bit-switch__input:checked + .bit-switch__track',
+    '.bit-switch__input:checked + .bit-switch__track .bit-switch__thumb',
+  ],
+};
 
 describe('system/colors.css', () => {
   const css = readCss('system/colors.css');

@@ -29,7 +29,7 @@ describe('Sidebar', () => {
 
   it('Forms holds the form controls, routed like any component', () => {
     renderSidebar(NAV);
-    expect(linksUnder('Forms')).toEqual(['Field', 'Input', 'Select']);
+    expect(linksUnder('Forms')).toEqual(['Field', 'Input', 'Select', 'Switch']);
     expect(screen.getByRole('link', { name: 'Input' })).toHaveAttribute('href', '/components/input');
   });
 

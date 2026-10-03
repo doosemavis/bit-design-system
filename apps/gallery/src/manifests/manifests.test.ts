@@ -120,7 +120,7 @@ describe('manifest contract', () => {
   });
 
   it('the form controls are in the forms group', () => {
-    expect(MANIFESTS.filter((m) => m.group === 'forms').map((m) => m.name)).toEqual(['Field', 'Input', 'Select']);
+    expect(MANIFESTS.filter((m) => m.group === 'forms').map((m) => m.name)).toEqual(['Field', 'Input', 'Select', 'Switch']);
   });
 
   it('isHtmlElement follows JSX: lowercase is an HTML tag, PascalCase is a component', () => {
