@@ -66,7 +66,7 @@ Both render identically. For interactive components (Switch, SegmentedControl, C
 - **Choice:** SegmentedControl, ModeToggle
 - **Brand:** BitLogo
 
-Every one works in light and dark mode, sits on the native element (a real `<input>`, `<select>`, radio or checkbox), and shows the one focus ring from `reset.css`.
+Every one works in light and dark mode, and anything focusable shows the one focus ring from `reset.css`. The form controls (Input, Select, Switch, SegmentedControl) sit on the real native element (an `<input>`, `<select>`, checkbox or radio), so keyboards and screen readers work as browsers intend.
 
 - `Switch` carries its own label; don't wrap it in `Field`.
 - `SegmentedControl` is native radios, so the arrow keys move the choice.
