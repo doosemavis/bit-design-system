@@ -71,8 +71,11 @@ const focusTokens = ['color', 'width', 'offset'].map((part) => token('focus', 'r
 
 const codeTokens = [token('code', 'bg'), ...CODE_KINDS.map((kind) => token('code', kind))];
 
-/** The BitLogo's coin golds. Fixed brand colors, so a palette change never recolors the logo. */
-const logoTokens = ['coin', 'coin-light', 'coin-shade', 'coin-deep'].map((part) => token('logo', part));
+/**
+ * The BitLogo's coin golds and the violet of 64-bit's hard drop. Fixed brand colors, so a palette change
+ * never recolors the logo.
+ */
+const logoTokens = ['coin', 'coin-light', 'coin-shade', 'coin-deep', 'violet'].map((part) => token('logo', part));
 
 /**
  * The complete tier-2 token set. Every theme must declare every one of these.

@@ -1,12 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { SEMANTIC_TOKENS, SIZES, COLORS } from '../tokens';
-import { listCss, readCss } from './css';
+import { listCss, readCss, resolveVar, themeModes } from './css';
 
 /** Return the body of the first `selector { ... }` block, or null. */
 function block(css: string, selector: string): string | null {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const m = new RegExp(`${escaped}\\s*\\{([^}]*)\\}`).exec(css);
   return m ? m[1]! : null;
+}
+
+/** Return the value of `prop` in a block body (not a prefixed or longer property), or null. */
+function decl(body: string, prop: string): string | null {
+  const m = new RegExp(`(?<![-\\w])${prop}\\s*:\\s*([^;]+);`).exec(body);
+  return m ? m[1]!.trim() : null;
 }
 
 describe('system/colors.css', () => {
@@ -118,11 +124,27 @@ describe('components/logo.css', () => {
   const css = readCss('components/logo.css');
   const word = (era: number) => block(css, `.bit-logo[data-era="${era}"] .bit-logo__word`);
 
-  it('the eras read the logo coin tokens, never primary or warning, so the palette swap leaves the logo gold', () => {
+  it('the eras read the logo tokens, never primary or warning, so the palette swap leaves the logo gold and violet', () => {
     expect(css).not.toMatch(/--bit-color-(primary|warning)/);
-    for (const name of ['--bit-logo-coin', '--bit-logo-coin-light', '--bit-logo-coin-shade', '--bit-logo-coin-deep']) {
+    for (const name of [
+      '--bit-logo-coin',
+      '--bit-logo-coin-light',
+      '--bit-logo-coin-shade',
+      '--bit-logo-coin-deep',
+      '--bit-logo-violet',
+    ]) {
       expect(css).toContain(`var(${name})`);
     }
+  });
+
+  it('64-bit keeps its gold face, line stroke and gold extrusion, over a violet hard drop (Amendment 3, C2)', () => {
+    const body = word(64)!;
+    expect(body).toContain('color: var(--bit-logo-coin);');
+    expect(body).toContain('-webkit-text-stroke: 1.5px var(--bit-color-line);');
+    expect(body).toContain('paint-order: stroke fill;');
+    for (const px of [1, 2, 3, 4]) expect(body).toContain(`${px}px ${px}px 0 var(--bit-logo-coin-shade)`);
+    for (const px of [5, 6]) expect(body).toContain(`${px}px ${px}px 0 var(--bit-logo-violet)`);
+    expect(body).not.toContain('var(--bit-color-shadow)');
   });
 
   it('the wordmark reads the text color, so it stays visible on a dark page', () => {
@@ -167,15 +189,16 @@ describe('components/logo.css', () => {
     expect(word(32)).toContain('font-size: 0.955em;');
     expect(word(32)).toContain('letter-spacing: 0.4em;');
     expect(word(32)).toContain('margin-right: -0.317em;');
-    expect(word(64)).toContain('font-size: 0.998em;');
-    expect(word(64)).toContain('letter-spacing: 0.513em;');
-    expect(word(64)).toContain('margin-right: -0.416em;');
+    // 64 is set in the same font as 32, so it takes 32's fitted values exactly (Amendment 3, C1).
+    for (const prop of ['font-size', 'letter-spacing', 'margin-right', 'line-height']) {
+      expect(decl(word(64)!, prop)).toBe(decl(word(32)!, prop));
+    }
   });
 
   it('keeps the word box 0.82em tall in every era, so nothing below the logo moves between page loads', () => {
-    // line-height × font-size ≈ 0.82: 0.859 × 0.955 and 0.822 × 0.998 (8 and 16 inherit line-height: 1).
+    // line-height × font-size ≈ 0.82: 0.859 × 0.955 (8 and 16 inherit line-height: 1).
     expect(word(32)).toContain('line-height: 0.859;');
-    expect(word(64)).toContain('line-height: 0.822;');
+    expect(word(64)).toContain('line-height: 0.859;');
   });
 
   it('sits on the top of its line, not the word baseline, so a heading around it is the same height in every era', () => {
@@ -187,6 +210,11 @@ describe('components/logo.css', () => {
   it('32-bit uses Audiowide (lowercase), never the caps-only Bungee', () => {
     expect(word(32)).toContain('font-family: "Audiowide", var(--bit-font-display);');
     expect(css).not.toContain('Bungee');
+  });
+
+  it('64-bit uses Audiowide too, no longer Lilita One (Amendment 3, C1)', () => {
+    expect(word(64)).toContain('font-family: "Audiowide", var(--bit-font-display);');
+    expect(css).not.toContain('Lilita');
   });
 
   it('the caption is small muted pixel type in capitals, wrapping to two lines at its one space', () => {
@@ -212,6 +240,13 @@ describe('themes/power-up.css (logo)', () => {
     expect(css).toContain('family=Audiowide');
     expect(css).not.toContain('Bungee');
     expect(css).not.toContain('--bit-motion-power-up');
+  });
+
+  it('the logo violet is a fixed brand colour, the palette violet in both modes (Amendment 3, C2)', () => {
+    const { light, dark } = themeModes(css);
+    expect(light.get('--bit-logo-violet')).toBe('var(--bit-palette-violet)');
+    expect(resolveVar(light, '--bit-logo-violet')).toBe('#7C3AED');
+    expect(dark.has('--bit-logo-violet')).toBe(false);
   });
 });
 

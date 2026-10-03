@@ -45,13 +45,15 @@
    (8 and 16), which closes the pixel font's built-in padding between glyphs; its margin-right takes back
    the trailing tracking after "t". Reference box, in em of the root: ink height 0.7175, ink right edge 2.1771,
    box width 2.2796. Measured in a browser (headless Chrome 151, Google Fonts) on 2026-10-03.
-   32 and 64 solve, in em of the word:
+   32 and 64 share one font (Audiowide) and so one set of values (Amendment 3). They solve, in em of the word:
    - font-size so the ink height of "bit" matches (no stretching);
    - letter-spacing so the ink right edge of "t" lands where 8-bit's does, so the gap to the caption looks
      the same;
    - margin-right so the word box is 2.2796em of the root wide (it takes back the trailing letter-spacing
      after "t"), so the caption starts at the same x. The 0.4em gap is unchanged;
-   - line-height so the word box stays 0.82em tall, so nothing below the logo moves. */
+   - line-height so the word box stays 0.82em tall, so nothing below the logo moves.
+   Re-measured with 64 in Audiowide (same browser, 2026-10-03): 64's glyph ink equals 32's. Its 1.5px stroke
+   and its 6px extrusion and drop are paint outside the glyph, so they are not part of the fit. */
 
 /* 8-bit: flat pixel type, one color */
 .bit-logo[data-era="8"] .bit-logo__word {
@@ -95,13 +97,14 @@
   filter: drop-shadow(1px 1px 0 #ffffff) drop-shadow(3px 3px 0 var(--bit-color-shadow));
 }
 
-/* 64-bit: rounded display type, extruded */
+/* 64-bit: Audiowide, as 32-bit and at 32-bit's fitted values, in gold with a gold extrusion over a violet hard
+   drop. The violet is a fixed logo token, not primary, so a palette swap never recolors it. */
 .bit-logo[data-era="64"] .bit-logo__word {
-  font-family: var(--bit-font-display);
-  font-size: 0.998em;
-  letter-spacing: 0.513em;
-  margin-right: -0.416em;
-  line-height: 0.822;
+  font-family: "Audiowide", var(--bit-font-display);
+  font-size: 0.955em;
+  letter-spacing: 0.4em;
+  margin-right: -0.317em;
+  line-height: 0.859;
   color: var(--bit-logo-coin);
   -webkit-text-stroke: 1.5px var(--bit-color-line);
   paint-order: stroke fill;
@@ -110,6 +113,6 @@
     2px 2px 0 var(--bit-logo-coin-shade),
     3px 3px 0 var(--bit-logo-coin-shade),
     4px 4px 0 var(--bit-logo-coin-shade),
-    5px 5px 0 var(--bit-color-shadow),
-    6px 6px 0 var(--bit-color-shadow);
+    5px 5px 0 var(--bit-logo-violet),
+    6px 6px 0 var(--bit-logo-violet);
 }

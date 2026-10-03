@@ -9,9 +9,9 @@ describe('semantic token list', () => {
     expect(SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('contains exactly 86 unique names, all prefixed --bit-', () => {
-    expect(SEMANTIC_TOKENS).toHaveLength(86);
-    expect(new Set(SEMANTIC_TOKENS).size).toBe(86);
+  it('contains exactly 87 unique names, all prefixed --bit-', () => {
+    expect(SEMANTIC_TOKENS).toHaveLength(87);
+    expect(new Set(SEMANTIC_TOKENS).size).toBe(87);
     for (const name of SEMANTIC_TOKENS) expect(name).toMatch(/^--bit-[a-z0-9-]+$/);
   });
 
@@ -45,7 +45,7 @@ describe('semantic token list', () => {
       ...CODE_KINDS.map((kind) => `--bit-code-${kind}`),
       '--bit-font-mono',
       '--bit-color-selection',
-      '--bit-logo-coin', '--bit-logo-coin-light', '--bit-logo-coin-shade', '--bit-logo-coin-deep',
+      '--bit-logo-coin', '--bit-logo-coin-light', '--bit-logo-coin-shade', '--bit-logo-coin-deep', '--bit-logo-violet',
     ];
     for (const name of expected) expect(SEMANTIC_TOKENS).toContain(name);
   });

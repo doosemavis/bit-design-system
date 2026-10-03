@@ -156,11 +156,12 @@
   --bit-code-number: #FF9F7A;
   --bit-code-prop: #FF8FCB;
 
-  /* ---------- tier 2: logo (fixed coin golds; never primary or warning) ---------- */
+  /* ---------- tier 2: logo (fixed coin golds and violet; never primary or warning) ---------- */
   --bit-logo-coin: var(--bit-palette-coin);
   --bit-logo-coin-light: var(--bit-palette-coin-light);
   --bit-logo-coin-shade: var(--bit-palette-coin-shade);
   --bit-logo-coin-deep: var(--bit-palette-coin-deep);
+  --bit-logo-violet: var(--bit-palette-violet);
 }
 
 /* Dark mode ("Arcade Night"). Overrides only the mode tokens (MODE_TOKENS in tokens.ts); every other
