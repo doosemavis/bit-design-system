@@ -104,7 +104,7 @@ export function ControlsPanel({ manifest, state, onChange, onReset }: ControlsPa
   return (
     <section className="gallery-controls" aria-labelledby="controls-heading">
       <div className="gallery-controls__head">
-        <Text as="h2" size="lg" id="controls-heading">
+        <Text as="h2" size={18} id="controls-heading">
           Controls
         </Text>
         <Button variant="ghost" size="sm" color="neutral" onClick={onReset}>

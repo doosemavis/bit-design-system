@@ -32,7 +32,7 @@ export function Sidebar({ items, open, onNavigate }: SidebarProps) {
         if (links.length === 0) return null;
         return (
           <section key={group} className="gallery-sidebar__group">
-            <Text as="h2" size="xs" className="gallery-sidebar__title">
+            <Text as="h2" size={11} className="gallery-sidebar__title">
               {group}
             </Text>
             <ul className="gallery-sidebar__list">

@@ -3,7 +3,7 @@
 :root {
   --_gallery-sidebar-width: 15rem;
   --_gallery-header-height: 3.5rem;
-  --_gallery-gutter: var(--bit-space-4);
+  --_gallery-gutter: var(--bit-space-16px);
 }
 
 html {
@@ -23,14 +23,14 @@ html {
 
 .gallery-skip {
   position: absolute;
-  left: var(--bit-space-2);
-  top: var(--bit-space-2);
+  left: var(--bit-space-8px);
+  top: var(--bit-space-8px);
   z-index: 10;
-  padding: var(--bit-space-2) var(--bit-space-3);
+  padding: var(--bit-space-8px) var(--bit-space-12px);
   background: var(--bit-color-surface);
   color: var(--bit-color-text);
   border: var(--bit-border-width) solid var(--bit-color-ink);
-  border-radius: var(--bit-radius-md);
+  border-radius: var(--bit-radius-10px);
   transform: translateY(-200%);
 }
 
@@ -42,7 +42,7 @@ html {
   grid-area: header;
   display: flex;
   align-items: center;
-  gap: var(--bit-space-3);
+  gap: var(--bit-space-12px);
   padding-inline: var(--_gallery-gutter);
   background: var(--bit-color-surface);
   border-bottom: var(--bit-border-width) solid var(--bit-color-ink);
@@ -59,21 +59,21 @@ html {
 
 .gallery-header__name {
   font-family: var(--bit-font-display);
-  font-size: var(--bit-text-lg);
+  font-size: var(--bit-text-18px);
 }
 
 .gallery-header__tools {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: var(--bit-space-3);
+  gap: var(--bit-space-12px);
 }
 
 .gallery-theme {
   display: inline-flex;
   align-items: center;
-  gap: var(--bit-space-2);
-  font-size: var(--bit-text-sm);
+  gap: var(--bit-space-8px);
+  font-size: var(--bit-text-13px);
 }
 
 .gallery-theme__select,
@@ -83,8 +83,8 @@ html {
   color: var(--bit-color-text);
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-ink);
-  border-radius: var(--bit-radius-sm);
-  padding: var(--bit-space-1) var(--bit-space-2);
+  border-radius: var(--bit-radius-6px);
+  padding: var(--bit-space-4px) var(--bit-space-8px);
   min-height: var(--bit-control-height-sm);
 }
 
@@ -97,7 +97,7 @@ html {
 }
 
 .gallery-sidebar__group + .gallery-sidebar__group {
-  margin-top: var(--bit-space-5);
+  margin-top: var(--bit-space-24px);
 }
 
 .gallery-sidebar__title {
@@ -105,7 +105,7 @@ html {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--bit-color-text-muted);
-  margin: 0 0 var(--bit-space-2);
+  margin: 0 0 var(--bit-space-8px);
 }
 
 .gallery-sidebar__list {
@@ -113,13 +113,13 @@ html {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--bit-space-1);
+  gap: var(--bit-space-4px);
 }
 
 .gallery-sidebar__link {
   display: block;
-  padding: var(--bit-space-1) var(--bit-space-2);
-  border-radius: var(--bit-radius-sm);
+  padding: var(--bit-space-4px) var(--bit-space-8px);
+  border-radius: var(--bit-radius-6px);
   color: var(--bit-color-text);
   text-decoration: none;
   font-weight: var(--bit-weight-bold);
@@ -136,7 +136,7 @@ html {
 
 .gallery-main {
   grid-area: main;
-  padding: var(--bit-space-6) var(--_gallery-gutter);
+  padding: var(--bit-space-32px) var(--_gallery-gutter);
   max-width: 72rem;
   width: 100%;
 }
@@ -147,26 +147,26 @@ html {
 
 .gallery-pre {
   margin: 0;
-  padding: var(--bit-space-3);
+  padding: var(--bit-space-12px);
   overflow-x: auto;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: var(--bit-text-sm);
+  font-size: var(--bit-text-13px);
   line-height: var(--bit-leading-normal);
   background: var(--bit-color-bg);
   border: var(--bit-border-width) solid var(--bit-color-ink);
-  border-radius: var(--bit-radius-md);
+  border-radius: var(--bit-radius-10px);
 }
 
 .gallery-table {
   border-collapse: collapse;
   width: 100%;
-  margin-top: var(--bit-space-3);
+  margin-top: var(--bit-space-12px);
 }
 
 .gallery-table th,
 .gallery-table td {
   text-align: left;
-  padding: var(--bit-space-2);
+  padding: var(--bit-space-8px);
   border-bottom: var(--bit-border-width) solid var(--bit-color-ink);
 }
 
@@ -207,29 +207,29 @@ html {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--bit-space-3);
+  margin-bottom: var(--bit-space-12px);
 }
 
 .gallery-controls__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: var(--bit-space-3);
+  gap: var(--bit-space-12px);
 }
 
 .gallery-control {
   display: grid;
-  gap: var(--bit-space-1);
+  gap: var(--bit-space-4px);
 }
 
 .gallery-inline {
   display: inline-flex;
   align-items: center;
-  gap: var(--bit-space-2);
+  gap: var(--bit-space-8px);
 }
 
 .gallery-control__label {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: var(--bit-text-sm);
+  font-size: var(--bit-text-13px);
   color: var(--bit-color-text-muted);
 }
 
@@ -266,7 +266,7 @@ html {
 /* ---------- preview ---------- */
 .gallery-preview {
   border: var(--bit-border-width) solid var(--bit-color-ink);
-  border-radius: var(--bit-radius-lg);
+  border-radius: var(--bit-radius-14px);
   background: var(--bit-color-surface);
   box-shadow: var(--bit-shadow-md);
   overflow: hidden;
@@ -276,14 +276,14 @@ html {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--bit-space-2) var(--bit-space-3);
+  padding: var(--bit-space-8px) var(--bit-space-12px);
   border-bottom: var(--bit-border-width) solid var(--bit-color-ink);
   background: var(--bit-color-bg);
 }
 
 .gallery-preview__title {
   font-family: var(--bit-font-pixel);
-  font-size: var(--bit-text-xs);
+  font-size: var(--bit-text-11px);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -292,7 +292,7 @@ html {
   min-height: 12rem;
   display: grid;
   place-items: center;
-  padding: var(--bit-space-6);
+  padding: var(--bit-space-32px);
 }
 
 .gallery-preview[data-checkerboard] .gallery-preview__stage {
@@ -310,23 +310,23 @@ html {
 .gallery-presets__row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--bit-space-2);
-  margin-top: var(--bit-space-2);
+  gap: var(--bit-space-8px);
+  margin-top: var(--bit-space-8px);
 }
 
 .gallery-matrix__scroll {
   overflow-x: auto;
-  margin-top: var(--bit-space-2);
+  margin-top: var(--bit-space-8px);
 }
 
 .gallery-matrix__table {
   border-collapse: separate;
-  border-spacing: var(--bit-space-3);
+  border-spacing: var(--bit-space-12px);
 }
 
 .gallery-matrix__table th {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: var(--bit-text-sm);
+  font-size: var(--bit-text-13px);
   font-weight: var(--bit-weight-normal);
   color: var(--bit-color-text-muted);
   text-align: left;

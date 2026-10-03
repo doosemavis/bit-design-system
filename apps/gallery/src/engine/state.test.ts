@@ -47,8 +47,8 @@ describe('parseState', () => {
   });
 
   it('accepts numeric select values by string', () => {
-    expect(parseState(stack, new URLSearchParams('gap=6')).gap).toBe('6');
-    expect(parseState(stack, new URLSearchParams('gap=9')).gap).toBe('3');
+    expect(parseState(stack, new URLSearchParams('gap=32')).gap).toBe('32');
+    expect(parseState(stack, new URLSearchParams('gap=9')).gap).toBe('12');
   });
 });
 
@@ -66,7 +66,7 @@ describe('serializeState', () => {
   });
 
   it('round-trips through parseState', () => {
-    const state = { ...defaultState(stack), direction: 'row', gap: '5', wrap: true };
+    const state = { ...defaultState(stack), direction: 'row', gap: '24', wrap: true };
     expect(parseState(stack, serializeState(stack, state))).toEqual(state);
   });
 });

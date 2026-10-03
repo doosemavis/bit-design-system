@@ -33,8 +33,8 @@ describe('toJsx', () => {
     [
       'numeric selects use braces and sentinels are omitted',
       stack,
-      { direction: 'row', gap: '5' },
-      `import { Badge, Stack } from '@bit-ds/react';\n\n<Stack direction="row" gap={5}>\n  <Badge color="primary">One</Badge>\n  <Badge color="success">Two</Badge>\n  <Badge color="danger">Three</Badge>\n</Stack>`,
+      { direction: 'row', gap: '24' },
+      `import { Badge, Stack } from '@bit-ds/react';\n\n<Stack direction="row" gap={24}>\n  <Badge color="primary">One</Badge>\n  <Badge color="success">Two</Badge>\n  <Badge color="danger">Three</Badge>\n</Stack>`,
     ],
     [
       'text props are quoted and escaped',

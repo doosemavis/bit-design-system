@@ -11,7 +11,7 @@ export function Presets({ manifest, onApply }: PresetsProps) {
   if (!manifest.presets || manifest.presets.length === 0) return null;
   return (
     <section className="gallery-presets" aria-labelledby="presets-heading">
-      <Text as="h2" size="lg" id="presets-heading">
+      <Text as="h2" size={18} id="presets-heading">
         Presets
       </Text>
       <div className="gallery-presets__row">

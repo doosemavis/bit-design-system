@@ -14,7 +14,7 @@ describe('buildProps', () => {
   });
 
   it('converts numeric selects and number controls to numbers', () => {
-    expect(buildProps(stack, { ...defaultState(stack), gap: '6' }).gap).toBe(6);
+    expect(buildProps(stack, { ...defaultState(stack), gap: '32' }).gap).toBe(32);
     expect(buildProps(bitLogo, { ...defaultState(bitLogo), interval: '8', freeze: '32' })).toMatchObject({ interval: 8, freeze: 32 });
   });
 
