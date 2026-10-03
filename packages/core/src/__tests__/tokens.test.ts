@@ -9,9 +9,9 @@ describe('semantic token list', () => {
     expect(SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('contains exactly 87 unique names, all prefixed --bit-', () => {
-    expect(SEMANTIC_TOKENS).toHaveLength(87);
-    expect(new Set(SEMANTIC_TOKENS).size).toBe(87);
+  it('contains exactly 86 unique names, all prefixed --bit-', () => {
+    expect(SEMANTIC_TOKENS).toHaveLength(86);
+    expect(new Set(SEMANTIC_TOKENS).size).toBe(86);
     for (const name of SEMANTIC_TOKENS) expect(name).toMatch(/^--bit-[a-z0-9-]+$/);
   });
 
@@ -32,9 +32,10 @@ describe('semantic token list', () => {
       '--bit-text-11px', '--bit-text-32px', '--bit-leading-tight', '--bit-leading-normal', '--bit-weight-normal', '--bit-weight-bold',
       '--bit-space-4px', '--bit-space-64px',
       '--bit-control-height-sm', '--bit-control-height-lg', '--bit-control-padding-sm', '--bit-control-padding-lg',
-      '--bit-press-offset', '--bit-duration-fast', '--bit-duration-normal', '--bit-motion-power-up',
+      '--bit-press-offset', '--bit-duration-fast', '--bit-duration-normal',
     ];
     for (const name of expected) expect(SEMANTIC_TOKENS).toContain(name);
+    expect(SEMANTIC_TOKENS).not.toContain('--bit-motion-power-up');
   });
 
   it('includes the code, mono, selection, and logo tokens (amendments §C)', () => {

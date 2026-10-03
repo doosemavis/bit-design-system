@@ -39,9 +39,9 @@ describe('system/sizes.css', () => {
 
 describe('system/motion.css', () => {
   const css = readCss('system/motion.css');
-  it('defines the power-up grow and the spin keyframes', () => {
-    expect(css).toMatch(/@keyframes bit-power-up\s*\{/);
+  it('defines the spin keyframes and no power-up grow (the logo no longer levels up)', () => {
     expect(css).toMatch(/@keyframes bit-spin\s*\{/);
+    expect(css).not.toContain('bit-power-up');
   });
 });
 
@@ -116,6 +116,7 @@ describe('system/reset.css browser surfaces (amendments §C)', () => {
 
 describe('components/logo.css', () => {
   const css = readCss('components/logo.css');
+  const word = (era: number) => block(css, `.bit-logo[data-era="${era}"] .bit-logo__word`);
 
   it('the eras read the logo coin tokens, never primary or warning, so the palette swap leaves the logo gold', () => {
     expect(css).not.toMatch(/--bit-color-(primary|warning)/);
@@ -124,12 +125,67 @@ describe('components/logo.css', () => {
     }
   });
 
-  it('the wordmark reads the text color, so "-bit" stays visible on a dark page', () => {
+  it('the wordmark reads the text color, so it stays visible on a dark page', () => {
     expect(block(css, '.bit-logo')).toContain('color: var(--bit-color-text);');
   });
 
   it('era outlines read line and era shadows read shadow, never ink', () => {
     expect(css).not.toContain('var(--bit-color-ink)');
+  });
+
+  it('nothing moves: no animation, keyframes, or transform declarations', () => {
+    expect(css).not.toMatch(/(?<![-\w])animation(-[a-z]+)?\s*:/);
+    expect(css).not.toContain('@keyframes');
+    expect(css).not.toMatch(/(?<![-\w])transform\s*:/);
+    expect(css).not.toContain('data-animated');
+  });
+
+  it('stacks the word over the caption, left-aligned', () => {
+    const root = block(css, '.bit-logo')!;
+    expect(root).toContain('display: inline-flex;');
+    expect(root).toContain('flex-direction: column;');
+    expect(root).toContain('align-items: flex-start;');
+  });
+
+  it('sizes the mark from the 32px type step', () => {
+    expect(block(css, '.bit-logo.bit-sm')).toContain('font-size: var(--bit-text-32px);');
+    expect(block(css, '.bit-logo.bit-md')).toContain('font-size: calc(var(--bit-text-32px) * 1.5);');
+    expect(block(css, '.bit-logo.bit-lg')).toContain('font-size: calc(var(--bit-text-32px) * 2.25);');
+  });
+
+  it('draws each era on the word, with the agreed sizes', () => {
+    expect(word(8)).toContain('font-size: 0.82em;');
+    expect(word(16)).toContain('font-size: 0.82em;');
+    expect(word(32)).toContain('font-size: 1em;');
+    expect(word(64)).toContain('font-size: 1.04em;');
+  });
+
+  it('32-bit uses Audiowide (lowercase), never the caps-only Bungee', () => {
+    expect(word(32)).toContain('font-family: "Audiowide", var(--bit-font-display);');
+    expect(css).not.toContain('Bungee');
+  });
+
+  it('the caption is small muted pixel type in capitals', () => {
+    const caption = block(css, '.bit-logo__caption')!;
+    for (const line of [
+      'font-family: var(--bit-font-pixel);',
+      'font-size: 0.25em;',
+      'letter-spacing: 0.18em;',
+      'text-transform: uppercase;',
+      'color: var(--bit-color-text-muted);',
+      'white-space: nowrap;',
+    ]) {
+      expect(caption).toContain(line);
+    }
+  });
+});
+
+describe('themes/power-up.css (logo)', () => {
+  const css = readCss('themes/power-up.css');
+  it('loads Audiowide instead of Bungee and drops the power-up motion token', () => {
+    expect(css).toContain('family=Audiowide');
+    expect(css).not.toContain('Bungee');
+    expect(css).not.toContain('--bit-motion-power-up');
   });
 });
 

@@ -65,7 +65,6 @@ const motionTokens = [
   token('press', 'offset'),
   token('duration', 'fast'),
   token('duration', 'normal'),
-  token('motion', 'power-up'),
 ];
 
 const focusTokens = ['color', 'width', 'offset'].map((part) => token('focus', 'ring', part));
