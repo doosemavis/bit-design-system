@@ -48,6 +48,9 @@ function unquote(code: string): string {
  * not alwaysPrint and do not default to a "leave it off" sentinel, and for text that is not alwaysPrint,
  * not a required aria-* label and not empty. Every other control default is sample content the code
  * always prints (Heading's level, Field's label) or "leave it off", and says nothing about the component.
+ *
+ * Rows on alwaysPrint controls are deliberately not compared: their control default is sample content
+ * (Box's padding of 16, CodeBlock's jsx), not the component's default.
  */
 function claimedDefault(c: Control): string | undefined {
   switch (c.kind) {

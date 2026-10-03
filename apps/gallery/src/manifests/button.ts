@@ -55,7 +55,7 @@ export const button: Manifest = {
         type: 'boolean',
         default: 'false',
         description:
-          'Shows a spinner and sets aria-busy, which tells screen readers it is working. It blocks clicks and takes the button out of the Tab order. The label stays, so people still know what it does.',
+          'Shows a spinner and sets aria-busy. On a native button it also sets disabled, so it blocks clicks and leaves the Tab order. With asChild it sets aria-disabled, and the link stays focusable.',
       },
       {
         name: 'disabled',
