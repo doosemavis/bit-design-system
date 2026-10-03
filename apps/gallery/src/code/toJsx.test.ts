@@ -11,6 +11,7 @@ import { bitLogo } from '../manifests/bitLogo';
 import { badge } from '../manifests/badge';
 import { field } from '../manifests/field';
 import { input } from '../manifests/input';
+import { select } from '../manifests/select';
 import type { Manifest } from '../manifests/types';
 import { numberControlFixture } from '../test/fixtures';
 
@@ -82,6 +83,12 @@ describe('toJsx', () => {
       input,
       { invalid: true },
       `import { Input } from '@bit-ds/react';\n\n<Input aria-label="Email" placeholder="you@example.com" invalid />`,
+    ],
+    [
+      'HTML option children print as JSX and stay out of the import line',
+      select,
+      { size: 'sm' },
+      `import { Select } from '@bit-ds/react';\n\n<Select size="sm" aria-label="Color">\n  <option value="primary">primary</option>\n  <option value="success">success</option>\n  <option value="danger">danger</option>\n</Select>`,
     ],
     [
       'a data-attribute enum prints like any select',

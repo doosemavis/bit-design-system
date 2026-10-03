@@ -10,6 +10,7 @@ import {
   CardHeader,
   Field,
   Input,
+  Select,
   Spinner,
   Stack,
   Text,
@@ -28,10 +29,17 @@ export const COMPONENTS: Record<string, ComponentType<any>> = {
   CardHeader,
   Field,
   Input,
+  Select,
   Spinner,
   Stack,
   Text,
 };
+
+/**
+ * The plain HTML elements a ChildSpec may name (PR1 checklist). A typo like `opton` would otherwise
+ * render an unknown element silently; the manifest contract test fails on anything else.
+ */
+export const HTML_CHILDREN: readonly string[] = ['option', 'span', 'strong', 'em', 'code'];
 
 /** A lowercase ChildSpec name is a plain HTML element, the same rule JSX uses for tags. */
 export function isHtmlElement(name: string): boolean {

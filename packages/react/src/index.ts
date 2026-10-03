@@ -32,6 +32,9 @@ export type { FieldProps } from './components/Field/Field';
 export { Input } from './components/Input/Input';
 export type { InputProps } from './components/Input/Input';
 
+export { Select } from './components/Select/Select';
+export type { SelectProps } from './components/Select/Select';
+
 export { BitLogo } from './logo/BitLogo';
 export type { BitLogoProps } from './logo/BitLogo';
 export { ERAS, LOGO_ERA_STORAGE_KEY } from './logo/logoEra';
