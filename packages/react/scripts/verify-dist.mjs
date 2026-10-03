@@ -59,6 +59,16 @@ for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '.bit-logo__cap
 }
 assert.ok(!/@import\s+"\.\//.test(css), 'styles.css still contains a relative @import (bundling failed)');
 
+// 4b. Box precedence: the tiers share one specificity, so source order decides. All four sides, then an axis,
+// then one side; a side beats an axis beats all four only if bundling kept that order.
+const BOX_TIERS = ['[data-p="0"]', '[data-px="0"]', '[data-pt="0"]'];
+const tierAt = BOX_TIERS.map((needle) => css.indexOf(needle));
+BOX_TIERS.forEach((needle, i) => assert.ok(tierAt[i] >= 0, `styles.css missing Box rule: ${needle}`));
+assert.ok(
+  tierAt[0] < tierAt[1] && tierAt[1] < tierAt[2],
+  `styles.css Box precedence tiers out of order: expected ${BOX_TIERS.join(' < ')}, got offsets ${tierAt.join(', ')}`,
+);
+
 // 5. Themes copied, not bundled (they keep their Google Fonts @import)
 const theme = resolve(dist, 'themes/power-up.css');
 assert.ok(existsSync(theme), 'themes/power-up.css missing');
