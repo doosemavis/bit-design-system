@@ -38,6 +38,9 @@ export type { SelectProps } from './components/Select/Select';
 export { Switch } from './components/Switch/Switch';
 export type { SwitchProps } from './components/Switch/Switch';
 
+export { Link } from './components/Link/Link';
+export type { LinkProps } from './components/Link/Link';
+
 export { BitLogo } from './logo/BitLogo';
 export type { BitLogoProps } from './logo/BitLogo';
 export { ERAS, LOGO_ERA_STORAGE_KEY } from './logo/logoEra';

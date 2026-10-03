@@ -47,7 +47,7 @@ describe('public index', () => {
     expect(componentNames.sort()).toEqual(
       [
         'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
-        'Field', 'Input', 'Select', 'Switch',
+        'Field', 'Input', 'Select', 'Switch', 'Link',
       ].sort(),
     );
   });
@@ -93,5 +93,9 @@ describe('public index', () => {
     expect(lib.ERAS).toEqual([8, 16, 32, 64]);
     expect(lib.LOGO_ERA_STORAGE_KEY).toBe('bit-logo-era');
     for (const name of ['resetLogoEra', 'currentPageEra', 'useLogoEra']) expect(name in lib).toBe(false);
+  });
+
+  it('keeps Slot internal: Link asChild uses it, the package does not export it', () => {
+    for (const name of ['Slot', 'composeRefs', 'mergeProps']) expect(name in lib).toBe(false);
   });
 });
