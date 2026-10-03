@@ -209,6 +209,14 @@ html {
   }
 }
 
+/* Small phones (360px, 375px): Menu, the full logo and the mode toggle need 380px, so below 390px the
+   header drops the logo's "Design System" caption. It is aria-hidden; the logo's accessible name stays. */
+@media (max-width: 389px) {
+  .gallery-header__brand .bit-logo__caption {
+    display: none;
+  }
+}
+
 /* ---------- controls ---------- */
 .gallery-controls__head {
   display: flex;

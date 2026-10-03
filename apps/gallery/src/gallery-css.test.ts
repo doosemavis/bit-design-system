@@ -86,4 +86,13 @@ describe('gallery.css', () => {
     expect(presets).toContain('padding: var(--bit-space-4px);');
     expect(presets).toContain('margin: calc(-1 * var(--bit-space-4px));');
   });
+
+  it('below 390px the header logo drops its caption, so Menu, the logo and both mode options fit 360px and 375px phones', () => {
+    // Menu (60) + logo (143) + mode toggle (137) + gaps and gutters need 380px before the right gutter: every
+    // page scrolled sideways at 360px and 375px, with "Dark" off screen. 390px keeps the full logo. The caption is
+    // aria-hidden; the logo keeps its name.
+    expect(galleryCss).toMatch(
+      /@media \(max-width: 389px\) \{\s*\.gallery-header__brand \.bit-logo__caption \{\s*display: none;\s*\}\s*\}/,
+    );
+  });
 });
