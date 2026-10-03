@@ -88,6 +88,14 @@ describe('HomePage', () => {
     );
   });
 
+  it('Use a component: the help line teaches that the prop and the className give the same look', async () => {
+    await open();
+    const help = within(main()).getByText(/^Import it and use it\./);
+    expect(help).toHaveTextContent('Import it and use it. color="danger" and className="bit-danger" give the same look.');
+    expect(within(help).getByText('color="danger"')).toHaveClass('bit-code');
+    expect(within(help).getByText('className="bit-danger"')).toHaveClass('bit-code');
+  });
+
   it('the naming rule has five columns, and its Result column renders real Buttons', async () => {
     await open();
     const table = screen.getByRole('region', { name: 'The naming rule' });
