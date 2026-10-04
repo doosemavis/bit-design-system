@@ -158,4 +158,12 @@ describe('gallery.css', () => {
       /@media \(max-width: 389px\) \{\s*\.gallery-header__brand \.bit-logo__caption \{\s*display: none;\s*\}\s*\}/,
     );
   });
+
+  it('the sidebar link paint outranks bit Link hover and visited, so an active link stays readable', () => {
+    expect(galleryCss).toMatch(/\.gallery-sidebar__link\.bit-link[^{,]*\.active:hover/);
+    expect(galleryCss).toMatch(/\.gallery-sidebar__link\.bit-link[^{,]*\.active:visited/);
+    expect(galleryCss).toMatch(/\.gallery-sidebar__link\.bit-link[^{,]*:hover \{/);
+    // No bare .gallery-sidebar__link rule is left to lose to bit Link on specificity.
+    expect(galleryCss).not.toMatch(/\.gallery-sidebar__link(\.active|:hover)?\s*[{,]/);
+  });
 });

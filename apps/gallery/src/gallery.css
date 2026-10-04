@@ -98,7 +98,9 @@ html {
   gap: var(--bit-space-4px);
 }
 
-.gallery-sidebar__link {
+/* The links are bit Links, whose hover and visited rules are 0,3,0. These selectors repeat .bit-link
+   and .bit-neutral so the sidebar's own hover and active paint always wins, even on a visited link. */
+.gallery-sidebar__link.bit-link.bit-neutral {
   display: block;
   padding: var(--bit-space-4px) var(--bit-space-8px);
   border-radius: var(--bit-radius-6px);
@@ -107,11 +109,13 @@ html {
   font-weight: var(--bit-weight-bold);
 }
 
-.gallery-sidebar__link:hover {
+.gallery-sidebar__link.bit-link.bit-neutral:hover {
   background: var(--bit-color-primary-soft);
 }
 
-.gallery-sidebar__link.active {
+.gallery-sidebar__link.bit-link.bit-neutral.active,
+.gallery-sidebar__link.bit-link.bit-neutral.active:hover,
+.gallery-sidebar__link.bit-link.bit-neutral.active:visited {
   background: var(--bit-color-primary);
   color: var(--bit-color-primary-contrast);
 }
