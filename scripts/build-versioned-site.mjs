@@ -50,7 +50,7 @@ export const planSite = ({ tags, currentVersion, asOlder }) => {
 };
 
 /** Bump when the archive build recipe changes, so old cached builds are not reused (release.yml restore-keys too). */
-export const CACHE_PREFIX = 'site-archives-v1-';
+export const CACHE_PREFIX = 'site-archives-v2-';
 
 /** The actions/cache key: the recipe, then the archive tags, so a new patch on an old line rebuilds that line once. */
 export const cacheKey = ({ archives }) => `${CACHE_PREFIX}${archives.map((a) => a.tag).join('_') || 'none'}`;
@@ -170,7 +170,9 @@ export const gitBuildArchive = (root, run = execRun) => (archive, dest) => {
   const work = mkdtempSync(join(tmpdir(), `bit-archive-${archive.tag}-`));
   try {
     run('git', ['worktree', 'add', '--detach', work, archive.tag], root);
-    run('pnpm', ['install', '--frozen-lockfile'], work);
+    // No lifecycle scripts: the old tag's dependencies only need to build, and esbuild (tsup, vite)
+    // finds its binary through its optional platform package without its postinstall.
+    run('pnpm', ['install', '--frozen-lockfile', '--ignore-scripts'], work);
     run('pnpm', ['--dir', work, 'build'], work);
     // --base and --outDir override the old vite config; the hash router needs nothing else.
     run(

@@ -1,17 +1,21 @@
-// Structure tests for .github/workflows/ci.yml and release.yml.
-// actionlint is not installed here, so these parse the YAML and check the parts a typo would break:
-// triggers, jobs, needs, environments, permissions, step order and the step `if:` logic.
+// Structure tests for .github/workflows/ci.yml, release.yml and .github/dependabot.yml.
+// They parse the YAML and check the parts a typo would break (triggers, jobs, needs, environments,
+// permissions, step order and the step `if:` logic) and the release's security properties: which
+// jobs hold a credential, that those jobs install nothing, and that only a v* tag push can publish.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import { parse } from 'yaml';
+import { CACHE_PREFIX } from './build-versioned-site.mjs';
 
 const load = (name) => parse(readFileSync(new URL(`../.github/workflows/${name}`, import.meta.url), 'utf8'));
 const ci = () => load('ci.yml');
 const release = () => load('release.yml');
+const BOTH = () => [['ci.yml', ci()], ['release.yml', release()]];
 
 const TAG_PUSH = { event_name: 'push', ref: 'refs/tags/v0.1.0', workflow: 'Release' };
 const BRANCH_PUSH = { event_name: 'push', ref: 'refs/heads/main', workflow: 'Release' };
@@ -21,6 +25,7 @@ const DISPATCH_MAIN = { event_name: 'workflow_dispatch', ref: 'refs/heads/main',
 const DISPATCH_BRANCH = { event_name: 'workflow_dispatch', ref: 'refs/heads/feature', workflow: 'Release' };
 const DISPATCH_TAG = { event_name: 'workflow_dispatch', ref: 'refs/tags/v0.1.0', workflow: 'Release' };
 const OTHER_BRANCH_PUSH = { event_name: 'push', ref: 'refs/heads/feature', workflow: 'Release' };
+const NOT_TAG_PUSH = [BRANCH_PUSH, PULL_REQUEST, DISPATCH_MAIN, DISPATCH_BRANCH, DISPATCH_TAG, OTHER_BRANCH_PUSH];
 
 const PINNED_ACTIONS = new Set([
   'actions/checkout@v4',
@@ -28,10 +33,16 @@ const PINNED_ACTIONS = new Set([
   'actions/setup-node@v4',
   'actions/cache@v4',
   'actions/upload-artifact@v4',
-  'actions/configure-pages@v5',
+  'actions/download-artifact@v4',
   'actions/upload-pages-artifact@v3',
   'actions/deploy-pages@v4',
 ]);
+
+const TAG_JOBS = ['build', 'deploy', 'guard', 'publish', 'site-build', 'verify-install'];
+const PAGES_DEPLOY_JOBS = ['deploy', 'docs'];
+const SITE_BUILD_JOBS = ['site-build', 'docs-build'];
+// The one install the credential-holding publish job may run: npm itself, at the exact pinned version.
+const NPM_PIN = 'npm install -g --ignore-scripts "npm@$NPM_VERSION"';
 
 const runOf = (step) => String(step?.run ?? '');
 const keyOf = (step) => step.id ?? step.name ?? step.uses ?? runOf(step);
@@ -40,7 +51,7 @@ const findIndex = (steps, predicate, label) => {
   assert.ok(index >= 0, `no step ${label}`);
   return index;
 };
-// The Pack step's output: the one tarball that smoke:full tests and npm publishes.
+// The Pack step's output: the one tarball that smoke:full tests and the build job uploads.
 const PACKED_TGZ = '${{ steps.pack.outputs.tgz }}';
 
 // The Pack step has id `pack`, resolves exactly one tarball and writes it to `tgz`, and the
@@ -50,11 +61,12 @@ const assertSmokesThePackedTarball = (steps, packIndex, smokeIndex) => {
   assert.equal(pack.id, 'pack', 'the Pack step has id pack');
   assert.match(runOf(pack), /shopt -s nullglob[\s\S]*tgz=\("\$RUNNER_TEMP"\/out\/\*\.tgz\)/, 'Pack globs the tarball into an array, empty when none');
   assert.match(runOf(pack), /\$\{#tgz\[@\]\} -eq 1/, 'Pack requires exactly one tarball');
-  assert.match(runOf(pack), /echo "tgz=\$\{tgz\[0\]\}" >> "\$GITHUB_OUTPUT"/, 'Pack writes the tgz output');
-  assert.match(String(steps[smokeIndex].env?.SMOKE_TARBALL), /\$\{\{\s*steps\.pack\.outputs\.tgz\s*\}\}/, 'smoke:full tests the packed tarball');
+  assert.match(runOf(pack), /\{\n\s*echo "tgz=\$\{tgz\[0\]\}"\n[\s\S]*?\} >> "\$GITHUB_OUTPUT"/, 'Pack writes the tgz output');
+  assert.equal(steps[smokeIndex].env?.SMOKE_TARBALL, PACKED_TGZ, 'smoke:full tests the packed tarball');
 };
 const allSteps = (workflow) =>
   Object.entries(workflow.jobs).flatMap(([job, def]) => (def.steps ?? []).map((step) => ({ job, step })));
+const checkouts = (def) => (def.steps ?? []).filter((s) => s.uses === 'actions/checkout@v4');
 
 // --- A small evaluator for the GitHub expression subset these workflows use. ---------------
 // It lets the tests check what the conditions do, not how they are worded.
@@ -102,7 +114,38 @@ function simulate(steps, { results = {}, outputs = {} } = {}) {
   return ran;
 }
 
+// The jobs that run for an event, following `needs` the way GitHub does: a job runs only when its
+// own `if` holds and every job it needs ran and succeeded. `needs` gives job outputs (docs-check's).
+function jobsThatRun(jobs, github, needs = {}) {
+  const ran = new Set();
+  for (let changed = true; changed; ) {
+    changed = false;
+    for (const [name, def] of Object.entries(jobs)) {
+      if (ran.has(name)) continue;
+      const deps = [def.needs ?? []].flat();
+      if (!deps.every((d) => ran.has(d))) continue;
+      if (evaluate(def.if ?? 'true', { github, needs })) {
+        ran.add(name);
+        changed = true;
+      }
+    }
+  }
+  return [...ran].sort();
+}
+const DOCS_DEPLOY = { 'docs-check': { outputs: { deploy: 'true' } } };
+
+// Runs a step's own shell the way GitHub does (bash -eo pipefail) with the given env.
+const runShell = (step, env, cwd) =>
+  spawnSync('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', runOf(step)], { cwd, encoding: 'utf8', env: { ...process.env, ...env } });
+const readOutputs = (file) =>
+  Object.fromEntries(readFileSync(file, 'utf8').split('\n').filter(Boolean).map((line) => [line.slice(0, line.indexOf('=')), line.slice(line.indexOf('=') + 1)]));
+const sha256 = (text) => createHash('sha256').update(text).digest('hex');
+// The integrity npm records for a tarball: sha512 as a Subresource Integrity string.
+const sri = (text) => `sha512-${createHash('sha512').update(text).digest('base64')}`;
+
 // --- ci.yml -------------------------------------------------------------------------------
+test('ci: read-only permissions at the top', () => assert.deepEqual(ci().permissions, { contents: 'read' }));
+
 test('ci: the ci job runs the scripts tests after the gallery tests', () => {
   const steps = ci().jobs.ci.steps;
   const gallery = findIndex(steps, (s) => runOf(s) === 'pnpm --filter @bit-ds/gallery test', 'running the gallery tests');
@@ -146,30 +189,166 @@ test('release: triggers on pull requests, v* tags, pushes to main and a manual r
   assert.deepEqual(wf.permissions, { contents: 'read' });
 });
 
-test('release: the jobs are exactly dry-run, guard, publish, deploy, docs-check and docs', () => {
-  assert.deepEqual(Object.keys(release().jobs).sort(), ['deploy', 'docs', 'docs-check', 'dry-run', 'guard', 'publish']);
+test('release: the jobs are exactly the dry run, the tag chain and the docs chain', () => {
+  assert.deepEqual(Object.keys(release().jobs).sort(), [
+    'build', 'deploy', 'docs', 'docs-build', 'docs-check', 'dry-run', 'guard', 'publish', 'site-build', 'verify-install',
+  ]);
 });
 
-test('release: dry-run on pull requests, the tag jobs only on tag pushes, docs-check only on main', () => {
+test('release: dry-run on pull requests, the tag jobs only on tag pushes, the docs jobs only on main', () => {
   const { jobs } = release();
-  const runsOn = (github) => Object.keys(jobs).filter((name) => evaluate(jobs[name].if ?? 'true', { github })).sort();
-  assert.deepEqual(runsOn(PULL_REQUEST), ['dry-run']);
-  assert.deepEqual(runsOn(TAG_PUSH), ['deploy', 'guard', 'publish']);
-  // docs itself waits on docs-check's output (see below), so with no output it does not run.
-  assert.deepEqual(runsOn(BRANCH_PUSH), ['docs-check'], 'a push to main checks for a docs deploy and never publishes');
-  assert.deepEqual(runsOn(DISPATCH_MAIN), ['docs-check']);
-  assert.deepEqual(runsOn(DISPATCH_BRANCH), [], 'a manual run on another branch does nothing');
-  assert.deepEqual(runsOn(DISPATCH_TAG), [], 'a manual run on a tag never publishes');
-  assert.deepEqual(runsOn(OTHER_BRANCH_PUSH), []);
+  assert.deepEqual(jobsThatRun(jobs, PULL_REQUEST), ['dry-run']);
+  assert.deepEqual(jobsThatRun(jobs, TAG_PUSH), TAG_JOBS);
+  // docs-build and docs wait on docs-check's output (see below), so with no output they do not run.
+  assert.deepEqual(jobsThatRun(jobs, BRANCH_PUSH), ['docs-check'], 'a push to main checks for a docs deploy and never publishes');
+  assert.deepEqual(jobsThatRun(jobs, BRANCH_PUSH, DOCS_DEPLOY), ['docs', 'docs-build', 'docs-check']);
+  assert.deepEqual(jobsThatRun(jobs, DISPATCH_MAIN, DOCS_DEPLOY), ['docs', 'docs-build', 'docs-check']);
+  assert.deepEqual(jobsThatRun(jobs, DISPATCH_BRANCH, DOCS_DEPLOY), [], 'a manual run on another branch does nothing');
+  assert.deepEqual(jobsThatRun(jobs, DISPATCH_TAG, DOCS_DEPLOY), [], 'a manual run on a tag never publishes');
+  assert.deepEqual(jobsThatRun(jobs, OTHER_BRANCH_PUSH, DOCS_DEPLOY), []);
+  assert.deepEqual(jobsThatRun(jobs, PULL_REQUEST, DOCS_DEPLOY), ['dry-run']);
 });
 
-test('release: the tag jobs gate on a v* tag ref themselves', () => {
-  for (const name of ['guard', 'publish', 'deploy']) {
-    assert.match(String(release().jobs[name].if), /startsWith\(github\.ref, 'refs\/tags\/v'\)/, name);
-    assert.match(String(release().jobs[name].if), /github\.event_name == 'push'/, name);
+test('release: every tag job gates on a v* tag push itself, not only through needs', () => {
+  for (const name of TAG_JOBS) {
+    const gate = String(release().jobs[name].if);
+    assert.match(gate, /startsWith\(github\.ref, 'refs\/tags\/v'\)/, name);
+    assert.match(gate, /github\.event_name == 'push'/, name);
+    for (const github of NOT_TAG_PUSH) assert.equal(evaluate(gate, { github, needs: DOCS_DEPLOY }), false, `${name} on ${github.event_name} ${github.ref}`);
   }
 });
 
+// --- release.yml: the security properties ----------------------------------------------------
+test('release: npm publish and the npm-publish environment are reachable only on a v* tag push, after guard and build', () => {
+  const { jobs } = release();
+  const publishing = Object.entries(jobs)
+    .filter(([, def]) => (def.environment?.name ?? def.environment) === 'npm-publish' || (def.steps ?? []).some((s) => /\bnpm publish\b/.test(runOf(s)) && !runOf(s).includes('--dry-run')))
+    .map(([name]) => name);
+  assert.deepEqual(publishing, ['publish']);
+  assert.deepEqual([jobs.publish.needs].flat(), ['guard', 'build']);
+  assert.ok(jobsThatRun(jobs, TAG_PUSH).includes('publish'));
+  for (const github of NOT_TAG_PUSH) assert.ok(!jobsThatRun(jobs, github, DOCS_DEPLOY).includes('publish'), `${github.event_name} ${github.ref}`);
+});
+
+test('release: only publish, deploy and docs hold a credential; the build, site and check jobs hold none', () => {
+  const { jobs } = release();
+  const holders = Object.entries(jobs).filter(([, def]) => def.environment || def.permissions?.['id-token'] || def.permissions?.pages).map(([n]) => n).sort();
+  assert.deepEqual(holders, ['deploy', 'docs', 'publish']);
+  for (const name of ['dry-run', 'build', 'site-build', 'docs-build', 'docs-check', 'verify-install', 'guard']) {
+    assert.equal(jobs[name].environment, undefined, name);
+    assert.equal(jobs[name].permissions, undefined, `${name} keeps the read-only default`);
+    assert.doesNotMatch(JSON.stringify(jobs[name]), /secrets\.|id-token/, name);
+  }
+});
+
+// The credential jobs may run only these actions, and no package manager beyond the npm pin.
+const CREDENTIAL_JOB_ACTIONS = new Set(['actions/checkout@v4', 'actions/setup-node@v4', 'actions/download-artifact@v4', 'actions/deploy-pages@v4']);
+const INSTALLS = /\b(pnpm|yarn|npx|corepack|bun)\b|\bnpm\s+(install|i|ci|add|exec|x|run|run-script|rebuild|update|link)\b/;
+
+test('both: no job that holds id-token: write installs a dependency or runs a package manager', () => {
+  let checked = 0;
+  for (const [file, wf] of BOTH()) {
+    for (const [name, def] of Object.entries(wf.jobs)) {
+      if (def.permissions?.['id-token'] !== 'write') continue;
+      checked += 1;
+      for (const step of def.steps) {
+        const label = `${file} ${name}: ${keyOf(step)}`;
+        if (step.uses) assert.ok(CREDENTIAL_JOB_ACTIONS.has(step.uses), `${label} is not allowed in a credential job`);
+        if (step.uses === 'actions/setup-node@v4') assert.equal(step.with?.cache, undefined, `${label}: no dependency cache`);
+        const run = runOf(step);
+        if (run === NPM_PIN) continue;
+        assert.doesNotMatch(run, INSTALLS, label);
+        // Repo code with dependencies would need an install; release-steps.mjs has none (see below).
+        for (const node of run.match(/\bnode\b[^\n]*/g) ?? []) assert.match(node, /^node scripts\/release-steps\.mjs /, label);
+      }
+    }
+  }
+  assert.equal(checked, 3, 'publish, deploy and docs');
+});
+
+test('release-steps.mjs, which publish runs without an install, imports only Node built-ins', () => {
+  const source = readFileSync(new URL('./release-steps.mjs', import.meta.url), 'utf8');
+  const imports = [...source.matchAll(/^import\s[^;]*?from\s+['"]([^'"]+)['"]/gm)].map((m) => m[1]);
+  assert.ok(imports.length > 0);
+  for (const spec of imports) assert.match(spec, /^node:/, spec);
+  // The one dynamic import is inside the `node -e` check that runs in verify-install's scratch project.
+  assert.doesNotMatch(source.replace(/"import\('@bit-ds\/react'\)[^"]*"/, ''), /\bimport\(|\brequire\(/);
+});
+
+test('both: every checkout leaves no token behind (persist-credentials: false)', () => {
+  let count = 0;
+  for (const [file, wf] of BOTH()) {
+    for (const [name, def] of Object.entries(wf.jobs)) {
+      for (const checkout of checkouts(def)) {
+        count += 1;
+        assert.equal(checkout.with?.['persist-credentials'], false, `${file} ${name}`);
+      }
+    }
+  }
+  assert.ok(count >= 9, `found ${count} checkouts`);
+});
+
+test('both: no run script interpolates an expression; values arrive through env', () => {
+  for (const [file, wf] of BOTH()) {
+    const runs = allSteps(wf).filter(({ step }) => typeof step.run === 'string');
+    assert.ok(runs.length > 10, `${file}: every run step is checked`);
+    for (const { job, step } of runs) assert.doesNotMatch(runOf(step), /\$\{\{/, `${file} ${job}: ${keyOf(step)}`);
+  }
+});
+
+test('release: the npm token reaches only the publish step', () => {
+  for (const { job, step } of allSteps(release())) {
+    const usesSecret = JSON.stringify(step).includes('secrets.');
+    assert.equal(usesSecret, job === 'publish' && step.id === 'publish', `${job}: ${keyOf(step)}`);
+  }
+});
+
+test('release: the workflow text names a secret exactly once, in the publish step', () => {
+  const text = readFileSync(new URL('../.github/workflows/release.yml', import.meta.url), 'utf8');
+  assert.equal(text.match(/secrets\./g)?.length, 1, 'one secrets. reference: NODE_AUTH_TOKEN on the publish step');
+});
+
+// A status function in a job `if` (always(), !cancelled(), ...) lets the job run after a job it
+// needs failed or was skipped, so a broken build or a failed guard could still reach publish.
+test('release: no job gate uses a status function, so a failed or skipped job always stops the jobs after it', () => {
+  for (const [name, def] of Object.entries(release().jobs)) {
+    if (def.if !== undefined) assert.doesNotMatch(String(def.if), STATUS_FUNCTION, name);
+  }
+});
+
+const ENV_GUARDED = ['NODE_AUTH_TOKEN', 'NPM_VERSION'];
+
+test('release: env is set in one place each: NPM_VERSION at the top, NODE_AUTH_TOKEN on the publish step', () => {
+  const wf = release();
+  assert.deepEqual(Object.keys(wf.env ?? {}), ['NPM_VERSION'], 'the workflow env holds only NPM_VERSION');
+  assert.equal(wf.jobs.publish.env, undefined, 'publish has no job-level env');
+  for (const [name, def] of Object.entries(wf.jobs)) {
+    for (const key of ENV_GUARDED) assert.ok(!(key in (def.env ?? {})), `job ${name} sets ${key}`);
+    for (const step of def.steps ?? []) {
+      const isPublishStep = name === 'publish' && step.id === 'publish';
+      for (const key of ENV_GUARDED) {
+        const allowed = isPublishStep && key === 'NODE_AUTH_TOKEN';
+        assert.equal(key in (step.env ?? {}), allowed, `${name}: ${keyOf(step)} ${allowed ? 'must' : 'must not'} set ${key}`);
+      }
+    }
+  }
+});
+
+test('release: npm is one exact version, 11.5.1 or later, installed without scripts wherever it is upgraded', () => {
+  const version = release().env.NPM_VERSION;
+  assert.match(version, /^\d+\.\d+\.\d+$/, 'exact, never a range');
+  const [major, minor, patch] = version.split('.').map(Number);
+  assert.ok(major > 11 || (major === 11 && (minor > 5 || (minor === 5 && patch >= 1))), `${version} is older than 11.5.1`);
+  for (const [file, wf] of BOTH()) {
+    for (const { job, step } of allSteps(wf)) {
+      if (/\bnpm (i|install)\b[^\n]*-g\b/.test(runOf(step))) assert.equal(runOf(step), NPM_PIN, `${file} ${job}`);
+      assert.doesNotMatch(runOf(step), /npm@[\^~]|npm@latest/, `${file} ${job}`);
+    }
+  }
+  for (const name of ['dry-run', 'build', 'publish']) assert.ok(release().jobs[name].steps.some((s) => runOf(s) === NPM_PIN), name);
+});
+
+// --- release.yml: concurrency ---------------------------------------------------------------
 test('release: concurrency queues every tag in one group and never cancels a release or a docs deploy', () => {
   const { concurrency } = release();
   const group = (github) => interpolate(concurrency.group, github);
@@ -184,27 +363,14 @@ test('release: concurrency queues every tag in one group and never cancels a rel
   assert.equal(interpolate(concurrency['cancel-in-progress'], PULL_REQUEST), 'true');
 });
 
-test('release: the tag deploy and the docs deploy share the pages group and never cancel', () => {
-  for (const name of ['deploy', 'docs']) {
-    assert.deepEqual(release().jobs[name].concurrency, { group: 'pages', 'cancel-in-progress': false }, name);
+test('release: only the two Pages deploy jobs hold the pages group, and it never cancels', () => {
+  for (const [name, def] of Object.entries(release().jobs)) {
+    if (PAGES_DEPLOY_JOBS.includes(name)) assert.deepEqual(def.concurrency, { group: 'pages', 'cancel-in-progress': false }, name);
+    else assert.equal(def.concurrency, undefined, `${name} holds no pages slot`);
   }
 });
 
-test('release: docs-check holds no pages slot and no environment, so a skip never queues or records a deployment', () => {
-  const job = release().jobs['docs-check'];
-  assert.equal(job.concurrency, undefined);
-  assert.equal(job.environment, undefined);
-  assert.equal(job.permissions, undefined, 'docs-check keeps the read-only default');
-});
-
-test('release: deploy, docs-check, docs and dry-run check out without persisting the token', () => {
-  for (const name of ['deploy', 'docs-check', 'docs', 'dry-run']) {
-    const checkout = release().jobs[name].steps.find((s) => s.uses === 'actions/checkout@v4');
-    assert.equal(checkout.with?.['persist-credentials'], false, name);
-  }
-});
-
-// --- release.yml: jobs ----------------------------------------------------------------------
+// --- release.yml: guard, build, publish, verify-install --------------------------------------
 test('release: guard checks the tag and that the commit is on main', () => {
   const { steps } = release().jobs.guard;
   const checkout = steps.find((s) => s.uses === 'actions/checkout@v4');
@@ -215,67 +381,202 @@ test('release: guard checks the tag and that the commit is on main', () => {
   assert.match(runOf(onMain), /git fetch[^\n]* origin main/);
 });
 
-test('release: publish needs guard, uses npm-publish and may mint an OIDC token', () => {
-  const job = release().jobs.publish;
+// The build steps dry-run and build share: from pnpm setup to the smoke test, word for word.
+const sharedBuildSteps = (steps) => {
+  const start = findIndex(steps, (s) => s.uses === 'pnpm/action-setup@v4', 'setting up pnpm');
+  const end = findIndex(steps, (s) => s.id === 'smoke', 'the smoke test');
+  return steps.slice(start, end + 1);
+};
+
+test('release: build packs, hashes, smoke-tests and uploads the tarball, needing guard', () => {
+  const job = release().jobs.build;
   assert.deepEqual([job.needs].flat(), ['guard']);
+  assert.deepEqual(job.outputs, {
+    'tgz-name': '${{ steps.pack.outputs.name }}',
+    sha256: '${{ steps.pack.outputs.sha256 }}',
+    integrity: '${{ steps.pack.outputs.integrity }}',
+  });
+  const { steps } = job;
+  const npm = findIndex(steps, (s) => runOf(s) === NPM_PIN, 'installing the pinned npm');
+  const install = findIndex(steps, (s) => runOf(s) === 'pnpm install --frozen-lockfile', 'installing');
+  const verify = findIndex(steps, (s) => runOf(s) === 'pnpm build && pnpm verify', 'building and verifying');
+  const pack = findIndex(steps, (s) => runOf(s).includes('pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"'), 'packing');
+  const smoke = findIndex(steps, (s) => s.id === 'smoke' && runOf(s) === 'pnpm smoke:full', 'running smoke:full');
+  assertSmokesThePackedTarball(steps, pack, smoke);
+  // The hash is taken in Pack, before smoke:full runs any freshly installed registry code.
+  assert.match(runOf(steps[pack]), /sha256=\$\(sha256sum "\$\{tgz\[0\]\}"/);
+  const recheck = findIndex(steps, (s) => s.id === 'recheck', 'rechecking the tarball after the smoke test');
+  assert.deepEqual(steps[recheck].env, { TGZ: PACKED_TGZ, EXPECTED_SHA256: '${{ steps.pack.outputs.sha256 }}' });
+  const upload = findIndex(steps, (s) => s.uses === 'actions/upload-artifact@v4', 'uploading the tarball');
+  assert.deepEqual(steps[upload].with, { name: 'npm-tarball', path: PACKED_TGZ, 'if-no-files-found': 'error' });
+  assert.ok(npm < install && install < verify && verify < pack && pack < smoke && smoke < recheck && recheck < upload, 'step order');
+  assert.equal(upload, steps.length - 1, 'the upload is the last step');
+});
+
+test("release: dry-run runs the build job's steps word for word, so a PR rehearses the tag build", () => {
+  const { jobs } = release();
+  assert.deepEqual(sharedBuildSteps(jobs['dry-run'].steps), sharedBuildSteps(jobs.build.steps));
+  // pnpm, node, npm, install, build + verify, pack, Playwright version, cache, Chromium, smoke.
+  assert.equal(sharedBuildSteps(jobs.build.steps).length, 10);
+});
+
+test('release: the Pack shell writes the tarball path, name and sha256, and refuses zero or two tarballs', () => {
+  const pack = release().jobs.build.steps.find((s) => s.id === 'pack');
+  const dir = mkdtempSync(join(tmpdir(), 'bit-pack-'));
+  try {
+    const bin = join(dir, 'bin');
+    mkdirSync(bin);
+    // A stand-in pnpm: `pnpm --dir packages/react pack --pack-destination DIR` writes STUB_COUNT tarballs.
+    writeFileSync(join(bin, 'pnpm'), '#!/bin/bash\nmkdir -p "$5"\nfor ((i = 1; i <= STUB_COUNT; i++)); do printf "tarball %s" "$i" > "$5/bit-ds-react-9.9.$i.tgz"; done\n');
+    chmodSync(join(bin, 'pnpm'), 0o755);
+    const run = (count, name) => {
+      const temp = join(dir, name);
+      const output = join(dir, `${name}.out`);
+      writeFileSync(output, '');
+      const result = runShell(pack, { PATH: `${bin}:${process.env.PATH}`, RUNNER_TEMP: temp, GITHUB_OUTPUT: output, STUB_COUNT: String(count) }, dir);
+      return { result, outputs: readOutputs(output), temp };
+    };
+    const one = run(1, 'one');
+    assert.equal(one.result.status, 0, one.result.stderr);
+    assert.deepEqual(one.outputs, {
+      tgz: join(one.temp, 'out', 'bit-ds-react-9.9.1.tgz'),
+      name: 'bit-ds-react-9.9.1.tgz',
+      sha256: sha256('tarball 1'),
+      integrity: sri('tarball 1'),
+    });
+    for (const count of [0, 2]) {
+      const bad = run(count, `n${count}`);
+      assert.notEqual(bad.result.status, 0, `${count} tarballs must fail`);
+      assert.match(bad.result.stdout, new RegExp(`expected exactly one tarball, found ${count}`));
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// The smoke test runs freshly installed registry code. If it changed the tarball, build fails here,
+// before anyone is asked to approve a publish, instead of at publish's own hash check.
+test('release: the build recheck fails when the tarball changed after Pack hashed it', () => {
+  const recheck = release().jobs.build.steps.find((s) => s.id === 'recheck');
+  const dir = mkdtempSync(join(tmpdir(), 'bit-recheck-'));
+  try {
+    const tgz = join(dir, 'bit-ds-react-0.1.1.tgz');
+    writeFileSync(tgz, 'the packed tarball');
+    const run = (expected) => runShell(recheck, { TGZ: tgz, EXPECTED_SHA256: expected }, dir);
+    assert.equal(run(sha256('the packed tarball')).status, 0);
+    const changed = run(sha256('what Pack hashed before the smoke test'));
+    assert.notEqual(changed.status, 0, 'a changed tarball fails the build');
+    assert.match(changed.stdout, /changed after it was packed/);
+    assert.notEqual(run('').status, 0, 'no hash from Pack fails too');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('release: publish needs guard and build, uses npm-publish and may mint an OIDC token', () => {
+  const job = release().jobs.publish;
+  assert.deepEqual([job.needs].flat(), ['guard', 'build']);
   assert.equal(job.environment?.name ?? job.environment, 'npm-publish');
   assert.deepEqual(job.permissions, { contents: 'read', 'id-token': 'write' });
 });
 
-test('release: publish upgrades npm, packs, smoke-tests, decides, publishes the tarball, then verifies', () => {
+test('release: publish downloads the artifact, checks its hash, decides, then publishes that file', () => {
   const { steps } = release().jobs.publish;
-  const node = steps.find((s) => s.uses === 'actions/setup-node@v4');
-  assert.equal(node.with['registry-url'], 'https://registry.npmjs.org');
-  const npm = findIndex(steps, (s) => runOf(s) === 'npm i -g npm@^11.5.1', 'upgrading npm');
-  const pack = findIndex(
-    steps,
-    (s) => runOf(s).includes('pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"'),
-    'packing into $RUNNER_TEMP/out',
-  );
-  const smoke = findIndex(steps, (s) => s.id === 'smoke' && runOf(s) === 'pnpm smoke:full', 'running smoke:full');
-  assertSmokesThePackedTarball(steps, pack, smoke);
+  assert.equal(steps.length, 7, 'checkout, node, npm, download, verify, decide, publish: nothing else');
+  const checkout = findIndex(steps, (s) => s.uses === 'actions/checkout@v4', 'checking out');
+  const node = findIndex(steps, (s) => s.uses === 'actions/setup-node@v4', 'setting up node');
+  assert.deepEqual(steps[node].with, { 'node-version': 22, 'registry-url': 'https://registry.npmjs.org' });
+  const npm = findIndex(steps, (s) => runOf(s) === NPM_PIN, 'installing the pinned npm');
+  const download = findIndex(steps, (s) => s.uses === 'actions/download-artifact@v4', 'downloading the tarball');
+  assert.deepEqual(steps[download].with, { name: 'npm-tarball', path: '${{ runner.temp }}/release' });
+  const verify = findIndex(steps, (s) => s.id === 'tarball', 'verifying the tarball');
+  assert.deepEqual(steps[verify].env, {
+    TGZ_NAME: '${{ needs.build.outputs.tgz-name }}',
+    EXPECTED_SHA256: '${{ needs.build.outputs.sha256 }}',
+    EXPECTED_INTEGRITY: '${{ needs.build.outputs.integrity }}',
+  });
+  // verify-install compares npm's dist.integrity with this, so it travels build -> publish -> verify-install.
+  assert.deepEqual(release().jobs.publish.outputs, { integrity: '${{ steps.tarball.outputs.integrity }}' });
   const decide = findIndex(steps, (s) => s.id === 'decide' && runOf(s) === 'node scripts/release-steps.mjs should-publish', 'deciding');
   const publish = findIndex(steps, (s) => /\bnpm publish\b/.test(runOf(s)), 'publishing');
-  const verify = findIndex(
-    steps,
-    (s) => s.id === 'verify' && runOf(s) === 'node scripts/release-steps.mjs verify-install "${GITHUB_REF_NAME#v}"',
-    'running verify-install',
-  );
-  assert.ok(npm < pack && pack < smoke && smoke < decide && decide < publish && publish < verify, 'step order');
+  assert.ok(checkout < node && node < npm && npm < download && download < verify && verify < decide && decide < publish, 'step order');
 
   const step = steps[publish];
   // The tarball path reaches the shell through env, never as ${{ }} text inside the script.
   assert.equal(runOf(step), 'npm publish "$TGZ" --provenance --access public');
-  assert.equal(step.env?.TGZ, PACKED_TGZ, 'publishes the smoke-tested tarball');
+  assert.equal(step.env?.TGZ, '${{ steps.tarball.outputs.tgz }}', 'publishes the file whose hash was checked');
   assert.equal(step.id, 'publish');
   assert.equal(step.env?.NODE_AUTH_TOKEN, '${{ secrets.NPM_TOKEN }}');
   assert.match(String(step.if), /steps\.decide\.outputs\.publish == 'true'/);
 });
 
-test('release: the npm token reaches only the publish step', () => {
-  for (const { job, step } of allSteps(release())) {
-    const usesSecret = JSON.stringify(step).includes('secrets.');
-    assert.equal(usesSecret, job === 'publish' && step.id === 'publish', `${job}: ${keyOf(step)}`);
+test('release: publish publishes only a new version whose tarball checked out', () => {
+  const { steps } = release().jobs.publish;
+  const published = (opts) => simulate(steps, opts).includes('publish');
+  const newVersion = { outputs: { decide: { publish: 'true' } } };
+  assert.equal(published(newVersion), true, 'new version: publish');
+  assert.equal(published({ outputs: { decide: { publish: 'false' } } }), false, 're-run, version exists: skip');
+  assert.equal(published({ ...newVersion, results: { tarball: 'failure' } }), false, 'hash mismatch: never publish');
+  assert.equal(published({ ...newVersion, results: { decide: 'failure' } }), false, 'decide failed');
+});
+
+test('release: the tarball check passes only the one file the build job hashed', () => {
+  const verify = release().jobs.publish.steps.find((s) => s.id === 'tarball');
+  const dir = mkdtempSync(join(tmpdir(), 'bit-verify-'));
+  const NAME = 'bit-ds-react-0.1.1.tgz';
+  const GOOD = sha256('the packed tarball');
+  try {
+    const check = (label, { files = { [NAME]: 'the packed tarball' }, name = NAME, sha = GOOD, integrity = sri('the packed tarball') } = {}) => {
+      const temp = join(dir, label);
+      mkdirSync(join(temp, 'release'), { recursive: true });
+      for (const [file, text] of Object.entries(files)) writeFileSync(join(temp, 'release', file), text);
+      const output = join(temp, 'github-output');
+      writeFileSync(output, '');
+      const result = runShell(verify, { RUNNER_TEMP: temp, GITHUB_OUTPUT: output, TGZ_NAME: name, EXPECTED_SHA256: sha, EXPECTED_INTEGRITY: integrity }, dir);
+      return { ok: result.status === 0, out: result.stdout, outputs: readOutputs(output), temp };
+    };
+    const good = check('good');
+    assert.equal(good.ok, true, good.out);
+    assert.deepEqual(good.outputs, { tgz: join(good.temp, 'release', NAME), integrity: sri('the packed tarball') });
+    const refused = {
+      tampered: check('tampered', { files: { [NAME]: 'a swapped tarball' } }),
+      'no sha256': check('nosha', { sha: '' }),
+      'uppercase sha256': check('upper', { sha: GOOD.toUpperCase() }),
+      'another name': check('rename', { name: 'bit-ds-react-0.1.2.tgz' }),
+      'a path as the name': check('path', { name: '../release/x.tgz' }),
+      'an extra file': check('extra', { files: { [NAME]: 'the packed tarball', 'other.tgz': 'x' } }),
+      'a hidden extra file': check('hidden', { files: { [NAME]: 'the packed tarball', '.npmrc': 'x' } }),
+      'an empty artifact': check('empty', { files: {} }),
+      'another integrity': check('integrity', { integrity: sri('another tarball') }),
+      // Each check must hold on its own: a swapped file whose integrity was forged to match still fails on sha256.
+      'tampered, integrity forged': check('forged', { files: { [NAME]: 'a swapped tarball' }, integrity: sri('a swapped tarball') }),
+      'no integrity': check('nointegrity', { integrity: '' }),
+    };
+    for (const [label, result] of Object.entries(refused)) {
+      assert.equal(result.ok, false, `${label} must fail`);
+      assert.deepEqual(result.outputs, {}, `${label}: no tgz output`);
+    }
+    assert.match(refused.tampered.out, /sha256 mismatch/);
+    assert.match(refused['another integrity'].out, /integrity mismatch/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test('release: publish and verify-install run on the right outcomes', () => {
-  const { steps } = release().jobs.publish;
-  const did = (opts) => {
-    const ran = simulate(steps, opts);
-    return { published: ran.includes('publish'), verified: ran.includes('verify') };
-  };
-  const newVersion = { outputs: { decide: { publish: 'true' } } };
-  const existing = { outputs: { decide: { publish: 'false' } } };
-  assert.deepEqual(did(newVersion), { published: true, verified: true }, 'new version: publish, then verify');
-  assert.deepEqual(did(existing), { published: false, verified: true }, 're-run, version exists: skip publish, still verify');
-  assert.deepEqual(did({ ...newVersion, results: { smoke: 'failure' } }), { published: false, verified: false }, 'smoke failed');
-  assert.deepEqual(did({ ...newVersion, results: { decide: 'failure' } }), { published: false, verified: false }, 'decide failed');
-  assert.deepEqual(did({ ...newVersion, results: { publish: 'failure' } }), { published: true, verified: false }, 'publish failed');
+test('release: verify-install needs publish and checks the install with no credential', () => {
+  const job = release().jobs['verify-install'];
+  assert.deepEqual([job.needs].flat(), ['publish']);
+  assert.doesNotMatch(String(job.if), STATUS_FUNCTION, 'runs only when publish succeeded (published or skipped as existing)');
+  const runs = job.steps.filter((s) => s.run);
+  assert.deepEqual(runs.map(runOf), ['node scripts/release-steps.mjs verify-install "${GITHUB_REF_NAME#v}"']);
+  assert.deepEqual(runs[0].env, { EXPECTED_INTEGRITY: '${{ needs.publish.outputs.integrity }}' }, 'checks npm serves the bytes build packed');
 });
 
-// The site build both deploys share: the gallery, then the versioned site with cached archives.
-const assertBuildsVersionedSite = (steps, label) => {
+// --- release.yml: the Pages site -------------------------------------------------------------
+// The site build both chains share: the gallery, then the versioned site with cached archives,
+// ending with the Pages artifact upload. No Pages permission, nothing deployed here.
+const assertBuildsVersionedSite = (job, label) => {
+  const { steps } = job;
   const checkout = steps.find((s) => s.uses === 'actions/checkout@v4');
   assert.equal(checkout.with?.['fetch-depth'], 0, `${label}: full history, so the tags exist`);
   const gallery = findIndex(steps, (s) => runOf(s) === 'pnpm gallery:build', `${label}: running gallery:build`);
@@ -290,38 +591,46 @@ const assertBuildsVersionedSite = (steps, label) => {
     `${label}: caching the archives`,
   );
   assert.equal(steps[cache].with.key, '${{ steps.archives.outputs.key }}', `${label}: the cache is keyed on the archive tags`);
-  assert.equal(steps[cache].with['restore-keys'], 'site-archives-v1-', `${label}: a new tag reuses archives built by this recipe`);
+  assert.equal(steps[cache].with['restore-keys'], CACHE_PREFIX, `${label}: a new tag reuses archives built by this recipe only`);
   const site = findIndex(
     steps,
     (s) => runOf(s) === 'node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"',
     `${label}: building the versioned site`,
   );
-  const configure = findIndex(steps, (s) => s.uses === 'actions/configure-pages@v5', `${label}: configuring pages`);
   const upload = findIndex(steps, (s) => s.uses === 'actions/upload-pages-artifact@v3', `${label}: uploading the pages artifact`);
-  const deploy = findIndex(steps, (s) => s.uses === 'actions/deploy-pages@v4', `${label}: deploying pages`);
-  assert.ok(gallery < key && key < cache && cache < site && site < configure && configure < upload && upload < deploy, `${label}: step order`);
+  assert.ok(gallery < key && key < cache && cache < site && site < upload, `${label}: step order`);
+  assert.equal(upload, steps.length - 1, `${label}: the upload is the last step`);
   // `with:` is not a shell, so $RUNNER_TEMP would stay literal there.
   assert.equal(steps[upload].with.path, '${{ runner.temp }}/site', `${label}: uploads the versioned site`);
-  assert.equal(steps[deploy].id, 'deployment');
+  // The default is 1 day. site-build runs before the publish approval, so a slow approval must not
+  // leave deploy with an expired artifact after npm already has the release.
+  assert.equal(steps[upload].with['retention-days'], 7, `${label}: the site artifact outlives a slow approval`);
+  assert.ok(!steps.some((s) => s.uses === 'actions/deploy-pages@v4'), `${label}: never deploys`);
 };
 
-const assertPagesJob = (job, label) => {
+const assertPagesDeployJob = (job, label) => {
   assert.equal(job.environment.name, 'github-pages', label);
   assert.equal(job.environment.url, '${{ steps.deployment.outputs.page_url }}', label);
   assert.deepEqual(job.permissions, { contents: 'read', pages: 'write', 'id-token': 'write' }, label);
-  assert.doesNotMatch(JSON.stringify(job), /secrets\.|npm publish/, `${label}: no secrets, no publish`);
+  assert.deepEqual(job.steps, [{ id: 'deployment', uses: 'actions/deploy-pages@v4' }], `${label}: deploy-pages and nothing else`);
 };
 
-test('release: deploy needs publish and ships the versioned site to github-pages', () => {
-  const job = release().jobs.deploy;
-  assert.deepEqual([job.needs].flat(), ['publish']);
-  assert.doesNotMatch(String(job.if), STATUS_FUNCTION, 'deploy runs only when publish succeeded');
-  assertPagesJob(job, 'deploy');
-  assertBuildsVersionedSite(job.steps, 'deploy');
+test('release: site-build and docs-build build the same site, with no Pages permission', () => {
+  const { jobs } = release();
+  for (const name of SITE_BUILD_JOBS) assertBuildsVersionedSite(jobs[name], name);
+  assert.deepEqual(jobs['site-build'].steps, jobs['docs-build'].steps, 'one recipe for both deploys');
+});
+
+test('release: deploy needs site-build and verify-install, so the site changes only after a good publish', () => {
+  const { jobs } = release();
+  assert.deepEqual([jobs.deploy.needs].flat(), ['site-build', 'verify-install']);
+  assert.deepEqual([jobs['site-build'].needs].flat(), ['guard']);
+  assert.doesNotMatch(String(jobs.deploy.if), STATUS_FUNCTION, 'deploy runs only when everything it needs succeeded');
+  assertPagesDeployJob(jobs.deploy, 'deploy');
 });
 
 // --- release.yml: the docs deploy without a release ------------------------------------------
-// docs-check runs the guard; docs (the Pages deploy) runs only when it says so.
+// docs-check runs the guard; docs-build and docs (the Pages deploy) run only when it says so.
 const GUARD_LATEST = "LATEST=$(git tag --list 'v[0-9]*' --merged HEAD --sort=-v:refname | grep -Ev -- '-' | head -1 || true)";
 const GUARD_DIFF = 'git diff --quiet "$LATEST" HEAD -- packages/ "${IGNORED[@]}"';
 const GUARD_EXCLUDES = [
@@ -344,7 +653,6 @@ test('release: docs-check runs the guard right after checkout and outputs deploy
   assert.equal(steps[0].uses, 'actions/checkout@v4');
   assert.equal(steps[0].with['fetch-depth'], 0, 'full history, so the tags exist');
   assert.equal(steps[1].id, 'released');
-  assert.doesNotMatch(JSON.stringify(job), /secrets\.|npm publish/);
 });
 
 test('release: the docs guard compares packages/ with the latest release tag on HEAD', () => {
@@ -356,119 +664,31 @@ test('release: the docs guard compares packages/ with the latest release tag on 
   assert.ok(run.includes(GUARD_NOTICE), 'says why it skipped');
 });
 
-test('release: docs needs docs-check and runs only when it says deploy', () => {
-  const job = release().jobs.docs;
-  assert.deepEqual([job.needs].flat(), ['docs-check']);
-  assert.equal(job.if, "needs.docs-check.outputs.deploy == 'true'");
-  const runs = (deploy) => evaluate(job.if, { github: BRANCH_PUSH, needs: { 'docs-check': { outputs: { deploy } } } });
-  assert.equal(runs('true'), true);
-  assert.equal(runs('false'), false);
-  assert.equal(runs(''), false, 'no output (docs-check skipped or failed): no deploy');
-  for (const step of job.steps) assert.equal(step.if, undefined, `${keyOf(step)}: the job-level gate is enough`);
-  assertPagesJob(job, 'docs');
-  assertBuildsVersionedSite(job.steps, 'docs');
-});
-
-// Runs the guard's own shell in a scratch repo: a docs-only change deploys, a packages/ change skips.
-const runGuard = (repo) => {
-  const output = join(repo, 'github-output');
-  writeFileSync(output, '');
-  // Stricter than GitHub's default `bash -e`, so a pipeline that fails on no tags is caught.
-  const stdout = execFileSync('bash', ['-eo', 'pipefail', '-c', runOf(docsGuard())], {
-    cwd: repo,
-    encoding: 'utf8',
-    env: { ...process.env, GITHUB_OUTPUT: output },
-  });
-  return { stdout, output: readFileSync(output, 'utf8') };
-};
-
-test('release: the docs guard script deploys after a docs change and waits after a packages/ change', () => {
-  const repo = mkdtempSync(join(tmpdir(), 'bit-docs-guard-'));
-  const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8' });
-  const commit = (file, text) => {
-    mkdirSync(dirname(join(repo, file)), { recursive: true });
-    writeFileSync(join(repo, file), text);
-    git('add', '-A');
-    git('-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', 'commit', '-qm', file);
-  };
-  try {
-    git('init', '-q');
-    commit('packages/react/a.ts', '1');
-    const none = runGuard(repo);
-    assert.match(none.output, /^deploy=false$/m, 'no release tag yet');
-    assert.ok(none.stdout.includes('::notice::no release tag yet'), none.stdout);
-    git('tag', 'v0.1.0');
-    commit('packages/react/a.ts', '2');
-    git('tag', 'v0.2.0-rc.1'); // a pre-release never counts as the latest release
-    commit('apps/gallery/page.tsx', 'docs');
-    const changed = runGuard(repo);
-    assert.match(changed.output, /^deploy=false$/m, 'packages/ changed since v0.1.0');
-    assert.ok(changed.stdout.includes('::notice::packages/ changed since v0.1.0; docs deploy waits for the next release'));
-    git('tag', 'v0.2.0', 'HEAD~1');
-    assert.match(runGuard(repo).output, /^deploy=true$/m, 'only docs changed since v0.2.0');
-  } finally {
-    rmSync(repo, { recursive: true, force: true });
+test('release: docs-build and docs run only when docs-check says deploy, and docs deploys only', () => {
+  const { jobs } = release();
+  assert.deepEqual([jobs['docs-build'].needs].flat(), ['docs-check']);
+  assert.deepEqual([jobs.docs.needs].flat(), ['docs-check', 'docs-build']);
+  for (const name of ['docs-build', 'docs']) {
+    const job = jobs[name];
+    assert.equal(job.if, "needs.docs-check.outputs.deploy == 'true'", name);
+    const runs = (deploy) => evaluate(job.if, { github: BRANCH_PUSH, needs: { 'docs-check': { outputs: { deploy } } } });
+    assert.equal(runs('true'), true, name);
+    assert.equal(runs('false'), false, name);
+    assert.equal(runs(''), false, `${name}: no output (docs-check skipped or failed): no deploy`);
+    for (const step of job.steps) assert.equal(step.if, undefined, `${name} ${keyOf(step)}: the job-level gate is enough`);
   }
+  assertPagesDeployJob(jobs.docs, 'docs');
 });
 
-test('release: the docs guard script ignores test-only changes under packages/ but not src changes', () => {
-  const repo = mkdtempSync(join(tmpdir(), 'bit-docs-guard-'));
-  const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8' });
-  const commit = (file, text) => {
-    mkdirSync(dirname(join(repo, file)), { recursive: true });
-    writeFileSync(join(repo, file), text);
-    git('add', '-A');
-    git('-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', 'commit', '-qm', file);
-  };
-  try {
-    git('init', '-q');
-    commit('packages/react/src/Button.tsx', '1');
-    git('tag', 'v0.1.0');
-    const testOnly = [
-      'packages/react/src/Button.test.tsx',
-      'packages/core/src/__tests__/tokens.test.ts',
-      'packages/react/src/test/setup.ts',
-      'packages/react/vitest.config.ts',
-      'packages/react/scripts/verify-dist.mjs',
-      'packages/react/scripts/expected-exports.mjs',
-    ];
-    for (const file of testOnly) {
-      commit(file, 'changed');
-      assert.match(runGuard(repo).output, /^deploy=true$/m, `${file} is test-only: docs still deploy`);
-    }
-    commit('packages/react/scripts/build-css.mjs', 'x');
-    assert.match(runGuard(repo).output, /^deploy=false$/m, 'another packages/ script still skips');
-    git('tag', 'v0.1.1');
-    commit('packages/react/src/Button.tsx', '2');
-    const skipped = runGuard(repo);
-    assert.match(skipped.output, /^deploy=false$/m, 'a src change still skips');
-    assert.ok(skipped.stdout.includes('::notice::packages/ changed since v0.1.1'), skipped.stdout);
-  } finally {
-    rmSync(repo, { recursive: true, force: true });
-  }
-});
-
-test('release: dry-run packs, dry-runs the publish, smoke-tests in Chromium and builds the gallery, with no secrets', () => {
-  const job = release().jobs['dry-run'];
-  assert.equal(job.environment, undefined);
-  assert.equal(job.permissions, undefined, 'dry-run keeps the read-only default');
-  assert.doesNotMatch(JSON.stringify(job), /secrets\.|id-token/);
-  const { steps } = job;
-  // The rehearsal uses the same npm as the real publish.
-  const node = findIndex(steps, (s) => s.uses === 'actions/setup-node@v4', 'setting up node');
-  const npm = findIndex(steps, (s) => runOf(s) === 'npm i -g npm@^11.5.1', 'upgrading npm');
-  const pack = findIndex(
-    steps,
-    (s) => runOf(s).includes('pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"'),
-    'packing',
-  );
-  assert.ok(node < npm && npm < pack, 'npm is upgraded after setup-node and before packing');
-  const dry = findIndex(steps, (s) => runOf(s) === 'npm publish "$TGZ" --dry-run --access public' && s.env?.TGZ === PACKED_TGZ, 'dry-run publishing');
-  const install = findIndex(steps, (s) => runOf(s) === 'pnpm exec playwright install --with-deps chromium', 'installing Chromium');
-  const smoke = findIndex(steps, (s) => runOf(s) === 'pnpm smoke:full', 'running smoke:full');
+// --- release.yml: the pull request rehearsal -------------------------------------------------
+test('release: dry-run smoke-tests, dry-runs the publish of a new version and builds the gallery', () => {
+  const { steps } = release().jobs['dry-run'];
+  const pack = findIndex(steps, (s) => s.id === 'pack', 'packing');
+  const smoke = findIndex(steps, (s) => s.id === 'smoke', 'running smoke:full');
   assertSmokesThePackedTarball(steps, pack, smoke);
+  const dry = findIndex(steps, (s) => runOf(s) === 'npm publish "$TGZ" --dry-run --access public' && s.env?.TGZ === PACKED_TGZ, 'dry-run publishing');
   const gallery = findIndex(steps, (s) => runOf(s) === 'pnpm gallery:build', 'building the gallery');
-  assert.ok(pack < dry && install < smoke && dry < gallery && smoke < gallery, 'step order');
+  assert.ok(smoke < dry && dry < gallery, 'step order');
   // npm 11 refuses even a dry run over a published version, so the dry run follows should-publish.
   const ran = (publish) => simulate(steps, { outputs: { decide: { publish } } }).includes(keyOf(steps[dry]));
   assert.equal(ran('true'), true, 'dry-run publishes a new version');
@@ -496,20 +716,13 @@ test('release: dry-run builds the versioned site with v0.1.0 as an older line, t
   assert.ok(!steps.some((s) => s.uses?.startsWith('actions/upload-pages-artifact') || s.uses?.startsWith('actions/deploy-pages')), 'never deploys');
 });
 
-test('release: no run script interpolates an expression; values arrive through env', () => {
-  const runs = allSteps(release()).filter(({ step }) => typeof step.run === 'string');
-  assert.ok(runs.length > 20, 'every run step is checked');
-  for (const { job, step } of runs) assert.doesNotMatch(runOf(step), /\$\{\{/, `${job}: ${keyOf(step)}`);
-});
-
-test('release: no step outside publish runs npm publish without --dry-run', () => {
-  const real = allSteps(release()).filter(({ step }) => /\bnpm publish\b/.test(runOf(step)) && !runOf(step).includes('--dry-run'));
-  assert.deepEqual(real.map(({ job }) => job), ['publish']);
-});
-
 // --- both files: pinned actions and the shared setup ---------------------------------------
+test('both: the workflows folder holds exactly ci.yml and release.yml, so every workflow is checked here', () => {
+  assert.deepEqual(readdirSync(new URL('../.github/workflows/', import.meta.url)).sort(), ['ci.yml', 'release.yml']);
+});
+
 test('both: actions are pinned to the agreed major tags, with the ci.yml pnpm and node setup', () => {
-  for (const [file, wf] of [['ci.yml', ci()], ['release.yml', release()]]) {
+  for (const [file, wf] of BOTH()) {
     for (const { job, step } of allSteps(wf)) {
       if (step.uses) assert.ok(PINNED_ACTIONS.has(step.uses), `${file} ${job}: ${step.uses} is not an agreed pin`);
       if (step.uses === 'pnpm/action-setup@v4') assert.equal(step.with.version, '9.15.9', `${file} ${job}`);
@@ -526,7 +739,7 @@ test('both: actions are pinned to the agreed major tags, with the ci.yml pnpm an
 });
 
 test('both: every Playwright browser cache is keyed on the Playwright version', () => {
-  for (const [file, wf] of [['ci.yml', ci()], ['release.yml', release()]]) {
+  for (const [file, wf] of BOTH()) {
     for (const [job, def] of Object.entries(wf.jobs)) {
       const steps = def.steps ?? [];
       if (!steps.some((s) => /playwright install/.test(runOf(s)))) continue;

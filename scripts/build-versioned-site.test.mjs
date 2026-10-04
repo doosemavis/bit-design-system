@@ -54,8 +54,8 @@ test('planSite: an older patch on the newest line is not stale', () =>
 test('planSite: no release at all throws', () => assert.throws(() => planSite({ tags: [], currentVersion: '' }), /no release/));
 
 test('cacheKey names the recipe version and the archive tags, or none', () => {
-  assert.equal(cacheKey({ archives: [] }), 'site-archives-v1-none');
-  assert.equal(cacheKey({ archives: [{ tag: 'v1.2.3' }, { tag: 'v0.9.4' }] }), 'site-archives-v1-v1.2.3_v0.9.4');
+  assert.equal(cacheKey({ archives: [] }), 'site-archives-v2-none');
+  assert.equal(cacheKey({ archives: [{ tag: 'v1.2.3' }, { tag: 'v0.9.4' }] }), 'site-archives-v2-v1.2.3_v0.9.4');
 });
 
 // --- injectBanner -----------------------------------------------------------------------------
@@ -212,6 +212,7 @@ test('gitBuildArchive: a failed build throws its own error even when worktree cl
     assert.throws(() => gitBuildArchive('/repo', run)({ tag: 'v0.1.0', outDir: 'v0.1' }, dest), /vite build failed/);
     assert.ok(calls.some((c) => c.startsWith('git worktree remove')), 'removes the worktree');
     assert.ok(calls.some((c) => c === 'git worktree prune'), 'prunes');
+    assert.ok(calls.includes('pnpm install --frozen-lockfile --ignore-scripts'), 'installs the old tag without lifecycle scripts');
     const vite = calls.find((c) => c.includes('vite build'));
     assert.match(vite, /--base \/bit-design-system\/v0\.1\/ --outDir /);
   } finally {

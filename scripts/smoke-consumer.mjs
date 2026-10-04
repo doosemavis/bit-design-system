@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { EXPECTED } from '../packages/react/scripts/expected-exports.mjs';
 import { INSTALL_COMMANDS, PACKAGE_NAME, STYLE_IMPORTS, fullFile } from '../apps/gallery/src/content/snippets.mjs';
+import { SMOKE_INSTALL_FLAGS, pinnedSpecs } from './smoke-pins.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const reactPkg = join(root, 'packages', 'react');
@@ -40,23 +41,21 @@ const freePort = () =>
     });
   });
 
-const galleryPkg = JSON.parse(readFileSync(join(root, 'apps', 'gallery', 'package.json'), 'utf8'));
-const versionOf = (name) => {
-  const v = galleryPkg.dependencies?.[name] ?? galleryPkg.devDependencies?.[name];
-  assert.ok(v, `apps/gallery/package.json has no ${name}`);
-  return v;
-};
+// Installs the tarball plus the named registry packages at their exact SMOKE_PINS versions, with no
+// lifecycle scripts. The peers (react, react-dom) are named too, so npm never picks them itself.
+const installPinned = (app, tarballPath, names, failureMessage) =>
+  runLoudly(
+    ['npm install', ...SMOKE_INSTALL_FLAGS, `"${tarballPath}"`, ...pinnedSpecs(names).map((spec) => `"${spec}"`)].join(' '),
+    app,
+    failureMessage,
+  );
 
 // Vite minifies `@import url("...")` to `@import"..."`, so accept both forms.
 const THEME_FONTS_IMPORT = /^@import\s*(?:url\()?["']https:\/\/fonts\.googleapis\.com\/css2\?[^"']*["']\)?\s*;/;
 
 // Stage 5: a real Vite app built from the tarball and the shared snippets, checked in Chromium.
 async function viteStage(app, tarballPath) {
-  runLoudly(
-    `npm install --no-audit --no-fund --loglevel=error "${tarballPath}" vite@"${versionOf('vite')}" @vitejs/plugin-react@"${versionOf('@vitejs/plugin-react')}" react@"${versionOf('react')}" react-dom@"${versionOf('react-dom')}"`,
-    app,
-    'vite-stage npm install failed',
-  );
+  installPinned(app, tarballPath, ['vite', '@vitejs/plugin-react', 'react', 'react-dom'], 'vite-stage npm install failed');
   mkdirSync(join(app, 'src'), { recursive: true });
   writeFileSync(
     join(app, 'vite.config.js'),
@@ -74,7 +73,7 @@ async function viteStage(app, tarballPath) {
     join(app, 'src', 'App.jsx'),
     `${fullFile({ importLine: `import { Button } from '${PACKAGE_NAME}';`, element: '<Button>Save</Button>' })}\nexport default Example;\n`,
   );
-  runLoudly('npx vite build', app, 'vite build failed');
+  runLoudly('npx --no -- vite build', app, 'vite build failed');
 
   const assets = join(app, 'dist', 'assets');
   const cssFile = readdirSync(assets).find((f) => f.endsWith('.css'));
@@ -85,7 +84,7 @@ async function viteStage(app, tarballPath) {
   console.log(`fonts @import first in built CSS: ${fontsImport}`);
 
   const port = await freePort();
-  const preview = spawn('npx', ['vite', 'preview', '--port', String(port), '--strictPort', '--host', '127.0.0.1'], {
+  const preview = spawn('npx', ['--no', '--', 'vite', 'preview', '--port', String(port), '--strictPort', '--host', '127.0.0.1'], {
     cwd: app,
     stdio: 'pipe',
     detached: true,
@@ -174,14 +173,11 @@ try {
 
   // 2. A fresh consumer project installed with npm; the react/react-dom peers, plus
   // typescript and the React type packages needed to typecheck the dist declarations,
-  // resolve from the registry.
+  // come from the registry at the exact versions in smoke-pins.mjs.
   const app = join(work, 'consumer');
   mkdirSync(app);
   writeFileSync(join(app, 'package.json'), JSON.stringify({ name: 'consumer', private: true, type: 'module' }, null, 2));
-  run(
-    `npm install --no-audit --no-fund --loglevel=error "${tarballPath}" typescript @types/react @types/react-dom`,
-    app,
-  );
+  installPinned(app, tarballPath, ['react', 'react-dom', 'typescript', '@types/react', '@types/react-dom'], 'consumer npm install failed');
 
   // 3. Import both entry points and check the CSS shipped
   writeFileSync(
@@ -238,7 +234,7 @@ export function App() {
 }
 `,
   );
-  runLoudly('npx tsc -p tsconfig.json', app, 'consumer type-check failed (npx tsc -p tsconfig.json)');
+  runLoudly('npx --no -- tsc -p tsconfig.json', app, 'consumer type-check failed (npx tsc -p tsconfig.json)');
 
   console.log(`consumer OK: ${EXPECTED.length} components via ESM and CJS, CSS present, types check`);
 
