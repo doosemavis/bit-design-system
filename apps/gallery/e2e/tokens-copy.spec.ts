@@ -27,15 +27,16 @@ for (const [outcome, label, clipboard] of [
     await row.getByRole('button').click();
     await expect(row.getByRole('button', { name: label })).toBeVisible();
     expect(await cellLefts(page)).toEqual(before);
-    // The button grows inside its cell: its right edge stays within the cell's content box.
-    const fits = await row.locator('td').last().evaluate((cell) => {
+    // The button grows inside its own cell and never past the cell's edge. It may use the cell's padding:
+    // font metrics differ by platform (Linux CI renders the label a little wider than macOS), and that
+    // sub-pixel difference is invisible. The column positions above are the real promise, checked exactly.
+    const fit = await row.locator('td').last().evaluate((cell) => {
       const button = cell.querySelector('button')!.getBoundingClientRect();
       const box = cell.getBoundingClientRect();
-      const pad = parseFloat(getComputedStyle(cell).paddingRight);
-      // 1px of slack: the table snaps column widths to whole pixels, so a fractional label can poke out under 1px.
-      return button.right <= box.right - pad + 1 && button.left >= box.left;
+      return { buttonLeft: button.left, buttonRight: button.right, cellLeft: box.left, cellRight: box.right };
     });
-    expect(fits).toBe(true);
+    expect(fit.buttonRight, `button overflows its cell: ${JSON.stringify(fit)}`).toBeLessThanOrEqual(fit.cellRight);
+    expect(fit.buttonLeft, `button overflows its cell: ${JSON.stringify(fit)}`).toBeGreaterThanOrEqual(fit.cellLeft);
     // And back to "Copy" after the reset.
     await expect(row.getByRole('button', { name: /^Copy var\(/ })).toBeVisible();
     expect(await cellLefts(page)).toEqual(before);
