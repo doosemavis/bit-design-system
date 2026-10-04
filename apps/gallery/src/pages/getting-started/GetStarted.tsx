@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 import { Badge, Code, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
+import { BUILD_VERSION } from '../../buildVersion';
 import { InstallCommand } from '../../content/InstallCommand';
 import { STYLE_IMPORTS } from '../../content/styleImports';
 
 const FIRST_COMPONENT = "import { Button } from '@bit-ds/react';\n\n<Button>Save</Button>";
 
-interface StepProps {
+export interface StepProps {
   n: number;
   title: string;
   /** Shown after the title, outside the heading: the version on the Install step. */
@@ -15,14 +16,15 @@ interface StepProps {
   children: ReactNode;
 }
 
-function Step({ n, title, aside, help, children }: StepProps) {
+/** One numbered step of Getting started: its title is a level-2 heading on that page. */
+export function Step({ n, title, aside, help, children }: StepProps) {
   return (
     <Stack gap={8}>
       <Stack direction="row" gap={8} align="center" wrap>
         <Badge color="warning" shape="square">
           {String(n)}
         </Badge>
-        <Heading level={3}>{title}</Heading>
+        <Heading level={2}>{title}</Heading>
         {aside}
       </Stack>
       <Text>{help}</Text>
@@ -31,7 +33,7 @@ function Step({ n, title, aside, help, children }: StepProps) {
   );
 }
 
-/** Three numbered steps: install, add the styles once, use a component. */
+/** The first three numbered steps (the Getting started page adds two): install, add the styles once, use a component. */
 export function GetStarted() {
   return (
     <Stack gap={24}>
@@ -40,7 +42,7 @@ export function GetStarted() {
         title="Install"
         aside={
           <Badge variant="outline" shape="square">
-            {`v${__BIT_VERSION__}`}
+            {`v${BUILD_VERSION}`}
           </Badge>
         }
         help="Add the React package with your package manager."

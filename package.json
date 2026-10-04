@@ -11,6 +11,7 @@
     "test:coverage": "pnpm --filter @bit-ds/react test:coverage",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
+    "versions": "node scripts/versions.mjs --out apps/gallery/public/versions.json",
     "logo:svg": "node scripts/build-logo-svg.mjs",
     "smoke": "node scripts/smoke-consumer.mjs",
     "smoke:full": "node scripts/smoke-consumer.mjs --vite",

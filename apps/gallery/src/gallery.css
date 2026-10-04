@@ -64,7 +64,8 @@ html {
   gap: var(--bit-space-12px);
 }
 
-.gallery-theme.bit-field {
+.gallery-theme.bit-field,
+.gallery-version.bit-field {
   flex-direction: row;
   align-items: center;
   gap: var(--bit-space-8px);
@@ -83,10 +84,46 @@ html {
 }
 
 .gallery-sidebar__title {
+  position: relative;
+  display: inline-block;
+  padding-bottom: var(--bit-space-4px);
   font-family: var(--bit-font-pixel);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 0 0 var(--bit-space-8px);
+}
+
+/* Full text colour. Doubled with .bit-text.bit-neutral so it outranks the muted shade bit Text gives a neutral. */
+.gallery-sidebar__title.bit-text.bit-neutral {
+  color: var(--bit-color-text);
+}
+
+/* The accent bar: 22px at rest, the title's full width on the current section. The title's React key
+   changes only when the current section does, so the fill replays only then. */
+.gallery-sidebar__title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 22px;
+  height: 3px;
+  background: var(--bit-color-accent);
+}
+
+.gallery-sidebar__group[data-current] .gallery-sidebar__title::after {
+  width: 100%;
+  animation: gallery-section-fill 450ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+@keyframes gallery-section-fill {
+  from { width: 22px; }
+  to { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-sidebar__group[data-current] .gallery-sidebar__title::after {
+    animation: none;
+  }
 }
 
 .gallery-sidebar__list {
@@ -528,4 +565,8 @@ html {
 .gallery-copy-cell {
   display: flex;
   justify-content: flex-end;
+}
+
+.gallery-old-version {
+  margin-block-end: var(--bit-space-16px);
 }

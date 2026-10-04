@@ -73,6 +73,21 @@ describe('Shell', () => {
     expect(document.activeElement).toBe(button);
   });
 
+  it.each([
+    ['Getting started', 'Getting started'],
+    ['Versions', 'Versions'],
+    ['Release notes', 'Release notes'],
+  ])('a Start here link (%s) in the Menu sheet closes it', async (link, title) => {
+    renderAt('/tokens');
+    const button = await screen.findByRole('button', { name: 'Menu' });
+    await userEvent.click(button);
+    const nav = screen.getByRole('navigation', { name: 'Gallery' });
+    await userEvent.click(within(nav).getByRole('link', { name: link }));
+    expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(nav).not.toHaveAttribute('data-open');
+  });
+
   it('navigating closes the sheet, by a link in it or by Back', async () => {
     const { router } = renderAt('/');
     const button = await screen.findByRole('button', { name: 'Menu' });

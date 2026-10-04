@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useNavigate } from 'react-router-dom';
+import { act } from 'react';
 import { describe, it, expect } from 'vitest';
 import { NAV, Sidebar } from './Sidebar';
 import type { NavItem } from './Sidebar';
@@ -38,7 +39,7 @@ describe('Sidebar', () => {
   });
 
   it('lists Foundations, Components, Forms and Brand, with Forms between Components and Brand', () => {
-    expect(renderSidebar(NAV)).toEqual(['Foundations', 'Components', 'Forms', 'Brand']);
+    expect(renderSidebar(NAV)).toEqual(['Start here', 'Foundations', 'Components', 'Forms', 'Brand']);
     expect(screen.getByRole('link', { name: 'Button' })).toHaveAttribute('href', '/components/button');
   });
 
@@ -55,7 +56,90 @@ describe('Sidebar', () => {
     expect(screen.getByRole('link', { name: 'Spacing' })).toHaveAttribute('href', '/spacing');
   });
 
+  it('Start here comes first, with Overview, Getting started, Versions and Release notes in order', () => {
+    renderSidebar(NAV);
+    expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent('Start here');
+    expect(linksUnder('Start here')).toEqual(['Overview', 'Getting started', 'Versions', 'Release notes']);
+    expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Getting started' })).toHaveAttribute('href', '/getting-started');
+    expect(screen.getByRole('link', { name: 'Versions' })).toHaveAttribute('href', '/versions');
+    expect(screen.getByRole('link', { name: 'Release notes' })).toHaveAttribute('href', '/release-notes');
+  });
+
+  it('Overview is current on / only, not on every page', () => {
+    const { unmount } = render(
+      <MemoryRouter initialEntries={['/']}>
+        <Sidebar items={NAV} open={false} onNavigate={() => {}} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('aria-current', 'page');
+    unmount();
+    render(
+      <MemoryRouter initialEntries={['/tokens']}>
+        <Sidebar items={NAV} open={false} onNavigate={() => {}} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current');
+  });
+
   it('hides a group with no items', () => {
-    expect(renderSidebar(NAV.filter((item) => item.group !== 'Forms'))).toEqual(['Foundations', 'Components', 'Brand']);
+    expect(renderSidebar(NAV.filter((item) => item.group !== 'Forms'))).toEqual(['Start here', 'Foundations', 'Components', 'Brand']);
+  });
+});
+
+describe('Sidebar current section', () => {
+  let go: (to: string) => void = () => {};
+  function Nav() {
+    const navigate = useNavigate();
+    go = (to) => navigate(to);
+    return null;
+  }
+  const title = (name: string) => screen.getByRole('heading', { level: 2, name });
+  const sectionOf = (name: string) => title(name).closest('section')!;
+  function renderAt(path: string) {
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <Nav />
+        <Sidebar items={NAV} open={false} onNavigate={() => {}} />
+      </MemoryRouter>,
+    );
+  }
+
+  it('marks the group of the current page with data-current', () => {
+    renderAt('/tokens');
+    expect(sectionOf('Foundations')).toHaveAttribute('data-current');
+    expect(sectionOf('Components')).not.toHaveAttribute('data-current');
+  });
+
+  it('marks Start here on the home page, and only there', () => {
+    renderAt('/');
+    expect(sectionOf('Start here')).toHaveAttribute('data-current');
+    expect(sectionOf('Foundations')).not.toHaveAttribute('data-current');
+  });
+
+  it('marks no section on an unknown path, and does not crash', () => {
+    renderAt('/nope');
+    for (const h of screen.getAllByRole('heading', { level: 2 })) expect(h.closest('section')).not.toHaveAttribute('data-current');
+  });
+
+  it('does not mark Foundations on /tokens-extra, which only shares a prefix with /tokens', () => {
+    renderAt('/tokens-extra');
+    expect(sectionOf('Foundations')).not.toHaveAttribute('data-current');
+  });
+
+  it('keeps the same title node while the page changes inside one section', () => {
+    renderAt('/tokens');
+    const before = title('Foundations');
+    act(() => go('/typography'));
+    expect(title('Foundations')).toBe(before);
+  });
+
+  it('moves data-current and gives the new current title a fresh node when the section changes', () => {
+    renderAt('/typography');
+    const components = title('Components');
+    act(() => go('/components/button'));
+    expect(sectionOf('Foundations')).not.toHaveAttribute('data-current');
+    expect(sectionOf('Components')).toHaveAttribute('data-current');
+    expect(title('Components')).not.toBe(components);
   });
 });

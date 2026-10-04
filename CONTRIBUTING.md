@@ -72,12 +72,29 @@ npm run e2e
 
 Releases are cut from a tag. Only admins can push `v*` tags.
 
-1. Bump `version` in `packages/react/package.json` in a PR.
-2. Merge the PR to `main`.
-3. Tag the merge commit and push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`.
-4. In GitHub Actions, approve the `publish` job. It uses the `npm-publish` environment, which needs a reviewer.
+1. Add a CHANGELOG entry: one bullet per line, in the sections Breaking, Added, Changed, Fixed and Removed.
+2. Bump `version` in `packages/react/package.json` in a PR.
+3. Merge the PR to `main`.
+4. Tag the merge commit and push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+5. In GitHub Actions, approve the `publish` job. It uses the `npm-publish` environment, which needs a reviewer.
 
-The `release.yml` workflow then runs three jobs:
+### When to release
+
+A version describes the npm package. Anything that changes what people install gets a version:
+
+- component behaviour, props and styles
+- `@bit-ds/core` tokens and CSS
+- types
+- peer ranges
+- package contents
+
+Use semver. A fix is a patch. A feature is a minor. A breaking change is a major. While the package is on 0.x, a breaking change is a minor.
+
+The docs site, CI, scripts and tests never get a version. They deploy through the `main` docs job (see "Docs site" below).
+
+A change to the README alone waits for the next release, because npm shows the README only from a published version.
+
+Pushing the tag starts the `release.yml` workflow. It runs three jobs on a tag:
 
 - `guard` checks that the tag equals `v` plus the package version, and that the commit is on `main`.
 - `publish` smoke-tests the packed tarball, then runs `npm publish` with provenance on that same file. It skips the publish when that version already exists. Then it waits for npm to show the new version, and installs it to check it.
@@ -86,6 +103,14 @@ The `release.yml` workflow then runs three jobs:
 The check first polls `npm view @bit-ds/react@<version> version` until npm prints the version. It tries up to 40 times, 15 seconds apart (about 10 minutes), because npm's CDN can serve a cached 404 for a few minutes after a publish. An E404 means "not yet"; any other npm error fails at once. Then it installs the version and imports it, retrying up to 10 times, 15 seconds apart.
 
 If the publish worked but the check or the deploy failed, re-run the failed jobs. The publish is skipped because the version exists. Never re-tag.
+
+### Docs site
+
+The site is versioned. `node scripts/build-versioned-site.mjs` puts the current gallery at the root. It builds each older release line (`0.1`, `0.2`, then `1`, `2` from 1.0) from that line's newest tag, in a git worktree, and serves it at `/bit-design-system/v<line>/`. It also writes `versions.json` and injects `version-banner.js` into those frozen copies. The banner warns that the copy is old and lets readers switch versions. `versions.json` carries each line's breaking changes from the current CHANGELOG, so an old copy's Versions page can warn about newer lines. Copies are cached by tag, so each line is built once.
+
+The docs deploy needs no version. A push to `main` runs two more jobs in the same workflow, `docs-check`, then `docs`. A manual "Run workflow" of Release on `main` does the same. They deploy the same site without a release, but only when `packages/` is unchanged since the latest `v*` tag. Otherwise they skip with a notice, and the next tag deploys. The main docs deploy doesn't wait for CI. It relies on CI having passed on the pull request, because `main` only changes through pull requests.
+
+Pull requests rehearse this with `--as-older v0.1.0`. To see it locally, run `npm run gallery:build && node scripts/build-versioned-site.mjs --out /tmp/bit-site/bit-design-system --as-older v0.1.0`, then `python3 -m http.server 4180 -d /tmp/bit-site`, and open http://localhost:4180/bit-design-system/.
 
 ### Switch to trusted publishing (do before January 2027)
 

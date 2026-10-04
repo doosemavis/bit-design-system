@@ -1,23 +1,28 @@
 name: Release
 
 # Pull requests run `dry-run`. A pushed v* tag runs guard -> publish -> deploy.
+# A push to main, or a manual "Run workflow" of Release on main, runs docs-check -> docs: it deploys the
+# site without a release, but only while packages/ is unchanged since the latest release tag.
 # See CONTRIBUTING.md, "Releasing".
 on:
   pull_request:
   push:
     tags: ['v*']
+    branches: [main]
+  workflow_dispatch:
 
 # Read-only by default. Jobs that need more ask for it.
 permissions:
   contents: read
 
 # All tag runs share one group, so two tags never publish or deploy at the same time.
-# A release in progress is never cancelled. Pull requests get one group each, and a new push
-# cancels the older dry run.
+# A release in progress is never cancelled. Main runs get their own group, so a docs deploy
+# never replaces a waiting release. Pull requests get one group each, and a new push cancels the
+# older dry run. The two deploy jobs also share the `pages` group (see deploy and docs).
 # Note: GitHub keeps one pending run per group. A third tag pushed while one runs and one waits
 # replaces the waiting run, which then needs re-running.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'push' && 'tags' || github.ref }}
+  group: ${{ github.workflow }}-${{ startsWith(github.ref, 'refs/tags/v') && 'tags' || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -26,7 +31,11 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
+      # Full history, so the versioned-site rehearsal can check out v0.1.0.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: pnpm/action-setup@v4
         with:
           version: 9.15.9
@@ -57,7 +66,9 @@ jobs:
       - name: npm publish --dry-run
         if: steps.decide.outputs.publish == 'true'
         # A dry run never signs, so publishConfig.provenance needs no OIDC token here.
-        run: npm publish "${{ steps.pack.outputs.tgz }}" --dry-run --access public
+        run: npm publish "$TGZ" --dry-run --access public
+        env:
+          TGZ: ${{ steps.pack.outputs.tgz }}
       - name: Note the skipped dry run
         if: steps.decide.outputs.publish == 'false'
         run: echo "::notice::This version is already on npm. Bump packages/react/package.json to dry-run a publish."
@@ -75,6 +86,14 @@ jobs:
         env:
           SMOKE_TARBALL: ${{ steps.pack.outputs.tgz }}
       - run: pnpm gallery:build
+      # Rehearses the deploy's versioned site. --as-older archives v0.1.0 at v0.1/ although it shares
+      # the current line, so archiving and the injected banner run before a second line exists.
+      - name: Build the versioned site
+        run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --as-older v0.1.0
+      # Asserts index.html at the root, v0.1/index.html, a valid versions.json, and the banner
+      # script in the archives only.
+      - name: Check the versioned site
+        run: node scripts/build-versioned-site.mjs --check "$RUNNER_TEMP/site" --as-older v0.1.0
 
   # Fails fast, before anyone is asked to approve a publish.
   guard:
@@ -153,9 +172,10 @@ jobs:
       - name: Publish to npm
         id: publish
         if: steps.decide.outputs.publish == 'true'
-        run: npm publish "${{ steps.pack.outputs.tgz }}" --provenance --access public
+        run: npm publish "$TGZ" --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          TGZ: ${{ steps.pack.outputs.tgz }}
       # Runs after a successful publish, or after the publish was skipped because the version
       # already exists (a re-run). success() is false once any earlier step failed (smoke, decide
       # or publish), so a broken run stops here. A skipped step does not count as a failure.
@@ -169,6 +189,10 @@ jobs:
     needs: publish
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    # Shared with docs: one Pages deploy at a time, never cancelled.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -177,7 +201,11 @@ jobs:
       pages: write
       id-token: write
     steps:
+      # Full history, so the tags of the older lines exist.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: pnpm/action-setup@v4
         with:
           version: 9.15.9
@@ -188,9 +216,112 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Builds the library, then the gallery with base /bit-design-system/.
       - run: pnpm gallery:build
+      # Each older line is a frozen copy of its newest tag. The key names the build recipe (v1, see
+      # CACHE_PREFIX in the script) and those tags, so a new patch on an old line rebuilds just that
+      # copy; restore-keys brings back the copies this recipe already built.
+      - name: Name the archive cache
+        id: archives
+        run: echo "key=$(node scripts/build-versioned-site.mjs --cache-key)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/archive-cache
+          key: ${{ steps.archives.outputs.key }}
+          restore-keys: site-archives-v1-
+      # The current gallery at the root, each older line at v<line>/, versions.json and the banner.
+      - name: Build the versioned site
+        run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"
       - uses: actions/configure-pages@v5
+      # `with:` is not a shell, so the path uses runner.temp, not $RUNNER_TEMP.
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/gallery/dist
+          path: ${{ runner.temp }}/site
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  # Docs changes don't make a release (CONTRIBUTING.md, "Releasing"). A push to main, or a manual
+  # run on main, deploys the same site as a tag, but only while packages/ is unchanged since the
+  # latest release tag, so the root never shows unreleased component behaviour as the current
+  # version. Otherwise it skips with a notice, and the next tag deploys.
+  # docs-check holds no Pages slot and no environment: a skip never queues in `pages` (where it could
+  # replace a waiting tag deploy) and never records a deployment.
+  docs-check:
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.released.outputs.deploy }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Writes deploy=true when packages/ matches the latest release tag on HEAD (pre-releases
+      # skipped). `|| true` keeps the tag pipeline safe under pipefail when there are no tags.
+      - name: Packages are unchanged since the latest release
+        id: released
+        run: |
+          LATEST=$(git tag --list 'v[0-9]*' --merged HEAD --sort=-v:refname | grep -Ev -- '-' | head -1 || true)
+          if [ -z "$LATEST" ]; then
+            echo "::notice::no release tag yet; docs deploy waits for the first release"
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet "$LATEST" HEAD -- packages/; then
+            echo "packages/ is unchanged since $LATEST"
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            status=$?
+            # git diff --quiet exits 1 for "differs"; anything else is a git error.
+            [ "$status" -eq 1 ] || { echo "::error::git diff failed ($status)"; exit "$status"; }
+            echo "::notice::packages/ changed since $LATEST; docs deploy waits for the next release"
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  docs:
+    needs: docs-check
+    if: needs.docs-check.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    # Shared with the tag deploy: one Pages deploy at a time, never cancelled.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Builds the library, then the gallery with base /bit-design-system/.
+      - run: pnpm gallery:build
+      # Each older line is a frozen copy of its newest tag. The key names the build recipe (v1, see
+      # CACHE_PREFIX in the script) and those tags, so a new patch on an old line rebuilds just that
+      # copy; restore-keys brings back the copies this recipe already built.
+      - name: Name the archive cache
+        id: archives
+        run: echo "key=$(node scripts/build-versioned-site.mjs --cache-key)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/archive-cache
+          key: ${{ steps.archives.outputs.key }}
+          restore-keys: site-archives-v1-
+      # The current gallery at the root, each older line at v<line>/, versions.json and the banner.
+      - name: Build the versioned site
+        run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"
+      - uses: actions/configure-pages@v5
+      # `with:` is not a shell, so the path uses runner.temp, not $RUNNER_TEMP.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/site
       - id: deployment
         uses: actions/deploy-pages@v4

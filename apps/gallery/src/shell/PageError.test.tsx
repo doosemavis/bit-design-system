@@ -44,6 +44,9 @@ describe('PageError', () => {
     expect((pages!.errorElement as { type: unknown }).type).toBe(PageError);
     expect(pages!.children!.map((route) => (route.index ? '(index)' : route.path))).toEqual([
       '(index)',
+      'getting-started',
+      'versions',
+      'release-notes',
       'tokens',
       'typography',
       'spacing',

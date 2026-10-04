@@ -4,7 +4,6 @@ import { renderAt } from '../test/renderRoute';
 import { expectNoA11yViolations } from '../test/a11y';
 import { MANIFESTS, routeFor } from '../manifests';
 import { NAV } from '../shell/Sidebar';
-import { STYLE_IMPORTS } from '../content/styleImports';
 import { NAMING_COLUMNS } from './home/NamingRule';
 import { glyphFor, isLargeTile } from './home/ComponentTiles';
 import { BROWSE_TARGET } from './HomePage';
@@ -75,25 +74,16 @@ describe('HomePage', () => {
     }
   });
 
-  it('Get started: three numbered steps, the version Badge, the install switcher and the style imports', async () => {
+  it('Get started is a short teaser: a line and a link to /getting-started, with the full steps gone', async () => {
     await open();
-    const steps = within(main()).getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
-    expect(steps).toEqual(['Install', 'Add the styles once', 'Use a component']);
-    // version.test.ts pins __BIT_VERSION__ to @bit-ds/react's package.json.
-    expect(screen.getByText(`v${__BIT_VERSION__}`)).toHaveClass('bit-badge');
-    expect(screen.getByRole('region', { name: 'Install command' }).textContent).toBe('pnpm add @bit-ds/react');
-    expect(screen.getByRole('region', { name: 'Style imports' }).textContent).toBe(STYLE_IMPORTS);
-    expect(screen.getByRole('region', { name: 'First component' }).textContent).toBe(
-      "import { Button } from '@bit-ds/react';\n\n<Button>Save</Button>",
-    );
-  });
-
-  it('Use a component: the help line teaches that the prop and the className give the same look', async () => {
-    await open();
-    const help = within(main()).getByText(/^Import it and use it\./);
-    expect(help).toHaveTextContent('Import it and use it. color="danger" and className="bit-danger" give the same look.');
-    expect(within(help).getByText('color="danger"')).toHaveClass('bit-code');
-    expect(within(help).getByText('className="bit-danger"')).toHaveClass('bit-code');
+    expect(within(main()).getByRole('heading', { level: 2, name: 'Get started' })).toBeInTheDocument();
+    const link = within(main()).getByRole('link', { name: /Get started/ });
+    expect(link).toHaveAttribute('href', '/getting-started');
+    expect(link).toHaveClass('bit-link');
+    expect(link).toHaveTextContent('Get started →');
+    expect(within(main()).queryAllByRole('heading', { level: 3 })).toEqual([]);
+    expect(screen.queryByRole('region', { name: 'Install command' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Style imports' })).toBeNull();
   });
 
   it('the naming rule has five columns, and its Result column renders real Buttons', async () => {
