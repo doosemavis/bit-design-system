@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { Card, Switch } from '@bit-ds/react';
+import { Card, Switch, Text } from '@bit-ds/react';
 
 interface PreviewProps {
   label: string;
@@ -16,7 +16,7 @@ export function Preview({ label, presets, children }: PreviewProps) {
     <section className="gallery-preview" aria-label={label} data-checkerboard={checkerboard ? '' : undefined}>
       <Card className="gallery-preview__card">
         <div className="gallery-preview__bar">
-          <span className="gallery-preview__title">Preview</span>
+          <Text as="span" size={11} className="gallery-preview__title">Preview</Text>
           {presets}
           <Switch size="sm" checked={checkerboard} onChange={(event) => setCheckerboard(event.target.checked)}>
             Checkerboard

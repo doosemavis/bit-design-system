@@ -112,9 +112,9 @@ html {
   background: var(--bit-color-primary-soft);
 }
 
-.gallery-sidebar__link.bit-link.bit-neutral.active,
-.gallery-sidebar__link.bit-link.bit-neutral.active:hover,
-.gallery-sidebar__link.bit-link.bit-neutral.active:visited {
+.gallery-sidebar__link.bit-link.bit-neutral[aria-current="page"],
+.gallery-sidebar__link.bit-link.bit-neutral[aria-current="page"]:hover,
+.gallery-sidebar__link.bit-link.bit-neutral[aria-current="page"]:visited {
   background: var(--bit-color-primary);
   color: var(--bit-color-primary-contrast);
 }
@@ -225,7 +225,6 @@ html {
 
 .gallery-preview__title {
   font-family: var(--bit-font-pixel);
-  font-size: var(--bit-text-11px);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }

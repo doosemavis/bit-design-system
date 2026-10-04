@@ -21,9 +21,9 @@ const LAYOUT_EXACT = new Set([
   'width', 'min-width', 'max-width', 'height', 'min-height', 'max-height', 'box-sizing', 'aspect-ratio', 'contain',
   'isolation', 'visibility', 'clip', 'clip-path', 'white-space', 'text-overflow', 'word-break', 'overflow-wrap',
 ]);
-const LAYOUT_PREFIXES = ['grid', 'flex', 'align-', 'justify-', 'place-', 'inset', 'margin', 'padding', 'overflow', 'scroll-margin', 'scroll-padding', '--'];
+const LAYOUT_PREFIXES = ['grid', 'flex', 'align-', 'justify-', 'place-', 'inset', 'margin', 'padding', 'overflow', 'scroll-margin', 'scroll-padding', '--_gallery-'];
 
-/** Positioning, sizing and spacing: what a layout-only stylesheet may set. */
+/** Positioning, sizing and spacing: what a layout-only stylesheet may set. Custom properties must be `--_gallery-*`, so the sheet cannot re-theme a bit token. */
 export function isLayoutProperty(property: string): boolean {
   return LAYOUT_EXACT.has(property) || LAYOUT_PREFIXES.some((prefix) => property.startsWith(prefix));
 }

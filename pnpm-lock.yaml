@@ -119,7 +119,7 @@ importers:
         specifier: ^26.1.0
         version: 26.1.0
       postcss:
-        specifier: 8.5.28
+        specifier: ^8.5.28
         version: 8.5.28
       typescript:
         specifier: ^5.9.3
