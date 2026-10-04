@@ -81,3 +81,12 @@
 - **Cons:** The check must still catch a token that goes missing from the dist.
 - **Context:** The count is checked against the built CSS.
 - **Depends on / blocked by:** Nothing.
+
+## Gallery: CodeBlock demo reads the install command from snippets
+
+- **What:** The Shell example in `apps/gallery/src/manifests/codeBlock.ts` hard-codes `pnpm add @bit-ds/react`. It could read `INSTALL_COMMANDS.pnpm` from `apps/gallery/src/content/snippets.mjs`.
+- **Why:** Every other install snippet comes from `snippets.mjs`, which the README sync test and the smoke test check. This one would drift if the package were renamed.
+- **Pros:** One source for the install command.
+- **Cons:** None worth noting.
+- **Context:** Found in the PR3c final review.
+- **Depends on / blocked by:** Nothing.

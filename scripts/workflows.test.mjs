@@ -40,7 +40,7 @@ const PACKED_TGZ = '${{ steps.pack.outputs.tgz }}';
 const assertSmokesThePackedTarball = (steps, packIndex, smokeIndex) => {
   const pack = steps[packIndex];
   assert.equal(pack.id, 'pack', 'the Pack step has id pack');
-  assert.match(runOf(pack), /tgz=\("\$RUNNER_TEMP"\/out\/\*\.tgz\)/, 'Pack globs the tarball into an array');
+  assert.match(runOf(pack), /shopt -s nullglob[\s\S]*tgz=\("\$RUNNER_TEMP"\/out\/\*\.tgz\)/, 'Pack globs the tarball into an array, empty when none');
   assert.match(runOf(pack), /\$\{#tgz\[@\]\} -eq 1/, 'Pack requires exactly one tarball');
   assert.match(runOf(pack), /echo "tgz=\$\{tgz\[0\]\}" >> "\$GITHUB_OUTPUT"/, 'Pack writes the tgz output');
   assert.match(String(steps[smokeIndex].env?.SMOKE_TARBALL), /\$\{\{\s*steps\.pack\.outputs\.tgz\s*\}\}/, 'smoke:full tests the packed tarball');
@@ -247,11 +247,15 @@ test('release: dry-run packs, dry-runs the publish, smoke-tests in Chromium and 
   assert.equal(job.permissions, undefined, 'dry-run keeps the read-only default');
   assert.doesNotMatch(JSON.stringify(job), /secrets\.|id-token/);
   const { steps } = job;
+  // The rehearsal uses the same npm as the real publish.
+  const node = findIndex(steps, (s) => s.uses === 'actions/setup-node@v4', 'setting up node');
+  const npm = findIndex(steps, (s) => runOf(s) === 'npm i -g npm@^11.5.1', 'upgrading npm');
   const pack = findIndex(
     steps,
     (s) => runOf(s).includes('pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"'),
     'packing',
   );
+  assert.ok(node < npm && npm < pack, 'npm is upgraded after setup-node and before packing');
   const dry = findIndex(steps, (s) => runOf(s) === `npm publish "${PACKED_TGZ}" --dry-run --access public`, 'dry-run publishing');
   const install = findIndex(steps, (s) => runOf(s) === 'pnpm exec playwright install --with-deps chromium', 'installing Chromium');
   const smoke = findIndex(steps, (s) => runOf(s) === 'pnpm smoke:full', 'running smoke:full');

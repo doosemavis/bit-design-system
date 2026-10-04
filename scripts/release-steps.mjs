@@ -30,7 +30,8 @@ export function shouldPublish({ publishedVersions, version }) {
   return !publishedVersions.includes(version);
 }
 
-export async function retry(fn, { attempts = 6, delayMs = 10_000, sleep = defaultSleep } = {}) {
+// verify-install's budget: 10 attempts, 15 s apart, about 2 minutes 15 s for the registry to serve a new version.
+export async function retry(fn, { attempts = 10, delayMs = 15_000, sleep = defaultSleep } = {}) {
   let lastError;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {

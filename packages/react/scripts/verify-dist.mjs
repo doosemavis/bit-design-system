@@ -80,7 +80,8 @@ assert.ok(readFileSync(theme, 'utf8').includes('--bit-color-primary'), 'theme lo
 // 6. Publish metadata: what npm will ship and how it is described
 const pkg = JSON.parse(readFileSync(resolve(here, '../package.json'), 'utf8'));
 assert.notEqual(pkg.private, true, 'package.json must not be private');
-assert.equal(pkg.version, '0.1.0', 'package.json version must be 0.1.0');
+// The release guard ties the tag to this version, so here only its shape is checked.
+assert.match(pkg.version, /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/, `package.json version is not semver: ${pkg.version}`);
 assert.equal(pkg.repository?.url, 'git+https://github.com/doosemavis/bit-design-system.git', 'repository.url is wrong');
 assert.equal(pkg.repository?.directory, 'packages/react', 'repository.directory is wrong');
 assert.deepEqual(pkg.files, ['dist'], 'files must be exactly ["dist"]');

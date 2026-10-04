@@ -34,6 +34,8 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      # The same npm as the publish job, so the rehearsal matches the real publish.
+      - run: npm i -g npm@^11.5.1
       - run: pnpm install --frozen-lockfile
       - run: pnpm build && pnpm verify
       # prepack copies README.md and LICENSE into the package. pnpm 9 rejects `--filter` on pack
@@ -42,6 +44,8 @@ jobs:
         id: pack
         run: |
           pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"
+          # nullglob: no tarball gives an empty array, not a literal "*.tgz" that counts as one.
+          shopt -s nullglob
           tgz=("$RUNNER_TEMP"/out/*.tgz)
           [ ${#tgz[@]} -eq 1 ] || { echo "::error::expected exactly one tarball, found ${#tgz[@]}"; exit 1; }
           echo "tgz=${tgz[0]}" >> "$GITHUB_OUTPUT"
@@ -122,6 +126,8 @@ jobs:
         id: pack
         run: |
           pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"
+          # nullglob: no tarball gives an empty array, not a literal "*.tgz" that counts as one.
+          shopt -s nullglob
           tgz=("$RUNNER_TEMP"/out/*.tgz)
           [ ${#tgz[@]} -eq 1 ] || { echo "::error::expected exactly one tarball, found ${#tgz[@]}"; exit 1; }
           echo "tgz=${tgz[0]}" >> "$GITHUB_OUTPUT"

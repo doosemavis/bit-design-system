@@ -127,7 +127,7 @@ Keep today's stages: pack once, npm install the tarball, ESM and CJS checks, CSS
 export function expectedTag(version) // → `v${version}`
 export function checkTag({ tag, version }) // throws Error('tag v0.1.1 does not match package version 0.1.0')
 export function shouldPublish({ publishedVersions, version }) // false when the version is already on npm
-export async function retry(fn, { attempts = 6, delayMs = 10_000, sleep }) // calls fn until it resolves; after the last attempt, rethrows the last error with the attempt count
+export async function retry(fn, { attempts = 10, delayMs = 15_000, sleep }) // calls fn until it resolves; after the last attempt, rethrows the last error with the attempt count
 ```
 
 A thin CLI calls these: `node scripts/release-steps.mjs check-tag <tag>`, `should-publish`, and `verify-install <version>`. `verify-install` scaffolds a scratch dir, runs `npm install @bit-ds/react@<version>` and imports it, using `retry`.
@@ -137,7 +137,7 @@ Tests (`scripts/release-steps.test.mjs`, run with `node --test 'scripts/*.test.m
 - a matching tag passes
 - the version-exists case skips publishing
 - `retry` succeeds on attempt 3
-- `retry` exhausts after 6 attempts and throws with the count
+- `retry` exhausts after 10 attempts (15 s apart) and throws with the count
 - `sleep` is injected, so the tests don't wait
 
 ## 7. Workflows
@@ -158,7 +158,7 @@ Tests (`scripts/release-steps.test.mjs`, run with `node --test 'scripts/*.test.m
 
 - **Triggers:** `pull_request` (job `dry-run`) and `push: tags: ['v*']` (jobs `guard`, `publish`, `deploy`). Top-level permissions are `contents: read`, and jobs raise them.
 - **`dry-run`:**
-  1. install
+  1. `npm i -g npm@^11.5.1` (the same npm as publish), then install
   2. build
   3. `pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"`, in a step `pack` that resolves exactly one tarball and outputs its path as `tgz`
   4. `should-publish`, then `npm publish "${{ steps.pack.outputs.tgz }}" --dry-run --access public` only when it reports a new version. Otherwise emit a `::notice::`, because npm 11 refuses a dry-run over an existing version.
@@ -221,6 +221,8 @@ What shipped differs from the first draft of this spec in these ways. The sectio
 - **Pack:** `pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"`, not `pnpm --filter @bit-ds/react pack`. pnpm 9 rejects `--filter` on pack.
 - **One tarball, smoke-tested and published:** the `pack` step resolves exactly one `.tgz` and outputs it as `tgz`. `smoke:full` tests that file through `SMOKE_TARBALL` and skips its own build and pack. The publish and the dry-run publish name that file, not a glob.
 - **Dry-run publish only for a new version:** npm 11 refuses a dry-run over a version that is already on npm, so `dry-run` runs `should-publish` first and emits a `::notice::` instead when the version exists.
+- **Dry-run uses npm 11:** `dry-run` runs `npm i -g npm@^11.5.1` like `publish`, so the rehearsal uses the same npm.
+- **Retry budget:** `verify-install` retries 10 times, 15 s apart (was 6 × 10 s).
 - **`verify-install` is not `always()`:** it runs when the publish step succeeded, or was skipped because the version exists.
 
 ## Out of scope

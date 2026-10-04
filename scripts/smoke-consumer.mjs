@@ -58,9 +58,10 @@ const THEME_FONTS_IMPORT = /^@import\s*(?:url\()?["']https:\/\/fonts\.googleapis
 
 // Stage 5: a real Vite app built from the tarball and the shared snippets, checked in Chromium.
 async function viteStage(app, tarballPath) {
-  run(
+  runLoudly(
     `npm install --no-audit --no-fund --loglevel=error "${tarballPath}" vite@"${versionOf('vite')}" @vitejs/plugin-react@"${versionOf('@vitejs/plugin-react')}" react@"${versionOf('react')}" react-dom@"${versionOf('react-dom')}"`,
     app,
+    'vite-stage npm install failed',
   );
   mkdirSync(join(app, 'src'), { recursive: true });
   writeFileSync(
@@ -112,7 +113,8 @@ async function viteStage(app, tarballPath) {
     const { chromium } = await import('playwright');
     browser = await chromium.launch();
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'load' });
+    // Not 'load': that waits on Google Fonts. The button wait below is the readiness check.
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
     const button = page.locator('button.bit-button');
     await button.waitFor({ state: 'visible', timeout: 15_000 });
     const classes = (await button.getAttribute('class')).split(/\s+/);

@@ -18,11 +18,12 @@ test('retry succeeds on attempt 3 without waiting for real', async () => {
     { attempts: 6, delayMs: 10_000, sleep: async (ms) => { waits.push(ms); } });
   assert.equal(value, 'ok'); assert.equal(calls, 3); assert.deepEqual(waits, [10_000, 10_000]);
 });
-test('retry gives up after 6 attempts and says so', async () => {
-  let calls = 0;
-  await assert.rejects(retry(async () => { calls += 1; throw new Error('404'); }, { sleep: async () => {} }),
-    /failed after 6 attempts: 404/);
-  assert.equal(calls, 6);
+test('retry defaults to 10 attempts, 15 s apart, then gives up and says so', async () => {
+  let calls = 0; const waits = [];
+  await assert.rejects(retry(async () => { calls += 1; throw new Error('404'); }, { sleep: async (ms) => { waits.push(ms); } }),
+    /failed after 10 attempts: 404/);
+  assert.equal(calls, 10);
+  assert.deepEqual(waits, Array(9).fill(15_000));
 });
 
 test('isNotFound is true for npm E404 output (stderr text and --json forms)', () => {

@@ -44,7 +44,7 @@
 
 1. **A tag that doesn't match the package version, or a tag commit that isn't on `main`.** `guard` must fail before `publish` runs. Covered by Task 5's tests and Task 6's structure test.
 2. **A re-run after a partial failure.** When the version already exists on npm, `publish` must skip `npm publish` and still run `verify-install`, and `deploy` must run. Covered by Task 5 (`shouldPublish`) and Task 6 (step conditions).
-3. **Registry lag right after publishing.** `verify-install` must retry 6 times, 10 s apart, and then fail with the attempt count. Covered by Task 5's tests.
+3. **Registry lag right after publishing.** `verify-install` must retry 10 times, 15 s apart (amended from 6 × 10 s in the final review), and then fail with the attempt count. Covered by Task 5's tests.
 4. **A tarball that ships junk or misses files.** Only `dist/`, `package.json`, `README.md` and `LICENSE` may ship, and `@bit-ds/core` must not be a dependency. Covered by Task 3 (verify-dist) and Task 4 (smoke).
 5. **The style import order breaking in a real bundler,** so the fonts `@import` doesn't stay first. Covered by Task 4's Vite stage.
 
@@ -166,7 +166,7 @@ export declare function fullFile(parts: { importLine: string; element: string })
 
 - [ ] **Step 1: Write the failing checks.** In `verify-dist.mjs`, add a section that reads `../package.json` and asserts:
   - `private` is not `true`
-  - `version` is `'0.1.0'`
+  - `version` is semver-shaped (amended in the final review from a pinned `'0.1.0'`; the tag guard ties the tag to the version)
   - `repository.url` is `'git+https://github.com/doosemavis/bit-design-system.git'` and `repository.directory` is `'packages/react'`
   - `files` deep-equals `['dist']`
   - `publishConfig.access` is `'public'`
@@ -223,7 +223,7 @@ export declare function fullFile(parts: { importLine: string; element: string })
 - `expectedTag(version)`
 - `checkTag({ tag, version })`
 - `shouldPublish({ publishedVersions, version })`
-- `retry(fn, { attempts = 6, delayMs = 10_000, sleep = defaultSleep })`
+- `retry(fn, { attempts = 10, delayMs = 15_000, sleep = defaultSleep })` (amended from 6 and 10_000 in the final review; the test sketch below shows the original budget)
 - CLI `node scripts/release-steps.mjs <check-tag TAG | should-publish | verify-install VERSION>`:
   - `check-tag` reads the version from `packages/react/package.json` and exits 1 with the message on a mismatch.
   - `should-publish` runs `npm view @bit-ds/react versions --json`. A 404 means no versions. It prints `true` or `false`, and with `GITHUB_OUTPUT` set it also appends `publish=true|false`.
