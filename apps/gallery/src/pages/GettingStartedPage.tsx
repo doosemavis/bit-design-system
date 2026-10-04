@@ -23,7 +23,6 @@ export function GettingStartedPage() {
         <GetStarted />
         <Step
           n={4}
-         
           title="Light and dark"
           help="Try the toggle. To stop a dark visitor seeing a light flash, put this script in your page's head before your app loads."
         >
