@@ -1,6 +1,7 @@
 import { Field, Select } from '@bit-ds/react';
 import { useEffect } from 'react';
 import { lineOf } from '../content/versionLines.mjs';
+import { BUILD_VERSION } from '../buildVersion';
 import { useVersions } from './useVersions';
 
 /** The same page in another release: its path plus the hash route the reader is on. */
@@ -22,7 +23,7 @@ function choicesFrom(file: NonNullable<ReturnType<typeof useVersions>['file']>, 
   }));
   return choices.some((choice) => choice.value === currentLine)
     ? choices
-    : [...choices, { value: currentLine, label: `${currentLine} · ${__BIT_VERSION__}` }];
+    : [...choices, { value: currentLine, label: `${currentLine} · ${BUILD_VERSION}` }];
 }
 
 /** Version picker. Changing it goes to the same page in that release; with nothing to pick from it is disabled. */
@@ -34,9 +35,9 @@ export function VersionSelect() {
   }, []);
 
   const choices = status === 'ready' && file ? choicesFrom(file, currentLine) : null;
-  const unavailableLabel = import.meta.env.DEV ? 'dev (unreleased)' : `${currentLine} · ${__BIT_VERSION__}`;
+  const unavailableLabel = import.meta.env.DEV ? 'dev (unreleased)' : `${currentLine} · ${BUILD_VERSION}`;
   const options: Choice[] = choices ?? [
-    { value: currentLine, label: status === 'unavailable' ? unavailableLabel : `${currentLine} · ${__BIT_VERSION__}` },
+    { value: currentLine, label: status === 'unavailable' ? unavailableLabel : `${currentLine} · ${BUILD_VERSION}` },
   ];
 
   let title: string | undefined;

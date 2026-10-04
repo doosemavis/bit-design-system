@@ -566,3 +566,7 @@ html {
   display: flex;
   justify-content: flex-end;
 }
+
+.gallery-old-version {
+  margin-block-end: var(--bit-space-16px);
+}

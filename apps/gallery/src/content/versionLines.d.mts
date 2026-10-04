@@ -9,3 +9,5 @@ export interface VersionsFile { latest: string; lines: LineEntry[] }
 export declare function pathForLine(line: string, latestLine: string): string;
 /** Newest patch per line, lines newest first. Input: versions without the leading 'v'. */
 export declare function newestPerLine(versions: readonly string[]): { line: string; version: string }[];
+/** Negative when line `a` is older than `b`, compared numerically ('0.9' < '0.10' < '1'). */
+export declare function compareLines(a: string, b: string): number;

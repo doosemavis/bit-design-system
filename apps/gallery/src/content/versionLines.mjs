@@ -30,3 +30,14 @@ export const newestPerLine = (versions) => {
   }
   return [...newest.values()].sort((a, b) => compare(b, a)).map((version) => ({ line: lineOf(version), version }));
 };
+
+const lineParts = (line) => {
+  const [first, second] = line.split('.').map(Number);
+  return first === 0 ? [0, second] : [first, 0];
+};
+
+/** Orders release lines numerically: negative when `a` is older than `b` ('0.9' < '0.10' < '1'). */
+export const compareLines = (a, b) => {
+  const [pa, pb] = [lineParts(a), lineParts(b)];
+  return pa[0] - pb[0] || pa[1] - pb[1];
+};

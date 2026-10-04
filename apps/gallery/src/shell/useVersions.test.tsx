@@ -67,6 +67,14 @@ describe('useVersions', () => {
     ['a pre-release latest', { latest: '1.0.0-rc.1', lines: [] }],
     ['a line without a path', { latest: '0.2.0', lines: [{ line: '0.2', version: '0.2.0' }] }],
     ['a null line entry', { latest: '0.2.0', lines: [null] }],
+    ['an array root', [FILE]],
+    ['a line entry of only a number', { latest: '0.2.0', lines: [{ line: 1 }] }],
+    ['an entry version that is a pre-release', { latest: '0.2.0', lines: [{ ...FILE.lines[0], version: '1.0.0-rc.1' }] }],
+    ['an entry without a version', { latest: '0.2.0', lines: [{ line: '0.2', path: '/bit-design-system/' }] }],
+    ['a javascript: path', { latest: '0.2.0', lines: [{ ...FILE.lines[0], path: 'javascript:alert(1)' }] }],
+    ['a protocol-relative path', { latest: '0.2.0', lines: [{ ...FILE.lines[0], path: '//evil.example/' }] }],
+    ['a path outside the site', { latest: '0.2.0', lines: [{ ...FILE.lines[0], path: '/elsewhere/' }] }],
+    ['a path that climbs out', { latest: '0.2.0', lines: [{ ...FILE.lines[0], path: '/bit-design-system/../x' }] }],
   ])('is unavailable on a wrong shape: %s', async (_name, body) => {
     vi.stubGlobal('fetch', vi.fn(() => ok(body)));
     const { result } = renderHook(() => useVersions());

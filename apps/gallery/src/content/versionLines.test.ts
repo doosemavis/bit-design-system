@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isRelease, lineOf, newestPerLine, pathForLine, SITE_BASE } from './versionLines.mjs';
+import { compareLines, isRelease, lineOf, newestPerLine, pathForLine, SITE_BASE } from './versionLines.mjs';
 
 describe('release lines', () => {
   it.each([['0.1.0', '0.1'], ['0.1.13', '0.1'], ['0.10.2', '0.10'], ['1.0.0', '1'], ['1.4.9', '1'], ['2.0.0', '2']])('lineOf(%s) is %s', (v, l) =>
@@ -23,5 +23,15 @@ describe('release lines', () => {
   it('puts the latest line at the root and older lines under v<line>/', () => {
     expect(pathForLine('0.2', '0.2')).toBe(SITE_BASE);
     expect(pathForLine('0.1', '0.2')).toBe('/bit-design-system/v0.1/');
+  });
+});
+
+describe('compareLines', () => {
+  it('orders numerically across minors and majors', () => {
+    expect(compareLines('0.9', '0.10')).toBeLessThan(0);
+    expect(compareLines('0.10', '0.9')).toBeGreaterThan(0);
+    expect(compareLines('0.10', '1')).toBeLessThan(0);
+    expect(compareLines('2', '1')).toBeGreaterThan(0);
+    expect(compareLines('0.1', '0.1')).toBe(0);
   });
 });

@@ -43,4 +43,13 @@ describe('OldVersionBanner', () => {
     await new Promise((r) => setTimeout(r, 0));
     expect(container).toBeEmptyDOMElement();
   });
+
+  it('renders nothing when the build is a newer, unreleased line', async () => {
+    const fetchMock = vi.fn(() => ok({ latest: '0.0.9', lines: [entry('0.0', '0.0.9', '/bit-design-system/')] }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { container } = render(<OldVersionBanner />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 0));
+    expect(container).toBeEmptyDOMElement();
+  });
 });
