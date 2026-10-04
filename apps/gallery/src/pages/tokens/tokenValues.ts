@@ -23,7 +23,8 @@ export function readTokenValues(mode: ColorMode, names: readonly string[] = SEMA
  * The token values for the current mode. Read during render, so the first paint already has them (no blank
  * flash), and read again whenever the mode changes.
  *
- * It relies on the page root's `data-mode` being set before the first render (by `COLOR_MODE_SCRIPT`, or by
+ * Values come from computed style, never from the `data-mode` attribute, which can be `system` (the OS
+ * decides in CSS). It relies on the root's `data-mode` being set before the first render (in `index.html`, or by
  * an earlier `useColorMode` subscriber such as the header's ModeToggle). Otherwise the first read could take
  * light values while the mode is dark, and nothing would re-read until the mode changes.
  */

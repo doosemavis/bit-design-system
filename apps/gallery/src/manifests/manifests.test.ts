@@ -8,6 +8,7 @@ import { text } from './text';
 import { heading } from './heading';
 import { box } from './box';
 import { button } from './button';
+import { modeToggle } from './modeToggle';
 import { codeBlock } from './codeBlock';
 import { toJsx } from '../code/toJsx';
 import { isOmittedSentinel } from './sentinels';
@@ -302,5 +303,15 @@ describe('manifest contract', () => {
   it('isHtmlElement follows JSX: lowercase is an HTML tag, PascalCase is a component', () => {
     expect(isHtmlElement('option')).toBe(true);
     expect(isHtmlElement('Badge')).toBe(false);
+  });
+});
+
+describe('modeToggle notes', () => {
+  const notes = [...modeToggle.docs.usage.do, ...modeToggle.docs.usage.dont].join('\n');
+  it('no longer tells people to inline COLOR_MODE_SCRIPT', () => expect(notes).not.toContain('Inline COLOR_MODE_SCRIPT'));
+  it('points to data-mode="system"', () => expect(notes).toContain('data-mode="system"'));
+  it('has a "Switch from code" example using colorMode', () => {
+    const example = modeToggle.docs.usage.do.find((line) => line.startsWith('Switch from code'));
+    expect(example).toContain("colorMode.set('dark')");
   });
 });
