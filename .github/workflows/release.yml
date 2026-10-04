@@ -386,7 +386,7 @@ jobs:
       id-token: write
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   # Docs changes don't make a release (CONTRIBUTING.md, "Releasing"). A push to main, or a manual
   # run on main, deploys the same site as a tag, but only while packages/ is unchanged since the
@@ -493,4 +493,4 @@ jobs:
       id-token: write
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
