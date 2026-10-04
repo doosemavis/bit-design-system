@@ -20,4 +20,19 @@ describe('parseChangelog', () => {
   it('the repo CHANGELOG has an entry for the package version (release gate)', () => {
     expect(RELEASES.map((r) => r.version)).toContain(pkg.version);
   });
+  it('the newest CHANGELOG entry is the package version', () => {
+    expect(RELEASES[0]?.version).toBe(pkg.version);
+  });
+  it('CHANGELOG versions strictly descend by numeric semver', () => {
+    const key = (v: string) => v.split('.').map(Number);
+    const versions = RELEASES.map((r) => r.version);
+    for (let i = 1; i < versions.length; i++) {
+      const [a, b] = [key(versions[i - 1]!), key(versions[i]!)];
+      const cmp = a[0]! - b[0]! || a[1]! - b[1]! || a[2]! - b[2]!;
+      expect(cmp, `${versions[i - 1]} must come after ${versions[i]}`).toBeGreaterThan(0);
+    }
+  });
+  it('parses CRLF line endings the same as LF', () => {
+    expect(parseChangelog(sample.replace(/\n/g, '\r\n'))).toEqual(parseChangelog(sample));
+  });
 });

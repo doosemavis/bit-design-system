@@ -14,6 +14,8 @@ Themes are swappable and named after retro-game eras. The first theme is **power
 
 Browse every component, with live controls and copyable code, in the docs: https://doosemavis.github.io/bit-design-system/
 
+Versions and release notes: [all versions](https://doosemavis.github.io/bit-design-system/#/versions) and [release notes](https://doosemavis.github.io/bit-design-system/#/release-notes).
+
 ## Install
 
 Needs React 19 (`react` and `react-dom` ^19).
