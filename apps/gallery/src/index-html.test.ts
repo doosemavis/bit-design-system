@@ -1,6 +1,7 @@
 // @vitest-environment node
 
 import { readFileSync } from 'node:fs';
+import { COLOR_MODE_STORAGE_KEY } from '@bit-ds/react';
 import { describe, it, expect } from 'vitest';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -16,6 +17,10 @@ describe('index.html', () => {
     expect(html).not.toContain('matchMedia');
   });
 
+  it('reads the same storage key the library writes', () => {
+    expect(/localStorage\.getItem\('([^']+)'\)/.exec(html)?.[1]).toBe(COLOR_MODE_STORAGE_KEY);
+  });
+
   it('survives blocked storage: the read sits in a try, and an empty catch keeps the HTML data-mode', () => {
     expect(html).toMatch(/try \{\s*const saved = localStorage\.getItem/);
     expect(html).toContain('} catch {} // storage blocked: the data-mode in your HTML stands');
@@ -23,7 +28,8 @@ describe('index.html', () => {
 
   it('is the same snippet the Getting started page shows', () => {
     const page = readFileSync(new URL('./pages/GettingStartedPage.tsx', import.meta.url), 'utf8');
-    const shown = /const SAVED_CHOICE_EXAMPLE = `([^`]*)`/.exec(page)![1]!;
+    // The page builds the key into its template; the text a visitor sees has the literal key.
+    const shown = /const SAVED_CHOICE_EXAMPLE = `([^`]*)`/.exec(page)![1]!.replaceAll('${COLOR_MODE_STORAGE_KEY}', COLOR_MODE_STORAGE_KEY);
     const inline = /\n( *)<script>\n[\s\S]*?<\/script>/.exec(html)!;
     const indent = new RegExp(`^${inline[1]}`, 'gm');
     expect(inline[0].slice(1).replace(indent, '')).toBe(shown);

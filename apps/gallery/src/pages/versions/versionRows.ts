@@ -12,7 +12,7 @@ export interface VersionRow {
 }
 
 /** The build this page belongs to, for the fallback row. */
-export interface CurrentBuild {
+interface CurrentBuild {
   line: string;
   version: string;
   react: string;

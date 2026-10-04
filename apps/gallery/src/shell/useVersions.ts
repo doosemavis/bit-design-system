@@ -3,7 +3,7 @@ import { BUILD_VERSION } from '../buildVersion';
 import { isRelease, isVersionsFile, lineOf, ownPathOf, SITE_BASE } from '../content/versionLines.mjs';
 import type { VersionsFile } from '../content/versionLines.mjs';
 
-export type VersionsStatus = 'loading' | 'ready' | 'unavailable';
+type VersionsStatus = 'loading' | 'ready' | 'unavailable';
 
 interface Settled {
   status: 'ready' | 'unavailable';

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetVersionsCache } from './useVersions';
 import { OldVersionBanner } from './OldVersionBanner';
@@ -17,13 +17,17 @@ async function renderSettled(body: unknown) {
   vi.stubGlobal('fetch', fetchMock);
   const view = render(<OldVersionBanner />);
   await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-  await new Promise((r) => setTimeout(r, 0));
+  // Let the read's promise chain finish and React commit the result.
+  await act(async () => {});
   return view;
 }
 
 describe('OldVersionBanner', () => {
   beforeEach(() => resetVersionsCache());
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
 
   it('warns on an older copy in the spec §3 wording, with a link to the latest docs', async () => {
     at(V01);
@@ -66,9 +70,11 @@ describe('OldVersionBanner', () => {
     at(V01);
     const fetchMock = vi.fn(() => Promise.reject(new Error('x')));
     vi.stubGlobal('fetch', fetchMock);
+    // The hook says why it gave up (once); that warning is the signal that the failure has settled.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { container } = render(<OldVersionBanner />);
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    await new Promise((r) => setTimeout(r, 0));
+    await waitFor(() => expect(warn).toHaveBeenCalledWith(expect.stringContaining('versions.json unavailable')));
+    await act(async () => {});
     expect(container).toBeEmptyDOMElement();
   });
 

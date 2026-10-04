@@ -2,7 +2,7 @@ import { MANIFESTS } from '../manifests';
 import type { Manifest } from '../manifests';
 
 /** Suggest a page only when the typo is this close: at most three letters added, dropped or changed. */
-export const MAX_SUGGESTION_DISTANCE = 3;
+const MAX_SUGGESTION_DISTANCE = 3;
 
 /** Levenshtein distance: the fewest single-letter inserts, deletes or swaps that turn a into b. */
 export function editDistance(a: string, b: string): number {

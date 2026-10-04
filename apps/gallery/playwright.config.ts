@@ -4,7 +4,6 @@ const PORT = 4173;
 
 export default defineConfig({
   testDir: './e2e',
-  testIgnore: process.env.SCREENS_DIR ? [] : ['**/screens.spec.ts'],
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',

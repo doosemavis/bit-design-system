@@ -7,7 +7,7 @@ export interface CssException {
   readonly reason: string;
 }
 
-export interface GuardResult {
+interface GuardResult {
   /** Paint declarations with no exception: "<key> { <property> }". */
   readonly unlisted: readonly string[];
   /** Exceptions that match no paint declaration. */

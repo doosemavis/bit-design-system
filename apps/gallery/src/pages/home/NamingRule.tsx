@@ -13,14 +13,14 @@ interface NamingRow {
   result: ButtonProps;
 }
 
-export const NAMING_ROWS: readonly NamingRow[] = [
+const NAMING_ROWS: readonly NamingRow[] = [
   { prop: 'color="primary"', className: 'className="bit-primary"', emits: 'bit-primary', token: '--bit-color-primary', result: { color: 'primary' } },
   { prop: 'variant="outline"', className: 'className="bit-outline"', emits: 'bit-outline', token: null, result: { variant: 'outline' } },
   { prop: 'size="lg"', className: 'className="bit-lg"', emits: 'bit-lg', token: '--bit-control-height-lg', result: { size: 'lg' } },
 ];
 
 /** One naming-rule column. To add a column, add an entry here. */
-export interface NamingColumn {
+interface NamingColumn {
   header: string;
   cell: (row: NamingRow) => ReactNode;
 }

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { MODES } from "./routes";
+import { MODES, seedColorMode } from "./mode";
 
 /** The computed width of the Foundations title's ::after bar, the title's own width, and the animation name. */
 async function barState(page: import("@playwright/test").Page) {
@@ -55,9 +55,7 @@ for (const mode of MODES) {
   test(`${mode} mode: the Foundations title is in the full text colour, not the muted shade`, async ({
     page,
   }) => {
-    await page.addInitScript((value) => {
-      window.localStorage.setItem("bit-color-mode", value);
-    }, mode);
+    await seedColorMode(page, mode);
     await page.goto("#/tokens");
     await expect(page.locator("html")).toHaveAttribute("data-mode", mode);
     const { title, text } = await page

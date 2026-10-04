@@ -2,12 +2,12 @@
  * The install commands, in one place. The gallery's InstallCommand reads them; snippets.mjs is the source, so
  * every install line anywhere matches.
  */
-import { INSTALL_COMMANDS, PACKAGE_MANAGERS, PACKAGE_NAME } from './snippets.mjs';
+import { INSTALL_COMMANDS, PACKAGE_MANAGERS } from './snippets.mjs';
 
-export { INSTALL_COMMANDS, PACKAGE_MANAGERS, PACKAGE_NAME };
+export { INSTALL_COMMANDS, PACKAGE_MANAGERS };
 export type PackageManager = (typeof PACKAGE_MANAGERS)[number];
 
-export const DEFAULT_PACKAGE_MANAGER: PackageManager = 'pnpm';
+const DEFAULT_PACKAGE_MANAGER: PackageManager = 'pnpm';
 
 /** Where the visitor's pick is remembered. */
 export const PACKAGE_MANAGER_STORAGE_KEY = 'bit-gallery-package-manager';

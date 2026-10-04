@@ -4,6 +4,7 @@ import { afterEach, describe, it, expect, vi } from 'vitest';
 import { InstallCommand } from './InstallCommand';
 import { INSTALL_COMMANDS, PACKAGE_MANAGER_STORAGE_KEY, readPackageManager, writePackageManager } from './install';
 import { expectNoA11yViolations } from '../test/a11y';
+import { stubClipboard } from '../test/clipboard';
 
 const command = () => screen.getByRole('region', { name: 'Install command' }).textContent;
 
@@ -63,7 +64,7 @@ describe('InstallCommand', () => {
 
   it('Copy copies the selected command', async () => {
     const writeText = vi.fn(() => Promise.resolve());
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    stubClipboard(writeText);
     render(<InstallCommand />);
     await userEvent.click(screen.getByRole('radio', { name: 'yarn' }));
     await act(async () => {

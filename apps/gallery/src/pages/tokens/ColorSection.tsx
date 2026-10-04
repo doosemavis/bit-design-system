@@ -9,7 +9,7 @@ const ROLES = [
 ] as const;
 
 /** The page-wide colors that aren't one of the five roles. */
-export const SURFACE_TOKENS = [
+const SURFACE_TOKENS = [
   ['bg', '--bit-color-bg'],
   ['surface', '--bit-color-surface'],
   ['text', '--bit-color-text'],

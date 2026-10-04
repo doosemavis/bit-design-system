@@ -260,10 +260,19 @@ jobs:
         id: released
         run: |
           LATEST=$(git tag --list 'v[0-9]*' --merged HEAD --sort=-v:refname | grep -Ev -- '-' | head -1 || true)
+          # Test-only paths never make a release, so a change to them must not block the docs deploy.
+          IGNORED=(
+            ':(exclude,glob)packages/**/*.test.*'
+            ':(exclude,glob)packages/**/__tests__/**'
+            ':(exclude,glob)packages/**/src/test/**'
+            ':(exclude,glob)packages/**/vitest.*'
+            ':(exclude)packages/react/scripts/verify-dist.mjs'
+            ':(exclude)packages/react/scripts/expected-exports.mjs'
+          )
           if [ -z "$LATEST" ]; then
             echo "::notice::no release tag yet; docs deploy waits for the first release"
             echo "deploy=false" >> "$GITHUB_OUTPUT"
-          elif git diff --quiet "$LATEST" HEAD -- packages/; then
+          elif git diff --quiet "$LATEST" HEAD -- packages/ "${IGNORED[@]}"; then
             echo "packages/ is unchanged since $LATEST"
             echo "deploy=true" >> "$GITHUB_OUTPUT"
           else

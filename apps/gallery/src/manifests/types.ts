@@ -10,7 +10,7 @@ export interface AxisControl {
   values: readonly string[];
   default: string;
 }
-export interface SelectControl {
+interface SelectControl {
   kind: 'select';
   prop: string;
   values: readonly string[];
@@ -21,13 +21,13 @@ export interface SelectControl {
   /** Print the prop in the code even at its default, because the component requires it (CodeBlock `language`). */
   alwaysPrint?: boolean;
 }
-export interface BooleanControl {
+interface BooleanControl {
   kind: 'boolean';
   prop: string;
   default: boolean;
   label?: string;
 }
-export interface NumberControl {
+interface NumberControl {
   kind: 'number';
   prop: string;
   default: number;
@@ -36,7 +36,7 @@ export interface NumberControl {
   step: number;
   label?: string;
 }
-export interface TextControl {
+interface TextControl {
   kind: 'text';
   prop: string;
   default: string;

@@ -1,4 +1,4 @@
-import { Code, CodeBlock, Link, ModeToggle, Stack, Text } from '@bit-ds/react';
+import { COLOR_MODE_STORAGE_KEY, Code, CodeBlock, Link, ModeToggle, Stack, Text } from '@bit-ds/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Disclosure } from '../ui/Disclosure';
 import { PageHeader } from '../ui/PageHeader';
@@ -15,7 +15,7 @@ colorMode.set('system'); // follow the visitor's OS again`;
 const SAVED_CHOICE_EXAMPLE = `<script>
   // Use the visitor's saved choice (from the toggle) before your app loads.
   try {
-    const saved = localStorage.getItem('bit-color-mode');
+    const saved = localStorage.getItem('${COLOR_MODE_STORAGE_KEY}');
     if (saved === 'light' || saved === 'dark') document.documentElement.dataset.mode = saved;
   } catch {} // storage blocked: the data-mode in your HTML stands
 </script>`;

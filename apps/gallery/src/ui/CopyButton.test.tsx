@@ -2,10 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { COPY_RESET_MS, CopyButton } from './CopyButton';
 import { expectNoA11yViolations } from '../test/a11y';
-
-function stubClipboard(writeText: ((text: string) => Promise<void>) | undefined): void {
-  Object.defineProperty(navigator, 'clipboard', { value: writeText ? { writeText } : undefined, configurable: true });
-}
+import { stubClipboard } from '../test/clipboard';
 
 async function click(element: HTMLElement): Promise<void> {
   await act(async () => {

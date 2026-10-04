@@ -31,15 +31,4 @@ export function routeFor(manifest: Manifest): string {
   return manifest.group === 'brand' ? '/brand/logo' : `/components/${manifest.slug}`;
 }
 
-export type {
-  Manifest,
-  ManifestGroup,
-  ManifestDocs,
-  PropDoc,
-  Control,
-  ControlState,
-  ControlValue,
-  ChildSpec,
-  LiteralValue,
-  Preset,
-} from './types';
+export type { Manifest, ManifestGroup } from './types';
