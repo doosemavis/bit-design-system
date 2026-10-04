@@ -46,7 +46,7 @@ describe('ControlsPanel', () => {
     expect(color.value).toBe('primary');
     expect(screen.getByLabelText('variant')).toBeInTheDocument();
     expect(screen.getByLabelText('size')).toBeInTheDocument();
-    expect(screen.getByRole('switch', { name: 'loading' })).toHaveAttribute('aria-checked', 'false');
+    expect(screen.getByRole('switch', { name: 'loading' })).not.toBeChecked();
     expect(screen.getByRole('switch', { name: 'disabled' })).toBeInTheDocument();
     expect(screen.getByLabelText('children')).toHaveValue('Save');
     await expectNoA11yViolations(container);
@@ -94,7 +94,7 @@ describe('ControlsPanel', () => {
     const field = screen.getByLabelText('children');
     expect(field).toHaveAttribute('aria-invalid', 'true');
     expect(field).toHaveAccessibleDescription('A Button needs text or an aria-label, or screen readers announce just "button".');
-    expect(container.querySelector('.gallery-control__error')).toHaveTextContent('⚠ A Button needs text');
+    expect(container.querySelector('.bit-field__error')).toHaveTextContent('A Button needs text');
     await expectNoA11yViolations(container);
   });
 
@@ -102,9 +102,24 @@ describe('ControlsPanel', () => {
     const { container, rerender } = render(
       <ControlsPanel manifest={badgeManifest} state={{ ...defaultState(badgeManifest), children: '' }} onChange={() => {}} onReset={() => {}} />,
     );
-    expect(container.querySelector('.gallery-control__error')).toBeNull();
+    expect(container.querySelector('.bit-field__error')).toBeNull();
     rerender(<ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={() => {}} />);
     expect(screen.getByLabelText('children')).not.toHaveAttribute('aria-invalid');
+  });
+
+  it('is built from bit controls: Select, Input and Switch inside Field', () => {
+    const numbered: Manifest = {
+      ...button,
+      controls: [...button.controls, { kind: 'number', prop: 'interval', default: 5, min: 1, max: 30, step: 1 }],
+    };
+    const { container } = render(
+      <ControlsPanel manifest={numbered} state={defaultState(numbered)} onChange={() => {}} onReset={() => {}} />,
+    );
+    expect(container.querySelector('select.bit-select__control')).not.toBeNull();
+    expect(container.querySelector('input.bit-input')).not.toBeNull();
+    expect(container.querySelector('input.bit-switch__input[role="switch"]')).not.toBeNull();
+    expect(container.querySelectorAll('.bit-field').length).toBeGreaterThan(0);
+    expect(container.querySelector('[class*="gallery-control__"], .gallery-switch')).toBeNull();
   });
 
   it('Reset calls onReset', async () => {

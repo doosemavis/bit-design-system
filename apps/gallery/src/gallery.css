@@ -64,23 +64,10 @@ html {
   gap: var(--bit-space-12px);
 }
 
-.gallery-theme {
-  display: inline-flex;
+.gallery-theme.bit-field {
+  flex-direction: row;
   align-items: center;
   gap: var(--bit-space-8px);
-  font-size: var(--bit-text-13px);
-}
-
-.gallery-theme__select,
-.gallery-control__select,
-.gallery-control__input {
-  font: inherit;
-  color: var(--bit-color-text);
-  background: var(--bit-color-surface);
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-6px);
-  padding: var(--bit-space-4px) var(--bit-space-8px);
-  min-height: var(--bit-control-height-sm);
 }
 
 .gallery-sidebar {
@@ -221,42 +208,6 @@ html {
 .gallery-control {
   display: grid;
   gap: var(--bit-space-4px);
-}
-
-.gallery-control__label {
-  font-family: var(--bit-font-mono);
-  font-size: var(--bit-text-13px);
-  color: var(--bit-color-text-muted);
-}
-
-.gallery-switch {
-  width: 2.75rem;
-  height: 1.5rem;
-  padding: 2px;
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-full);
-  background: var(--bit-color-surface);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  transition: background var(--bit-duration-fast);
-}
-
-.gallery-switch__knob {
-  width: 1rem;
-  height: 1rem;
-  border-radius: var(--bit-radius-full);
-  background: var(--bit-color-line);
-  transition: transform var(--bit-duration-fast);
-}
-
-.gallery-switch[data-on] {
-  background: var(--bit-color-primary);
-}
-
-.gallery-switch[data-on] .gallery-switch__knob {
-  transform: translateX(1.25rem);
-  background: var(--bit-color-primary-contrast);
 }
 
 /* ---------- preview ---------- */
@@ -425,12 +376,6 @@ html {
    table. A union wraps only between its members. */
 .gallery-nowrap {
   white-space: nowrap;
-}
-
-.gallery-control__error {
-  margin: 0;
-  font-size: var(--bit-text-13px);
-  color: var(--bit-color-danger-text);
 }
 
 /* Do and Don't, and the Accessibility list. */

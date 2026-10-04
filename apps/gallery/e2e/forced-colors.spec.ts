@@ -8,7 +8,9 @@ for (const [slug, selector] of [
 ] as const) {
   test(`an invalid ${slug} shows a 10px start edge in forced colours`, async ({ page }) => {
     await page.goto(`#/components/${slug}`);
-    await page.getByRole('switch', { name: 'invalid' }).click();
+    // The switch input sits under its track, so click the visible label, as a person would.
+    await page.locator('label.bit-switch', { hasText: /^invalid$/ }).click();
+    await expect(page.getByRole('switch', { name: 'invalid' })).toBeChecked();
     const control = page.locator(`.gallery-preview__stage ${selector}`).first();
     await expect(control).toHaveAttribute('aria-invalid', 'true');
     await expect(control).toHaveCSS('border-inline-start-width', '10px');

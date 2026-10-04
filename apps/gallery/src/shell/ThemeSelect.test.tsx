@@ -9,4 +9,10 @@ describe('ThemeSelect', () => {
     await userEvent.selectOptions(screen.getByLabelText('Theme'), 'power-up');
     expect(document.documentElement.dataset.theme).toBe('power-up');
   });
+
+  it('is a bit Select named Theme', () => {
+    const { container } = render(<ThemeSelect />);
+    expect(screen.getByRole('combobox', { name: 'Theme' })).toHaveClass('bit-select__control');
+    expect(container.querySelector('.gallery-theme__select')).toBeNull();
+  });
 });

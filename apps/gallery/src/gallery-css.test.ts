@@ -73,9 +73,8 @@ describe('gallery.css', () => {
     );
   });
 
-  it('never hardcodes a font stack: mono labels read --bit-font-mono', () => {
+  it('never hardcodes a font stack', () => {
     expect(galleryCss).not.toMatch(/monospace/);
-    expect(galleryCss).toMatch(/\.gallery-control__label\s*\{[^}]*font-family: var\(--bit-font-mono\);/);
   });
 
   it('every face sample is one height and sits on its floor, so the token chips line up across the cards', () => {
