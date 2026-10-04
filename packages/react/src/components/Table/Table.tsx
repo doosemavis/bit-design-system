@@ -16,7 +16,8 @@ function useOverflows(): [(node: HTMLDivElement | null) => void, boolean] {
     measure();
     if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(measure);
-    observer.observe(node);
+    // Watch the table too: its width changes (fonts, content) without the wrapper box changing.
+    [node, ...Array.from(node.children)].forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, [node]);
   return [setNode, overflows];

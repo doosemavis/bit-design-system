@@ -195,12 +195,15 @@ describe('Table', () => {
 
 type Callback = ConstructorParameters<typeof ResizeObserver>[0];
 let observed: Callback | undefined;
+let observedEls: Element[] = [];
 
 class FakeResizeObserver {
   constructor(cb: Callback) {
     observed = cb;
   }
-  observe() {}
+  observe(el: Element) {
+    observedEls.push(el);
+  }
   disconnect() {}
   unobserve() {}
 }
@@ -215,6 +218,7 @@ describe('Table: Tab stop only when it scrolls', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     observed = undefined;
+    observedEls = [];
   });
 
   function wrapperOf(container: HTMLElement) {
@@ -257,6 +261,12 @@ describe('Table: Tab stop only when it scrolls', () => {
     const { container } = render(<Table><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
     // jsdom widths are 0 and 0, so it fits: not a Tab stop.
     expect(wrapperOf(container)).not.toHaveAttribute('tabindex');
+  });
+
+  it('observes both the wrapper and the table, so content-only width changes are seen', () => {
+    const { container } = render(<Table><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
+    const wrapper = wrapperOf(container);
+    expect(observedEls).toEqual([wrapper, wrapper.querySelector('table')]);
   });
 
   it('disconnects the observer on unmount', () => {
