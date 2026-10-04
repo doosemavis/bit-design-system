@@ -216,7 +216,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Builds the library, then the gallery with base /bit-design-system/.
       - run: pnpm gallery:build
-      # Each older line is a frozen copy of its newest tag. The key names the build recipe (v1, see
+      # Each older line is a frozen copy of its newest tag. The key names the build recipe (v2, see
       # CACHE_PREFIX in the script) and those tags, so a new patch on an old line rebuilds just that
       # copy; restore-keys brings back the copies this recipe already built.
       - name: Name the archive cache
@@ -226,7 +226,7 @@ jobs:
         with:
           path: ${{ runner.temp }}/archive-cache
           key: ${{ steps.archives.outputs.key }}
-          restore-keys: site-archives-v1-
+          restore-keys: site-archives-v2-
       # The current gallery at the root, each older line at v<line>/, versions.json and the banner.
       - name: Build the versioned site
         run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"
@@ -313,7 +313,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Builds the library, then the gallery with base /bit-design-system/.
       - run: pnpm gallery:build
-      # Each older line is a frozen copy of its newest tag. The key names the build recipe (v1, see
+      # Each older line is a frozen copy of its newest tag. The key names the build recipe (v2, see
       # CACHE_PREFIX in the script) and those tags, so a new patch on an old line rebuilds just that
       # copy; restore-keys brings back the copies this recipe already built.
       - name: Name the archive cache
@@ -323,7 +323,7 @@ jobs:
         with:
           path: ${{ runner.temp }}/archive-cache
           key: ${{ steps.archives.outputs.key }}
-          restore-keys: site-archives-v1-
+          restore-keys: site-archives-v2-
       # The current gallery at the root, each older line at v<line>/, versions.json and the banner.
       - name: Build the versioned site
         run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"

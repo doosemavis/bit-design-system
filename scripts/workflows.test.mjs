@@ -290,7 +290,7 @@ const assertBuildsVersionedSite = (steps, label) => {
     `${label}: caching the archives`,
   );
   assert.equal(steps[cache].with.key, '${{ steps.archives.outputs.key }}', `${label}: the cache is keyed on the archive tags`);
-  assert.equal(steps[cache].with['restore-keys'], 'site-archives-v1-', `${label}: a new tag reuses archives built by this recipe`);
+  assert.equal(steps[cache].with['restore-keys'], 'site-archives-v2-', `${label}: a new tag reuses archives built by this recipe`);
   const site = findIndex(
     steps,
     (s) => runOf(s) === 'node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"',
