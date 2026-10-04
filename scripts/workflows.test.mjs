@@ -301,6 +301,37 @@ test('release: the npm token reaches only the publish step', () => {
   }
 });
 
+test('release: the workflow text names a secret exactly once, in the publish step', () => {
+  const text = readFileSync(new URL('../.github/workflows/release.yml', import.meta.url), 'utf8');
+  assert.equal(text.match(/secrets\./g)?.length, 1, 'one secrets. reference: NODE_AUTH_TOKEN on the publish step');
+});
+
+// A status function in a job `if` (always(), !cancelled(), ...) lets the job run after a job it
+// needs failed or was skipped, so a broken build or a failed guard could still reach publish.
+test('release: no job gate uses a status function, so a failed or skipped job always stops the jobs after it', () => {
+  for (const [name, def] of Object.entries(release().jobs)) {
+    if (def.if !== undefined) assert.doesNotMatch(String(def.if), STATUS_FUNCTION, name);
+  }
+});
+
+const ENV_GUARDED = ['NODE_AUTH_TOKEN', 'NPM_VERSION'];
+
+test('release: env is set in one place each: NPM_VERSION at the top, NODE_AUTH_TOKEN on the publish step', () => {
+  const wf = release();
+  assert.deepEqual(Object.keys(wf.env ?? {}), ['NPM_VERSION'], 'the workflow env holds only NPM_VERSION');
+  assert.equal(wf.jobs.publish.env, undefined, 'publish has no job-level env');
+  for (const [name, def] of Object.entries(wf.jobs)) {
+    for (const key of ENV_GUARDED) assert.ok(!(key in (def.env ?? {})), `job ${name} sets ${key}`);
+    for (const step of def.steps ?? []) {
+      const isPublishStep = name === 'publish' && step.id === 'publish';
+      for (const key of ENV_GUARDED) {
+        const allowed = isPublishStep && key === 'NODE_AUTH_TOKEN';
+        assert.equal(key in (step.env ?? {}), allowed, `${name}: ${keyOf(step)} ${allowed ? 'must' : 'must not'} set ${key}`);
+      }
+    }
+  }
+});
+
 test('release: npm is one exact version, 11.5.1 or later, installed without scripts wherever it is upgraded', () => {
   const version = release().env.NPM_VERSION;
   assert.match(version, /^\d+\.\d+\.\d+$/, 'exact, never a range');
