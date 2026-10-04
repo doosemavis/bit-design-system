@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/bit-logo.svg" width="353" alt="bit Design System"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/doosemavis/bit-design-system/main/assets/bit-logo.svg" width="353" alt="bit Design System"></p>
 
 # bit
 
@@ -15,6 +15,8 @@ Themes are swappable and named after retro-game eras. The first theme is **power
 Browse every component, with live controls and copyable code, in the docs: https://doosemavis.github.io/bit-design-system/
 
 ## Install
+
+Needs React 19 (`react` and `react-dom` ^19).
 
 Install `@bit-ds/react` with your package manager:
 
@@ -146,6 +148,7 @@ The theme file starts with a Google Fonts `@import`; if your bundler concatenate
 | `pnpm build && pnpm verify` | build `@bit-ds/react` and prove the dist is consumable |
 | `pnpm e2e` | build the library and gallery, then run Playwright with axe on every page (needs Chromium once) |
 | `pnpm smoke` | packs `@bit-ds/react` and installs it with npm into a throwaway project to prove the tarball works |
+| `pnpm smoke:full` | `pnpm smoke`, then builds a Vite app from the tarball and checks the Button renders in Chromium (needs Chromium once; `SMOKE_TARBALL=<path>` tests a given tarball instead of packing) |
 | `pnpm logo:svg` | regenerate `assets/bit-logo.svg` |
 
 ## Docs
