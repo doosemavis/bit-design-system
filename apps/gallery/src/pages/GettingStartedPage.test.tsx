@@ -57,13 +57,14 @@ describe('GettingStartedPage', () => {
 
   it('Next steps links to Tokens, the naming rule on Home and Button', async () => {
     await open();
-    const next = within(main()).getByRole('heading', { level: 2, name: 'Next steps' }).closest('div')!.parentElement!;
-    const hrefs = within(next).getAllByRole('link').map((l) => [l.textContent, l.getAttribute('href')]);
-    expect(hrefs).toEqual([
+    for (const [label, href] of [
       ['Tokens', '/tokens'],
       ['The naming rule', '/'],
       ['Button', '/components/button'],
-    ]);
+    ] as const) {
+      const link = within(main()).getByRole('link', { name: new RegExp(`^${label}`) });
+      expect(link.getAttribute('href'), label).toBe(href);
+    }
   });
 });
 

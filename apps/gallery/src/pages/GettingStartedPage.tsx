@@ -7,6 +7,7 @@ const NO_FLASH_EXAMPLE = `<script>${COLOR_MODE_SCRIPT}</script>`;
 
 const NEXT_STEPS = [
   { label: 'Tokens', to: '/tokens', note: 'the colours, sizes and spacing every component reads' },
+  // Goes to Home, not an anchor: hash routing has no in-page anchors to link to.
   { label: 'The naming rule', to: '/', note: 'on Home: the prop you type is the class it emits' },
   { label: 'Button', to: '/components/button', note: 'the first component, with live controls' },
 ] as const;

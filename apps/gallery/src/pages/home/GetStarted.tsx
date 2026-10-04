@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Badge, Code, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
+import { BUILD_VERSION } from '../../buildVersion';
 import { InstallCommand } from '../../content/InstallCommand';
 import { STYLE_IMPORTS } from '../../content/styleImports';
 
@@ -43,7 +44,7 @@ export function GetStarted({ level = 3 }: { level?: 2 | 3 }) {
         title="Install"
         aside={
           <Badge variant="outline" shape="square">
-            {`v${__BIT_VERSION__}`}
+            {`v${BUILD_VERSION}`}
           </Badge>
         }
         help="Add the React package with your package manager."
