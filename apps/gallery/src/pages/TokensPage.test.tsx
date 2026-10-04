@@ -139,6 +139,14 @@ describe('TokensPage', () => {
     expect(within(table).getByRole('button', { name: 'Copy var(--bit-color-primary)' })).toBeInTheDocument();
   });
 
+  it('each Copy sits in a wrapper that reserves the column width, so "Copied" never shifts the table', async () => {
+    await open();
+    const table = screen.getByRole('region', { name: 'Token values' });
+    const button = within(table).getByRole('button', { name: 'Copy var(--bit-color-primary)' });
+    expect(button.parentElement).toHaveClass('gallery-copy-cell');
+    expect(button.closest('td')).toContainElement(button.parentElement);
+  });
+
   it("a row's Copy puts var(--name) on the clipboard", async () => {
     await open();
     const writeText = vi.fn(() => Promise.resolve());

@@ -508,3 +508,12 @@ html {
 .gallery-naming .bit-code {
   white-space: nowrap;
 }
+
+/* The All tokens Copy column. The button's text changes ("Copy", "Copied", "Copy failed"), so the cell
+   reserves the widest state and pins the button to the end. Only the button resizes, nothing else moves.
+   6rem fits "Copy failed", the widest label: the sm button measures 5.96rem. */
+.gallery-copy-cell {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 6rem;
+}

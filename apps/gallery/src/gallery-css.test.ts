@@ -139,6 +139,14 @@ describe('gallery.css', () => {
     expect(ruleIn(galleryCss, '.gallery-props__type')?.trim()).toBe('min-width: calc(7 * var(--bit-space-32px));');
   });
 
+  it('the All tokens Copy cell reserves its widest state and pins the button to the end', () => {
+    // Measured: the sm Button reading "Copy failed" is the widest state. Reserving that width keeps the other columns still.
+    const cell = ruleIn(galleryCss, '.gallery-copy-cell');
+    expect(cell).toContain('display: flex;');
+    expect(cell).toContain('justify-content: flex-end;');
+    expect(cell).toMatch(/min-width: \d+(\.\d+)?rem;/);
+  });
+
   it('the Tokens color cards: one column on a phone, then 3 + 2, then all five in one row (never 4 + 1)', () => {
     const grid = ruleIn(galleryCss, '.gallery-color-grid');
     expect(grid).toContain('display: grid;');

@@ -59,7 +59,9 @@ export function AllTokens({ values }: { values: TokenValues }) {
             <TableRow>
               <TableCell>Token</TableCell>
               <TableCell>Value</TableCell>
-              <TableCell>Copy</TableCell>
+              <TableCell>
+                <div className="gallery-copy-cell">Copy</div>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -70,7 +72,9 @@ export function AllTokens({ values }: { values: TokenValues }) {
                 </TableCell>
                 <TableCell>{values.values.get(name)}</TableCell>
                 <TableCell>
-                  <CopyButton text={`var(${name})`} label={`Copy var(${name})`} />
+                  <div className="gallery-copy-cell">
+                    <CopyButton text={`var(${name})`} label={`Copy var(${name})`} />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
