@@ -509,11 +509,23 @@ html {
   white-space: nowrap;
 }
 
-/* The All tokens Copy column. The button's text changes ("Copy", "Copied", "Copy failed"), so the cell
-   reserves the widest state and pins the button to the end. Only the button resizes, nothing else moves.
-   6rem fits "Copy failed", the widest label: the sm button measures 5.96rem. */
+/* The All tokens Copy column. The button's text changes ("Copy", "Copied", "Copy failed"). The header cell
+   holds a hidden "Copy failed" button, the widest state, so the column is always wide enough and only the
+   button resizes. The header text and the ghost share one grid area. Body cells pin the button to the end. */
+.gallery-copy-head {
+  display: grid;
+  justify-items: end;
+}
+
+.gallery-copy-head > * {
+  grid-area: 1 / 1;
+}
+
+.gallery-copy-ghost {
+  visibility: hidden;
+}
+
 .gallery-copy-cell {
   display: flex;
   justify-content: flex-end;
-  min-width: 6rem;
 }

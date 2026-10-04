@@ -27,6 +27,15 @@ for (const [outcome, label, clipboard] of [
     await row.getByRole('button').click();
     await expect(row.getByRole('button', { name: label })).toBeVisible();
     expect(await cellLefts(page)).toEqual(before);
+    // The button grows inside its cell: its right edge stays within the cell's content box.
+    const fits = await row.locator('td').last().evaluate((cell) => {
+      const button = cell.querySelector('button')!.getBoundingClientRect();
+      const box = cell.getBoundingClientRect();
+      const pad = parseFloat(getComputedStyle(cell).paddingRight);
+      // 1px of slack: the table snaps column widths to whole pixels, so a fractional label can poke out under 1px.
+      return button.right <= box.right - pad + 1 && button.left >= box.left;
+    });
+    expect(fits).toBe(true);
     // And back to "Copy" after the reset.
     await expect(row.getByRole('button', { name: /^Copy var\(/ })).toBeVisible();
     expect(await cellLefts(page)).toEqual(before);

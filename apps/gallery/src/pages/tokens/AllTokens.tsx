@@ -60,7 +60,15 @@ export function AllTokens({ values }: { values: TokenValues }) {
               <TableCell>Token</TableCell>
               <TableCell>Value</TableCell>
               <TableCell>
-                <div className="gallery-copy-cell">Copy</div>
+                <div className="gallery-copy-head">
+                  <span>Copy</span>
+                  {/* Hidden and inert. Its width sizes the column for the widest state, "Copy failed". */}
+                  <span aria-hidden="true" className="gallery-copy-ghost">
+                    <Button size="sm" variant="outline" tabIndex={-1}>
+                      Copy failed
+                    </Button>
+                  </span>
+                </div>
               </TableCell>
             </TableRow>
           </TableHead>

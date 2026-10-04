@@ -139,12 +139,15 @@ describe('gallery.css', () => {
     expect(ruleIn(galleryCss, '.gallery-props__type')?.trim()).toBe('min-width: calc(7 * var(--bit-space-32px));');
   });
 
-  it('the All tokens Copy cell reserves its widest state and pins the button to the end', () => {
-    // Measured: the sm Button reading "Copy failed" is the widest state. Reserving that width keeps the other columns still.
+  it('the All tokens Copy column is sized by a hidden widest-state button in the header, with no magic width', () => {
+    const head = ruleIn(galleryCss, '.gallery-copy-head');
+    expect(head).toContain('display: grid;');
+    expect(ruleIn(galleryCss, '.gallery-copy-head > *')).toContain('grid-area: 1 / 1;');
+    expect(ruleIn(galleryCss, '.gallery-copy-ghost')?.trim()).toBe('visibility: hidden;');
     const cell = ruleIn(galleryCss, '.gallery-copy-cell');
     expect(cell).toContain('display: flex;');
     expect(cell).toContain('justify-content: flex-end;');
-    expect(cell).toMatch(/min-width: \d+(\.\d+)?rem;/);
+    expect(cell).not.toMatch(/width/);
   });
 
   it('the Tokens color cards: one column on a phone, then 3 + 2, then all five in one row (never 4 + 1)', () => {

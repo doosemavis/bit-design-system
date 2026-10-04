@@ -139,12 +139,21 @@ describe('TokensPage', () => {
     expect(within(table).getByRole('button', { name: 'Copy var(--bit-color-primary)' })).toBeInTheDocument();
   });
 
-  it('each Copy sits in a wrapper that reserves the column width, so "Copied" never shifts the table', async () => {
+  it('each Copy sits in an end-pinned wrapper, and the header holds one inert widest-state ghost that sizes the column', async () => {
     await open();
     const table = screen.getByRole('region', { name: 'Token values' });
     const button = within(table).getByRole('button', { name: 'Copy var(--bit-color-primary)' });
     expect(button.parentElement).toHaveClass('gallery-copy-cell');
-    expect(button.closest('td')).toContainElement(button.parentElement);
+    const ghosts = table.querySelectorAll('.gallery-copy-ghost');
+    expect(ghosts).toHaveLength(1);
+    const ghost = ghosts[0]!;
+    expect(ghost).toHaveAttribute('aria-hidden', 'true');
+    expect(ghost.closest('thead')).not.toBeNull();
+    const ghostButton = ghost.querySelector('button')!;
+    expect(ghostButton).toHaveTextContent('Copy failed');
+    expect(ghostButton).toHaveAttribute('tabindex', '-1');
+    // Not in the accessible tree, so no duplicate control.
+    expect(within(table).getAllByRole('button')).toHaveLength(SEMANTIC_TOKENS.length);
   });
 
   it("a row's Copy puts var(--name) on the clipboard", async () => {
