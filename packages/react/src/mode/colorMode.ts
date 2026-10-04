@@ -33,6 +33,7 @@ function isPreference(value: unknown): value is ColorModePreference {
 }
 
 const hasWindow = (): boolean => typeof window !== 'undefined';
+const noop = (): void => {};
 
 function readSaved(): ColorMode | null {
   try {
@@ -62,6 +63,8 @@ let resetService: (service: ColorModeService) => void;
 /**
  * The page's color mode, as a service. Use the shared `colorMode` instance from any file:
  * `colorMode.set('dark')`, `colorMode.toggle()`, `colorMode.mode`.
+ *
+ * Don't construct your own; import `colorMode`. A second instance won't update hooks or ModeToggle.
  *
  * One store for the whole page, so every hook, toggle and caller agrees without a provider. Its
  * private fields are the one intentional piece of mutable state in the package; nothing outside
@@ -106,7 +109,9 @@ export class ColorModeService {
   };
 
   /** Call `listener(mode)` whenever the showing mode changes (a choice or an OS change). Returns an unsubscribe. */
-  onChange = (listener: ModeListener): (() => void) => {
+  onChange = (listener: (mode: ColorMode) => void): (() => void) => {
+    // Without a window (SSR, node) nothing can change, so don't keep the listener at all.
+    if (!hasWindow()) return noop;
     this.#started();
     this.#listeners = new Set([...this.#listeners, listener]);
     return () => {
