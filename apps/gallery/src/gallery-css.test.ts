@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { describe, it, expect } from 'vitest';
-import { checkCss } from './cssGuard';
+import { checkCss, declarationKeys } from './cssGuard';
 import { GALLERY_CSS_EXCEPTIONS } from './gallery-css.exceptions';
 
 const require = createRequire(import.meta.url);
@@ -178,6 +178,41 @@ describe('gallery.css', () => {
     expect(galleryCss).toMatch(/\.gallery-sidebar__link\.bit-link[^{,]*:hover \{/);
     // No bare .gallery-sidebar__link rule is left to lose to bit Link on specificity.
     expect(galleryCss).not.toMatch(/\.gallery-sidebar__link(\[aria-current="page"\]|:hover)?\s*[{,]/);
+  });
+});
+
+describe('the animated section underline', () => {
+  it('section titles take the full text colour, outranking the muted shade bit Text gives a neutral', () => {
+    expect(galleryCss).toMatch(/\.gallery-sidebar__title\.bit-text\.bit-neutral \{[^}]*color: var\(--bit-color-text\);/);
+  });
+
+  it('the bar rests at 22px', () => {
+    const bar = ruleIn(galleryCss, '.gallery-sidebar__title::after')!;
+    expect(bar).toContain('width: 22px;');
+    expect(bar).toContain('background: var(--bit-color-accent);');
+  });
+
+  it('the current section fills its bar over 450ms', () => {
+    const fill = ruleIn(galleryCss, '.gallery-sidebar__group[data-current] .gallery-sidebar__title::after')!;
+    expect(fill).toContain('width: 100%;');
+    expect(fill).toContain('animation: gallery-section-fill 450ms cubic-bezier(.2,.8,.2,1) both;');
+    expect(galleryCss).toMatch(/@keyframes gallery-section-fill \{\s*from \{ width: 22px; \}\s*to \{ width: 100%; \}\s*\}/);
+  });
+
+  it('reduced motion turns the animation off', () => {
+    const reduced = ruleIn(
+      mediaBody('(prefers-reduced-motion: reduce)'),
+      '.gallery-sidebar__group[data-current] .gallery-sidebar__title::after',
+    );
+    expect(reduced).toContain('animation: none;');
+  });
+
+  it('the guard keys keyframe declarations, so a keyframe paint property cannot hide', () => {
+    const keys = declarationKeys('@keyframes spin { from { color: red; } to { color: blue; } }');
+    expect(keys).toEqual([
+      { key: '@keyframes spin from', property: 'color' },
+      { key: '@keyframes spin to', property: 'color' },
+    ]);
   });
 });
 
