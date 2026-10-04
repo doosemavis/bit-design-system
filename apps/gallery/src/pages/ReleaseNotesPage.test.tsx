@@ -12,6 +12,11 @@ describe('renderInline', () => {
     expect([...container.querySelectorAll('code')].map((c) => c.textContent)).toEqual(['Code', 'Table']);
     expect(container.textContent).toBe('Use Code in Table cells.');
   });
+  it('leaves an empty backtick pair as literal text, not an empty Code', () => {
+    const { container } = render(<p>{renderInline('a `` b')}</p>);
+    expect(container.querySelector('code')).toBeNull();
+    expect(container.textContent).toBe('a `` b');
+  });
   it('leaves text with no backticks, or an unmatched one, as text', () => {
     const { container } = render(<p>{renderInline('plain `open')}</p>);
     expect(container.querySelector('code')).toBeNull();
@@ -36,7 +41,10 @@ describe('ReleaseNotesPage', () => {
     await open();
     const headings = within(screen.getByRole('main')).getAllByRole('heading', { level: 2 });
     expect(headings.map((h) => h.textContent)).toEqual(RELEASES.map((r) => `v${r.version}`));
-    RELEASES.forEach((r) => expect(screen.getByText(r.date)).toHaveClass('bit-badge'));
+    headings.forEach((h, i) => {
+      const badge = within(h.parentElement!).getByText(RELEASES[i]!.date);
+      expect(badge).toHaveClass('bit-badge');
+    });
   });
 
   it('labels each section list with its badge', async () => {

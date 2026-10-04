@@ -26,8 +26,7 @@ describe('VersionsPage', () => {
   it('lists one row per line in a table named Versions, with Latest and Viewing badges', async () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(FILE)));
     render(<VersionsPage />);
-    const table = await screen.findByRole('table', { name: 'Versions' }).catch(() => null);
-    expect(table ?? (await screen.findByRole('region', { name: 'Versions' }))).toBeTruthy();
+    expect(await screen.findByRole('table', { name: 'Versions' })).toBeInTheDocument();
     await screen.findByText('v0.3.0');
     expect(screen.getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['bit', 'React', 'react-dom', 'Status']);
     const rows = screen.getAllByRole('row').slice(1);

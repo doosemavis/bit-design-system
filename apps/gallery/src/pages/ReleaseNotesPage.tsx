@@ -26,9 +26,11 @@ export function ReleaseNotesPage() {
         <Stack key={release.version} gap={16} align="start">
           <Stack direction="row" gap={12} align="center" wrap>
             <Heading level={2}>{`v${release.version}`}</Heading>
-            <Badge color="neutral" variant="outline">
-              {release.date}
-            </Badge>
+            {release.date ? (
+              <Badge color="neutral" variant="outline">
+                {release.date}
+              </Badge>
+            ) : null}
           </Stack>
           {KIND_ORDER.map((kind) => {
             const items = release.sections[kind];
