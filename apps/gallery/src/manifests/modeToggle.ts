@@ -13,7 +13,8 @@ export const modeToggle: Manifest = {
     usage: {
       do: [
         'Put one ModeToggle in your header. Every ModeToggle on the page shares one store, so they always agree.',
-        'Inline COLOR_MODE_SCRIPT in your <head>, so a dark-mode visitor never sees a light flash.',
+        'Set data-mode="system" on <html> so the page follows the visitor\'s OS from the first paint, with no script.',
+        "Switch from code: colorMode.set('dark'), colorMode.toggle() or colorMode.set('system'). It works from any file, not just React.",
       ],
       dont: [
         'Build your own light/dark switch beside it. Call useColorMode() when you need the mode in code.',

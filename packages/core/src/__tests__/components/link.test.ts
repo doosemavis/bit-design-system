@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { block, readCss } from '../css';
+import { block, readCss, styleRules } from '../css';
+
+/** (a,b,c) specificity of a simple compound/descendant selector: ids, classes+attributes+pseudo-classes, types. */
+function specificity(selector: string): [number, number, number] {
+  const ids = (selector.match(/#[\w-]+/g) ?? []).length;
+  const classes = (selector.match(/\.[\w-]+|\[[^\]]+\]|(?<!:):[\w-]+/g) ?? []).length;
+  const types = (selector.match(/(^|[\s>+~])[a-z][\w-]*/g) ?? []).length;
+  return [ids, classes, types];
+}
 
 describe('components/link.css', () => {
   const css = readCss('components/link.css');
@@ -43,6 +51,18 @@ describe('components/link.css', () => {
 
   it('in dark mode the hover underline turns the accent (Q3b-A)', () => {
     expect(block(css, '[data-mode="dark"] .bit-link:hover')).toContain('text-decoration-color: var(--bit-color-accent);');
+  });
+
+  it('in system mode on a dark OS the hover underline turns the accent too', () => {
+    const rule = styleRules(css).find((r) => r.selector === '[data-mode="system"] .bit-link:hover');
+    expect(rule?.media).toBe('(prefers-color-scheme: dark)');
+    expect(rule?.body).toContain('text-decoration-color: var(--bit-color-accent);');
+  });
+
+  it('the solid-Alert hover (0,4,0) outranks the dark and system accent hovers (0,3,0)', () => {
+    expect(specificity('.bit-alert.bit-solid .bit-link:hover')).toEqual([0, 4, 0]);
+    expect(specificity('[data-mode="dark"] .bit-link:hover')).toEqual([0, 3, 0]);
+    expect(specificity('[data-mode="system"] .bit-link:hover')).toEqual([0, 3, 0]);
   });
 
   it('inside a solid Alert the hover underline is currentColor (the Alert text) and overrides dark accent (Q1-A fix)', () => {

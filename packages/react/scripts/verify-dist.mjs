@@ -13,7 +13,7 @@ const EXPECTED = [
   'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
   'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
   'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
-  'Heading', 'Box', 'announce',
+  'Heading', 'Box', 'announce', 'colorMode', 'ColorModeService',
 ];
 
 // 0. Client boundary: the hooks and toggle need a 'use client' directive for React Server Components.
@@ -28,6 +28,9 @@ for (const name of EXPECTED) assert.ok(cjs[name], `CJS export missing: ${name}`)
 assert.equal(cjs.PREFIX, 'bit');
 assert.equal(typeof cjs.COLOR_MODE_SCRIPT, 'string', 'CJS export missing: COLOR_MODE_SCRIPT');
 assert.equal(typeof cjs.useColorMode, 'function', 'CJS export missing: useColorMode');
+assert.equal(typeof cjs.colorMode?.set, 'function', 'CJS export missing: colorMode.set');
+assert.equal(typeof cjs.ColorModeService, 'function', 'CJS export ColorModeService must be a class');
+assert.equal(typeof cjs.colorMode, 'object', 'CJS export colorMode must be the shared instance');
 assert.equal(cjs.SEMANTIC_TOKENS?.length, 94, 'CJS export missing: SEMANTIC_TOKENS (94 names)');
 
 // 2. ESM entry
@@ -35,6 +38,9 @@ const esm = await import(resolve(dist, 'index.js'));
 for (const name of EXPECTED) assert.ok(esm[name], `ESM export missing: ${name}`);
 assert.equal(typeof esm.COLOR_MODE_SCRIPT, 'string', 'ESM export missing: COLOR_MODE_SCRIPT');
 assert.equal(typeof esm.useColorMode, 'function', 'ESM export missing: useColorMode');
+assert.equal(typeof esm.colorMode?.set, 'function', 'ESM export missing: colorMode.set');
+assert.equal(typeof esm.ColorModeService, 'function', 'ESM export ColorModeService must be a class');
+assert.equal(typeof esm.colorMode, 'object', 'ESM export colorMode must be the shared instance');
 assert.equal(esm.SEMANTIC_TOKENS?.length, 94, 'ESM export missing: SEMANTIC_TOKENS (94 names)');
 
 // 3. Types

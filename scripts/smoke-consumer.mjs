@@ -20,7 +20,7 @@ const EXPECTED = [
   'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
   'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
   'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
-  'Heading', 'Box', 'announce',
+  'Heading', 'Box', 'announce', 'colorMode', 'ColorModeService',
 ];
 
 // Run a command, printing its stdout/stderr and rethrowing on failure so a broken
@@ -74,7 +74,7 @@ async function viteStage(app, tarballPath) {
   );
   writeFileSync(
     join(app, 'src', 'main.jsx'),
-    `${STYLE_IMPORTS}\nimport { createRoot } from 'react-dom/client';\nimport App from './App.jsx';\n\ncreateRoot(document.getElementById('root')).render(<App />);\n`,
+    `${STYLE_IMPORTS}\nimport { createRoot } from 'react-dom/client';\nimport { colorMode } from '${PACKAGE_NAME}';\nimport App from './App.jsx';\n\nwindow.bitColorMode = colorMode;\ncreateRoot(document.getElementById('root')).render(<App />);\n`,
   );
   writeFileSync(
     join(app, 'src', 'App.jsx'),
@@ -121,7 +121,19 @@ async function viteStage(app, tarballPath) {
     for (const c of ['bit-button', 'bit-primary']) assert.ok(classes.includes(c), `button lacks ${c}: ${classes.join(' ')}`);
     const bg = await button.evaluate((el) => getComputedStyle(el).backgroundColor);
     assert.equal(bg, 'rgb(124, 58, 237)');
-    console.log(`vite OK: Button renders with bit-button and bit-primary classes and background ${bg}`);
+    // The service drives the same attribute the CSS reads: set('dark') must land on <html>, and the
+    // packed CSS must answer it, so the page background token changes from its light value.
+    const pageBg = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bit-color-bg').trim());
+    const lightBg = await pageBg();
+    assert.ok(lightBg, '--bit-color-bg is not set on <html>: the packed theme CSS did not load');
+    await page.evaluate(() => window.bitColorMode.set('dark'));
+    const mode = await page.evaluate(() => document.documentElement.dataset.mode);
+    assert.equal(mode, 'dark', `colorMode.set('dark') left data-mode as ${mode}`);
+    const darkBg = await pageBg();
+    assert.notEqual(darkBg, lightBg, `colorMode.set('dark') left --bit-color-bg at its light value ${lightBg}`);
+    console.log(
+      `vite OK: Button renders with bit-button and bit-primary classes and background ${bg}; colorMode.set("dark") sets data-mode="dark" and --bit-color-bg ${lightBg} -> ${darkBg}`,
+    );
   } finally {
     await browser?.close();
     try {

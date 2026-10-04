@@ -59,6 +59,9 @@ export function contrastRatio(hexA: string, hexB: string): number {
 /** A `[data-mode="dark"]` that starts a line and isn't continuing a comma-separated selector list. */
 const DARK_RULE = /(?<!,\s*)(^|\n)\[data-mode="dark"\]\s*\{/;
 
+/** The `@media (prefers-color-scheme: dark) { [data-mode="system"] { ... } }` rule. */
+const SYSTEM_RULE = /@media\s*\(prefers-color-scheme:\s*dark\)\s*\{\s*\[data-mode="system"\]\s*\{[^}]*\}\s*\}/;
+
 /**
  * Split a theme file into its light (default) declarations and its `[data-mode="dark"]` overrides.
  * The dark block is found with `/(?<!,\s*)(^|\n)\[data-mode="dark"\]\s*\{/`: a `[data-mode="dark"]`
@@ -71,8 +74,10 @@ export function themeModes(css: string): { light: Map<string, string>; dark: Map
   const start = match.index;
   const open = start + match[0].length - 1;
   const close = css.indexOf('}', open);
+  // The system block is the dark block again behind a dark-OS media query; keep it out of light.
+  const lightCss = (css.slice(0, start) + css.slice(close + 1)).replace(SYSTEM_RULE, '');
   return {
-    light: parseCustomProps(css.slice(0, start) + css.slice(close + 1)),
+    light: parseCustomProps(lightCss),
     dark: parseCustomProps(css.slice(open + 1, close)),
   };
 }
@@ -116,3 +121,39 @@ export const VISUALLY_HIDDEN: readonly string[] = [
 
 /** Matches any outline declaration, longhands included (outline-offset is allowed). */
 export const OUTLINE_DECLARATION = /(^|[;{])\s*outline(-(color|style|width))?\s*:/m;
+
+/** One style rule: its selector text, its body, and the `@media` prelude it sits in (null at top level). */
+export interface CssRule {
+  selector: string;
+  body: string;
+  media: string | null;
+}
+
+/**
+ * Every style rule in a CSS string, with comments removed. Rules inside an `@media` block carry its
+ * prelude (e.g. `(prefers-color-scheme: dark)`). Enough for this repo's flat CSS: one level of
+ * `@media`, no nested rules inside style rules.
+ */
+export function styleRules(css: string, media: string | null = null): CssRule[] {
+  const source = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const found: CssRule[] = [];
+  let i = 0;
+  while (i < source.length) {
+    const open = source.indexOf('{', i);
+    if (open === -1) break;
+    // Drop any at-statement (`@import …;`) that runs into the prelude.
+    const prelude = source.slice(i, open).split(';').pop()!.trim();
+    let depth = 1;
+    let close = open + 1;
+    for (; close < source.length && depth > 0; close++) {
+      if (source[close] === '{') depth++;
+      else if (source[close] === '}') depth--;
+    }
+    const inner = source.slice(open + 1, close - 1);
+    const at = /^@media\s+(.*)$/s.exec(prelude);
+    if (at) found.push(...styleRules(inner, at[1]!.trim()));
+    else if (!prelude.startsWith('@')) found.push({ selector: prelude.replace(/\s+/g, ' '), body: inner.trim(), media });
+    i = close;
+  }
+  return found;
+}

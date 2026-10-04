@@ -13,3 +13,16 @@ test("Getting started: the step 4 toggle keeps its own size instead of stretchin
   const mainWidth = (await page.getByRole("main").boundingBox())!.width;
   expect(toggleWidth).toBeLessThan(mainWidth / 2);
 });
+
+test("Getting started: the step 4 disclosure button keeps its own size instead of stretching", async ({
+  page,
+}) => {
+  await page.goto("#/getting-started");
+  const button = page.getByRole("button", {
+    name: "Optional: use a saved choice before the page draws",
+  });
+  await expect(button).toBeVisible();
+  const buttonWidth = (await button.boundingBox())!.width;
+  const mainWidth = (await page.getByRole("main").boundingBox())!.width;
+  expect(buttonWidth).toBeLessThan(mainWidth / 2);
+});

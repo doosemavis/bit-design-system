@@ -9,7 +9,8 @@
    light) subtree gets its own text, caret, and scrollbar colors. A subtree paints its own background. */
 :root,
 [data-mode="light"],
-[data-mode="dark"] {
+[data-mode="dark"],
+[data-mode="system"] {
   caret-color: var(--bit-color-primary);
   scrollbar-color: var(--bit-color-line) var(--bit-color-neutral-soft);
   color: var(--bit-color-text);

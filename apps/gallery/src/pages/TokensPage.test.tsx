@@ -107,6 +107,17 @@ describe('TokensPage', () => {
     expect(within(card('neutral')).getByText('#FFFFFF')).toBeInTheDocument();
   });
 
+  it('data-mode="system" is not read as a mode: values come from computed style', async () => {
+    document.documentElement.dataset.mode = 'system';
+    try {
+      await open();
+      // Only the theme's :root values exist for "system" in jsdom (no media query), so they show as-is.
+      expect(within(card('neutral')).getByText('#FFFFFF')).toBeInTheDocument();
+    } finally {
+      delete document.documentElement.dataset.mode;
+    }
+  });
+
   it('Type and Space are one compact row each, linking to their pages', async () => {
     await open();
     expect(screen.getByRole('link', { name: 'See Typography' })).toHaveAttribute('href', '/typography');

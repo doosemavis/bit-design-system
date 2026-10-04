@@ -23,7 +23,12 @@ function isComponent(value: unknown): value is ComponentType<Record<string, unkn
   return typeof value === 'function' || (typeof value === 'object' && value !== null && '$$typeof' in value);
 }
 
-const componentNames = Object.keys(lib).filter((name) => /^[A-Z]/.test(name) && isComponent((lib as Record<string, unknown>)[name]));
+/** Capitalised exports that are classes, not components. */
+const NOT_COMPONENTS = ['ColorModeService'];
+
+const componentNames = Object.keys(lib).filter(
+  (name) => /^[A-Z]/.test(name) && !NOT_COMPONENTS.includes(name) && isComponent((lib as Record<string, unknown>)[name]),
+);
 
 /**
  * What each component renders with in the naming-rule test: `aria-label="x"` and the child "x", plus
@@ -110,6 +115,8 @@ describe('public index', () => {
     expect(lib.COLOR_MODE_STORAGE_KEY).toBe('bit-color-mode');
     expect(typeof lib.COLOR_MODE_SCRIPT).toBe('string');
     expect(typeof lib.useColorMode).toBe('function');
+    expect(lib.colorMode).toBeInstanceOf(lib.ColorModeService);
+    for (const name of ['set', 'toggle', 'onChange'] as const) expect(typeof lib.colorMode[name]).toBe('function');
     expect(typeof lib.announce).toBe('function');
     expect('resetColorModeStore' in lib).toBe(false);
     expect('setColorMode' in lib).toBe(false);

@@ -113,10 +113,12 @@ A theme is one CSS file that fills in every semantic token. Switch with an attri
 Set the theme and the mode on `<html>`:
 
 ```html
-<html data-theme="power-up" data-mode="dark">
+<html data-theme="power-up" data-mode="system">
 ```
 
-`data-mode` is `light` or `dark`. To pick the mode before first paint (no light flash for a dark-mode visitor), put the color mode script inline in `<head>`, before your CSS:
+`data-mode` is `light`, `dark` or `system`. `system` follows the visitor's OS in CSS alone, so there's no flash and no script. To change the mode from any file, use the `colorMode` service: `colorMode.set('dark')`, `colorMode.toggle()`, and `colorMode.mode` for what's showing.
+
+The color mode script is optional. You only need it when visitors can save a choice (with `<ModeToggle />` or `colorMode.set`) and you want that choice before the first paint. Put it inline in `<head>`, before your CSS:
 
 ```tsx
 import { COLOR_MODE_SCRIPT } from '@bit-ds/react';
@@ -126,7 +128,7 @@ import { COLOR_MODE_SCRIPT } from '@bit-ds/react';
 </head>
 ```
 
-The script uses the visitor's stored choice, then the OS preference, then light.
+It applies a saved choice; with none it sets `system` when `<html>` has no `data-mode`.
 
 - A strict Content Security Policy needs a hash or nonce for the inline script.
 - SSR frameworks need `suppressHydrationWarning` on `<html>`, because the script sets `data-mode` before React hydrates.
