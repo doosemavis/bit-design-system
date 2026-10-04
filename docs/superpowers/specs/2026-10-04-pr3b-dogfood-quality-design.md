@@ -202,3 +202,15 @@ Each fix is test-first. The react package keeps 100% coverage.
 - the version bump
 - the release and docs-deploy workflows
 - publishing
+
+## Amendments from planning (2026-10-04)
+
+Each amendment came from reading the code while writing the plan.
+
+1. **No `basename`.** The gallery uses `createHashRouter`, so routes are `#/components/input` and the router needs none. Only `vite.config.ts` changes: `base` is `PAGES_BASE` for `build` and for `preview` (`isPreview`).
+2. **`Text` has no face prop.**
+   - The pixel and mono eyebrows (`gallery-eyebrow`, `gallery-preview__title`, `gallery-sidebar__title`) and the control labels stay as group C exceptions, each with the reason "Text has no face prop".
+   - Adding one is a library API change, outside 3b.
+3. **No "type" colour in the tokenizer.** `CODE_KINDS` has none. Inside a type-argument list, names use the existing JS colours: capitalised names are `component`, lowercase names `text`, and `<` and `>` are `punct`. The fix is that the code after the generic stays JS instead of being read as JSX children.
+4. **Home chips** become `Button asChild variant="outline" color="neutral" size="sm"` around the router link. The glyph becomes a `Badge`.
+5. **`FOUNDATION_PAGES` is already gone** from the gallery. §5's first item is done, and Task 10 only re-checks it.
