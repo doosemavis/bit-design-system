@@ -44,7 +44,14 @@
   text-decoration-color: currentColor;
 }
 
-/* Dark: the hover highlight is faint on the night surfaces, so the underline turns the accent. */
+/* Dark: the hover highlight is faint on the night surfaces, so the underline turns the accent.
+   System mode on a dark OS does the same. Both are (0,3,0), so the solid-Alert hover (0,4,0) wins. */
 [data-mode="dark"] .bit-link:hover {
   text-decoration-color: var(--bit-color-accent);
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-mode="system"] .bit-link:hover {
+    text-decoration-color: var(--bit-color-accent);
+  }
 }

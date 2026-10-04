@@ -119,12 +119,16 @@ describe('system/reset.css browser surfaces (amendments §C)', () => {
   });
 
   it('the root and any mode element set text, a primary caret, and a line-on-neutral-soft scrollbar', () => {
-    const root = block(css, ':root,\n[data-mode="light"],\n[data-mode="dark"]');
+    const root = block(css, ':root,\n[data-mode="light"],\n[data-mode="dark"],\n[data-mode="system"]');
     expect(root).not.toBeNull();
     expect(root).toContain('caret-color: var(--bit-color-primary);');
     expect(root).toContain('scrollbar-color: var(--bit-color-line) var(--bit-color-neutral-soft);');
     expect(root).toContain('color: var(--bit-color-text);');
     expect(block(css, '*')).toContain('scrollbar-width: thin;');
+  });
+
+  it('a nested system subtree recomputes its text, caret and scrollbar too', () => {
+    expect(block(css, ':root,\n[data-mode="light"],\n[data-mode="dark"],\n[data-mode="system"]')).toContain('color: var(--bit-color-text);');
   });
 });
 

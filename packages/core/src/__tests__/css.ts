@@ -121,3 +121,39 @@ export const VISUALLY_HIDDEN: readonly string[] = [
 
 /** Matches any outline declaration, longhands included (outline-offset is allowed). */
 export const OUTLINE_DECLARATION = /(^|[;{])\s*outline(-(color|style|width))?\s*:/m;
+
+/** One style rule: its selector text, its body, and the `@media` prelude it sits in (null at top level). */
+export interface CssRule {
+  selector: string;
+  body: string;
+  media: string | null;
+}
+
+/**
+ * Every style rule in a CSS string, with comments removed. Rules inside an `@media` block carry its
+ * prelude (e.g. `(prefers-color-scheme: dark)`). Enough for this repo's flat CSS: one level of
+ * `@media`, no nested rules inside style rules.
+ */
+export function styleRules(css: string, media: string | null = null): CssRule[] {
+  const source = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const found: CssRule[] = [];
+  let i = 0;
+  while (i < source.length) {
+    const open = source.indexOf('{', i);
+    if (open === -1) break;
+    // Drop any at-statement (`@import …;`) that runs into the prelude.
+    const prelude = source.slice(i, open).split(';').pop()!.trim();
+    let depth = 1;
+    let close = open + 1;
+    for (; close < source.length && depth > 0; close++) {
+      if (source[close] === '{') depth++;
+      else if (source[close] === '}') depth--;
+    }
+    const inner = source.slice(open + 1, close - 1);
+    const at = /^@media\s+(.*)$/s.exec(prelude);
+    if (at) found.push(...styleRules(inner, at[1]!.trim()));
+    else if (!prelude.startsWith('@')) found.push({ selector: prelude.replace(/\s+/g, ' '), body: inner.trim(), media });
+    i = close;
+  }
+  return found;
+}
