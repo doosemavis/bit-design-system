@@ -4,7 +4,7 @@ import { Link, Text } from '@bit-ds/react';
 import { MANIFESTS, routeFor } from '../manifests';
 import type { Manifest, ManifestGroup } from '../manifests';
 
-export type NavGroup = 'Foundations' | 'Components' | 'Forms' | 'Brand';
+export type NavGroup = 'Start here' | 'Foundations' | 'Components' | 'Forms' | 'Brand';
 export interface NavItem {
   group: NavGroup;
   label: string;
@@ -14,8 +14,12 @@ export interface NavItem {
 type PageGroup = Exclude<ManifestGroup, 'brand'>;
 const GROUP_LABELS: Record<PageGroup, NavGroup> = { components: 'Components', forms: 'Forms' };
 
-/** Foundations (the guide pages), then one entry per components or forms manifest, then Brand. */
+/** Start here (Overview is the home page), Foundations (the guide pages), then one entry per components or forms manifest, then Brand. */
 export const NAV: readonly NavItem[] = [
+  { group: 'Start here', label: 'Overview', to: '/' },
+  { group: 'Start here', label: 'Getting started', to: '/getting-started' },
+  { group: 'Start here', label: 'Versions', to: '/versions' },
+  { group: 'Start here', label: 'Release notes', to: '/release-notes' },
   { group: 'Foundations', label: 'Tokens', to: '/tokens' },
   { group: 'Foundations', label: 'Typography', to: '/typography' },
   { group: 'Foundations', label: 'Spacing', to: '/spacing' },
@@ -27,7 +31,7 @@ export const NAV: readonly NavItem[] = [
   { group: 'Brand', label: 'Logo', to: '/brand/logo' },
 ];
 
-const GROUPS: readonly NavGroup[] = ['Foundations', 'Components', 'Forms', 'Brand'];
+const GROUPS: readonly NavGroup[] = ['Start here', 'Foundations', 'Components', 'Forms', 'Brand'];
 
 interface SidebarProps {
   items: readonly NavItem[];
@@ -52,7 +56,7 @@ export function Sidebar({ items, open, onNavigate, footer }: SidebarProps) {
               {links.map((item) => (
                 <li key={item.to}>
                   <Link asChild color="neutral" className="gallery-sidebar__link">
-                    <NavLink to={item.to} onClick={onNavigate}>
+                    <NavLink to={item.to} end={item.to === '/'} onClick={onNavigate}>
                       {item.label}
                     </NavLink>
                   </Link>

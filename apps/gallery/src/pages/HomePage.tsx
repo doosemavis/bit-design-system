@@ -1,8 +1,7 @@
-import { BitLogo, Button, Heading, Stack, Text } from '@bit-ds/react';
+import { BitLogo, Button, Heading, Link as BitLink, Stack, Text } from '@bit-ds/react';
 import { Link } from 'react-router-dom';
 import { NAV } from '../shell/Sidebar';
 import { ComponentTiles } from './home/ComponentTiles';
-import { GetStarted } from './home/GetStarted';
 import { NamingRule } from './home/NamingRule';
 
 /** Where "Browse components" goes: the first component in the sidebar, whatever that becomes. */
@@ -33,7 +32,12 @@ export function HomePage() {
       <ComponentTiles />
       <Stack gap={16}>
         <Heading level={2}>Get started</Heading>
-        <GetStarted />
+        <Text>Install the package, add the styles once, and use your first component in five short steps.</Text>
+        <BitLink asChild>
+          <Link to="/getting-started">
+            Get started <span aria-hidden="true">→</span>
+          </Link>
+        </BitLink>
       </Stack>
       <Stack gap={16}>
         <Heading level={2}>The naming rule</Heading>

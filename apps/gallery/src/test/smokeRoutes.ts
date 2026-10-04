@@ -5,6 +5,9 @@
  */
 export const PAGE_ROUTES = [
   ['/', 'bit Design System'],
+  ['/getting-started', 'Getting started'],
+  ['/versions', 'Versions'],
+  ['/release-notes', 'Release notes'],
   ['/tokens', 'Tokens'],
   ['/typography', 'Typography'],
   ['/spacing', 'Spacing'],

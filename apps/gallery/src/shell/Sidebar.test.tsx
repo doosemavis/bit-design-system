@@ -38,7 +38,7 @@ describe('Sidebar', () => {
   });
 
   it('lists Foundations, Components, Forms and Brand, with Forms between Components and Brand', () => {
-    expect(renderSidebar(NAV)).toEqual(['Foundations', 'Components', 'Forms', 'Brand']);
+    expect(renderSidebar(NAV)).toEqual(['Start here', 'Foundations', 'Components', 'Forms', 'Brand']);
     expect(screen.getByRole('link', { name: 'Button' })).toHaveAttribute('href', '/components/button');
   });
 
@@ -55,7 +55,33 @@ describe('Sidebar', () => {
     expect(screen.getByRole('link', { name: 'Spacing' })).toHaveAttribute('href', '/spacing');
   });
 
+  it('Start here comes first, with Overview, Getting started, Versions and Release notes in order', () => {
+    renderSidebar(NAV);
+    expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent('Start here');
+    expect(linksUnder('Start here')).toEqual(['Overview', 'Getting started', 'Versions', 'Release notes']);
+    expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Getting started' })).toHaveAttribute('href', '/getting-started');
+    expect(screen.getByRole('link', { name: 'Versions' })).toHaveAttribute('href', '/versions');
+    expect(screen.getByRole('link', { name: 'Release notes' })).toHaveAttribute('href', '/release-notes');
+  });
+
+  it('Overview is current on / only, not on every page', () => {
+    const { unmount } = render(
+      <MemoryRouter initialEntries={['/']}>
+        <Sidebar items={NAV} open={false} onNavigate={() => {}} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('aria-current', 'page');
+    unmount();
+    render(
+      <MemoryRouter initialEntries={['/tokens']}>
+        <Sidebar items={NAV} open={false} onNavigate={() => {}} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current');
+  });
+
   it('hides a group with no items', () => {
-    expect(renderSidebar(NAV.filter((item) => item.group !== 'Forms'))).toEqual(['Foundations', 'Components', 'Brand']);
+    expect(renderSidebar(NAV.filter((item) => item.group !== 'Forms'))).toEqual(['Start here', 'Foundations', 'Components', 'Brand']);
   });
 });
