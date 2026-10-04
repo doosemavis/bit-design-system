@@ -45,7 +45,8 @@ export const link: Manifest = {
     a11y: [
       'A real <a href>, so Enter follows it and screen readers list it with the other links.',
       'Underlined as well as colored, so it reads as a link without relying on color.',
-      "Inside a solid Alert, a Link takes the Alert's text colour (white on dark colors, or ink on yellow). On hover, the underline thickens to 4px with no highlight. In dark mode, a Link's hover underline turns yellow, except inside a solid Alert where it stays the Alert's text colour.",
+      "Inside a solid Alert, a Link takes the Alert's text color: white, or ink on yellow. On hover, the underline thickens to 4px with no highlight.",
+      "In dark mode, a Link's hover underline turns yellow, except inside a solid Alert, where it stays the Alert's text color.",
     ],
     emptyChildrenError: 'A Link needs text, or screen readers read out the address instead.',
   },
