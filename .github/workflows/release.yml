@@ -363,7 +363,7 @@ jobs:
         run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"
       # `with:` is not a shell, so the path uses runner.temp, not $RUNNER_TEMP. The default retention
       # is 1 day; site-build runs before the publish approval, so keep the site for a slow approval.
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: ${{ runner.temp }}/site
           retention-days: 7
@@ -470,7 +470,7 @@ jobs:
         run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"
       # `with:` is not a shell, so the path uses runner.temp, not $RUNNER_TEMP. The default retention
       # is 1 day; site-build runs before the publish approval, so keep the site for a slow approval.
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: ${{ runner.temp }}/site
           retention-days: 7
