@@ -11,15 +11,13 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SITE_BASE, isRelease, isVersionsFile, lineOf, newestPerLine, pathForLine } from '../apps/gallery/src/content/versionLines.mjs';
-import { REPO_ROOT, buildVersionsFile, readRepoInputs, writeVersionsFile } from './versions.mjs';
+import { REPO_ROOT, buildVersionsFile, readRepoInputs, stripV, writeVersionsFile } from './versions.mjs';
 
 export const BANNER_FILE = 'version-banner.js';
 export const BANNER_TAG = `<script src="${SITE_BASE}${BANNER_FILE}" defer></script>`;
 
 // The folder under the site root that pathForLine gives a line: '' for the latest, 'v0.1' otherwise.
 const outDirFor = (line, latestLine) => pathForLine(line, latestLine).slice(SITE_BASE.length).replace(/\/$/, '');
-
-const stripV = (tag) => tag.replace(/^v/, '');
 
 /**
  * Which copies the site needs. The latest line (tags plus the current version) is the root.

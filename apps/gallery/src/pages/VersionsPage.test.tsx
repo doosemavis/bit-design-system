@@ -7,17 +7,19 @@ import { expectNoA11yViolations } from '../test/a11y';
 import pkg from '../../../../packages/react/package.json';
 
 vi.mock('../buildVersion', () => ({ BUILD_VERSION: '0.1.0' }));
-vi.mock('../content/changelog', () => ({
-  RELEASES: [
-    { version: '0.3.0', date: '2026-12-01', sections: { Breaking: ['`Button` lost `size`.', 'Second.'], Added: ['x'] } },
-    { version: '0.2.0', date: '2026-11-01', sections: { Added: ['y'] } },
-    { version: '0.1.0', date: '2026-10-04', sections: { Breaking: ['Old one.'] } },
-  ],
-}));
 
 const entry = (line: string, version: string, react: string) => ({ line, version, date: '2026-10-04', path: line === '0.3' ? '/bit-design-system/' : `/bit-design-system/v${line}/`, react, reactDom: react });
 const ok = (body: unknown) => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
-const FILE = { latest: '0.3', lines: [entry('0.3', '0.3.0', '^19.1.0'), entry('0.2', '0.2.0', '^19.0.0'), entry('0.1', '0.1.0', '^18.3.0')] };
+// The breaking items travel in versions.json (written at deploy from the current CHANGELOG), not in
+// this copy's bundled CHANGELOG, which stops at its own tag.
+const FILE = {
+  latest: '0.3',
+  lines: [
+    { ...entry('0.3', '0.3.1', '^19.1.0'), breaking: [{ version: '0.3.1', items: ['Newest.'] }, { version: '0.3.0', items: ['`Button` lost `size`.', 'Second.'] }] },
+    entry('0.2', '0.2.0', '^19.0.0'),
+    { ...entry('0.1', '0.1.0', '^18.3.0'), breaking: [{ version: '0.1.0', items: ['Old one.'] }] },
+  ],
+};
 
 /** Serves the page from `pathname` (jsdom's own '/' is outside the site, which counts as the root). */
 const at = (pathname: string) => vi.stubGlobal('location', { ...window.location, pathname, hash: '' });
@@ -33,7 +35,7 @@ describe('VersionsPage', () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(FILE)));
     render(<VersionsPage />);
     expect(await screen.findByRole('table', { name: 'Versions' })).toBeInTheDocument();
-    await screen.findByText('v0.3.0');
+    await screen.findByText('v0.3.1');
     expect(screen.getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['bit', 'React', 'react-dom', 'Status']);
     const rows = screen.getAllByRole('row').slice(1);
     expect(rows).toHaveLength(3);
@@ -63,7 +65,7 @@ describe('VersionsPage', () => {
     errors.mockRestore();
   });
 
-  it('shows a warning outline Alert for each newer release with Breaking, not older ones', async () => {
+  it('shows a warning outline Alert for each newer release with Breaking in versions.json, newest first, not this line\'s', async () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(FILE)));
     render(<VersionsPage />);
     const alert = await screen.findByText('Breaking changes in 0.3.0');
@@ -71,8 +73,23 @@ describe('VersionsPage', () => {
     expect(box).toHaveClass('bit-warning', 'bit-outline');
     expect(box.textContent).toContain('Second.');
     expect(box.querySelector('code')?.textContent).toBe('Button');
-    expect(screen.queryByText('Breaking changes in 0.2.0')).toBeNull();
-    expect(screen.queryByText('Breaking changes in 0.1.0')).toBeNull();
+    const titles = screen.getAllByText(/^Breaking changes in /).map((t) => t.textContent);
+    expect(titles).toEqual(['Breaking changes in 0.3.1', 'Breaking changes in 0.3.0']);
+  });
+
+  it('shows no breaking box on the latest copy, even when its own line has Breaking items', async () => {
+    at('/bit-design-system/');
+    vi.stubGlobal('fetch', vi.fn(() => ok(FILE)));
+    render(<VersionsPage />);
+    await screen.findByText('v0.3.1');
+    expect(screen.queryByText(/Breaking changes in/)).toBeNull();
+  });
+
+  it('shows no breaking box when the newer lines carry no breaking list', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => ok({ ...FILE, lines: FILE.lines.map((line) => ({ ...line, breaking: undefined })) })));
+    render(<VersionsPage />);
+    await screen.findByText('v0.3.1');
+    expect(screen.queryByText(/Breaking changes/)).toBeNull();
   });
 
   it('shows one row for the current build, with the package peers, when versions.json is unavailable', async () => {

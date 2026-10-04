@@ -14,10 +14,18 @@ export const lineOf = (version) => {
   return major === 0 ? `0.${minor}` : String(major);
 };
 
-const compare = (a, b) => {
+/** Orders releases numerically: negative when `a` is older than `b` ('0.1.9' < '0.1.10' < '0.2.0'). */
+export const compareVersions = (a, b) => {
   const [pa, pb] = [parts(a), parts(b)];
   return pa[0] - pb[0] || pa[1] - pb[1] || pa[2] - pb[2];
 };
+
+/**
+ * A CHANGELOG release heading, `## X.Y.Z — YYYY-MM-DD` (an em dash or a hyphen). Groups: version, date.
+ * Callers trimEnd() the line first, so trailing spaces are not an error. Shared by
+ * apps/gallery/src/content/changelog.ts and scripts/versions.mjs.
+ */
+export const CHANGELOG_HEADING = /^## (\d+\.\d+\.\d+) (?:—|-) (\d{4}-\d{2}-\d{2})$/;
 
 export const pathForLine = (line, latestLine) => (line === latestLine ? SITE_BASE : `${SITE_BASE}v${line}/`);
 
@@ -26,9 +34,9 @@ export const newestPerLine = (versions) => {
   for (const version of versions.filter(isRelease)) {
     const line = lineOf(version);
     const held = newest.get(line);
-    if (held === undefined || compare(version, held) > 0) newest.set(line, version);
+    if (held === undefined || compareVersions(version, held) > 0) newest.set(line, version);
   }
-  return [...newest.values()].sort((a, b) => compare(b, a)).map((version) => ({ line: lineOf(version), version }));
+  return [...newest.values()].sort((a, b) => compareVersions(b, a)).map((version) => ({ line: lineOf(version), version }));
 };
 
 const lineParts = (line) => {
@@ -50,8 +58,15 @@ const SITE_PATH = /^\/bit-design-system\/(v[0-9][0-9.]*\/)?$/;
 
 const isRecord = (value) => typeof value === 'object' && value !== null && !Array.isArray(value);
 
+const isStringList = (value) => Array.isArray(value) && value.every((item) => typeof item === 'string');
+
+/** Optional on an entry: the releases in its line with Breaking items, `{ version, items }`. */
+const isBreakingList = (value) =>
+  value === undefined || (Array.isArray(value) && value.every((b) => isRecord(b) && isRelease(b.version) && isStringList(b.items)));
+
 const isEntry = (entry) =>
   isRecord(entry) &&
+  isBreakingList(entry.breaking) &&
   typeof entry.line === 'string' &&
   LINE.test(entry.line) &&
   isRelease(entry.version) &&

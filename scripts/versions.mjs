@@ -1,14 +1,27 @@
 // Builds versions.json: one entry per release line, each at that line's newest patch.
 // buildVersionsFile is pure (I/O injected); the CLI below wires in git and CHANGELOG.md.
+// Each entry also carries its line's Breaking items, read from the current CHANGELOG at deploy
+// time, so a frozen copy (whose own CHANGELOG stops at its tag) can still warn about newer lines.
 //   node scripts/versions.mjs --out apps/gallery/public/versions.json [--as-older <tag>]
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isRelease, lineOf, newestPerLine, pathForLine } from '../apps/gallery/src/content/versionLines.mjs';
+import { CHANGELOG_HEADING, compareVersions, isRelease, lineOf, newestPerLine, pathForLine } from '../apps/gallery/src/content/versionLines.mjs';
 
-const entryFor = ({ line, version }, { latestLine, readPackageJson, changelogDates }) => {
+/** 'v0.1.0' → '0.1.0'. The one copy; build-versioned-site.mjs imports it. */
+export const stripV = (tag) => tag.replace(/^v/, '');
+
+/** The releases in `line`, up to `version`, that have Breaking items: newest first. */
+const breakingFor = (line, version, breakingByVersion) =>
+  Object.entries(breakingByVersion)
+    .filter(([v, items]) => isRelease(v) && lineOf(v) === line && compareVersions(v, version) <= 0 && items.length > 0)
+    .sort(([a], [b]) => compareVersions(b, a))
+    .map(([v, items]) => ({ version: v, items }));
+
+const entryFor = ({ line, version }, { latestLine, readPackageJson, changelogDates, breakingByVersion }) => {
   const peers = readPackageJson(`v${version}`)?.peerDependencies ?? {};
+  const breaking = breakingFor(line, version, breakingByVersion);
   return {
     line,
     version,
@@ -16,20 +29,21 @@ const entryFor = ({ line, version }, { latestLine, readPackageJson, changelogDat
     path: pathForLine(line, latestLine),
     react: peers.react ?? '',
     reactDom: peers['react-dom'] ?? '',
+    ...(breaking.length > 0 ? { breaking } : {}),
   };
 };
 
-export const buildVersionsFile = ({ tags, current, readPackageJson, changelogDates = {}, asOlder }) => {
+export const buildVersionsFile = ({ tags, current, readPackageJson, changelogDates = {}, breakingByVersion = {}, asOlder }) => {
   // `current` may be older than the newest tag (a stale branch); it then forms its own
   // line entry like any other release, and the newest tag still wins the root.
-  const versions = [...tags.map((t) => t.replace(/^v/, '')), ...(current ? [current] : [])].filter(isRelease);
+  const versions = [...tags.map(stripV), ...(current ? [current] : [])].filter(isRelease);
   const chosen = newestPerLine(versions);
   if (chosen.length === 0) throw new Error('versions.json: no release tags found');
   const latestLine = chosen[0].line;
-  const ctx = { latestLine, readPackageJson, changelogDates };
+  const ctx = { latestLine, readPackageJson, changelogDates, breakingByVersion };
   const lines = chosen.map((c) => entryFor(c, ctx));
   if (asOlder !== undefined) {
-    const older = asOlder.replace(/^v/, '');
+    const older = stripV(asOlder);
     if (!isRelease(older)) throw new Error(`--as-older: not a release tag "${asOlder}"`);
     // asOlder only exists to exercise archiving when no real older line does (production never
     // passes it): a real entry that already owns this path wins and the extra entry is skipped.
@@ -41,16 +55,40 @@ export const buildVersionsFile = ({ tags, current, readPackageJson, changelogDat
   return { latest: latestLine, lines };
 };
 
-export const parseChangelogDates = (text) =>
-  Object.fromEntries([...text.matchAll(/^##\s+\[?(\d+\.\d+\.\d+)\]?\s+[—–-]\s+(\d{4}-\d{2}-\d{2})/gm)].map((m) => [m[1], m[2]]));
+/**
+ * One pass over CHANGELOG.md: each release's date and its Breaking bullets. Headings use the
+ * gallery's CHANGELOG_HEADING; one that doesn't match (an undated draft) is skipped here, and the
+ * gallery's changelog tests reject it in CI.
+ */
+export const parseChangelog = (text) => {
+  const dates = {};
+  const breakingByVersion = {};
+  let version = null;
+  let inBreaking = false;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trimEnd();
+    if (line.startsWith('## ')) {
+      const m = CHANGELOG_HEADING.exec(line);
+      version = m ? m[1] : null;
+      if (m) dates[m[1]] = m[2];
+      inBreaking = false;
+    } else if (line.startsWith('### ')) {
+      inBreaking = line.slice(4).trim() === 'Breaking';
+    } else if (line.startsWith('- ') && version && inBreaking) {
+      breakingByVersion[version] = [...(breakingByVersion[version] ?? []), line.slice(2).trim()];
+    }
+  }
+  return { dates, breakingByVersion };
+};
 
 export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-// Reads what buildVersionsFile needs from a checkout: the v* tags, the package's current
-// version, each tag's packages/react/package.json (via `git show`) and the CHANGELOG dates.
+// Reads what buildVersionsFile needs from a checkout: the v* tags reachable from HEAD (as the
+// docs-check job lists them), the package's current version, each tag's
+// packages/react/package.json (via `git show`), and the CHANGELOG's dates and Breaking items.
 export const readRepoInputs = (root = REPO_ROOT) => {
   const git = (...a) => execFileSync('git', a, { cwd: root, encoding: 'utf8' });
-  const tags = git('tag', '--list', 'v*').split('\n').filter(Boolean);
+  const tags = git('tag', '--list', 'v*', '--merged', 'HEAD').split('\n').filter(Boolean);
   const current = JSON.parse(readFileSync(join(root, 'packages/react/package.json'), 'utf8')).version;
   const readFromTag = (tag) => {
     try {
@@ -60,6 +98,7 @@ export const readRepoInputs = (root = REPO_ROOT) => {
     }
   };
   const changelog = join(root, 'CHANGELOG.md');
+  const { dates, breakingByVersion } = existsSync(changelog) ? parseChangelog(readFileSync(changelog, 'utf8')) : { dates: {}, breakingByVersion: {} };
   return {
     tags,
     current,
@@ -67,7 +106,8 @@ export const readRepoInputs = (root = REPO_ROOT) => {
       tag === `v${current}` && !tags.includes(tag)
         ? JSON.parse(readFileSync(join(root, 'packages/react/package.json'), 'utf8'))
         : readFromTag(tag),
-    changelogDates: existsSync(changelog) ? parseChangelogDates(readFileSync(changelog, 'utf8')) : {},
+    changelogDates: dates,
+    breakingByVersion,
   };
 };
 

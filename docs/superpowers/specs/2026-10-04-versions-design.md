@@ -53,15 +53,17 @@ Example, once 0.2.0 exists:
 ```json
 { "latest": "0.2",
   "lines": [
-    { "line": "0.2", "version": "0.2.0", "date": "2026-11-XX", "path": "/bit-design-system/",      "react": "^19.0.0", "reactDom": "^19.0.0" },
+    { "line": "0.2", "version": "0.2.0", "date": "2026-11-XX", "path": "/bit-design-system/",      "react": "^19.0.0", "reactDom": "^19.0.0",
+      "breaking": [ { "version": "0.2.0", "items": ["`Button` drops the `size` prop."] } ] },
     { "line": "0.1", "version": "0.1.3", "date": "2026-10-XX", "path": "/bit-design-system/v0.1/", "react": "^19.0.0", "reactDom": "^19.0.0" } ] }
 ```
+- `breaking` is optional: the releases in that line with CHANGELOG `Breaking` items, newest first, read from the **current** CHANGELOG at deploy. It's left out when there are none. An archived copy's own CHANGELOG stops at its tag, so the Versions page reads newer lines' breaking changes from here.
 - The latest line is served at the root. Older lines are served at `/bit-design-system/v<line>/`, which keeps the URL stable when a line gets another patch.
 - Right after 0.1.1 ships there is **one** line, `0.1` (latest). That's expected: 0.1.0 and 0.1.1 share a line.
 - **`scripts/versions.mjs`** is pure and has node tests. It builds this file from:
-  - the `v*` tags (`git tag --list 'v*' --sort=-v:refname`), grouped into lines by `lineOf(version)`: `0.x.y → "0.x"`, `n.x.y → "n"` for n ≥ 1, keeping the newest patch per line
+  - the `v*` tags reachable from HEAD (`git tag --list 'v*' --merged HEAD`), grouped into lines by `lineOf(version)`: `0.x.y → "0.x"`, `n.x.y → "n"` for n ≥ 1, keeping the newest patch per line
   - each chosen tag's `packages/react/package.json`, read with `git show <tag>:…`, for `peerDependencies.react` and `['react-dom']`
-  - the dates in the CHANGELOG
+  - the dates and `Breaking` items in the current CHANGELOG, parsed once with the gallery's shared `CHANGELOG_HEADING`
 - Unit tests cover:
   - grouping (`0.1.0, 0.1.1, 0.2.0 → 0.2, 0.1(=0.1.1)`)
   - the 1.0 boundary (`0.9.4, 1.0.0, 1.2.3, 2.0.0 → 2, 1(=1.2.3), 0.9(=0.9.4)`)
@@ -126,7 +128,7 @@ The `deploy` job in `release.yml` changes to these steps:
   - a bit `Table` with columns bit / React / react-dom / Status
   - Status is a Badge: "Latest", "Viewing", or none
   - rows come from `versions.json`; if it's unavailable, the table falls back to the current build only
-  - when viewing an older version, a warning outline `Alert` appears for each newer release that has a CHANGELOG `Breaking` section
+  - when viewing an older version, a warning outline `Alert` appears for each newer release that has a CHANGELOG `Breaking` section, read from the newer lines' `breaking` lists in `versions.json` (§1.2)
 - **Release notes:**
   - releases from `parseChangelog`, newest first
   - each shows a `Heading` (version), a date `Badge`, and a list per section

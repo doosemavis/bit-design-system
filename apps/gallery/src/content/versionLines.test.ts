@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compareLines, isRelease, isVersionsFile, lineOf, newestPerLine, ownPathOf, pathForLine, SITE_BASE } from './versionLines.mjs';
+import { CHANGELOG_HEADING, compareLines, compareVersions, isRelease, isVersionsFile, lineOf, newestPerLine, ownPathOf, pathForLine, SITE_BASE } from './versionLines.mjs';
 
 describe('release lines', () => {
   it.each([['0.1.0', '0.1'], ['0.1.13', '0.1'], ['0.10.2', '0.10'], ['1.0.0', '1'], ['1.4.9', '1'], ['2.0.0', '2']])('lineOf(%s) is %s', (v, l) =>
@@ -36,6 +36,29 @@ describe('compareLines', () => {
   });
 });
 
+describe('compareVersions', () => {
+  it('orders numerically by major, minor, then patch', () => {
+    expect(compareVersions('0.1.9', '0.1.10')).toBeLessThan(0);
+    expect(compareVersions('0.10.0', '0.9.9')).toBeGreaterThan(0);
+    expect(compareVersions('1.0.0', '0.99.99')).toBeGreaterThan(0);
+    expect(compareVersions('2.3.4', '2.3.4')).toBe(0);
+  });
+  it('sorts newest first as a comparator', () => {
+    expect(['0.1.0', '0.10.0', '0.2.1', '1.0.0'].sort((a, b) => compareVersions(b, a))).toEqual(['1.0.0', '0.10.0', '0.2.1', '0.1.0']);
+  });
+});
+
+describe('CHANGELOG_HEADING', () => {
+  it.each([['## 0.1.0 — 2026-10-04'], ['## 0.1.0 - 2026-10-04'], ['## 12.30.4 — 2027-01-31']])('matches %s', (line) => {
+    const m = CHANGELOG_HEADING.exec(line);
+    expect(m?.slice(1, 3)).toEqual([line.split(' ')[1], line.split(' ')[3]]);
+  });
+  it.each([['## 0.1.0 – 2026-10-04'], ['## [0.1.0] — 2026-10-04'], ['## 0.1.0 — 2026-10-XX'], ['## 0.1.0'], ['## next'], ['## 0.1.0-rc.1 — 2026-10-04'], ['### 0.1.0 — 2026-10-04']])(
+    'does not match %s',
+    (line) => expect(CHANGELOG_HEADING.test(line)).toBe(false),
+  );
+});
+
 // The one contract for versions.json: scripts/versions.mjs writes it, build-versioned-site.mjs checks
 // it, and the gallery reads it. `latest` is a line ('0.2'), the same as the root entry's line.
 const entry = (line: string, version: string, path: string) => ({ line, version, date: '2026-10-04', path, react: '^19.0.0', reactDom: '^19.0.0' });
@@ -46,6 +69,18 @@ describe('isVersionsFile', () => {
   it('accepts the as-older rehearsal: two entries on one line, at different paths', () =>
     expect(isVersionsFile({ latest: '0.1', lines: [entry('0.1', '0.1.0', SITE_BASE), entry('0.1', '0.1.0', '/bit-design-system/v0.1/')] })).toBe(true));
   it('accepts major lines', () => expect(isVersionsFile({ latest: '1', lines: [entry('1', '1.2.3', SITE_BASE), entry('0.9', '0.9.4', '/bit-design-system/v0.9/')] })).toBe(true));
+  it('accepts an entry with a breaking list', () =>
+    expect(isVersionsFile({ ...GOOD, lines: [{ ...GOOD.lines[0], breaking: [{ version: '0.2.0', items: ['`Button` lost `size`.'] }] }, GOOD.lines[1]] })).toBe(true));
+  const withBreaking = (breaking: unknown) => ({ ...GOOD, lines: [{ ...GOOD.lines[0], breaking }, GOOD.lines[1]] });
+  it.each([
+    ['breaking that is not an array', withBreaking({ version: '0.2.0', items: [] })],
+    ['a null breaking item', withBreaking([null])],
+    ['a breaking item with a pre-release version', withBreaking([{ version: '0.2.0-rc.1', items: ['x'] }])],
+    ['a breaking item without a version', withBreaking([{ items: ['x'] }])],
+    ['breaking items that are not an array', withBreaking([{ version: '0.2.0', items: 'x' }])],
+    ['a breaking item that is not a string', withBreaking([{ version: '0.2.0', items: ['x', 7] }])],
+    ['a null breaking', withBreaking(null)],
+  ])('rejects %s', (_name, value) => expect(isVersionsFile(value)).toBe(false));
   it.each([
     ['null', null],
     ['an array', [GOOD]],

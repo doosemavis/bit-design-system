@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildVersionsFile, parseChangelogDates } from './versions.mjs';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { isVersionsFile } from '../apps/gallery/src/content/versionLines.mjs';
+import { buildVersionsFile, parseChangelog, readRepoInputs, stripV, writeVersionsFile } from './versions.mjs';
 
 const readPackageJson = () => ({ peerDependencies: { react: '^19.0.0', 'react-dom': '^19.0.0' } });
 
@@ -88,7 +93,89 @@ test('no tags, current only: one root entry', () => {
   assert.deepEqual(file.lines.map((l) => [l.line, l.version, l.path]), [['0.1', '0.1.0', '/bit-design-system/']]);
 });
 
-test('parseChangelogDates reads dated headings and skips undated ones', () => {
-  const text = '# Changelog\n\n## 0.1.1 — 2026-10-XX\n\n## [0.1.0] - 2026-10-04\n\n## 0.0.9 – 2026-09-01\n';
-  assert.deepEqual(parseChangelogDates(text), { '0.1.0': '2026-10-04', '0.0.9': '2026-09-01' });
+test('parseChangelog reads dated headings (em dash or hyphen, trailing spaces ok) and skips others', () => {
+  const text = '# Changelog\n\n## 0.1.1 — 2026-10-XX\n\n## 0.1.0 - 2026-10-04  \r\n\n## [0.0.9] — 2026-09-01\n\n## 0.0.8 — 2026-08-01\n';
+  assert.deepEqual(parseChangelog(text).dates, { '0.1.0': '2026-10-04', '0.0.8': '2026-08-01' });
+});
+
+test('parseChangelog collects each release\'s Breaking items, and only those', () => {
+  const text = [
+    '# Changelog',
+    '## 0.2.0 — 2026-11-01',
+    '### Breaking',
+    '- `Button` lost `size`.',
+    '- Second. ',
+    '### Added',
+    '- Not breaking.',
+    '## 0.1.1 — 2026-10-10',
+    '### Fixed',
+    '- A fix.',
+    '## 0.1.0 — 2026-10-04',
+    '### Breaking',
+    '- Old one.',
+  ].join('\n');
+  assert.deepEqual(parseChangelog(text).breakingByVersion, { '0.2.0': ['`Button` lost `size`.', 'Second.'], '0.1.0': ['Old one.'] });
+});
+
+test('stripV drops one leading v', () => {
+  assert.equal(stripV('v0.1.0'), '0.1.0');
+  assert.equal(stripV('0.1.0'), '0.1.0');
+});
+
+test('each line entry lists its releases with Breaking items, newest first, and omits the field when none', () => {
+  const file = buildVersionsFile({
+    tags: ['v0.1.0', 'v0.1.1', 'v0.2.0', 'v0.2.1', 'v0.2.2'],
+    readPackageJson,
+    breakingByVersion: { '0.2.0': ['A.'], '0.2.2': ['B.', 'C.'], '0.2.1': [], '0.1.1': [] },
+  });
+  assert.deepEqual(file.lines[0].breaking, [
+    { version: '0.2.2', items: ['B.', 'C.'] },
+    { version: '0.2.0', items: ['A.'] },
+  ]);
+  assert.equal('breaking' in file.lines[1], false, 'no Breaking items in 0.1: no field');
+  assert.equal(isVersionsFile(file), true);
+});
+
+test('a line entry lists only releases up to its own version (a CHANGELOG entry ahead of the tags is not shown)', () => {
+  const file = buildVersionsFile({ tags: ['v0.2.0'], readPackageJson, breakingByVersion: { '0.2.0': ['A.'], '0.2.1': ['Unreleased.'], 'next': ['x'] } });
+  assert.deepEqual(file.lines[0].breaking, [{ version: '0.2.0', items: ['A.'] }]);
+});
+
+// A real (temporary) git repository: tags, package.json at each tag, and the CHANGELOG at HEAD.
+const git = (cwd, ...args) => execFileSync('git', ['-c', 'commit.gpgsign=false', '-c', 'tag.gpgsign=false', ...args], { cwd, stdio: 'pipe' });
+const commitRelease = (dir, version, changelog) => {
+  writeFileSync(join(dir, 'packages/react/package.json'), JSON.stringify({ version, peerDependencies: { react: '^19.0.0', 'react-dom': '^19.0.0' } }));
+  writeFileSync(join(dir, 'CHANGELOG.md'), changelog);
+  git(dir, 'add', '-A');
+  git(dir, 'commit', '-qm', `release ${version}`);
+  git(dir, 'tag', `v${version}`);
+};
+
+test('readRepoInputs: a Breaking section in a newer line reaches versions.json; unmerged tags are ignored', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'bit-versions-repo-'));
+  try {
+    git(dir, 'init', '-q', '-b', 'main');
+    git(dir, 'config', 'user.email', 'test@example.com');
+    git(dir, 'config', 'user.name', 'test');
+    mkdirSync(join(dir, 'packages/react'), { recursive: true });
+    commitRelease(dir, '0.1.0', '# Changelog\n\n## 0.1.0 — 2026-10-04\n### Added\n- First.\n');
+    // A tag on a branch that never reached HEAD: `--merged HEAD` must leave it out.
+    git(dir, 'checkout', '-qb', 'side');
+    commitRelease(dir, '0.9.0', '# Changelog\n\n## 0.9.0 — 2026-12-01\n');
+    git(dir, 'checkout', '-q', 'main');
+    commitRelease(dir, '0.2.0', '# Changelog\n\n## 0.2.0 — 2026-11-01\n### Breaking\n- `Button` lost `size`.\n\n## 0.1.0 — 2026-10-04\n### Added\n- First.\n');
+
+    const inputs = readRepoInputs(dir);
+    assert.deepEqual([...inputs.tags].sort(), ['v0.1.0', 'v0.2.0']);
+    const out = join(dir, 'out/versions.json');
+    writeVersionsFile(out, buildVersionsFile(inputs));
+    const file = JSON.parse(readFileSync(out, 'utf8'));
+    assert.equal(isVersionsFile(file), true);
+    assert.deepEqual(file.lines.map((l) => [l.line, l.date, l.breaking]), [
+      ['0.2', '2026-11-01', [{ version: '0.2.0', items: ['`Button` lost `size`.'] }]],
+      ['0.1', '2026-10-04', undefined],
+    ]);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
