@@ -39,4 +39,10 @@ describe('components/select.css', () => {
     expect(block(css, '.bit-select__control:disabled')).toContain('cursor: not-allowed;');
     expect(block(css, '.bit-select:has(.bit-select__control:disabled)::after')).toContain('opacity: 0.5;');
   });
+
+  it('in forced colours an invalid field gets a 10px start edge, since the red border is gone (Q2-A)', () => {
+    expect(css).toMatch(
+      /@media \(forced-colors: active\) \{[^@]*\.bit-select__control\[aria-invalid="true"\] \{\s*border-inline-start-width: 10px;\s*\}/,
+    );
+  });
 });

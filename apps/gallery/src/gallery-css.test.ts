@@ -3,6 +3,8 @@
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { describe, it, expect } from 'vitest';
+import { checkCss } from './cssGuard';
+import { GALLERY_CSS_EXCEPTIONS } from './gallery-css.exceptions';
 
 const require = createRequire(import.meta.url);
 /** The theme exactly as consumers get it, through @bit-ds/react's exports map (run `pnpm build` first). */
@@ -73,9 +75,8 @@ describe('gallery.css', () => {
     );
   });
 
-  it('never hardcodes a font stack: mono labels read --bit-font-mono', () => {
+  it('never hardcodes a font stack', () => {
     expect(galleryCss).not.toMatch(/monospace/);
-    expect(galleryCss).toMatch(/\.gallery-control__label\s*\{[^}]*font-family: var\(--bit-font-mono\);/);
   });
 
   it('every face sample is one height and sits on its floor, so the token chips line up across the cards', () => {
@@ -159,4 +160,19 @@ describe('gallery.css', () => {
       /@media \(max-width: 389px\) \{\s*\.gallery-header__brand \.bit-logo__caption \{\s*display: none;\s*\}\s*\}/,
     );
   });
+
+  it('the sidebar link paint outranks bit Link hover and visited, so an active link stays readable', () => {
+    expect(galleryCss).toMatch(/\.gallery-sidebar__link\.bit-link[^{,]*\[aria-current="page"\]:hover/);
+    expect(galleryCss).toMatch(/\.gallery-sidebar__link\.bit-link[^{,]*\[aria-current="page"\]:visited/);
+    expect(galleryCss).toMatch(/\.gallery-sidebar__link\.bit-link[^{,]*:hover \{/);
+    // No bare .gallery-sidebar__link rule is left to lose to bit Link on specificity.
+    expect(galleryCss).not.toMatch(/\.gallery-sidebar__link(\[aria-current="page"\]|:hover)?\s*[{,]/);
+  });
+});
+
+describe('gallery.css is layout only, apart from the documented exceptions', () => {
+  const result = checkCss(galleryCss, GALLERY_CSS_EXCEPTIONS);
+  it('every paint declaration has an exception', () => expect(result.unlisted).toEqual([]));
+  it('no exception is stale', () => expect(result.stale).toEqual([]));
+  it('every exception says why', () => expect(result.unexplained).toEqual([]));
 });

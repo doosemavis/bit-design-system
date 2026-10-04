@@ -1,4 +1,4 @@
-import { Button, Heading } from '@bit-ds/react';
+import { Button, Field, Heading, Input, Select, Switch } from '@bit-ds/react';
 import type { Control, ControlState, ControlValue, Manifest } from '../manifests/types';
 
 interface ControlsPanelProps {
@@ -8,7 +8,7 @@ interface ControlsPanelProps {
   onReset: () => void;
 }
 
-interface FieldProps {
+interface ControlFieldProps {
   control: Control;
   value: ControlValue | undefined;
   onChange: (prop: string, value: ControlValue) => void;
@@ -17,21 +17,16 @@ interface FieldProps {
 }
 
 /** One form control per manifest entry. Labels are the prop names so the panel doubles as API docs. */
-function Field({ control, value, onChange, error }: FieldProps) {
+function ControlField({ control, value, onChange, error }: ControlFieldProps) {
   const label = ('label' in control && control.label) || control.prop;
-  const id = `control-${control.prop}`;
 
   switch (control.kind) {
     case 'axis':
     case 'select':
       return (
-        <div className="gallery-control">
-          <label className="gallery-control__label" htmlFor={id}>
-            {label}
-          </label>
-          <select
-            id={id}
-            className="gallery-control__select"
+        <Field label={label}>
+          <Select
+            size="sm"
             value={String(value ?? control.default)}
             onChange={(event) => onChange(control.prop, event.target.value)}
           >
@@ -40,39 +35,22 @@ function Field({ control, value, onChange, error }: FieldProps) {
                 {v}
               </option>
             ))}
-          </select>
-        </div>
+          </Select>
+        </Field>
       );
-    case 'boolean': {
-      const checked = value === true;
+    case 'boolean':
       return (
         <div className="gallery-control">
-          <span className="gallery-control__label" id={`${id}-label`}>
+          <Switch size="sm" checked={value === true} onChange={(event) => onChange(control.prop, event.target.checked)}>
             {label}
-          </span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={checked}
-            aria-labelledby={`${id}-label`}
-            className="gallery-switch"
-            data-on={checked ? '' : undefined}
-            onClick={() => onChange(control.prop, !checked)}
-          >
-            <span className="gallery-switch__knob" aria-hidden="true" />
-          </button>
+          </Switch>
         </div>
       );
-    }
     case 'number':
       return (
-        <div className="gallery-control">
-          <label className="gallery-control__label" htmlFor={id}>
-            {label}
-          </label>
-          <input
-            id={id}
-            className="gallery-control__input"
+        <Field label={label}>
+          <Input
+            size="sm"
             type="number"
             min={control.min}
             max={control.max}
@@ -80,33 +58,19 @@ function Field({ control, value, onChange, error }: FieldProps) {
             value={String(value ?? control.default)}
             onChange={(event) => onChange(control.prop, event.target.value)}
           />
-        </div>
+        </Field>
       );
-    case 'text': {
-      const errorId = `${id}-error`;
+    case 'text':
       return (
-        <div className="gallery-control">
-          <label className="gallery-control__label" htmlFor={id}>
-            {label}
-          </label>
-          <input
-            id={id}
-            className="gallery-control__input"
+        <Field label={label} error={error}>
+          <Input
+            size="sm"
             type="text"
             value={String(value ?? control.default)}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? errorId : undefined}
             onChange={(event) => onChange(control.prop, event.target.value)}
           />
-          {error ? (
-            <p className="gallery-control__error" id={errorId}>
-              <span aria-hidden="true">⚠ </span>
-              {error}
-            </p>
-          ) : null}
-        </div>
+        </Field>
       );
-    }
   }
 }
 
@@ -127,10 +91,10 @@ export function ControlsPanel({ manifest, state, onChange, onReset }: ControlsPa
       </div>
       <div className="gallery-controls__grid">
         {manifest.controls.map((control) => (
-          <Field key={control.prop} control={control} value={state[control.prop]} onChange={onChange} />
+          <ControlField key={control.prop} control={control} value={state[control.prop]} onChange={onChange} />
         ))}
         {childrenControl ? (
-          <Field control={childrenControl} value={state.children} onChange={onChange} error={childrenError} />
+          <ControlField control={childrenControl} value={state.children} onChange={onChange} error={childrenError} />
         ) : null}
       </div>
     </section>

@@ -61,18 +61,6 @@
   background: var(--bit-color-danger);
 }
 
-.bit-code__status {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
-
 .bit-code__pre {
   margin: 0;
   padding: var(--bit-space-12px) var(--bit-space-16px);

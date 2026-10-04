@@ -67,3 +67,4 @@ body {
 :is(h1, h2, h3, h4, h5, h6, main, section)[tabindex="-1"]:focus {
   outline: none;
 }
+

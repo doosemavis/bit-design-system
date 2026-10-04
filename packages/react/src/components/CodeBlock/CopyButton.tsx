@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { element } from '../../system/toClasses';
+import { announce } from '../../system/announce';
 
 type CopyState = 'idle' | 'copied' | 'failed';
 
@@ -18,8 +19,8 @@ async function writeClipboard(text: string): Promise<boolean> {
   }
 }
 
-/** CodeBlock's Copy button and the visually hidden status line that announces the result. Internal. */
-export function CopyButton({ code }: { code: string }) {
+/** CodeBlock's Copy button. It says the result through announce(). `name` is what is copied. Internal. */
+export function CopyButton({ code, name }: { code: string; name: string }) {
   const [state, setState] = useState<CopyState>('idle');
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const mounted = useRef(false);
@@ -37,18 +38,21 @@ export function CopyButton({ code }: { code: string }) {
     // Unmounted while the clipboard was busy: start no timer that would outlive the component.
     if (!mounted.current) return;
     clearTimeout(timer.current);
-    setState(ok ? 'copied' : 'failed');
+    const next = ok ? 'copied' : 'failed';
+    setState(next);
+    announce(LABELS[next]);
     timer.current = setTimeout(() => setState('idle'), COPY_RESET_MS);
   }
 
   return (
-    <>
-      <button type="button" className={element('code', 'copy')} data-state={state} onClick={() => void copy()}>
-        {LABELS[state]}
-      </button>
-      <span className={element('code', 'status')} aria-live="polite">
-        {state === 'idle' ? '' : LABELS[state]}
-      </span>
-    </>
+    <button
+      type="button"
+      className={element('code', 'copy')}
+      data-state={state}
+      aria-label={state === 'idle' ? `Copy ${name}` : undefined}
+      onClick={() => void copy()}
+    >
+      {LABELS[state]}
+    </button>
   );
 }

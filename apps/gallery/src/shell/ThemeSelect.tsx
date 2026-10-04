@@ -1,3 +1,4 @@
+import { Field, Select } from '@bit-ds/react';
 import { useEffect, useState } from 'react';
 import { DEFAULT_THEME, THEMES } from './themes';
 import type { Theme } from './themes';
@@ -6,7 +7,7 @@ function isTheme(value: string): value is Theme {
   return (THEMES as readonly string[]).includes(value);
 }
 
-/** One <select>; the chosen theme goes on <html data-theme>, which is all bit needs. */
+/** One bit Select; the chosen theme goes on <html data-theme>, which is all bit needs. */
 export function ThemeSelect() {
   const [theme, setTheme] = useState<Theme>(() => {
     const current = document.documentElement.dataset.theme ?? '';
@@ -18,10 +19,9 @@ export function ThemeSelect() {
   }, [theme]);
 
   return (
-    <label className="gallery-theme">
-      <span className="gallery-theme__label">Theme</span>
-      <select
-        className="gallery-theme__select"
+    <Field label="Theme" className="gallery-theme">
+      <Select
+        size="sm"
         value={theme}
         onChange={(event) => {
           const next = event.target.value;
@@ -33,7 +33,7 @@ export function ThemeSelect() {
             {name}
           </option>
         ))}
-      </select>
-    </label>
+      </Select>
+    </Field>
   );
 }

@@ -32,10 +32,10 @@ const colorRoleTokens = ['bg', 'surface', 'ink', 'text', 'text-muted', 'selectio
 );
 
 /**
- * PR2 roles: the code border accent, link text, field error text, and the Switch thumb when on.
+ * PR2 roles: the code border accent, link text, field error text, the Switch thumb when on, Table stripes, and Code text inside a Table.
  * Each has one job, so a theme can tune it without moving primary, danger or the surfaces.
  */
-const pr2ColorTokens = ['accent', 'link', 'link-visited', 'danger-text', 'knob'].map((role) => token('color', role));
+const pr2ColorTokens = ['accent', 'link', 'link-visited', 'danger-text', 'knob', 'stripe', 'code-text'].map((role) => token('color', role));
 
 const colorTokens = COLORS.flatMap((color) => [
   token('color', color),
@@ -116,6 +116,7 @@ export const MODE_TOKENS: readonly string[] = [
   token('color', 'neutral', 'contrast'),
   token('color', 'neutral', 'hover'),
   token('color', 'neutral', 'soft'),
+  token('color', 'stripe'),
   ...['primary', 'success', 'warning', 'danger'].map((color) => token('color', color, 'soft')),
   token('shadow', 'inset'),
   token('code', 'bg'),
@@ -125,4 +126,5 @@ export const MODE_TOKENS: readonly string[] = [
   token('color', 'link'),
   token('color', 'link-visited'),
   token('color', 'danger-text'),
+  token('color', 'code-text'),
 ];

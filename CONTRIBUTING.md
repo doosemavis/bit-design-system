@@ -31,6 +31,17 @@ The contrast test verifies the new color's text is readable on its fill.
 
 Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1 palette and any tier-2 values, keep every token name. A theme also needs a `[data-mode="dark"]` rule that declares exactly the tokens in `MODE_TOKENS` (`packages/core/src/tokens.ts`). Add it to `THEMES` in `apps/docs/.storybook/preview.ts` with a CSS import. Run `pnpm --filter @bit-ds/core test`.
 
+## Testing
+
+### End-to-end and accessibility
+
+```bash
+pnpm --filter @bit-ds/gallery exec playwright install chromium   # once
+pnpm e2e
+```
+
+`pnpm e2e` builds the library and the gallery, serves the build with `vite preview` at `/bit-design-system/`, and runs axe (WCAG 2.2 AA, contrast included) on every page in light and dark, plus a forced-colours check.
+
 ## Conventions
 
 - Classes: `bit-block`, `bit-block__element`, `bit-value`. No `--modifier` classes, no camelCase.

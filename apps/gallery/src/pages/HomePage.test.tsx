@@ -6,7 +6,7 @@ import { MANIFESTS, routeFor } from '../manifests';
 import { NAV } from '../shell/Sidebar';
 import { STYLE_IMPORTS } from '../content/styleImports';
 import { NAMING_COLUMNS } from './home/NamingRule';
-import { glyphFor } from './home/ComponentTiles';
+import { glyphFor, isLargeTile } from './home/ComponentTiles';
 import { BROWSE_TARGET } from './HomePage';
 import { bitLogo } from '../manifests/bitLogo';
 
@@ -117,13 +117,21 @@ describe('HomePage', () => {
     expect(within(table).getByText('--bit-control-height-lg')).toHaveClass('bit-code');
   });
 
-  it('a compact tile shows its glyph chip, hidden from screen readers, before the name', async () => {
+  it('large tiles are Cards; compact tiles are outline Buttons with a Badge glyph', async () => {
     await open();
-    const badge = within(main()).getByRole('link', { name: 'Badge' });
-    const glyph = badge.querySelector('.gallery-chip__glyph')!;
-    expect(glyph).toHaveTextContent('+1');
-    expect(glyph).toHaveAttribute('aria-hidden', 'true');
-    expect(badge.firstElementChild).toBe(glyph);
+    expect(document.querySelectorAll('.bit-card.gallery-tile').length).toBeGreaterThan(0);
+    const compact = MANIFESTS.find((m) => m.group !== 'brand' && !isLargeTile(m))!;
+    const chip = within(main()).getByRole('link', { name: new RegExp(compact.name) });
+    expect(chip).toHaveClass('bit-button');
+    expect(chip.querySelector('.bit-badge')).not.toBeNull();
+  });
+
+  it('a compact tile shows its glyph in a Badge, hidden from screen readers, before the name', async () => {
+    await open();
+    const chip = within(main()).getByRole('link', { name: 'Badge' });
+    const wrapper = chip.firstElementChild!;
+    expect(wrapper).toHaveAttribute('aria-hidden', 'true');
+    expect(wrapper.querySelector('.bit-badge')).toHaveTextContent('+1');
   });
 
   it('a manifest with no glyph entry shows its first letter', () => {

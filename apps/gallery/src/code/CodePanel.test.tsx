@@ -59,7 +59,7 @@ describe('CodePanel', () => {
     render(<CodePanel manifest={button} state={{ ...defaultState(button), size: 'lg' }} />);
     await userEvent.click(screen.getByRole('radio', { name: 'className' }));
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Copy Example code' }));
     });
     expect(writeText).toHaveBeenCalledWith("import { Button } from '@bit-ds/react';\n\n<Button className=\"bit-lg\">Save</Button>");
   });

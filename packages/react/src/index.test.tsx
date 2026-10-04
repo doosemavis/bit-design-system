@@ -78,8 +78,8 @@ describe('public index', () => {
     expect(lib.SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('exports SEMANTIC_TOKENS, the 92 tier-2 token names every theme declares, from @bit-ds/core', () => {
-    expect(lib.SEMANTIC_TOKENS).toHaveLength(92);
+  it('exports SEMANTIC_TOKENS, the 94 tier-2 token names every theme declares, from @bit-ds/core', () => {
+    expect(lib.SEMANTIC_TOKENS).toHaveLength(94);
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-color-primary');
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-space-64px');
     expect(lib.SEMANTIC_TOKENS.every((name) => name.startsWith('--bit-'))).toBe(true);
@@ -110,6 +110,7 @@ describe('public index', () => {
     expect(lib.COLOR_MODE_STORAGE_KEY).toBe('bit-color-mode');
     expect(typeof lib.COLOR_MODE_SCRIPT).toBe('string');
     expect(typeof lib.useColorMode).toBe('function');
+    expect(typeof lib.announce).toBe('function');
     expect('resetColorModeStore' in lib).toBe(false);
     expect('setColorMode' in lib).toBe(false);
     expect('resolveColorMode' in lib).toBe(false);

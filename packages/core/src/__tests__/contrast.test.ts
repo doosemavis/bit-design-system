@@ -30,6 +30,10 @@ describe.each(MODES)('%s contrast', (_name, map) => {
     }
   });
 
+  it('inline Code text is readable on the code background', () => {
+    expect(contrastRatio(resolveColor('--bit-code-text'), resolveColor('--bit-code-bg'))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
   it('focus: the ring stands out from the page and from surfaces', () => {
     for (const bg of ['--bit-color-bg', '--bit-color-surface']) {
       expect(contrastRatio(resolveColor('--bit-focus-ring-color'), resolveColor(bg)), bg).toBeGreaterThanOrEqual(AA_NON_TEXT);
@@ -47,6 +51,19 @@ describe.each(MODES)('%s contrast', (_name, map) => {
 
   it.each(COLORS)('color %s: body text is readable on the soft background', (color) => {
     expect(contrastRatio(resolveColor('--bit-color-text'), resolveColor(`--bit-color-${color}-soft`))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  // Owner decision 2026-10-04 (outline option A): the outline border is always the solid colour. These two
+  // edges are under 3:1 against the surface by choice; any new colour or palette change that adds one fails
+  // here, so it is a deliberate decision.
+  it('outline: the colours whose edge is under 3:1 on the surface are exactly the accepted ones', () => {
+    const isDark = resolveColor('--bit-color-surface').toLowerCase() !== '#ffffff';
+    const surface = resolveColor('--bit-color-surface');
+    const under = COLORS.filter((color) => {
+      const edge = color === 'neutral' ? '--bit-color-line' : `--bit-color-${color}`;
+      return contrastRatio(resolveColor(edge), surface) < AA_NON_TEXT;
+    });
+    expect(under).toEqual(isDark ? ['primary'] : ['warning']);
   });
 
   it.each(CODE_KINDS)('code %s is at least 5.6:1 on the code background (Ink night)', (kind) => {
@@ -114,6 +131,16 @@ describe('dark mode values (owner-locked 2026-10-03)', () => {
     expect(dark.get('--bit-focus-ring-offset')).toBe('1px');
     expect(dark.get('--bit-shadow-inset')).toBe('inset 3px 3px 0 rgba(0, 0, 0, 0.4)');
   });
+
+  it('dark stripes step off the surface like light does, and keep text readable', () => {
+    const stripe = resolveVar(merged, '--bit-color-stripe');
+    const surface = resolveVar(merged, '--bit-color-surface');
+    expect(stripe).toBe('#353545');
+    // Light's stone on white is 1.36:1; dark #353545 on #20202A is 1.34:1.
+    expect(contrastRatio(stripe, surface)).toBeGreaterThanOrEqual(1.3);
+    expect(contrastRatio(resolveVar(merged, '--bit-color-text'), stripe)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(resolveVar(merged, '--bit-color-text-muted'), stripe)).toBeGreaterThanOrEqual(4.5);
+  });
 });
 
 describe('PR2 light values (spec §2)', () => {
@@ -134,5 +161,29 @@ describe('PR2 light values (spec §2)', () => {
     expect(light.get('--bit-color-accent')).toBe('var(--bit-palette-violet)');
     expect(light.get('--bit-color-link')).toBe('var(--bit-palette-violet)');
     expect(light.get('--bit-color-knob')).toBe('var(--bit-palette-white)');
+  });
+
+  it('light stripes are stone', () => {
+    const { light } = themeModes(readCss('themes/power-up.css'));
+    expect(resolveVar(light, '--bit-color-stripe')).toBe('#DCDED6');
+  });
+});
+
+describe('code-text (Code inside a Table)', () => {
+  const { light, dark } = themeModes(readCss('themes/power-up.css'));
+  const modes: [string, Map<string, string>, string][] = [
+    ['light', light, '#6527D4'],
+    ['dark', new Map([...light, ...dark]), '#FFC800'],
+  ];
+
+  it.each(modes)('%s --bit-color-code-text resolves to its hex', (_mode, map, hex) => {
+    expect(resolveVar(map, '--bit-color-code-text')).toBe(hex);
+  });
+
+  it.each(modes)('%s --bit-color-code-text is readable on surface, page and stripe', (_mode, map) => {
+    const text = resolveVar(map, '--bit-color-code-text');
+    for (const bg of ['--bit-color-surface', '--bit-color-bg', '--bit-color-stripe']) {
+      expect(contrastRatio(text, resolveVar(map, bg))).toBeGreaterThanOrEqual(AA_TEXT);
+    }
   });
 });

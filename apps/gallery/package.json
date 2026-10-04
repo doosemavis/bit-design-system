@@ -20,6 +20,7 @@
     "react-router-dom": "^7.9.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.56.0",
     "@testing-library/jest-dom": "^6.9.0",
     "@testing-library/react": "^16.3.3",
@@ -31,6 +32,7 @@
     "@vitest/coverage-v8": "^4.0.0",
     "axe-core": "^4.10.0",
     "jsdom": "^26.1.0",
+    "postcss": "^8.5.28",
     "typescript": "^5.9.3",
     "vite": "^7.1.0",
     "vitest": "^4.0.0"

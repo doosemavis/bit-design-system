@@ -15,3 +15,7 @@ coverage/
 .vscode/
 *.log
 .gstack/
+
+# playwright
+apps/gallery/test-results/
+apps/gallery/playwright-report/

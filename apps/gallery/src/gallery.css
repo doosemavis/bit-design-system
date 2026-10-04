@@ -64,23 +64,10 @@ html {
   gap: var(--bit-space-12px);
 }
 
-.gallery-theme {
-  display: inline-flex;
+.gallery-theme.bit-field {
+  flex-direction: row;
   align-items: center;
   gap: var(--bit-space-8px);
-  font-size: var(--bit-text-13px);
-}
-
-.gallery-theme__select,
-.gallery-control__select,
-.gallery-control__input {
-  font: inherit;
-  color: var(--bit-color-text);
-  background: var(--bit-color-surface);
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-6px);
-  padding: var(--bit-space-4px) var(--bit-space-8px);
-  min-height: var(--bit-control-height-sm);
 }
 
 .gallery-sidebar {
@@ -99,7 +86,6 @@ html {
   font-family: var(--bit-font-pixel);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--bit-color-text-muted);
   margin: 0 0 var(--bit-space-8px);
 }
 
@@ -111,7 +97,9 @@ html {
   gap: var(--bit-space-4px);
 }
 
-.gallery-sidebar__link {
+/* The links are bit Links, whose hover and visited rules are 0,3,0. These selectors repeat .bit-link
+   and .bit-neutral so the sidebar's own hover and active paint always wins, even on a visited link. */
+.gallery-sidebar__link.bit-link.bit-neutral {
   display: block;
   padding: var(--bit-space-4px) var(--bit-space-8px);
   border-radius: var(--bit-radius-6px);
@@ -120,11 +108,13 @@ html {
   font-weight: var(--bit-weight-bold);
 }
 
-.gallery-sidebar__link:hover {
+.gallery-sidebar__link.bit-link.bit-neutral:hover {
   background: var(--bit-color-primary-soft);
 }
 
-.gallery-sidebar__link.active {
+.gallery-sidebar__link.bit-link.bit-neutral[aria-current="page"],
+.gallery-sidebar__link.bit-link.bit-neutral[aria-current="page"]:hover,
+.gallery-sidebar__link.bit-link.bit-neutral[aria-current="page"]:visited {
   background: var(--bit-color-primary);
   color: var(--bit-color-primary-contrast);
 }
@@ -163,26 +153,12 @@ html {
   font-family: var(--bit-font-pixel);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--bit-color-text-muted);
 }
 
 /* The in-page links under a page header. */
 .gallery-section-bar {
   padding-block: var(--bit-space-8px);
   border-block: var(--bit-border-width) solid var(--bit-color-line);
-}
-
-/* Read by screen readers, invisible on screen: the gallery Copy button's status line. */
-.gallery-visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
 }
 
 @media (max-width: 720px) {
@@ -236,51 +212,7 @@ html {
   gap: var(--bit-space-4px);
 }
 
-.gallery-control__label {
-  font-family: var(--bit-font-mono);
-  font-size: var(--bit-text-13px);
-  color: var(--bit-color-text-muted);
-}
-
-.gallery-switch {
-  width: 2.75rem;
-  height: 1.5rem;
-  padding: 2px;
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-full);
-  background: var(--bit-color-surface);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  transition: background var(--bit-duration-fast);
-}
-
-.gallery-switch__knob {
-  width: 1rem;
-  height: 1rem;
-  border-radius: var(--bit-radius-full);
-  background: var(--bit-color-line);
-  transition: transform var(--bit-duration-fast);
-}
-
-.gallery-switch[data-on] {
-  background: var(--bit-color-primary);
-}
-
-.gallery-switch[data-on] .gallery-switch__knob {
-  transform: translateX(1.25rem);
-  background: var(--bit-color-primary-contrast);
-}
-
 /* ---------- preview ---------- */
-.gallery-preview {
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-14px);
-  background: var(--bit-color-surface);
-  box-shadow: var(--bit-shadow-md);
-  overflow: hidden;
-}
-
 .gallery-preview__bar {
   display: flex;
   align-items: center;
@@ -293,7 +225,6 @@ html {
 
 .gallery-preview__title {
   font-family: var(--bit-font-pixel);
-  font-size: var(--bit-text-11px);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -440,12 +371,6 @@ html {
   white-space: nowrap;
 }
 
-.gallery-control__error {
-  margin: 0;
-  font-size: var(--bit-text-13px);
-  color: var(--bit-color-danger-text);
-}
-
 /* Do and Don't, and the Accessibility list. */
 .gallery-bullets {
   margin: 0;
@@ -539,11 +464,6 @@ html {
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  background: var(--bit-color-surface);
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-14px);
-  box-shadow: var(--bit-shadow-md);
 }
 
 .gallery-tile__preview {
@@ -582,28 +502,6 @@ html {
   display: flex;
   flex-wrap: wrap;
   gap: var(--bit-space-12px);
-}
-
-.gallery-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--bit-space-8px);
-  padding: var(--bit-space-8px) var(--bit-space-12px);
-  background: var(--bit-color-surface);
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-10px);
-}
-
-.gallery-chip__glyph {
-  display: inline-grid;
-  place-items: center;
-  width: var(--bit-space-24px);
-  height: var(--bit-space-24px);
-  font-family: var(--bit-font-mono);
-  font-size: var(--bit-text-13px);
-  background: var(--bit-color-neutral-soft);
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-6px);
 }
 
 /* The naming rule: a code never wraps mid-word; on a phone the Table scrolls sideways inside its border. */

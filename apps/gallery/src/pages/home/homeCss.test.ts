@@ -36,8 +36,12 @@ describe('gallery.css, home page section', () => {
     expect(rule('.gallery-tiles')).not.toMatch(/align-items|align-self/);
   });
 
-  it('the glyph chip border is the theme border width', () => {
-    expect(rule('.gallery-chip__glyph')).toContain('border: var(--bit-border-width) solid var(--bit-color-line);');
+  it('a tile and a chip draw no paint of their own: Card and Button do', () => {
+    for (const paint of ['background', 'border:', 'border-radius', 'box-shadow']) {
+      expect(rule('.gallery-tile')).not.toContain(paint);
+    }
+    expect(rule('.gallery-chip')).toBeNull();
+    expect(rule('.gallery-chip__glyph')).toBeNull();
   });
 
   it('the naming-rule codes never wrap mid-word, scoped to that table', () => {

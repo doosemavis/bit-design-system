@@ -44,7 +44,7 @@ export const badge: Manifest = {
         className: 'bit-{variant}',
         type: "'solid' | 'outline'",
         default: "'solid'",
-        description: "solid fills with the color; outline uses the color's soft background.",
+        description: "solid fills with the color; outline sits on the surface with a color border and a color shadow.",
       },
       { name: 'size', className: 'bit-{size}', type: "'sm' | 'md'", default: "'md'", description: 'Text size and padding.' },
       {

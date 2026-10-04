@@ -40,5 +40,5 @@
 
 /* states are attributes, never classes */
 .bit-table[data-striped] .bit-table__body .bit-table__row:nth-child(even) {
-  background: var(--bit-color-neutral-soft);
+  background: var(--bit-color-stripe);
 }

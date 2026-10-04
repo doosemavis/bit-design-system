@@ -143,6 +143,39 @@ describe('tokenize: jsx', () => {
   });
 });
 
+describe('tokenize: jsx generics', () => {
+  it('useState<string>(…) keeps the code after the generic as JS, with no tag tokens', () => {
+    const tokens = tokenize('const [a, b] = useState<string>("");', 'jsx');
+    expect(tokens.some((t) => t.kind === 'tag' || t.kind === 'component')).toBe(false);
+    expect(kindOf('const [a, b] = useState<string>("");', 'jsx', '""')).toBe('string');
+    expect(tokens.map((t) => t.text).join('')).toBe('const [a, b] = useState<string>("");');
+  });
+
+  it('forwardRef<HTMLDivElement, Props>( colours the type names as components, not tags', () => {
+    expect(kindOf('forwardRef<HTMLDivElement, Props>(', 'jsx', 'HTMLDivElement')).toBe('component');
+    expect(kindOf('forwardRef<HTMLDivElement, Props>(', 'jsx', 'Props')).toBe('component');
+    expect(tokenize('forwardRef<HTMLDivElement, Props>(', 'jsx').some((t) => t.kind === 'tag')).toBe(false);
+  });
+
+  it('Array<Item> followed by more code does not swallow it as JSX children', () => {
+    expect(kindOf('let xs: Array<Item> = [];', 'jsx', '=')).toBe('punct');
+  });
+
+  it('i<n with no spaces is a comparison, not a tag', () => {
+    expect(tokenize('for (let i=0; i<n; i++) {}', 'jsx').some((t) => t.kind === 'tag')).toBe(false);
+  });
+
+  it.each([
+    ['return (', 'return (<div>hi</div>);'],
+    ['an arrow', 'const A = () => <div>hi</div>;'],
+    ['&&', 'ok && <div>hi</div>'],
+    ['?', 'ok ? <div>hi</div> : null'],
+    ['a line start', '<div>hi</div>'],
+  ])('JSX after %s is still a tag', (_, code) => {
+    expect(kindOf(code, 'jsx', 'div')).toBe('tag');
+  });
+});
+
 describe('tokenize: strings', () => {
   it.each(CODE_LANGUAGES.filter((l) => l !== 'html'))('%s: an escaped quote does not end the string', (language) => {
     expect(kindOf(`x 'it\\'s' y`, language, `'it\\'s'`)).toBe('string');

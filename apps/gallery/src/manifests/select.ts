@@ -54,6 +54,7 @@ export const select: Manifest = {
     a11y: [
       "The browser's own <select> and options list, so every keyboard and screen reader already knows it.",
       "Inside a Field it takes the Field's id, hint and error.",
+      'In forced-colors mode (Windows high contrast), the system replaces the red border color, so an invalid select shows a thick 10px start edge instead.',
     ],
   },
 };

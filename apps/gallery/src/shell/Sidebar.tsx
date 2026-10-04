@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Text } from '@bit-ds/react';
+import { Link, Text } from '@bit-ds/react';
 import { MANIFESTS, routeFor } from '../manifests';
 import type { Manifest, ManifestGroup } from '../manifests';
 
@@ -45,15 +45,17 @@ export function Sidebar({ items, open, onNavigate, footer }: SidebarProps) {
         if (links.length === 0) return null;
         return (
           <section key={group} className="gallery-sidebar__group">
-            <Text as="h2" size={11} className="gallery-sidebar__title">
+            <Text as="h2" size={11} color="neutral" className="gallery-sidebar__title">
               {group}
             </Text>
             <ul className="gallery-sidebar__list">
               {links.map((item) => (
                 <li key={item.to}>
-                  <NavLink to={item.to} className="gallery-sidebar__link" onClick={onNavigate}>
-                    {item.label}
-                  </NavLink>
+                  <Link asChild color="neutral" className="gallery-sidebar__link">
+                    <NavLink to={item.to} onClick={onNavigate}>
+                      {item.label}
+                    </NavLink>
+                  </Link>
                 </li>
               ))}
             </ul>

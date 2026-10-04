@@ -52,6 +52,7 @@ export const input: Manifest = {
     a11y: [
       'A real <input>, so typing, autofill and the keyboard work as browsers intend.',
       "Inside a Field it takes the Field's id, hint and error, so screen readers read all three.",
+      'In forced-colors mode (Windows high contrast), the system replaces the red border color, so an invalid input shows a thick 10px start edge instead.',
     ],
   },
 };

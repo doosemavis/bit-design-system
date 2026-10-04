@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { Table, TableBody, TableCell, TableHead, TableRow } from './Table';
 import type { TableProps } from './Table';
 import { expectNoA11yViolations } from '../../test/a11y';
@@ -33,12 +33,11 @@ function PropsTable(props: TableProps) {
 }
 
 describe('Table', () => {
-  it('renders a focusable div.bit-table around table.bit-table__table, with the parts as BEM elements', () => {
+  it('renders a div.bit-table around table.bit-table__table, with the parts as BEM elements', () => {
     const { container } = render(<PropsTable />);
     const wrapper = container.firstElementChild as HTMLElement;
     expect(wrapper.tagName).toBe('DIV');
     expect(wrapper.className).toBe('bit-table');
-    expect(wrapper).toHaveAttribute('tabindex', '0');
     const table = screen.getByRole('table');
     expect(table.parentElement).toBe(wrapper);
     expect(table.className).toBe('bit-table__table');
@@ -191,5 +190,111 @@ describe('Table', () => {
   ])('has no accessibility violations (%s)', async (_name, props) => {
     const { container } = render(<PropsTable {...props} />);
     await expectNoA11yViolations(container);
+  });
+});
+
+type Callback = ConstructorParameters<typeof ResizeObserver>[0];
+let observed: Callback | undefined;
+let observedEls: Element[] = [];
+
+class FakeResizeObserver {
+  constructor(cb: Callback) {
+    observed = cb;
+  }
+  observe(el: Element) {
+    observedEls.push(el);
+  }
+  disconnect() {}
+  unobserve() {}
+}
+
+function setWidths(el: HTMLElement, scrollWidth: number, clientWidth: number) {
+  Object.defineProperty(el, 'scrollWidth', { configurable: true, value: scrollWidth });
+  Object.defineProperty(el, 'clientWidth', { configurable: true, value: clientWidth });
+}
+
+describe('Table: Tab stop only when it scrolls', () => {
+  beforeEach(() => vi.stubGlobal('ResizeObserver', FakeResizeObserver));
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    observed = undefined;
+    observedEls = [];
+  });
+
+  function wrapperOf(container: HTMLElement) {
+    return container.querySelector('.bit-table') as HTMLElement;
+  }
+
+  it('a table that fits is not a Tab stop', () => {
+    const { container } = render(<Table><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
+    const wrapper = wrapperOf(container);
+    setWidths(wrapper, 300, 300);
+    act(() => observed!([], {} as ResizeObserver));
+    expect(wrapper).not.toHaveAttribute('tabindex');
+    expect(wrapper).not.toHaveAttribute('role');
+  });
+
+  it('an unnamed table that overflows is focusable but has no role, and stops being focusable when it fits again', () => {
+    const { container } = render(<Table><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
+    const wrapper = wrapperOf(container);
+    setWidths(wrapper, 900, 300);
+    act(() => observed!([], {} as ResizeObserver));
+    expect(wrapper).toHaveAttribute('tabindex', '0');
+    expect(wrapper).not.toHaveAttribute('role');
+    setWidths(wrapper, 300, 300);
+    act(() => observed!([], {} as ResizeObserver));
+    expect(wrapper).not.toHaveAttribute('tabindex');
+  });
+
+  it('a labelled table that overflows is focusable and a named region', () => {
+    const { container } = render(<Table aria-label="Tokens"><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
+    const wrapper = wrapperOf(container);
+    setWidths(wrapper, 900, 300);
+    act(() => observed!([], {} as ResizeObserver));
+    expect(wrapper).toHaveAttribute('tabindex', '0');
+    expect(wrapper).toHaveAttribute('role', 'region');
+    expect(wrapper).toHaveAccessibleName('Tokens');
+  });
+
+  it('an aria-labelledby table that overflows is focusable and a named region', () => {
+    const { container } = render(
+      <>
+        <h2 id="tok">Token list</h2>
+        <Table aria-labelledby="tok"><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>
+      </>,
+    );
+    const wrapper = wrapperOf(container);
+    setWidths(wrapper, 900, 300);
+    act(() => observed!([], {} as ResizeObserver));
+    expect(wrapper).toHaveAttribute('tabindex', '0');
+    expect(screen.getByRole('region', { name: 'Token list' })).toBe(wrapper);
+  });
+
+  it('a labelled table is always a named region, focusable only when it scrolls', () => {
+    const { container } = render(<Table aria-label="Tokens"><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
+    const wrapper = wrapperOf(container);
+    setWidths(wrapper, 300, 300);
+    act(() => observed!([], {} as ResizeObserver));
+    expect(wrapper).toHaveAttribute('role', 'region');
+    expect(wrapper).toHaveAccessibleName('Tokens');
+    expect(wrapper).not.toHaveAttribute('tabindex');
+  });
+
+  it('without ResizeObserver it measures once on mount', () => {
+    vi.stubGlobal('ResizeObserver', undefined);
+    const { container } = render(<Table><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
+    // jsdom widths are 0 and 0, so it fits: not a Tab stop.
+    expect(wrapperOf(container)).not.toHaveAttribute('tabindex');
+  });
+
+  it('observes both the wrapper and the table, so content-only width changes are seen', () => {
+    const { container } = render(<Table><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
+    const wrapper = wrapperOf(container);
+    expect(observedEls).toEqual([wrapper, wrapper.querySelector('table')]);
+  });
+
+  it('disconnects the observer on unmount', () => {
+    const { unmount } = render(<Table><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
+    expect(() => unmount()).not.toThrow();
   });
 });

@@ -1,4 +1,5 @@
-/* Code: inline code, a small mono chip in running text. The border follows the mode accent
+/* Code: inline code, a small mono chip in running text on the same
+   dark background as CodeBlock. The border follows the mode accent
    (violet in light, yellow in dark; decision 3). */
 .bit-code {
   padding: 1px 6px;
@@ -7,8 +8,17 @@
   /* JetBrains Mono ships 400 and 700; the page's 600 would snap to bold. */
   font-weight: 400;
   font-variant-ligatures: none;
-  color: var(--bit-color-text);
-  background: var(--bit-color-neutral-soft);
+  color: var(--bit-code-text);
+  background: var(--bit-code-bg);
   border: 2px solid var(--bit-color-accent);
   border-radius: var(--bit-radius-6px);
+}
+
+/* Inside a Table, Code is plain mono text in the code-text colour: rows of values read
+   better without a pill on each one. In running text the pill stays. */
+.bit-table .bit-code {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--bit-color-code-text);
 }

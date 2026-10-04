@@ -51,6 +51,7 @@
   --bit-palette-green-night: #173A25;
   --bit-palette-yellow-night: #3B3212;
   --bit-palette-red-night: #40191B;
+  --bit-palette-night-stripe: #353545;
 
   /* ---------- tier 2: color ---------- */
   --bit-color-bg: var(--bit-palette-paper);
@@ -64,6 +65,7 @@
   --bit-color-accent: var(--bit-palette-violet);
   --bit-color-link: var(--bit-palette-violet);
   --bit-color-link-visited: #5B2BB5;
+  --bit-color-code-text: var(--bit-palette-violet-dark);
   /* The spec's var(--bit-color-danger) (#D91A1A) is 4.41:1 on the page; #D61A1A is the nearest red that passes (4.51:1). */
   --bit-color-danger-text: #D61A1A;
   --bit-color-knob: var(--bit-palette-white);
@@ -77,6 +79,7 @@
   --bit-color-neutral-contrast: var(--bit-palette-ink);
   --bit-color-neutral-hover: var(--bit-palette-stone-light);
   --bit-color-neutral-soft: var(--bit-palette-stone);
+  --bit-color-stripe: var(--bit-palette-stone);
 
   --bit-color-success: var(--bit-palette-green);
   --bit-color-success-contrast: var(--bit-palette-ink);
@@ -184,6 +187,7 @@
   --bit-color-neutral-contrast: var(--bit-palette-chalk);
   --bit-color-neutral-hover: var(--bit-palette-night-raised-hover);
   --bit-color-neutral-soft: var(--bit-palette-night-raised);
+  --bit-color-stripe: var(--bit-palette-night-stripe);
   --bit-color-primary-soft: var(--bit-palette-violet-night);
   --bit-color-success-soft: var(--bit-palette-green-night);
   --bit-color-warning-soft: var(--bit-palette-yellow-night);
@@ -197,4 +201,5 @@
   /* The spec's #9B7FE6 is 4.45:1 on the hover highlight (primary-soft); #9D82E7 is the nearest that passes (4.59:1). */
   --bit-color-link-visited: #9D82E7;
   --bit-color-danger-text: #FF8A8A;
+  --bit-color-code-text: var(--bit-palette-yellow);
 }

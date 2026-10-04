@@ -92,6 +92,9 @@ const jsxStep: Step<readonly JsxMode[]> = (code, at, modes) => {
   if (rest[0] === '{') return [token('punct', '{'), [...modes, 'js']];
   if (mode === 'tag' || mode === 'closeTag') return jsxTagStep(code, at, modes);
   if (mode === 'js' && rest[0] === '}') return [token('punct', '}'), pop(modes)];
+  // A `<` straight after an identifier (no space) is a type argument (`useState<string>`) or a
+  // comparison (`i<n`), never a JSX tag. JSX always follows a space, `(`, `=>`, `&&`, `?`, `{` or a line start.
+  if (mode === 'js' && rest[0] === '<' && /[\w$]/.test(code[at - 1] ?? '')) return [token('punct', '<'), modes];
   const open = /^<\/?(?=[A-Za-z>])/.exec(rest);
   if (open) return [token('punct', open[0]), [...modes, open[0] === '</' ? 'closeTag' : 'tag']];
   if (mode === 'children') return [token('text', /^[^<{]+/.exec(rest)?.[0] ?? rest[0]!), modes];

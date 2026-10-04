@@ -29,7 +29,7 @@ function Page() {
 describe('PageHeader, SectionBar and PageSection', () => {
   it('the header is an eyebrow in pixel type, then the h1', () => {
     render(<PageHeader eyebrow="Components" title="Button" />);
-    expect(screen.getByText('Components')).toHaveClass('gallery-eyebrow', 'bit-text');
+    expect(screen.getByText('Components')).toHaveClass('gallery-eyebrow', 'bit-text', 'bit-neutral');
     expect(screen.getByRole('heading', { level: 1, name: 'Button' })).toBeInTheDocument();
   });
 
