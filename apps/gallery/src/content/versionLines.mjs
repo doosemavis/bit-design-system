@@ -9,6 +9,7 @@ export const isRelease = (version) => typeof version === 'string' && SEMVER.test
 const parts = (version) => version.split('.').map(Number);
 
 export const lineOf = (version) => {
+  if (!isRelease(version)) throw new Error(`lineOf: not a release "${version}"`);
   const [major, minor] = parts(version);
   return major === 0 ? `0.${minor}` : String(major);
 };

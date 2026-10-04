@@ -20,16 +20,22 @@ const entryFor = ({ line, version }, { latestLine, readPackageJson, changelogDat
 };
 
 export const buildVersionsFile = ({ tags, current, readPackageJson, changelogDates = {}, asOlder }) => {
+  // `current` may be older than the newest tag (a stale branch); it then forms its own
+  // line entry like any other release, and the newest tag still wins the root.
   const versions = [...tags.map((t) => t.replace(/^v/, '')), ...(current ? [current] : [])].filter(isRelease);
   const chosen = newestPerLine(versions);
   if (chosen.length === 0) throw new Error('versions.json: no release tags found');
   const latestLine = chosen[0].line;
   const ctx = { latestLine, readPackageJson, changelogDates };
   const lines = chosen.map((c) => entryFor(c, ctx));
-  const older = asOlder?.replace(/^v/, '');
-  if (older && isRelease(older) && !lines.some((l) => l.version === older)) {
-    // latestLine '' so the extra entry always lives under v<line>/, even on the latest's line.
-    lines.push(entryFor({ line: lineOf(older), version: older }, { ...ctx, latestLine: '' }));
+  if (asOlder !== undefined) {
+    const older = asOlder.replace(/^v/, '');
+    if (!isRelease(older)) throw new Error(`--as-older: not a release tag "${asOlder}"`);
+    // asOlder only exists to exercise archiving when no real older line does: a real entry
+    // that already owns this path (or version) wins and the extra entry is skipped.
+    // latestLine '' makes the path v<line>/ even when it shares the latest's line.
+    const extra = entryFor({ line: lineOf(older), version: older }, { ...ctx, latestLine: '' });
+    if (!lines.some((l) => l.version === older || l.path === extra.path)) lines.push(extra);
   }
   return { latest: latestLine, lines };
 };
@@ -46,6 +52,13 @@ const main = () => {
   const git = (...a) => execFileSync('git', a, { cwd: root, encoding: 'utf8' });
   const tags = git('tag', '--list', 'v*').split('\n').filter(Boolean);
   const current = JSON.parse(readFileSync(join(root, 'packages/react/package.json'), 'utf8')).version;
+  const readFromTag = (tag) => {
+    try {
+      return JSON.parse(git('show', `${tag}:packages/react/package.json`));
+    } catch (error) {
+      throw new Error(`could not read packages/react/package.json at ${tag}: ${error.message}`);
+    }
+  };
   const changelog = join(root, 'CHANGELOG.md');
   const file = buildVersionsFile({
     tags,
@@ -53,7 +66,7 @@ const main = () => {
     readPackageJson: (tag) =>
       tag === `v${current}` && !tags.includes(tag)
         ? JSON.parse(readFileSync(join(root, 'packages/react/package.json'), 'utf8'))
-        : JSON.parse(git('show', `${tag}:packages/react/package.json`)),
+        : readFromTag(tag),
     changelogDates: existsSync(changelog) ? parseChangelogDates(readFileSync(changelog, 'utf8')) : {},
     asOlder: flag('--as-older'),
   });
@@ -62,4 +75,11 @@ const main = () => {
   console.log(JSON.stringify(file, null, 2));
 };
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    main();
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}

@@ -4,6 +4,9 @@ import { isRelease, lineOf, newestPerLine, pathForLine, SITE_BASE } from './vers
 describe('release lines', () => {
   it.each([['0.1.0', '0.1'], ['0.1.13', '0.1'], ['0.10.2', '0.10'], ['1.0.0', '1'], ['1.4.9', '1'], ['2.0.0', '2']])('lineOf(%s) is %s', (v, l) =>
     expect(lineOf(v)).toBe(l));
+  it('throws on a non-release', () => {
+    expect(() => lineOf('1.0.0-rc.1')).toThrow('lineOf: not a release "1.0.0-rc.1"');
+  });
   it('ignores pre-releases and non-semver', () => {
     expect(isRelease('1.0.0-rc.1')).toBe(false);
     expect(isRelease('next')).toBe(false);

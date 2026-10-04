@@ -1,5 +1,5 @@
 export declare const SITE_BASE: '/bit-design-system/';
-/** '0.1.3' → '0.1', '1.2.3' → '1', '2.0.0' → '2' */
+/** '0.1.3' → '0.1', '1.2.3' → '1', '2.0.0' → '2'. Throws on a non-release (pre-release or non-semver). */
 export declare function lineOf(version: string): string;
 /** False for pre-releases ('1.0.0-rc.1') and anything that isn't semver. */
 export declare function isRelease(version: string): boolean;
