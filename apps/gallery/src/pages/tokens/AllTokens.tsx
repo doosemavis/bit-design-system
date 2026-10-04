@@ -59,7 +59,17 @@ export function AllTokens({ values }: { values: TokenValues }) {
             <TableRow>
               <TableCell>Token</TableCell>
               <TableCell>Value</TableCell>
-              <TableCell>Copy</TableCell>
+              <TableCell>
+                <div className="gallery-copy-head">
+                  <span>Copy</span>
+                  {/* Hidden and inert. Its width sizes the column for the widest state, "Copy failed". */}
+                  <span aria-hidden="true" className="gallery-copy-ghost">
+                    <Button size="sm" variant="outline" tabIndex={-1}>
+                      Copy failed
+                    </Button>
+                  </span>
+                </div>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -70,7 +80,9 @@ export function AllTokens({ values }: { values: TokenValues }) {
                 </TableCell>
                 <TableCell>{values.values.get(name)}</TableCell>
                 <TableCell>
-                  <CopyButton text={`var(${name})`} label={`Copy var(${name})`} />
+                  <div className="gallery-copy-cell">
+                    <CopyButton text={`var(${name})`} label={`Copy var(${name})`} />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

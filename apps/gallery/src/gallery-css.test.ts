@@ -139,6 +139,17 @@ describe('gallery.css', () => {
     expect(ruleIn(galleryCss, '.gallery-props__type')?.trim()).toBe('min-width: calc(7 * var(--bit-space-32px));');
   });
 
+  it('the All tokens Copy column is sized by a hidden widest-state button in the header, with no magic width', () => {
+    const head = ruleIn(galleryCss, '.gallery-copy-head');
+    expect(head).toContain('display: grid;');
+    expect(ruleIn(galleryCss, '.gallery-copy-head > *')).toContain('grid-area: 1 / 1;');
+    expect(ruleIn(galleryCss, '.gallery-copy-ghost')?.trim()).toBe('visibility: hidden;');
+    const cell = ruleIn(galleryCss, '.gallery-copy-cell');
+    expect(cell).toContain('display: flex;');
+    expect(cell).toContain('justify-content: flex-end;');
+    expect(cell).not.toMatch(/width/);
+  });
+
   it('the Tokens color cards: one column on a phone, then 3 + 2, then all five in one row (never 4 + 1)', () => {
     const grid = ruleIn(galleryCss, '.gallery-color-grid');
     expect(grid).toContain('display: grid;');

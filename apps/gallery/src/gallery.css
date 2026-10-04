@@ -508,3 +508,24 @@ html {
 .gallery-naming .bit-code {
   white-space: nowrap;
 }
+
+/* The All tokens Copy column. The button's text changes ("Copy", "Copied", "Copy failed"). The header cell
+   holds a hidden "Copy failed" button, the widest state, so the column is always wide enough and only the
+   button resizes. The header text and the ghost share one grid area. Body cells pin the button to the end. */
+.gallery-copy-head {
+  display: grid;
+  justify-items: end;
+}
+
+.gallery-copy-head > * {
+  grid-area: 1 / 1;
+}
+
+.gallery-copy-ghost {
+  visibility: hidden;
+}
+
+.gallery-copy-cell {
+  display: flex;
+  justify-content: flex-end;
+}

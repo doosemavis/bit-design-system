@@ -24,6 +24,7 @@
 
 ## Release: switch npm publishing to trusted publishing
 
+- **Deadline:** before January 2027. npm stops letting 2FA-bypass tokens publish then, so the `NPM_TOKEN` publish will fail.
 - **What:**
   - After `@bit-ds/react` 0.1.0 is on npm, go to npmjs.com → package → Settings → Trusted Publisher → GitHub Actions, and fill in:
     - owner `doosemavis`
@@ -33,9 +34,9 @@
   - Then delete the `NPM_TOKEN` secret from the `npm-publish` environment and revoke the token on npm.
 - **Why:** It removes the last long-lived npm credential stored in GitHub. Trusted publishing mints short-lived credentials per run, tied to the workflow.
 - **Pros:** No stored npm secret. Publishes are attributable to the exact workflow run.
-- **Cons:** A 5-minute manual step that can only happen after the first publish.
-- **Context:** npm trusted publishing can't create a brand-new package (verified 2026-10-02), so v0.1.0 must use the token. The publish job already pins Node ≥ 22.14 / npm ≥ 11.5.1, which trusted publishing requires.
-- **Depends on / blocked by:** PR3 merged and v0.1.0 released.
+- **Cons:** A 5-minute manual step on npmjs.com. Do it before the deadline, and do not remove the token from `release.yml` until npm trusts the workflow.
+- **Context:** npm trusted publishing can't create a brand-new package (verified 2026-10-02), so v0.1.0 used the token. The publish job already has `id-token: write` and installs npm ^11.5.1, which trusted publishing requires.
+- **Depends on / blocked by:** Nothing now. The steps are in CONTRIBUTING.md, "Releasing".
 
 ## Link: hover underline in light islands
 

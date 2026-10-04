@@ -17,6 +17,7 @@
     "gallery": "pnpm build && pnpm --filter @bit-ds/gallery dev",
     "dev": "pnpm gallery",
     "gallery:build": "pnpm build && pnpm --filter @bit-ds/gallery build",
+    "preview": "pnpm gallery:build && pnpm --filter @bit-ds/gallery preview",
     "e2e": "pnpm --filter @bit-ds/gallery e2e"
   },
   "devDependencies": {
