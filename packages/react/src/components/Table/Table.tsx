@@ -1,10 +1,26 @@
-import { createContext, forwardRef, useContext } from 'react';
+import { createContext, forwardRef, useContext, useEffect, useState } from 'react';
 import type { HTMLAttributes, TableHTMLAttributes, TdHTMLAttributes } from 'react';
 import { element, toClasses, withClassName } from '../../system/toClasses';
 import { dropLegacyColor } from '../../system/dropLegacyColor';
 
 /** Which section a cell is in, so TableCell can pick th (head) or td (body). Private. */
 const TableSectionContext = createContext<'head' | 'body'>('body');
+
+/** True while the element is wider inside than out, re-measured on every resize. */
+function useOverflows(): [(node: HTMLDivElement | null) => void, boolean] {
+  const [node, setNode] = useState<HTMLDivElement | null>(null);
+  const [overflows, setOverflows] = useState(false);
+  useEffect(() => {
+    if (!node) return;
+    const measure = () => setOverflows(node.scrollWidth > node.clientWidth);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [node]);
+  return [setNode, overflows];
+}
 
 export interface TableProps extends Omit<TableHTMLAttributes<HTMLTableElement>, 'color'> {
   /** Shade every other body row. Rendered as `data-striped` on the wrapper. */
@@ -13,23 +29,26 @@ export interface TableProps extends Omit<TableHTMLAttributes<HTMLTableElement>, 
 
 /**
  * A native table in a bordered wrapper that scrolls sideways when the table is too wide. The wrapper
- * takes `className` and is always focusable, so the scroll works from the keyboard; with an
- * `aria-label` or `aria-labelledby` it is also a named region. The table takes the ref and every other prop.
+ * takes `className`. The wrapper is focusable only while the table is too wide and scrolls, so the scroll
+ * works from the keyboard without an extra Tab stop the rest of the time. With an `aria-label` or
+ * `aria-labelledby` it is also a named region. The table takes the ref and every other prop.
  */
 export const Table = forwardRef<HTMLTableElement, TableProps>(function Table(
   { striped = false, className, ...rest },
   ref,
 ) {
+  const [measureRef, overflows] = useOverflows();
   const label = rest['aria-label'];
   const labelledBy = rest['aria-labelledby'];
   // An empty string names nothing, so it must not make an empty-named region.
   const named = Boolean(label) || Boolean(labelledBy);
   return (
     <div
+      ref={measureRef}
       className={toClasses('table', [], className)}
       data-striped={striped ? '' : undefined}
-      tabIndex={0}
-      role={named ? 'region' : undefined}
+      tabIndex={overflows ? 0 : undefined}
+      role={named || overflows ? 'region' : undefined}
       aria-label={label}
       aria-labelledby={labelledBy}
     >
