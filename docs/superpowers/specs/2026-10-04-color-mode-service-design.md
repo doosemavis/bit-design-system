@@ -94,10 +94,13 @@ export const colorMode: ColorModeService;
     ```html
     <script>
       // Use the visitor's saved choice (from the toggle) before your app loads.
-      const saved = localStorage.getItem('bit-color-mode');
-      if (saved) document.documentElement.dataset.mode = saved;
+      try {
+        const saved = localStorage.getItem('bit-color-mode');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.mode = saved;
+      } catch {} // storage blocked: the data-mode in your HTML stands
     </script>
     ```
+    The snippet was hardened in final review: the `try` stops blocked storage throwing an uncaught `SecurityError`, and only `light` or `dark` is applied, so a bad saved value can't pin a wrong mode.
     It also mentions that `COLOR_MODE_SCRIPT` is the same thing as a string, for frameworks that render `<head>` in React.
   - **Removed:** the `NO_FLASH_EXAMPLE` built from the minified string.
 - **ModeToggle manifest** (`manifests/modeToggle.ts`): the usage note now points to `data-mode="system"` and `colorMode`, replacing "Inline COLOR_MODE_SCRIPT". Add a short "Switch from code" usage example with `colorMode`.

@@ -6,8 +6,10 @@
     <meta name="color-scheme" content="light dark" />
     <script>
       // Use the visitor's saved choice (from the toggle) before your app loads.
-      const saved = localStorage.getItem('bit-color-mode');
-      if (saved) document.documentElement.dataset.mode = saved;
+      try {
+        const saved = localStorage.getItem('bit-color-mode');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.mode = saved;
+      } catch {} // storage blocked: the data-mode in your HTML stands
     </script>
     <title>bit — component gallery</title>
   </head>

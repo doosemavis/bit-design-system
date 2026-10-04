@@ -77,6 +77,19 @@ describe('GettingStartedPage', () => {
       );
     });
 
+    it('captions each step 4 block with the file it goes in, right above it', async () => {
+      await open();
+      for (const [caption, region, code] of [
+        ['In index.html', 'index.html', 'index.html'],
+        ['In any file', 'Any file', null],
+      ] as const) {
+        const text = within(main()).getByText((_, el) => el?.tagName === 'P' && el.textContent === caption);
+        expect(text).toHaveClass('bit-text');
+        if (code) expect(within(text).getByText(code)).toHaveClass('bit-code');
+        expect(text.nextElementSibling!.contains(screen.getByRole('region', { name: region }))).toBe(true);
+      }
+    });
+
     it('the optional disclosure starts closed, then opens to the snippet and the COLOR_MODE_SCRIPT note', async () => {
       await open();
       const button = within(main()).getByRole('button', { name: OPTIONAL });
@@ -88,8 +101,10 @@ describe('GettingStartedPage', () => {
         [
           '<script>',
           "  // Use the visitor's saved choice (from the toggle) before your app loads.",
-          "  const saved = localStorage.getItem('bit-color-mode');",
-          '  if (saved) document.documentElement.dataset.mode = saved;',
+          '  try {',
+          "    const saved = localStorage.getItem('bit-color-mode');",
+          "    if (saved === 'light' || saved === 'dark') document.documentElement.dataset.mode = saved;",
+          '  } catch {} // storage blocked: the data-mode in your HTML stands',
           '</script>',
         ].join('\n'),
       );

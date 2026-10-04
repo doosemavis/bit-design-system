@@ -14,8 +14,10 @@ colorMode.set('system'); // follow the visitor's OS again`;
 
 const SAVED_CHOICE_EXAMPLE = `<script>
   // Use the visitor's saved choice (from the toggle) before your app loads.
-  const saved = localStorage.getItem('bit-color-mode');
-  if (saved) document.documentElement.dataset.mode = saved;
+  try {
+    const saved = localStorage.getItem('bit-color-mode');
+    if (saved === 'light' || saved === 'dark') document.documentElement.dataset.mode = saved;
+  } catch {} // storage blocked: the data-mode in your HTML stands
 </script>`;
 
 const NEXT_STEPS = [
@@ -48,8 +50,18 @@ export function GettingStartedPage() {
           <Stack align="start">
             <ModeToggle />
           </Stack>
-          <CodeBlock code={HTML_EXAMPLE} language="html" label="index.html" />
-          <CodeBlock code={COLOR_MODE_EXAMPLE} language="jsx" label="Any file" />
+          <Stack gap={4}>
+            <Text size={13} weight="bold">
+              In <Code>index.html</Code>
+            </Text>
+            <CodeBlock code={HTML_EXAMPLE} language="html" label="index.html" />
+          </Stack>
+          <Stack gap={4}>
+            <Text size={13} weight="bold">
+              In any file
+            </Text>
+            <CodeBlock code={COLOR_MODE_EXAMPLE} language="jsx" label="Any file" />
+          </Stack>
           <Disclosure title="Optional: use a saved choice before the page draws">
             <Stack gap={8}>
               <Text>
