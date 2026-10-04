@@ -1,9 +1,15 @@
 name: Release
 
-# Pull requests run `dry-run`. A pushed v* tag runs guard -> publish -> deploy.
-# A push to main, or a manual "Run workflow" of Release on main, runs docs-check -> docs: it deploys the
-# site without a release, but only while packages/ is unchanged since the latest release tag.
-# See CONTRIBUTING.md, "Releasing".
+# Pull requests run `dry-run`. A pushed v* tag runs guard -> build -> publish -> verify-install, and
+# site-build -> deploy for the Pages site; deploy waits for verify-install, so the site changes only
+# after a good publish. A push to main, or a manual "Run workflow" of Release on main, runs
+# docs-check -> docs-build -> docs: it deploys the site without a release, but only while packages/
+# is unchanged since the latest release tag. See CONTRIBUTING.md, "Releasing".
+#
+# Privilege is split (security.md C1, C2). The jobs that install dependencies or run their code
+# (dry-run, build, site-build, docs-build) hold no secret, no OIDC token and no environment. The jobs
+# that hold one (publish, deploy, docs) install nothing: publish checks the hash of the tarball the
+# build job made and publishes it, and deploy and docs only run actions/deploy-pages.
 on:
   pull_request:
   push:
@@ -15,10 +21,16 @@ on:
 permissions:
   contents: read
 
+env:
+  # The one npm the release uses. Provenance and trusted publishing need 11.5.1 or later, and Node 22
+  # ships npm 10. Exact, so a new npm never reaches the publish job unreviewed. Dependabot can't see
+  # this, so bump it by hand; the dry run on that PR rehearses the new version.
+  NPM_VERSION: 11.21.0
+
 # All tag runs share one group, so two tags never publish or deploy at the same time.
 # A release in progress is never cancelled. Main runs get their own group, so a docs deploy
 # never replaces a waiting release. Pull requests get one group each, and a new push cancels the
-# older dry run. The two deploy jobs also share the `pages` group (see deploy and docs).
+# older dry run. The two Pages deploy jobs also share the `pages` group (see deploy and docs).
 # Note: GitHub keeps one pending run per group. A third tag pushed while one runs and one waits
 # replaces the waiting run, which then needs re-running.
 concurrency:
@@ -36,6 +48,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      # From here to the smoke test, the steps are the build job's, word for word
+      # (workflows.test.mjs pins them equal), so the PR rehearses exactly what a tag builds.
       - uses: pnpm/action-setup@v4
         with:
           version: 9.15.9
@@ -43,12 +57,13 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      # The same npm as the publish job, so the rehearsal matches the real publish.
-      - run: npm i -g npm@^11.5.1
+      - name: Install the pinned npm
+        run: npm install -g --ignore-scripts "npm@$NPM_VERSION"
       - run: pnpm install --frozen-lockfile
       - run: pnpm build && pnpm verify
       # prepack copies README.md and LICENSE into the package. pnpm 9 rejects `--filter` on pack
-      # ("Unknown option: 'recursive'"), so point --dir at the package.
+      # ("Unknown option: 'recursive'"), so point --dir at the package. The hash is taken here,
+      # before the smoke test runs any registry code, and publish checks the tarball against it.
       - name: Pack
         id: pack
         run: |
@@ -57,7 +72,29 @@ jobs:
           shopt -s nullglob
           tgz=("$RUNNER_TEMP"/out/*.tgz)
           [ ${#tgz[@]} -eq 1 ] || { echo "::error::expected exactly one tarball, found ${#tgz[@]}"; exit 1; }
-          echo "tgz=${tgz[0]}" >> "$GITHUB_OUTPUT"
+          sha256=$(sha256sum "${tgz[0]}" | cut -d ' ' -f 1)
+          {
+            echo "tgz=${tgz[0]}"
+            echo "name=${tgz[0]##*/}"
+            echo "sha256=$sha256"
+          } >> "$GITHUB_OUTPUT"
+          echo "packed ${tgz[0]##*/}, sha256 $sha256"
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      # smoke:full uses the root `playwright` package. Runs on a cache hit too, for the system libraries.
+      - run: pnpm exec playwright install --with-deps chromium
+      # smoke:full tests this exact tarball (SMOKE_TARBALL), and it is the file that would be published.
+      - name: Smoke test
+        id: smoke
+        run: pnpm smoke:full
+        env:
+          SMOKE_TARBALL: ${{ steps.pack.outputs.tgz }}
+      # End of the steps shared with the build job.
       # npm 11 refuses even a dry run over a version that is already on npm. So, like the real
       # publish, the dry run happens only for a new version. Other PRs say so and move on.
       - name: Decide whether this version is new
@@ -72,19 +109,6 @@ jobs:
       - name: Note the skipped dry run
         if: steps.decide.outputs.publish == 'false'
         run: echo "::notice::This version is already on npm. Bump packages/react/package.json to dry-run a publish."
-      - name: Read the Playwright version
-        id: playwright
-        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
-      # smoke:full uses the root `playwright` package. Runs on a cache hit too, for the system libraries.
-      - run: pnpm exec playwright install --with-deps chromium
-      # smoke:full tests this exact tarball (SMOKE_TARBALL), and it is the file that would be published.
-      - run: pnpm smoke:full
-        env:
-          SMOKE_TARBALL: ${{ steps.pack.outputs.tgz }}
       - run: pnpm gallery:build
       # Rehearses the deploy's versioned site. --as-older archives v0.1.0 at v0.1/ although it shares
       # the current line, so archiving and the injected banner run before a second line exists.
@@ -100,9 +124,11 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
+      # The repo is public, so the fetch of main below needs no stored token.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       # release-steps.mjs uses only Node built-ins, so this job needs no install.
       - uses: actions/setup-node@v4
         with:
@@ -117,8 +143,79 @@ jobs:
             exit 1
           fi
 
-  publish:
+  # Installs, builds, verifies, packs and smoke-tests the tarball with no secret, no OIDC token and no
+  # environment, so no install script or registry package ever runs next to a publish credential.
+  # It hands publish the tarball as an artifact, and its name and sha256 as outputs.
+  build:
     needs: guard
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    outputs:
+      tgz-name: ${{ steps.pack.outputs.name }}
+      sha256: ${{ steps.pack.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      # From here to the smoke test, the steps are dry-run's, word for word
+      # (workflows.test.mjs pins them equal).
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install the pinned npm
+        run: npm install -g --ignore-scripts "npm@$NPM_VERSION"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build && pnpm verify
+      # prepack copies README.md and LICENSE into the package. pnpm 9 rejects `--filter` on pack
+      # ("Unknown option: 'recursive'"), so point --dir at the package. The hash is taken here,
+      # before the smoke test runs any registry code, and publish checks the tarball against it.
+      - name: Pack
+        id: pack
+        run: |
+          pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"
+          # nullglob: no tarball gives an empty array, not a literal "*.tgz" that counts as one.
+          shopt -s nullglob
+          tgz=("$RUNNER_TEMP"/out/*.tgz)
+          [ ${#tgz[@]} -eq 1 ] || { echo "::error::expected exactly one tarball, found ${#tgz[@]}"; exit 1; }
+          sha256=$(sha256sum "${tgz[0]}" | cut -d ' ' -f 1)
+          {
+            echo "tgz=${tgz[0]}"
+            echo "name=${tgz[0]##*/}"
+            echo "sha256=$sha256"
+          } >> "$GITHUB_OUTPUT"
+          echo "packed ${tgz[0]##*/}, sha256 $sha256"
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      # smoke:full uses the root `playwright` package. Runs on a cache hit too, for the system libraries.
+      - run: pnpm exec playwright install --with-deps chromium
+      # smoke:full tests this exact tarball (SMOKE_TARBALL), and it is the file that would be published.
+      - name: Smoke test
+        id: smoke
+        run: pnpm smoke:full
+        env:
+          SMOKE_TARBALL: ${{ steps.pack.outputs.tgz }}
+      # End of the steps shared with dry-run.
+      - name: Upload the tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-tarball
+          path: ${{ steps.pack.outputs.tgz }}
+          if-no-files-found: error
+
+  # Publishes the tarball the build job made and tested. It runs no install and no third-party code:
+  # no pnpm, no dependency cache, and the checkout is only for release-steps.mjs (Node built-ins
+  # only) and the package version. The one download besides the artifact is the pinned npm itself.
+  publish:
+    needs: [guard, build]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     # The environment allows only v* tags, needs a reviewer, and holds NPM_TOKEN.
@@ -128,42 +225,41 @@ jobs:
       id-token: write # signs the provenance statement
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
         with:
-          version: 9.15.9
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
           registry-url: https://registry.npmjs.org
-      # Provenance and trusted publishing need npm 11.5.1 or later. Node 22 ships npm 10.
-      - run: npm i -g npm@^11.5.1
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build && pnpm verify
-      # This tarball is the one that gets published. prepack adds README.md and LICENSE.
-      - name: Pack
-        id: pack
-        run: |
-          pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"
-          # nullglob: no tarball gives an empty array, not a literal "*.tgz" that counts as one.
-          shopt -s nullglob
-          tgz=("$RUNNER_TEMP"/out/*.tgz)
-          [ ${#tgz[@]} -eq 1 ] || { echo "::error::expected exactly one tarball, found ${#tgz[@]}"; exit 1; }
-          echo "tgz=${tgz[0]}" >> "$GITHUB_OUTPUT"
-      - name: Read the Playwright version
-        id: playwright
-        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - name: Install the pinned npm
+        run: npm install -g --ignore-scripts "npm@$NPM_VERSION"
+      - uses: actions/download-artifact@v4
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
-      - run: pnpm exec playwright install --with-deps chromium
-      # smoke:full tests this exact tarball (SMOKE_TARBALL), and it is the file that is published.
-      - name: Smoke test
-        id: smoke
-        run: pnpm smoke:full
+          name: npm-tarball
+          path: ${{ runner.temp }}/release
+      # The artifact must be exactly the one file the build job packed, byte for byte.
+      - name: Verify the tarball
+        id: tarball
+        run: |
+          [[ "$EXPECTED_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::the build job gave no sha256"; exit 1; }
+          [[ "$TGZ_NAME" =~ ^[A-Za-z0-9._-]+\.tgz$ ]] || { echo "::error::the build job gave a bad tarball name: $TGZ_NAME"; exit 1; }
+          shopt -s nullglob dotglob
+          files=("$RUNNER_TEMP"/release/*)
+          tgz="$RUNNER_TEMP/release/$TGZ_NAME"
+          if [ ${#files[@]} -ne 1 ] || [ "${files[0]}" != "$tgz" ] || [ ! -f "$tgz" ]; then
+            echo "::error::the artifact must hold only $TGZ_NAME, found: ${files[*]##*/}"
+            exit 1
+          fi
+          actual=$(sha256sum "$tgz" | cut -d ' ' -f 1)
+          if [ "$actual" != "$EXPECTED_SHA256" ]; then
+            echo "::error::sha256 mismatch for $TGZ_NAME: the build job packed $EXPECTED_SHA256, the artifact is $actual"
+            exit 1
+          fi
+          echo "$TGZ_NAME matches the build job's sha256 $actual"
+          echo "tgz=$tgz" >> "$GITHUB_OUTPUT"
         env:
-          SMOKE_TARBALL: ${{ steps.pack.outputs.tgz }}
+          TGZ_NAME: ${{ needs.build.outputs.tgz-name }}
+          EXPECTED_SHA256: ${{ needs.build.outputs.sha256 }}
       # Writes publish=true, or publish=false when this version is already on npm (a re-run).
       - name: Decide whether to publish
         id: decide
@@ -175,31 +271,30 @@ jobs:
         run: npm publish "$TGZ" --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          TGZ: ${{ steps.pack.outputs.tgz }}
-      # Runs after a successful publish, or after the publish was skipped because the version
-      # already exists (a re-run). success() is false once any earlier step failed (smoke, decide
-      # or publish), so a broken run stops here. A skipped step does not count as a failure.
-      - name: Check the published version installs
-        id: verify
-        if: success() && (steps.publish.outcome == 'success' || steps.decide.outputs.publish == 'false')
-        run: node scripts/release-steps.mjs verify-install "${GITHUB_REF_NAME#v}"
+          TGZ: ${{ steps.tarball.outputs.tgz }}
 
-  # Runs only when the publish job succeeded, including a re-run that skipped the publish.
-  deploy:
+  # Runs after a successful publish, or after the publish was skipped because the version already
+  # exists (a re-run). It waits for npm to show the version, then installs it, with no secret.
+  verify-install:
     needs: publish
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
-    # Shared with docs: one Pages deploy at a time, never cancelled.
-    concurrency:
-      group: pages
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check the published version installs
+        run: node scripts/release-steps.mjs verify-install "${GITHUB_REF_NAME#v}"
+
+  # Builds the tag's Pages site with no Pages permission. It runs alongside build and publish;
+  # deploy uses its artifact only after verify-install passes.
+  site-build:
+    needs: guard
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
     steps:
       # Full history, so the tags of the older lines exist.
       - uses: actions/checkout@v4
@@ -230,11 +325,28 @@ jobs:
       # The current gallery at the root, each older line at v<line>/, versions.json and the banner.
       - name: Build the versioned site
         run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"
-      - uses: actions/configure-pages@v5
       # `with:` is not a shell, so the path uses runner.temp, not $RUNNER_TEMP.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ runner.temp }}/site
+
+  # Deploys the site site-build uploaded, once the release is on npm and installs. Nothing else runs here.
+  deploy:
+    needs: [site-build, verify-install]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    # Shared with docs: one Pages deploy at a time, never cancelled.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
 
@@ -283,22 +395,13 @@ jobs:
             echo "deploy=false" >> "$GITHUB_OUTPUT"
           fi
 
-  docs:
+  # Builds main's Pages site with no Pages permission, the same way site-build does for a tag.
+  docs-build:
     needs: docs-check
     if: needs.docs-check.outputs.deploy == 'true'
     runs-on: ubuntu-latest
-    # Shared with the tag deploy: one Pages deploy at a time, never cancelled.
-    concurrency:
-      group: pages
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
     steps:
+      # Full history, so the tags of the older lines exist.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -327,10 +430,27 @@ jobs:
       # The current gallery at the root, each older line at v<line>/, versions.json and the banner.
       - name: Build the versioned site
         run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"
-      - uses: actions/configure-pages@v5
       # `with:` is not a shell, so the path uses runner.temp, not $RUNNER_TEMP.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ runner.temp }}/site
+
+  # Deploys the site docs-build uploaded. Nothing else runs here.
+  docs:
+    needs: [docs-check, docs-build]
+    if: needs.docs-check.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    # Shared with the tag deploy: one Pages deploy at a time, never cancelled.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
