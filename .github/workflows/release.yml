@@ -325,10 +325,12 @@ jobs:
       # The current gallery at the root, each older line at v<line>/, versions.json and the banner.
       - name: Build the versioned site
         run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"
-      # `with:` is not a shell, so the path uses runner.temp, not $RUNNER_TEMP.
+      # `with:` is not a shell, so the path uses runner.temp, not $RUNNER_TEMP. The default retention
+      # is 1 day; site-build runs before the publish approval, so keep the site for a slow approval.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ runner.temp }}/site
+          retention-days: 7
 
   # Deploys the site site-build uploaded, once the release is on npm and installs. Nothing else runs here.
   deploy:
@@ -430,10 +432,12 @@ jobs:
       # The current gallery at the root, each older line at v<line>/, versions.json and the banner.
       - name: Build the versioned site
         run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"
-      # `with:` is not a shell, so the path uses runner.temp, not $RUNNER_TEMP.
+      # `with:` is not a shell, so the path uses runner.temp, not $RUNNER_TEMP. The default retention
+      # is 1 day; site-build runs before the publish approval, so keep the site for a slow approval.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ runner.temp }}/site
+          retention-days: 7
 
   # Deploys the site docs-build uploaded. Nothing else runs here.
   docs:

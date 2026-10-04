@@ -558,6 +558,9 @@ const assertBuildsVersionedSite = (job, label) => {
   assert.equal(upload, steps.length - 1, `${label}: the upload is the last step`);
   // `with:` is not a shell, so $RUNNER_TEMP would stay literal there.
   assert.equal(steps[upload].with.path, '${{ runner.temp }}/site', `${label}: uploads the versioned site`);
+  // The default is 1 day. site-build runs before the publish approval, so a slow approval must not
+  // leave deploy with an expired artifact after npm already has the release.
+  assert.equal(steps[upload].with['retention-days'], 7, `${label}: the site artifact outlives a slow approval`);
   assert.ok(!steps.some((s) => s.uses === 'actions/deploy-pages@v4'), `${label}: never deploys`);
 };
 
