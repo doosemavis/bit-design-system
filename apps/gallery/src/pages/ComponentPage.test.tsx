@@ -18,11 +18,12 @@ const region = (name: string) => screen.getByRole('region', { name });
 const main = () => screen.getByRole('main');
 
 describe('ComponentPage (layout C)', () => {
-  it('the header: eyebrow, h1, description, the import chip with Copy, and the badges', async () => {
+  it('the header: eyebrow, h1, description, the import line as a CodeBlock with Copy, and the badges', async () => {
     await open('/components/card', 'Card');
     expect(within(main()).getByText('Components')).toHaveClass('gallery-eyebrow');
-    const chip = screen.getByText("import { Card, CardHeader, CardBody, CardFooter } from '@bit-ds/react';");
-    expect(chip).toHaveClass('bit-code');
+    expect(screen.getByRole('region', { name: 'import line' })).toHaveTextContent(
+      "import { Card, CardHeader, CardBody, CardFooter } from '@bit-ds/react';",
+    );
     expect(screen.getByRole('button', { name: 'Copy import line' })).toBeInTheDocument();
     expect(screen.getByText('Compound')).toHaveClass('bit-badge', 'bit-outline');
   });

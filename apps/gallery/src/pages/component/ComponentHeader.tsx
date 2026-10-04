@@ -1,7 +1,6 @@
-import { Badge, Code, Stack, Text } from '@bit-ds/react';
+import { Badge, CodeBlock, Stack, Text } from '@bit-ds/react';
 import type { Manifest, ManifestGroup } from '../../manifests/types';
 import { PageHeader } from '../../ui/PageHeader';
-import { CopyButton } from '../../ui/CopyButton';
 
 const GROUP_LABELS: Record<ManifestGroup, string> = { components: 'Components', forms: 'Forms', brand: 'Brand' };
 
@@ -10,16 +9,13 @@ export function importChip(manifest: Manifest): string {
   return `import { ${[manifest.name, ...(manifest.parts ?? [])].join(', ')} } from '@bit-ds/react';`;
 }
 
-/** Eyebrow, h1, description, the import chip with Copy, and the manifest's badges. */
+/** Eyebrow, h1, description, the import line as a CodeBlock, and the manifest's badges. */
 export function ComponentHeader({ manifest }: { manifest: Manifest }) {
   const line = importChip(manifest);
   return (
     <PageHeader eyebrow={GROUP_LABELS[manifest.group]} title={manifest.name}>
       <Text size={18}>{manifest.description}</Text>
-      <Stack direction="row" gap={8} align="center" wrap>
-        <Code>{line}</Code>
-        <CopyButton text={line} label="Copy import line" />
-      </Stack>
+      <CodeBlock code={line} language="jsx" label="import line" />
       {manifest.docs.badges.length > 0 ? (
         <Stack direction="row" gap={8} wrap>
           {manifest.docs.badges.map((badge) => (
