@@ -10,18 +10,12 @@ import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
+import { EXPECTED } from '../packages/react/scripts/expected-exports.mjs';
 import { INSTALL_COMMANDS, PACKAGE_NAME, STYLE_IMPORTS, fullFile } from '../apps/gallery/src/content/snippets.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const reactPkg = join(root, 'packages', 'react');
 const run = (cmd, cwd) => execSync(cmd, { cwd, stdio: 'pipe', encoding: 'utf8' });
-
-const EXPECTED = [
-  'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
-  'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
-  'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
-  'Heading', 'Box', 'announce', 'colorMode', 'ColorModeService',
-];
 
 // Run a command, printing its stdout/stderr and rethrowing on failure so a broken
 // consumer step fails loudly instead of an opaque non-zero exit.

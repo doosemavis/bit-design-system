@@ -4,17 +4,12 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
+import { SEMANTIC_TOKENS } from '@bit-ds/core/tokens';
+import { EXPECTED } from './expected-exports.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = resolve(here, '../dist');
 const require = createRequire(import.meta.url);
-
-const EXPECTED = [
-  'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
-  'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
-  'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
-  'Heading', 'Box', 'announce', 'colorMode', 'ColorModeService',
-];
 
 // 0. Client boundary: the hooks and toggle need a 'use client' directive for React Server Components.
 for (const file of ['index.js', 'index.cjs']) {
@@ -31,7 +26,7 @@ assert.equal(typeof cjs.useColorMode, 'function', 'CJS export missing: useColorM
 assert.equal(typeof cjs.colorMode?.set, 'function', 'CJS export missing: colorMode.set');
 assert.equal(typeof cjs.ColorModeService, 'function', 'CJS export ColorModeService must be a class');
 assert.equal(typeof cjs.colorMode, 'object', 'CJS export colorMode must be the shared instance');
-assert.equal(cjs.SEMANTIC_TOKENS?.length, 94, 'CJS export missing: SEMANTIC_TOKENS (94 names)');
+assert.equal(cjs.SEMANTIC_TOKENS?.length, SEMANTIC_TOKENS.length, `CJS export SEMANTIC_TOKENS must list all ${SEMANTIC_TOKENS.length} names from @bit-ds/core/tokens`);
 
 // 2. ESM entry
 const esm = await import(resolve(dist, 'index.js'));
@@ -41,7 +36,7 @@ assert.equal(typeof esm.useColorMode, 'function', 'ESM export missing: useColorM
 assert.equal(typeof esm.colorMode?.set, 'function', 'ESM export missing: colorMode.set');
 assert.equal(typeof esm.ColorModeService, 'function', 'ESM export ColorModeService must be a class');
 assert.equal(typeof esm.colorMode, 'object', 'ESM export colorMode must be the shared instance');
-assert.equal(esm.SEMANTIC_TOKENS?.length, 94, 'ESM export missing: SEMANTIC_TOKENS (94 names)');
+assert.equal(esm.SEMANTIC_TOKENS?.length, SEMANTIC_TOKENS.length, `ESM export SEMANTIC_TOKENS must list all ${SEMANTIC_TOKENS.length} names from @bit-ds/core/tokens`);
 
 // 3. Types
 assert.ok(existsSync(resolve(dist, 'index.d.cts')), 'index.d.cts missing (CJS types entry)');
