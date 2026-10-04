@@ -39,15 +39,16 @@ export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(function Cod
   { code, language, copy = true, label, actions, className, ...rest },
   ref,
 ) {
+  const name = label || `${language} code`;
   const tokens = useMemo(() => tokenize(code, language), [code, language]);
   return (
     <div ref={ref} className={withClassName(element('code', 'block'), className)} data-language={language} {...dropLegacyColor(rest)}>
       <div className={element('code', 'bar')}>
         <span className={element('code', 'lang')}>{language}</span>
         {actions == null ? null : <div className={element('code', 'actions')}>{actions}</div>}
-        {copy ? <CopyButton code={code} /> : null}
+        {copy ? <CopyButton code={code} name={name} /> : null}
       </div>
-      <pre className={element('code', 'pre')} tabIndex={0} role="region" aria-label={label || `${language} code`}>
+      <pre className={element('code', 'pre')} tabIndex={0} role="region" aria-label={name}>
         <code>{tokens.map(renderToken)}</code>
       </pre>
     </div>

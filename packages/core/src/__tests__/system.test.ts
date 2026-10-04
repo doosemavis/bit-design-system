@@ -321,4 +321,10 @@ describe('components/mode-toggle.css', () => {
     expect(body).toContain('border: var(--bit-border-width) solid var(--bit-color-line);');
     expect(body).toContain('box-shadow: var(--bit-shadow-sm);');
   });
+
+  it('ships a visually-hidden utility for announce()', () => {
+    const body = block(readCss('system/reset.css'), '.bit-visually-hidden')!;
+    expect(body).toContain('clip-path: inset(50%);');
+    expect(body).toContain('position: absolute;');
+  });
 });

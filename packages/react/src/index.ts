@@ -66,3 +66,4 @@ export type { Era } from './logo/logoEra';
 
 export { useColorMode, COLOR_MODES, COLOR_MODE_STORAGE_KEY, COLOR_MODE_SCRIPT } from './mode/colorMode';
 export type { ColorMode } from './mode/colorMode';
+export { announce } from './system/announce';

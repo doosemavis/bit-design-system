@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '@bit-ds/react';
+import { Button, announce } from '@bit-ds/react';
 
 type CopyState = 'idle' | 'copied' | 'failed';
 
@@ -30,7 +30,7 @@ async function writeClipboard(text: string): Promise<boolean> {
 
 /**
  * A small Copy button for gallery chips and table rows (CodeBlock has its own). "Copied" or "Copy failed"
- * shows for two seconds, and a visually hidden status line announces it.
+ * shows for two seconds, and announce() tells screen readers.
  */
 export function CopyButton({ text, label }: CopyButtonProps) {
   const [state, setState] = useState<CopyState>('idle');
@@ -49,24 +49,21 @@ export function CopyButton({ text, label }: CopyButtonProps) {
     const ok = await writeClipboard(text);
     if (!mounted.current) return;
     clearTimeout(timer.current);
-    setState(ok ? 'copied' : 'failed');
+    const next = ok ? 'copied' : 'failed';
+    setState(next);
+    announce(LABELS[next]);
     timer.current = setTimeout(() => setState('idle'), COPY_RESET_MS);
   }
 
   return (
-    <>
-      <Button
-        size="sm"
-        variant="outline"
-        color={state === 'failed' ? 'danger' : 'neutral'}
-        aria-label={state === 'idle' ? label : undefined}
-        onClick={() => void copy()}
-      >
-        {LABELS[state]}
-      </Button>
-      <span className="gallery-visually-hidden" role="status">
-        {state === 'idle' ? '' : LABELS[state]}
-      </span>
-    </>
+    <Button
+      size="sm"
+      variant="outline"
+      color={state === 'failed' ? 'danger' : 'neutral'}
+      aria-label={state === 'idle' ? label : undefined}
+      onClick={() => void copy()}
+    >
+      {LABELS[state]}
+    </Button>
   );
 }

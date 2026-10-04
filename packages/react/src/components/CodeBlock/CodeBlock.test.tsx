@@ -25,14 +25,40 @@ async function click(element: HTMLElement): Promise<void> {
 }
 
 const copyButton = () => screen.getByRole('button');
-const status = (container: HTMLElement) => container.querySelector('.bit-code__status')!;
+const announcer = () => document.getElementById('bit-announcer');
 
 afterEach(() => {
+  document.getElementById('bit-announcer')?.remove();
   Reflect.deleteProperty(navigator, 'clipboard');
   vi.useRealTimers();
 });
 
 describe('CodeBlock', () => {
+  it('names Copy after the label, so several code blocks are told apart', () => {
+    render(<CodeBlock code="pnpm add @bit-ds/react" language="shell" label="Install command" />);
+    expect(screen.getByRole('button', { name: 'Copy Install command' })).toHaveTextContent('Copy');
+  });
+
+  it('without a label, names Copy after the language', () => {
+    render(<CodeBlock code="ls" language="shell" />);
+    expect(screen.getByRole('button', { name: 'Copy shell code' })).toBeInTheDocument();
+  });
+
+  it('after copying, the name is the visible state, and announce() says it', async () => {
+    vi.useFakeTimers();
+    stubClipboard(() => Promise.resolve());
+    render(<CodeBlock code="ls" language="shell" />);
+    await click(screen.getByRole('button', { name: 'Copy shell code' }));
+    expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(100));
+    expect(announcer()).toHaveTextContent('Copied');
+  });
+
+  it('has no live region of its own', () => {
+    const { container } = render(<CodeBlock code="ls" language="shell" />);
+    expect(container.querySelector('[aria-live]')).toBeNull();
+  });
+
   it('renders the block, the bar with the language and Copy, and a focusable labelled pre', () => {
     const { container } = render(<CodeBlock code={JSX} language="jsx" />);
     const root = container.firstElementChild as HTMLElement;
@@ -43,8 +69,7 @@ describe('CodeBlock', () => {
     expect(copyButton()).toHaveAttribute('type', 'button');
     expect(copyButton()).toHaveAttribute('data-state', 'idle');
     expect(copyButton()).toHaveTextContent('Copy');
-    expect(status(container)).toHaveAttribute('aria-live', 'polite');
-    expect(status(container)).toBeEmptyDOMElement();
+    expect(container.querySelector('[aria-live]')).toBeNull();
     const pre = root.querySelector('pre.bit-code__pre')!;
     expect(pre).toHaveAttribute('tabindex', '0');
     expect(pre).toHaveAttribute('aria-label', 'jsx code');
@@ -124,28 +149,29 @@ describe('CodeBlock', () => {
     vi.useFakeTimers();
     const writeText = vi.fn(() => Promise.resolve());
     stubClipboard(writeText);
-    const { container } = render(<CodeBlock code={JSX} language="jsx" />);
+    render(<CodeBlock code={JSX} language="jsx" />);
     await click(copyButton());
     expect(writeText).toHaveBeenCalledWith(JSX);
     expect(copyButton()).toHaveAttribute('data-state', 'copied');
     expect(copyButton()).toHaveTextContent('Copied');
-    expect(status(container)).toHaveTextContent('Copied');
-    act(() => vi.advanceTimersByTime(COPY_RESET_MS - 1));
+    act(() => vi.advanceTimersByTime(50));
+    expect(announcer()).toHaveTextContent('Copied');
+    act(() => vi.advanceTimersByTime(COPY_RESET_MS - 51));
     expect(copyButton()).toHaveAttribute('data-state', 'copied');
     act(() => vi.advanceTimersByTime(1));
     expect(copyButton()).toHaveAttribute('data-state', 'idle');
     expect(copyButton()).toHaveTextContent('Copy');
-    expect(status(container)).toBeEmptyDOMElement();
   });
 
   it('a refused write shows "Copy failed", then resets', async () => {
     vi.useFakeTimers();
     stubClipboard(() => Promise.reject(new Error('denied')));
-    const { container } = render(<CodeBlock code={JSX} language="jsx" />);
+    render(<CodeBlock code={JSX} language="jsx" />);
     await click(copyButton());
     expect(copyButton()).toHaveAttribute('data-state', 'failed');
     expect(copyButton()).toHaveTextContent('Copy failed');
-    expect(status(container)).toHaveTextContent('Copy failed');
+    act(() => vi.advanceTimersByTime(50));
+    expect(announcer()).toHaveTextContent('Copy failed');
     act(() => vi.advanceTimersByTime(COPY_RESET_MS));
     expect(copyButton()).toHaveAttribute('data-state', 'idle');
   });
@@ -175,6 +201,8 @@ describe('CodeBlock', () => {
     stubClipboard(() => Promise.resolve());
     const { unmount } = render(<CodeBlock code={JSX} language="jsx" />);
     await click(copyButton());
+    // Let announce()'s own short timer finish, so only the reset timer is left.
+    act(() => vi.advanceTimersByTime(50));
     expect(vi.getTimerCount()).toBe(1);
     unmount();
     expect(vi.getTimerCount()).toBe(0);
@@ -191,10 +219,9 @@ describe('CodeBlock', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it('copy={false} shows no button and no status', () => {
+  it('copy={false} shows no button', () => {
     const { container } = render(<CodeBlock code="x" language="shell" copy={false} />);
     expect(screen.queryByRole('button')).toBeNull();
-    expect(container.querySelector('.bit-code__status')).toBeNull();
     expect(container.querySelector('.bit-code__lang')).toHaveTextContent('shell');
   });
 
@@ -230,7 +257,6 @@ describe('CodeBlock', () => {
       expect([...container.querySelector('.bit-code__bar')!.children].map((el) => el.className)).toEqual([
         'bit-code__lang',
         'bit-code__copy',
-        'bit-code__status',
       ]);
     });
 
@@ -243,10 +269,9 @@ describe('CodeBlock', () => {
         'bit-code__lang',
         'bit-code__actions',
         'bit-code__copy',
-        'bit-code__status',
       ]);
       const extra = screen.getByRole('button', { name: 'Extra' });
-      const copy = screen.getByRole('button', { name: 'Copy' });
+      const copy = screen.getByRole('button', { name: 'Copy shell code' });
       expect(extra.compareDocumentPosition(copy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
@@ -255,8 +280,7 @@ describe('CodeBlock', () => {
         <CodeBlock code="x" language="shell" copy={false} actions={<button type="button">Extra</button>} />,
       );
       expect(container.querySelector('.bit-code__actions')).toContainElement(screen.getByRole('button', { name: 'Extra' }));
-      expect(screen.queryByRole('button', { name: 'Copy' })).toBeNull();
-      expect(container.querySelector('.bit-code__status')).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Copy shell code' })).toBeNull();
     });
 
     it('Copy copies the current code prop, so a switcher that swaps code swaps what Copy copies', async () => {
@@ -264,7 +288,7 @@ describe('CodeBlock', () => {
       stubClipboard(writeText);
       const { rerender } = render(<CodeBlock code="pnpm add x" language="shell" actions={switcher} />);
       rerender(<CodeBlock code="npm install x" language="shell" actions={switcher} />);
-      await click(screen.getByRole('button', { name: 'Copy' }));
+      await click(screen.getByRole('button', { name: 'Copy shell code' }));
       expect(writeText).toHaveBeenCalledWith('npm install x');
     });
 

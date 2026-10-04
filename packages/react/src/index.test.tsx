@@ -110,6 +110,7 @@ describe('public index', () => {
     expect(lib.COLOR_MODE_STORAGE_KEY).toBe('bit-color-mode');
     expect(typeof lib.COLOR_MODE_SCRIPT).toBe('string');
     expect(typeof lib.useColorMode).toBe('function');
+    expect(typeof lib.announce).toBe('function');
     expect('resetColorModeStore' in lib).toBe(false);
     expect('setColorMode' in lib).toBe(false);
     expect('resolveColorMode' in lib).toBe(false);

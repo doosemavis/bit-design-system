@@ -14,6 +14,7 @@ async function click(element: HTMLElement): Promise<void> {
 }
 
 afterEach(() => {
+  document.getElementById('bit-announcer')?.remove();
   Reflect.deleteProperty(navigator, 'clipboard');
   vi.useRealTimers();
 });
@@ -35,10 +36,10 @@ describe('CopyButton', () => {
     await click(screen.getByRole('button'));
     expect(writeText).toHaveBeenCalledWith("import { Button } from '@bit-ds/react';");
     expect(screen.getByRole('button')).toHaveTextContent('Copied');
-    expect(screen.getByRole('status')).toHaveTextContent('Copied');
+    act(() => vi.advanceTimersByTime(100));
+    expect(document.getElementById('bit-announcer')).toHaveTextContent('Copied');
     act(() => vi.advanceTimersByTime(COPY_RESET_MS));
     expect(screen.getByRole('button', { name: 'Copy import line' })).toHaveTextContent('Copy');
-    expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 
   it('a blocked or missing clipboard shows "Copy failed" in danger, without throwing', async () => {

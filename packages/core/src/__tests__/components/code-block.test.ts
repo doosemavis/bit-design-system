@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CODE_KINDS, SEMANTIC_TOKENS } from '../../tokens';
-import { OUTLINE_DECLARATION, VISUALLY_HIDDEN, block, decl, readCss } from '../css';
+import { OUTLINE_DECLARATION, block, decl, readCss } from '../css';
 
 describe('components/code-block.css', () => {
   const css = readCss('components/code-block.css');
@@ -100,9 +100,8 @@ describe('components/code-block.css', () => {
     expect(failed).toContain('color: var(--bit-color-danger-contrast);');
   });
 
-  it('the status line is visually hidden but still announced', () => {
-    const status = block(css, '.bit-code__status')!;
-    for (const line of VISUALLY_HIDDEN) expect(status).toContain(line);
+  it('has no status line of its own; announce() speaks the result', () => {
+    expect(block(css, '.bit-code__status')).toBeNull();
   });
 });
 

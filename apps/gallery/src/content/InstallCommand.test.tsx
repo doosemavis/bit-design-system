@@ -67,7 +67,7 @@ describe('InstallCommand', () => {
     render(<InstallCommand />);
     await userEvent.click(screen.getByRole('radio', { name: 'yarn' }));
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Copy Install command' }));
     });
     expect(writeText).toHaveBeenCalledWith('yarn add @bit-ds/react');
   });
