@@ -116,7 +116,7 @@ Set the theme and the mode on `<html>`:
 <html data-theme="power-up" data-mode="dark">
 ```
 
-`data-mode` is `light` or `dark`. To pick the mode before first paint (no light flash for a dark-mode visitor), put the color mode script inline in `<head>`, before your CSS:
+`data-mode` is `light`, `dark` or `system`. `system` follows the visitor's OS in CSS alone, and the `colorMode` service (`colorMode.set('dark')`, `colorMode.toggle()`) changes it from any file. To pick the mode before first paint (no light flash for a dark-mode visitor), put the color mode script inline in `<head>`, before your CSS:
 
 ```tsx
 import { COLOR_MODE_SCRIPT } from '@bit-ds/react';

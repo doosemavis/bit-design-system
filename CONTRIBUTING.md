@@ -88,7 +88,7 @@ A version describes the npm package. Anything that changes what people install g
 - peer ranges
 - package contents
 
-Use semver. A fix is a patch. A feature is a minor. A breaking change is a major. While the package is on 0.x, a breaking change is a minor.
+While on 0.x: a breaking change is a **minor**; new features and fixes are a **patch**. From 1.0: patch = fix, minor = feature, major = breaking.
 
 The docs site, CI, scripts and tests never get a version. They deploy through the `main` docs job (see "Docs site" below).
 
