@@ -1,14 +1,23 @@
 // @vitest-environment node
 
 import { describe, expect, it } from 'vitest';
-import { resolveColorMode, setColorMode } from './colorMode';
+import { colorMode } from './colorMode';
 
-describe('color mode without a window (SSR, node)', () => {
-  it('resolves to light', () => {
-    expect(resolveColorMode()).toBe('light');
+describe('colorMode without a window (SSR, node)', () => {
+  it('importing it and reading mode and preference does not throw', () => {
+    expect(colorMode.mode).toBe('light');
+    expect(colorMode.preference).toBe('system');
   });
 
-  it('setColorMode does nothing and does not throw', () => {
-    expect(() => setColorMode('dark')).not.toThrow();
+  it('set and toggle do nothing and do not throw', () => {
+    expect(() => colorMode.set('dark')).not.toThrow();
+    expect(() => colorMode.toggle()).not.toThrow();
+    expect(colorMode.mode).toBe('light');
+    expect(colorMode.preference).toBe('system');
+  });
+
+  it('onChange returns an unsubscribe that does not throw', () => {
+    const unsubscribe = colorMode.onChange(() => {});
+    expect(() => unsubscribe()).not.toThrow();
   });
 });

@@ -27,10 +27,11 @@ function unknownChildren(children: readonly ChildSpec[]): string[] {
 /**
  * Every runtime export of @bit-ds/react that is a component: PascalCase with a lowercase second
  * character. COLORS, SIZES, ERAS, PREFIX, SEMANTIC_TOKENS are all-caps and excluded; type-only
- * exports do not exist at runtime.
+ * exports do not exist at runtime. ColorModeService is a class (the service behind `colorMode`), not a component.
  */
+const NOT_COMPONENTS = ['ColorModeService'];
 const COMPONENT_EXPORTS = Object.keys(lib)
-  .filter((name) => /^[A-Z][a-z]/.test(name))
+  .filter((name) => /^[A-Z][a-z]/.test(name) && !NOT_COMPONENTS.includes(name))
   .sort();
 
 /** Compound parts are documented on their parent's page, not their own. */
