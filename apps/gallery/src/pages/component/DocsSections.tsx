@@ -58,14 +58,15 @@ export interface PropColumn {
   cell: (prop: PropDoc) => ReactNode;
   /**
    * A class on the column's body cells: `gallery-nowrap` keeps short code on one line, and
-   * `gallery-props__description` keeps Description wide enough that a phone scrolls the table sideways.
+   * `gallery-props__description` keeps Description wide enough that a phone scrolls the table sideways, and
+   * `gallery-props__type` keeps Type wide enough for about three union chips per line.
    */
   className?: string;
 }
 
 export const PROP_COLUMNS: readonly PropColumn[] = [
   { header: 'Prop', cell: (prop) => <Code>{prop.name}</Code>, className: 'gallery-nowrap' },
-  { header: 'Type', cell: (prop) => <TypeChips type={prop.type} /> },
+  { header: 'Type', cell: (prop) => <TypeChips type={prop.type} />, className: 'gallery-props__type' },
   {
     header: 'Default',
     cell: (prop) => (prop.default === undefined ? <None /> : <Code>{prop.default}</Code>),

@@ -460,6 +460,12 @@ html {
   min-width: calc(4 * var(--bit-space-64px));
 }
 
+/* The Type column keeps 14rem (7 × 32px): two or three union chips per line, so a short union such as
+   Button's five colors takes two lines, and the table still fits its box at desktop width. */
+.gallery-props__type {
+  min-width: calc(7 * var(--bit-space-32px));
+}
+
 @media (max-width: 720px) {
   .gallery-playground__top {
     grid-template-columns: minmax(0, 1fr);

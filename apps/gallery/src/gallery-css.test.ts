@@ -133,6 +133,11 @@ describe('gallery.css', () => {
     expect(ruleIn(galleryCss, '.gallery-props__description')?.trim()).toBe('min-width: calc(4 * var(--bit-space-64px));');
   });
 
+  it('the Props Type column keeps 14rem, so a short union fits on two lines and the table fits its box at desktop width', () => {
+    // calc(7 × 32px) = 224px = 14rem: measured at 1200px, Button's five colors take two lines and the table fits its box.
+    expect(ruleIn(galleryCss, '.gallery-props__type')?.trim()).toBe('min-width: calc(7 * var(--bit-space-32px));');
+  });
+
   it('the Tokens color cards: one column on a phone, then 3 + 2, then all five in one row (never 4 + 1)', () => {
     const grid = ruleIn(galleryCss, '.gallery-color-grid');
     expect(grid).toContain('display: grid;');
