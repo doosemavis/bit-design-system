@@ -1,5 +1,29 @@
 # Contributing to bit
 
+This repo is a pnpm workspace. Install its dependencies with `pnpm install` (run `corepack enable` once if you don't have pnpm). After that you can run any script with `npm run <name>` or `pnpm <name>`. `npm install` doesn't work inside this repo. People using the published package can install it with npm, pnpm or yarn.
+
+## Working on bit
+
+Clone the repo, run `pnpm install`, then `npm run dev` to start the gallery at http://localhost:5173.
+
+### Scripts
+
+Run each one as `npm run <name>` or `pnpm <name>`.
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | build `@bit-ds/react`, then start the gallery at http://localhost:5173 |
+| `npm run preview` | build the library and the gallery, then serve the production build at http://localhost:4173/bit-design-system/, the same way Pages does |
+| `npm test` | all unit, a11y, and system tests |
+| `npm run test:coverage` | react tests with the coverage gate (100%) |
+| `npm run build && npm run verify` | build `@bit-ds/react` and prove the dist is consumable |
+| `npm run e2e` | build the library and gallery, then run Playwright with axe on every page (needs Chromium once) |
+| `npm run smoke` | packs `@bit-ds/react` and installs it with npm into a throwaway project to prove the tarball works |
+| `npm run smoke:full` | `npm run smoke`, then builds a Vite app from the tarball and checks the Button renders in Chromium (needs Chromium once; `SMOKE_TARBALL=<path>` tests a given tarball instead of packing) |
+| `npm run logo:svg` | regenerate `assets/bit-logo.svg` |
+
+## Making a change
+
 Every change follows the same shape: write the failing test, make it pass, add the gallery page, commit with `<type>: <description>`.
 
 ## Add a component
@@ -29,7 +53,9 @@ The contrast test verifies the new color's text is readable on its fill.
 
 ## Add a theme
 
-Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1 palette and any tier-2 values, keep every token name. A theme also needs a `[data-mode="dark"]` rule that declares exactly the tokens in `MODE_TOKENS` (`packages/core/src/tokens.ts`). Add it to `THEMES` in `apps/gallery/src/shell/themes.ts`, after adding its CSS import in `apps/gallery/src/main.tsx`. Run `pnpm --filter @bit-ds/core test`.
+Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1 palette and any tier-2 values, keep every token name. A theme also needs a `[data-mode="dark"]` rule that declares exactly the tokens in `MODE_TOKENS` (`packages/core/src/tokens.ts`). Add it to `THEMES` in `apps/gallery/src/shell/themes.ts`, after adding its CSS import in `apps/gallery/src/main.tsx`. Run `pnpm --filter @bit-ds/core test`. The test fails if any token is missing or any color fails WCAG AA contrast.
+
+The theme file starts with a Google Fonts `@import`. Self-hosted fonts are planned.
 
 ## Testing
 
@@ -37,10 +63,10 @@ Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1
 
 ```bash
 pnpm --filter @bit-ds/gallery exec playwright install chromium   # once
-pnpm e2e
+npm run e2e
 ```
 
-`pnpm e2e` builds the library and the gallery, serves the build with `vite preview` at `/bit-design-system/`, and runs axe (WCAG 2.2 AA, contrast included) on every page in light and dark, plus a forced-colours check.
+`npm run e2e` builds the library and the gallery, serves the build with `vite preview` at `/bit-design-system/`, and runs axe (WCAG 2.2 AA, contrast included) on every page in light and dark, plus a forced-colours check.
 
 ## Releasing
 
@@ -61,7 +87,7 @@ The check first polls `npm view @bit-ds/react@<version> version` until npm print
 
 If the publish worked but the check or the deploy failed, re-run the failed jobs. The publish is skipped because the version exists. Never re-tag.
 
-Before tagging, you can run `pnpm smoke:full` and `pnpm e2e` locally. Both need Chromium installed once. `smoke:full` uses the root `playwright` package, so install it from the repo root:
+Before tagging, you can run `npm run smoke:full` and `npm run e2e` locally. Both need Chromium installed once. `smoke:full` uses the root `playwright` package, so install it from the repo root:
 
 ```bash
 pnpm exec playwright install chromium
@@ -77,4 +103,4 @@ Keep the root `playwright` and the gallery's `@playwright/test` on the same vers
 - Component CSS never sets `outline` or its longhands; `system/reset.css` draws the one focus ring. A visually hidden native input (Switch, SegmentedControl) gets its ring from a `reset.css` rule on the part drawn beside it.
 - Lines read `--bit-color-line`, never `--bit-color-ink`. The exceptions are listed, by selector, in `INK_EXCEPTIONS` in `packages/core/src/__tests__/system.test.ts`.
 - Theme names describe a look, not a trademark.
-- `@bit-ds/core` is a devDependency of `@bit-ds/react` because tsup inlines it; `pnpm smoke` proves the packed tarball installs with npm into a fresh project. Consumers can use any package manager.
+- `@bit-ds/core` is a devDependency of `@bit-ds/react` because tsup inlines it; `npm run smoke` proves the packed tarball installs with npm into a fresh project. Consumers can use any package manager.

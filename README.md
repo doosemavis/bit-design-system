@@ -36,8 +36,6 @@ import '@bit-ds/react/styles.css';
 import { Button } from '@bit-ds/react';
 ```
 
-To work on bit itself, clone the repo, run `pnpm install`, then `pnpm dev` to start the gallery.
-
 ## The naming rule
 
 | You write (prop) | Or write (className) | Class it emits | Token |
@@ -134,26 +132,16 @@ The script uses the visitor's stored choice, then the OS preference, then light.
 - A subtree can be dark inside a light page with `data-mode="dark"`, but it paints its own background: give it `background: var(--bit-color-bg)`.
 - A `data-mode` hard-coded in your HTML wins until the visitor toggles.
 
-Adding a theme: copy `packages/core/src/themes/power-up.css`, change the values, run `pnpm --filter @bit-ds/core test`. The test fails if any token is missing or any color fails WCAG AA contrast.
-
 The theme file starts with a Google Fonts `@import`; if your bundler concatenates stylesheets, import the theme before other CSS so the `@import` stays first. Self-hosted fonts are planned.
 
-## Scripts
+## Links
 
-| Command | What it does |
-| --- | --- |
-| `pnpm dev` | build `@bit-ds/react`, then start the gallery at http://localhost:5173 |
-| `pnpm test` | all unit, a11y, and system tests |
-| `pnpm test:coverage` | react tests with the 80% gate |
-| `pnpm build && pnpm verify` | build `@bit-ds/react` and prove the dist is consumable |
-| `pnpm e2e` | build the library and gallery, then run Playwright with axe on every page (needs Chromium once) |
-| `pnpm smoke` | packs `@bit-ds/react` and installs it with npm into a throwaway project to prove the tarball works |
-| `pnpm smoke:full` | `pnpm smoke`, then builds a Vite app from the tarball and checks the Button renders in Chromium (needs Chromium once; `SMOKE_TARBALL=<path>` tests a given tarball instead of packing) |
-| `pnpm logo:svg` | regenerate `assets/bit-logo.svg` |
+- Docs: https://doosemavis.github.io/bit-design-system/
+- Design spec: https://github.com/doosemavis/bit-design-system/blob/main/docs/superpowers/specs/2026-09-06-bit-design-system-design.md
+- Source and issues: https://github.com/doosemavis/bit-design-system
 
-## Docs
+## Contributing
 
-- Design spec: `docs/superpowers/specs/2026-09-06-bit-design-system-design.md`
-- Contributing recipes: `CONTRIBUTING.md`
+Working on bit itself? See [CONTRIBUTING.md](https://github.com/doosemavis/bit-design-system/blob/main/CONTRIBUTING.md).
 
 MIT.
