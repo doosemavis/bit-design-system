@@ -32,7 +32,8 @@ export interface TableProps extends Omit<TableHTMLAttributes<HTMLTableElement>, 
  * A native table in a bordered wrapper that scrolls sideways when the table is too wide. The wrapper
  * takes `className`. The wrapper is focusable only while the table is too wide and scrolls, so the scroll
  * works from the keyboard without an extra Tab stop the rest of the time. With an `aria-label` or
- * `aria-labelledby` it is also a named region. The table takes the ref and every other prop.
+ * `aria-labelledby` it is also a named region. Without a name it has no role, because a region
+ * with no name is not a landmark. Name any table that may scroll. The table takes the ref and every other prop.
  */
 export const Table = forwardRef<HTMLTableElement, TableProps>(function Table(
   { striped = false, className, ...rest },
@@ -49,7 +50,7 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(function Table(
       className={toClasses('table', [], className)}
       data-striped={striped ? '' : undefined}
       tabIndex={overflows ? 0 : undefined}
-      role={named || overflows ? 'region' : undefined}
+      role={named ? 'region' : undefined}
       aria-label={label}
       aria-labelledby={labelledBy}
     >

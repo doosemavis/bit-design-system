@@ -53,7 +53,7 @@ export const table: Manifest = {
     usage: {
       do: [
         'Use a Table for data people compare across rows: props, prices, scores.',
-        'Give it an aria-label or aria-labelledby, so its scroll area is a named region: a landmark screen readers can jump to.',
+        'Give every table that may scroll an aria-label (or aria-labelledby), so the scroll area is announced as a named region screen readers can jump to.',
       ],
       dont: [
         'Use a Table for layout. Use Stack or a grid.',
@@ -75,7 +75,7 @@ export const table: Manifest = {
     ],
     a11y: [
       'A native <table>, so screen readers announce rows, columns and the head cell for each value.',
-      'The scroll wrapper is a focusable region only when the table is too wide and scrolls; otherwise it adds no extra keyboard stop. An aria-label or aria-labelledby still names the region.',
+      'The scroll wrapper is focusable only when the table is too wide and scrolls; otherwise it adds no extra keyboard stop. With an aria-label or aria-labelledby it is a named region. Without a name it has no role, so name any table that may scroll.',
     ],
   },
 };

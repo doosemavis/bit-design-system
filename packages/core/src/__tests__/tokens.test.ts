@@ -50,13 +50,14 @@ describe('semantic token list', () => {
     for (const name of expected) expect(SEMANTIC_TOKENS).toContain(name);
   });
 
-  it('includes the five PR2 color roles; four of them change with the mode, the knob is shared', () => {
+  it('includes the six PR2 color roles; five change with the mode, the knob is shared', () => {
     const pr2 = ['--bit-color-accent', '--bit-color-link', '--bit-color-link-visited', '--bit-color-danger-text', '--bit-color-knob', '--bit-color-stripe'];
     for (const name of pr2) expect(SEMANTIC_TOKENS).toContain(name);
     expect(MODE_TOKENS).toHaveLength(23);
     expect(new Set(MODE_TOKENS).size).toBe(23);
-    for (const name of pr2.slice(0, 4).concat(['--bit-color-stripe'])) expect(MODE_TOKENS).toContain(name);
-    expect(MODE_TOKENS).not.toContain('--bit-color-knob');
+    const sharedAcrossModes = ['--bit-color-knob'];
+    for (const name of pr2.filter((n) => !sharedAcrossModes.includes(n))) expect(MODE_TOKENS).toContain(name);
+    for (const name of sharedAcrossModes) expect(MODE_TOKENS).not.toContain(name);
   });
 
   it('has no --bit-color-focus (the focus ring has its own tokens)', () => {

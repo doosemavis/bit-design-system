@@ -234,16 +234,40 @@ describe('Table: Tab stop only when it scrolls', () => {
     expect(wrapper).not.toHaveAttribute('role');
   });
 
-  it('a table that overflows becomes a focusable region, and stops being one when it fits again', () => {
+  it('an unnamed table that overflows is focusable but has no role, and stops being focusable when it fits again', () => {
     const { container } = render(<Table><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
     const wrapper = wrapperOf(container);
     setWidths(wrapper, 900, 300);
     act(() => observed!([], {} as ResizeObserver));
     expect(wrapper).toHaveAttribute('tabindex', '0');
-    expect(wrapper).toHaveAttribute('role', 'region');
+    expect(wrapper).not.toHaveAttribute('role');
     setWidths(wrapper, 300, 300);
     act(() => observed!([], {} as ResizeObserver));
     expect(wrapper).not.toHaveAttribute('tabindex');
+  });
+
+  it('a labelled table that overflows is focusable and a named region', () => {
+    const { container } = render(<Table aria-label="Tokens"><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
+    const wrapper = wrapperOf(container);
+    setWidths(wrapper, 900, 300);
+    act(() => observed!([], {} as ResizeObserver));
+    expect(wrapper).toHaveAttribute('tabindex', '0');
+    expect(wrapper).toHaveAttribute('role', 'region');
+    expect(wrapper).toHaveAccessibleName('Tokens');
+  });
+
+  it('an aria-labelledby table that overflows is focusable and a named region', () => {
+    const { container } = render(
+      <>
+        <h2 id="tok">Token list</h2>
+        <Table aria-labelledby="tok"><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>
+      </>,
+    );
+    const wrapper = wrapperOf(container);
+    setWidths(wrapper, 900, 300);
+    act(() => observed!([], {} as ResizeObserver));
+    expect(wrapper).toHaveAttribute('tabindex', '0');
+    expect(screen.getByRole('region', { name: 'Token list' })).toBe(wrapper);
   });
 
   it('a labelled table is always a named region, focusable only when it scrolls', () => {
