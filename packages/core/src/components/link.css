@@ -30,3 +30,20 @@
 .bit-link.bit-neutral:hover {
   background: var(--bit-color-neutral-soft);
 }
+
+/* Inside a solid Alert the Link takes the Alert's text colour (white, or ink on yellow), so its
+   contrast is whatever the Alert already passes. Hover thickens the underline; no highlight. */
+.bit-alert.bit-solid .bit-link,
+.bit-alert.bit-solid .bit-link:visited {
+  color: inherit;
+}
+
+.bit-alert.bit-solid .bit-link:hover {
+  background: none;
+  text-decoration-thickness: 4px;
+}
+
+/* Dark: the hover highlight is faint on the night surfaces, so the underline turns the accent. */
+[data-mode="dark"] .bit-link:hover {
+  text-decoration-color: var(--bit-color-accent);
+}
