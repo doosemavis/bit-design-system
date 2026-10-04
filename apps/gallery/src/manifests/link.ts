@@ -13,4 +13,39 @@ export const link: Manifest = {
   ],
   children: 'Read the install guide',
   presets: [{ label: 'Neutral', state: { color: 'neutral' } }],
+  docs: {
+    badges: ['Native <a>', 'asChild for router links'],
+    usage: {
+      do: [
+        'Use a Link to go somewhere: another page, a section, a site.',
+        'Write link text that makes sense alone: "Read the install guide", not "click here".',
+      ],
+      dont: [
+        'Use a Link for an action that changes something. Use a Button.',
+        'Use color="neutral" for the only link in a paragraph; it hides among the text.',
+      ],
+    },
+    props: [
+      {
+        name: 'color',
+        className: 'bit-{color}',
+        type: "'primary' | 'neutral'",
+        default: "'primary'",
+        description: 'primary reads the link tokens (with a visited color); neutral is body text. Only these two pass contrast in both modes.',
+      },
+      { name: 'href', type: 'string', description: 'Where it goes.' },
+      {
+        name: 'asChild',
+        type: 'boolean',
+        default: 'false',
+        description: "Puts Link's classes on its one child, such as your router's link, instead of rendering an <a>.",
+      },
+      { name: 'children', type: 'ReactNode', description: 'The link text.' },
+    ],
+    a11y: [
+      'A real <a href>, so Enter follows it and screen readers list it with the other links.',
+      'Underlined as well as colored, so it reads as a link without relying on color.',
+    ],
+    emptyChildrenError: 'A Link needs text, or screen readers read out the address instead.',
+  },
 };

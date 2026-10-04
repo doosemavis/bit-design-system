@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { BitLogo, Button, ModeToggle } from '@bit-ds/react';
 import { Link } from 'react-router-dom';
 import { ThemeSelect } from './ThemeSelect';
@@ -5,15 +6,30 @@ import { THEMES } from './themes';
 
 export const REPO_URL = 'https://github.com/doosemavis/bit-design-system';
 
+/** The GitHub button. The header shows it on wide screens; at phone width it moves into the sidebar sheet. */
+export function GitHubLink() {
+  return (
+    <Button asChild variant="outline" size="sm" color="neutral">
+      <a href={REPO_URL} target="_blank" rel="noreferrer">
+        GitHub
+      </a>
+    </Button>
+  );
+}
+
 interface HeaderProps {
   menuOpen: boolean;
   onToggleMenu: () => void;
+  /** At phone width the header is Menu, the logo and the mode toggle only. */
+  narrow: boolean;
 }
 
-export function Header({ menuOpen, onToggleMenu }: HeaderProps) {
+/** The ref goes on the Menu button, so closing the sheet with Escape can hand focus back to it. */
+export const Header = forwardRef<HTMLButtonElement, HeaderProps>(function Header({ menuOpen, onToggleMenu, narrow }, ref) {
   return (
     <header className="gallery-header">
       <Button
+        ref={ref}
         className="gallery-header__menu"
         variant="ghost"
         size="sm"
@@ -30,12 +46,8 @@ export function Header({ menuOpen, onToggleMenu }: HeaderProps) {
         {/* The theme dropdown appears once a second theme exists (plan §H.5); light/dark is a mode. */}
         {THEMES.length > 1 ? <ThemeSelect /> : null}
         <ModeToggle size="sm" />
-        <Button asChild variant="outline" size="sm" color="neutral">
-          <a href={REPO_URL} target="_blank" rel="noreferrer">
-            GitHub
-          </a>
-        </Button>
+        {narrow ? null : <GitHubLink />}
       </div>
     </header>
   );
-}
+});

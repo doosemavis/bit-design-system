@@ -3,19 +3,14 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { MANIFESTS, routeFor } from './manifests';
 import { renderAt } from './test/renderRoute';
 import { expectNoA11yViolations } from './test/a11y';
-
-/** The Foundations guide pages and their h1s. */
-const FOUNDATION_PAGES = [
-  ['/typography', 'Typography'],
-  ['/spacing', 'Spacing'],
-] as const;
+import { PAGE_ROUTES } from './test/smokeRoutes';
 
 /**
  * Every page with data-mode="dark" set before the first render, the way COLOR_MODE_SCRIPT leaves it.
  * jsdom loads no CSS, so this checks markup and accessibility in dark mode. The real dark colors are
  * proven by core's per-mode contrast tests and by the screenshot board.
  */
-describe('component routes in dark mode', () => {
+describe('every route in dark mode', () => {
   beforeAll(() => {
     document.documentElement.dataset.theme = 'power-up';
     document.documentElement.dataset.mode = 'dark';
@@ -27,9 +22,9 @@ describe('component routes in dark mode', () => {
     await expectNoA11yViolations(container);
   });
 
-  it.each(FOUNDATION_PAGES)('%s renders with no axe violations', async (path, title) => {
+  it.each(PAGE_ROUTES)('%s renders with no axe violations', async (path, heading) => {
     const { container } = renderAt(path);
-    expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
     await expectNoA11yViolations(container);
   });
 

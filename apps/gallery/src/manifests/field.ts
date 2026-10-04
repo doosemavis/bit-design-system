@@ -19,4 +19,39 @@ export const field: Manifest = {
     { label: 'With an error', state: { error: 'Enter your email.' } },
     { label: 'Required', state: { required: true } },
   ],
+  docs: {
+    badges: ['Wires the ids', 'One Input or Select'],
+    usage: {
+      do: [
+        'Wrap every Input and Select in a Field, so it has a visible label.',
+        'Use hint for help that is always true, and error for what went wrong and how to fix it.',
+      ],
+      dont: [
+        'Wrap a Switch in a Field; Switch carries its own label.',
+        'Rely on the placeholder as the label. It disappears as soon as someone types.',
+      ],
+    },
+    props: [
+      { name: 'label', type: 'ReactNode', description: 'Required. The visible label, tied to the control with for and id.' },
+      { name: 'hint', type: 'ReactNode', description: 'Help text under the control, read as its description.' },
+      {
+        name: 'error',
+        type: 'ReactNode',
+        description: 'Shown under the control in danger text. It marks the control invalid and is read as its description.',
+      },
+      {
+        name: 'required',
+        type: 'boolean',
+        default: 'false',
+        description: 'Shows a "*" (hidden from screen readers) and passes required to the control.',
+      },
+      { name: 'children', type: 'ReactElement', description: 'Exactly one Input or Select.' },
+    ],
+    a11y: [
+      'The label points at the control, so clicking it focuses the control and screen readers read it.',
+      "hint and error are linked with aria-describedby, which is how a screen reader finds a control's help text.",
+      'error also sets aria-invalid on the control: a flag that tells screen readers the value is wrong.',
+      "The ids come from useId, React's unique-id helper, so two Fields on one page never clash.",
+    ],
+  },
 };

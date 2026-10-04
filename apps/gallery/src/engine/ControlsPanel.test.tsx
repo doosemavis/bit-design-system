@@ -7,6 +7,7 @@ import { defaultState } from './state';
 import type { ControlState, ControlValue, Manifest } from '../manifests/types';
 import { button } from '../manifests/button';
 import { spinner } from '../manifests/spinner';
+import { badge as badgeManifest } from '../manifests/badge';
 import { expectNoA11yViolations } from '../test/a11y';
 
 interface HarnessProps {
@@ -79,6 +80,31 @@ describe('ControlsPanel', () => {
 
     render(<ControlsPanel manifest={spinner} state={defaultState(spinner)} onChange={onChange} onReset={() => {}} />);
     expect(screen.getByLabelText('aria-label')).toHaveValue('Loading coins');
+  });
+
+  it('Controls is an h3 under the Playground h2', () => {
+    render(<ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={() => {}} />);
+    expect(screen.getByRole('heading', { level: 3, name: 'Controls' })).toBeInTheDocument();
+  });
+
+  it("emptied children show the manifest's error, tied to the field and marking it invalid", async () => {
+    const { container } = render(
+      <ControlsPanel manifest={button} state={{ ...defaultState(button), children: '' }} onChange={() => {}} onReset={() => {}} />,
+    );
+    const field = screen.getByLabelText('children');
+    expect(field).toHaveAttribute('aria-invalid', 'true');
+    expect(field).toHaveAccessibleDescription('A Button needs text or an aria-label, or screen readers announce just "button".');
+    expect(container.querySelector('.gallery-control__error')).toHaveTextContent('⚠ A Button needs text');
+    await expectNoA11yViolations(container);
+  });
+
+  it('a manifest without an empty-children error shows none, and children with text show none', () => {
+    const { container, rerender } = render(
+      <ControlsPanel manifest={badgeManifest} state={{ ...defaultState(badgeManifest), children: '' }} onChange={() => {}} onReset={() => {}} />,
+    );
+    expect(container.querySelector('.gallery-control__error')).toBeNull();
+    rerender(<ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={() => {}} />);
+    expect(screen.getByLabelText('children')).not.toHaveAttribute('aria-invalid');
   });
 
   it('Reset calls onReset', async () => {

@@ -41,4 +41,39 @@ describe('useFocusHeading', () => {
     await act(() => router.navigate('/samples'));
     await waitFor(() => expect(document.activeElement).toBe(getByText('Real title')));
   });
+
+  it('a query-only change (a control on a component page) keeps focus where it is', async () => {
+    const router = createMemoryRouter(
+      [{ element: <Layout />, children: [{ path: '/page', element: <h1>Page</h1> }] }],
+      { initialEntries: ['/page'] },
+    );
+    render(<RouterProvider router={router} />);
+    const input = document.createElement('input');
+    document.body.append(input);
+    input.focus();
+    await act(() => router.navigate('/page?color=danger'));
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+    expect(document.activeElement).toBe(input);
+    input.remove();
+  });
+
+  it('coming back to the first page is a page change too, so its heading takes focus', async () => {
+    const router = createMemoryRouter(
+      [
+        {
+          element: <Layout />,
+          children: [
+            { path: '/', element: <h1>Home</h1> },
+            { path: '/other', element: <h1>Other</h1> },
+          ],
+        },
+      ],
+      { initialEntries: ['/'] },
+    );
+    const { getByText } = render(<RouterProvider router={router} />);
+    await act(() => router.navigate('/other'));
+    await waitFor(() => expect(document.activeElement).toBe(getByText('Other')));
+    await act(() => router.navigate('/'));
+    await waitFor(() => expect(document.activeElement).toBe(getByText('Home')));
+  });
 });

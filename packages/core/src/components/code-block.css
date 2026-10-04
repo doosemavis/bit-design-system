@@ -13,10 +13,13 @@
   --_bit-focus-ring: initial;
 }
 
+/* The label sits left; its auto end margin pushes the actions and Copy together to the right. On a
+   narrow phone, when the label, the actions and Copy don't fit on one row, they wrap to a second row
+   instead of Copy being clipped by the panel's overflow: hidden. */
 .bit-code__bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: var(--bit-space-8px);
   padding: var(--bit-space-8px) var(--bit-space-8px) var(--bit-space-8px) var(--bit-space-16px);
   border-bottom: 2px solid var(--bit-color-accent);
@@ -28,6 +31,14 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--bit-code-punct);
+  margin-inline-end: auto;
+}
+
+/* The actions slot: the caller's extra controls, in a row before Copy. */
+.bit-code__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-8px);
 }
 
 /* A small light button on the dark bar, edged in ink like the board. */

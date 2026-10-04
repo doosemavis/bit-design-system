@@ -1,74 +1,44 @@
-import { BitLogo, Card, CardBody, CardHeader, CodeBlock, Stack, Text } from '@bit-ds/react';
+import { BitLogo, Button, Heading, Stack, Text } from '@bit-ds/react';
+import { Link } from 'react-router-dom';
+import { NAV } from '../shell/Sidebar';
+import { ComponentTiles } from './home/ComponentTiles';
+import { GetStarted } from './home/GetStarted';
+import { NamingRule } from './home/NamingRule';
 
-const INSTALL = `pnpm add @bit-ds/react
-import '@bit-ds/react/themes/power-up.css';
-import '@bit-ds/react/styles.css';`;
-
-const REACT_WAY = `<Card><CardHeader>Stats</CardHeader></Card>`;
-const HTML_WAY = `<div class="bit-card bit-solid"><div class="bit-card__header">Stats</div></div>`;
-
-const RULE_ROWS = [
-  ['color="primary"', 'bit-primary', '--bit-color-primary'],
-  ['variant="outline"', 'bit-outline', 'per component CSS'],
-  ['size="lg"', 'bit-lg', '--bit-control-height-lg'],
-] as const;
+/** Where "Browse components" goes: the first component in the sidebar, whatever that becomes. */
+export const BROWSE_TARGET = NAV.find((item) => item.group === 'Components')!.to;
 
 export function HomePage() {
   return (
-    <Stack gap={32}>
-      <Stack gap={12}>
-        <Text as="h1">
+    <Stack gap={48}>
+      <Stack gap={16} align="start">
+        <Heading level={1}>
           <BitLogo size="lg" />
+        </Heading>
+        <Text size={18}>
+          A retro-game React design system for people new to design systems. The prop you type is the class it emits is
+          the token it reads.
         </Text>
-        <Text size={18}>A React design system for people who are new to design systems.</Text>
+        <Stack direction="row" gap={12} wrap>
+          <Button asChild size="lg">
+            <Link to={BROWSE_TARGET}>
+              Browse components <span aria-hidden="true">→</span>
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" color="neutral">
+            <Link to="/tokens">See the tokens</Link>
+          </Button>
+        </Stack>
       </Stack>
-
-      <Card>
-        <CardHeader>Install</CardHeader>
-        <CardBody>
-          <CodeBlock code={INSTALL} language="shell" />
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader>The naming rule</CardHeader>
-        <CardBody>
-          <Text>The prop you type is the class it emits is the token it reads.</Text>
-          <table className="gallery-table">
-            <thead>
-              <tr>
-                <th scope="col">You write</th>
-                <th scope="col">Class</th>
-                <th scope="col">Token</th>
-              </tr>
-            </thead>
-            <tbody>
-              {RULE_ROWS.map(([write, cls, token]) => (
-                <tr key={cls}>
-                  <td>
-                    <code>{write}</code>
-                  </td>
-                  <td>
-                    <code>{cls}</code>
-                  </td>
-                  <td>{token.startsWith('--') ? <code>{token}</code> : token}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader>Two ways to use every static component</CardHeader>
-        <CardBody>
-          <Stack gap={8}>
-            <CodeBlock code={REACT_WAY} language="jsx" />
-            <CodeBlock code={HTML_WAY} language="html" />
-            <Text color="neutral">Both render identically.</Text>
-          </Stack>
-        </CardBody>
-      </Card>
+      <ComponentTiles />
+      <Stack gap={16}>
+        <Heading level={2}>Get started</Heading>
+        <GetStarted />
+      </Stack>
+      <Stack gap={16}>
+        <Heading level={2}>The naming rule</Heading>
+        <NamingRule />
+      </Stack>
     </Stack>
   );
 }

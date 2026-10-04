@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Text } from '@bit-ds/react';
 import { MANIFESTS, routeFor } from '../manifests';
@@ -32,9 +33,11 @@ interface SidebarProps {
   items: readonly NavItem[];
   open: boolean;
   onNavigate: () => void;
+  /** Shown after the groups: the GitHub button, when the header is too narrow for it. */
+  footer?: ReactNode;
 }
 
-export function Sidebar({ items, open, onNavigate }: SidebarProps) {
+export function Sidebar({ items, open, onNavigate, footer }: SidebarProps) {
   return (
     <nav id="gallery-nav" className="gallery-sidebar" aria-label="Gallery" data-open={open ? '' : undefined}>
       {GROUPS.map((group) => {
@@ -57,6 +60,7 @@ export function Sidebar({ items, open, onNavigate }: SidebarProps) {
           </section>
         );
       })}
+      {footer ? <div className="gallery-sidebar__footer">{footer}</div> : null}
     </nav>
   );
 }

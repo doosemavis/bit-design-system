@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { block, readCss } from '../css';
+import { block, decl, readCss } from '../css';
 
 describe('components/table.css', () => {
   const css = readCss('components/table.css');
@@ -25,6 +25,12 @@ describe('components/table.css', () => {
 
   it('cells are padded 12px by 16px', () => {
     expect(block(css, '.bit-table__cell')).toContain('padding: var(--bit-space-12px) var(--bit-space-16px);');
+  });
+
+  it('cells centre their content vertically (PR3a §2), so a Button or Badge lines up with a text cell', () => {
+    const cell = block(css, '.bit-table__cell')!;
+    expect(decl(cell, 'vertical-align')).toBe('middle');
+    expect(css).not.toContain('vertical-align: top;');
   });
 
   it('head cells are 11px pixel type in capitals over a 3px line rule', () => {
