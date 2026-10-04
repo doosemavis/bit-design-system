@@ -15,8 +15,7 @@ export function HomePage() {
           <BitLogo size="lg" />
         </Heading>
         <Text size={18}>
-          A retro-styled React Design System for people who want a bit of nostalgia. The prop you type is the class it
-          emits is the token it reads.
+          A retro-styled React Design System for people who want a bit of nostalgia.
         </Text>
         <Stack direction="row" gap={12} wrap>
           <Button asChild size="lg">
