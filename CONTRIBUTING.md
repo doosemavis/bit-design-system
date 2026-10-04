@@ -42,6 +42,29 @@ pnpm e2e
 
 `pnpm e2e` builds the library and the gallery, serves the build with `vite preview` at `/bit-design-system/`, and runs axe (WCAG 2.2 AA, contrast included) on every page in light and dark, plus a forced-colours check.
 
+## Releasing
+
+Releases are cut from a tag. Only admins can push `v*` tags.
+
+1. Bump `version` in `packages/react/package.json` in a PR.
+2. Merge the PR to `main`.
+3. Tag the merge commit and push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+4. In GitHub Actions, approve the `publish` job. It uses the `npm-publish` environment, which needs a reviewer.
+
+The `release.yml` workflow then runs three jobs:
+
+- `guard` checks that the tag equals `v` plus the package version, and that the commit is on `main`.
+- `publish` smoke-tests the packed tarball, then runs `npm publish` with provenance. It skips the publish when that version already exists. Then it installs the version from npm to check it, retrying 6 times, 10 seconds apart.
+- `deploy` publishes the gallery to https://doosemavis.github.io/bit-design-system/.
+
+If the publish worked but the check or the deploy failed, re-run the failed jobs. The publish is skipped because the version exists. Never re-tag.
+
+Before tagging, you can run `pnpm smoke:full` and `pnpm e2e` locally. Both need Chromium installed once:
+
+```bash
+pnpm --filter @bit-ds/gallery exec playwright install chromium
+```
+
 ## Conventions
 
 - Classes: `bit-block`, `bit-block__element`, `bit-value`. No `--modifier` classes, no camelCase.

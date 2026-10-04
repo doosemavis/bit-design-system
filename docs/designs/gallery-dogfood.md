@@ -81,12 +81,15 @@ Approach A. Layouts, states, tokens, components, built-code fixes, mockups and t
 5. Serve the build with `vite preview`. Playwright Chromium asserts the button has class `bit-button bit-primary` and computed `background-color: rgb(124, 58, 237)` (`#7C3AED`).
 
 **Release (T11 owns the workflow, replacing the original push-to-main `deploy.yml`):**
+> **Superseded (2026-10-04):** PR3c ships one `release.yml` (guard, publish, deploy) beside `ci.yml`, not three workflow files. See `docs/superpowers/specs/2026-10-04-pr3c-release-design.md`.
+
 - **`release-dry-run`** (on `pull_request`): build, `npm pack`, `npm publish --dry-run`, the consumer smoke, and a gallery build. This is PR3's gate.
 - **`release`** (on tag `v*`), with three jobs:
   1. **guard:** fail unless the tag equals `v` + `packages/react/package.json` version and the tagged commit is on `main`.
   2. **publish:** skip if `npm view @bit-ds/react@<version>` already exists, which makes re-runs safe; otherwise `npm publish --provenance --access public` (`id-token: write`). Then install `@bit-ds/react@<version>` from the registry in a scratch app as a post-publish check.
   3. **deploy:** needs publish; builds and deploys the gallery to Pages. It can be re-run alone if Pages fails.
 - **`docs-deploy`** (`workflow_dispatch`): a docs-only fix path. It rebuilds and deploys the gallery only if the version the gallery shows already exists on npm, so premise 3 holds without cutting a release for a typo.
+  - **Superseded (2026-10-04):** `docs-deploy` is not built. A docs fix ships as a patch release through the tag workflow. See the 3c spec, `docs/superpowers/specs/2026-10-04-pr3c-release-design.md`, and the TODO in `TODOS.md`.
 - **npm auth:** the first publish uses a granular npm token stored as repo secret `NPM_TOKEN`, created by the owner. After the package exists, switch to npm trusted publishing (configured on npmjs.com for this repo and workflow) and delete the secret.
 
 ## Open Questions
@@ -106,6 +109,7 @@ Approach A. Layouts, states, tokens, components, built-code fixes, mockups and t
 
 - **Package:** `@bit-ds/react`, 0.x, public on npm under the `@bit-ds` org, published with provenance by the `release` workflow. `@bit-ds/core` stays private because it's inlined.
 - **Docs:** GitHub Pages, deployed by `release` after the publish, or by `docs-deploy` for docs-only changes.
+  - **Superseded (2026-10-04):** only `release` deploys the docs; there is no `docs-deploy`. See `docs/superpowers/specs/2026-10-04-pr3c-release-design.md`.
 
 ## Next Steps
 
