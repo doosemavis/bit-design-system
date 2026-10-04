@@ -32,6 +32,11 @@ describe('Sidebar', () => {
     expect(screen.getByRole('link', { name: 'Tokens' })).toHaveAttribute('aria-current', 'page');
   });
 
+  it('group titles are Text in its neutral colour, so the muted shade comes from bit', () => {
+    renderSidebar(NAV);
+    expect(screen.getByRole('heading', { level: 2, name: 'Foundations' })).toHaveClass('bit-text', 'bit-neutral');
+  });
+
   it('lists Foundations, Components, Forms and Brand, with Forms between Components and Brand', () => {
     expect(renderSidebar(NAV)).toEqual(['Foundations', 'Components', 'Forms', 'Brand']);
     expect(screen.getByRole('link', { name: 'Button' })).toHaveAttribute('href', '/components/button');

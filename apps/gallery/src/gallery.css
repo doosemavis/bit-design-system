@@ -86,7 +86,6 @@ html {
   font-family: var(--bit-font-pixel);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--bit-color-text-muted);
   margin: 0 0 var(--bit-space-8px);
 }
 
@@ -154,7 +153,6 @@ html {
   font-family: var(--bit-font-pixel);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--bit-color-text-muted);
 }
 
 /* The in-page links under a page header. */
