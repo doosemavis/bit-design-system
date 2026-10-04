@@ -104,6 +104,8 @@ Pushing the tag starts the `release.yml` workflow. On a tag it runs:
 
 The split is a security boundary. Only `publish` sees the npm token and can mint an OIDC token, and it installs nothing and runs no third-party code: no `pnpm install`, no smoke test, no Playwright. Everything that installs packages or runs their scripts happens in `build`, which holds no credential. The same goes for the site: `site-build` builds it with no Pages permission, and `deploy` only runs `actions/deploy-pages`. `scripts/workflows.test.mjs` fails if a change breaks these rules.
 
+No dependency runs an install script: `pnpm.onlyBuiltDependencies` in the root `package.json` is empty, so pnpm skips them all. A dependency that truly needs its install script must be added to that list on purpose, in a PR that says why.
+
 The release pins its tools to exact versions. `NPM_VERSION` in `release.yml` is the npm that builds and publishes, and `SMOKE_PINS` in `scripts/smoke-pins.mjs` holds the versions the smoke test installs. Dependabot doesn't see either, so bump them by hand; the pull request's `dry-run` rehearses the new versions.
 
 The check first polls `npm view @bit-ds/react@<version> version` until npm prints the version. It tries up to 40 times, 15 seconds apart (about 10 minutes), because npm's CDN can serve a cached 404 for a few minutes after a publish. An E404 means "not yet"; any other npm error fails at once. Then it installs the version and imports it, retrying up to 10 times, 15 seconds apart.
