@@ -32,6 +32,19 @@ const findIndex = (steps, predicate, label) => {
   assert.ok(index >= 0, `no step ${label}`);
   return index;
 };
+// The Pack step's output: the one tarball that smoke:full tests and npm publishes.
+const PACKED_TGZ = '${{ steps.pack.outputs.tgz }}';
+
+// The Pack step has id `pack`, resolves exactly one tarball and writes it to `tgz`, and the
+// smoke step tests that tarball through SMOKE_TARBALL instead of packing its own.
+const assertSmokesThePackedTarball = (steps, packIndex, smokeIndex) => {
+  const pack = steps[packIndex];
+  assert.equal(pack.id, 'pack', 'the Pack step has id pack');
+  assert.match(runOf(pack), /tgz=\("\$RUNNER_TEMP"\/out\/\*\.tgz\)/, 'Pack globs the tarball into an array');
+  assert.match(runOf(pack), /\$\{#tgz\[@\]\} -eq 1/, 'Pack requires exactly one tarball');
+  assert.match(runOf(pack), /echo "tgz=\$\{tgz\[0\]\}" >> "\$GITHUB_OUTPUT"/, 'Pack writes the tgz output');
+  assert.match(String(steps[smokeIndex].env?.SMOKE_TARBALL), /\$\{\{\s*steps\.pack\.outputs\.tgz\s*\}\}/, 'smoke:full tests the packed tarball');
+};
 const allSteps = (workflow) =>
   Object.entries(workflow.jobs).flatMap(([job, def]) => (def.steps ?? []).map((step) => ({ job, step })));
 
@@ -172,6 +185,7 @@ test('release: publish upgrades npm, packs, smoke-tests, decides, publishes the 
     'packing into $RUNNER_TEMP/out',
   );
   const smoke = findIndex(steps, (s) => s.id === 'smoke' && runOf(s) === 'pnpm smoke:full', 'running smoke:full');
+  assertSmokesThePackedTarball(steps, pack, smoke);
   const decide = findIndex(steps, (s) => s.id === 'decide' && runOf(s) === 'node scripts/release-steps.mjs should-publish', 'deciding');
   const publish = findIndex(steps, (s) => /\bnpm publish\b/.test(runOf(s)), 'publishing');
   const verify = findIndex(
@@ -182,7 +196,7 @@ test('release: publish upgrades npm, packs, smoke-tests, decides, publishes the 
   assert.ok(npm < pack && pack < smoke && smoke < decide && decide < publish && publish < verify, 'step order');
 
   const step = steps[publish];
-  assert.equal(runOf(step), 'npm publish "$RUNNER_TEMP"/out/*.tgz --provenance --access public');
+  assert.equal(runOf(step), `npm publish "${PACKED_TGZ}" --provenance --access public`, 'publishes the smoke-tested tarball');
   assert.equal(step.id, 'publish');
   assert.equal(step.env?.NODE_AUTH_TOKEN, '${{ secrets.NPM_TOKEN }}');
   assert.match(String(step.if), /steps\.decide\.outputs\.publish == 'true'/);
@@ -238,9 +252,10 @@ test('release: dry-run packs, dry-runs the publish, smoke-tests in Chromium and 
     (s) => runOf(s).includes('pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"'),
     'packing',
   );
-  const dry = findIndex(steps, (s) => runOf(s) === 'npm publish "$RUNNER_TEMP"/out/*.tgz --dry-run --access public', 'dry-run publishing');
+  const dry = findIndex(steps, (s) => runOf(s) === `npm publish "${PACKED_TGZ}" --dry-run --access public`, 'dry-run publishing');
   const install = findIndex(steps, (s) => runOf(s) === 'pnpm exec playwright install --with-deps chromium', 'installing Chromium');
   const smoke = findIndex(steps, (s) => runOf(s) === 'pnpm smoke:full', 'running smoke:full');
+  assertSmokesThePackedTarball(steps, pack, smoke);
   const gallery = findIndex(steps, (s) => runOf(s) === 'pnpm gallery:build', 'building the gallery');
   assert.ok(pack < dry && install < smoke && dry < gallery && smoke < gallery, 'step order');
   // npm 11 refuses even a dry run over a published version, so the dry run follows should-publish.

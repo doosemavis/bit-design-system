@@ -1,8 +1,10 @@
 // Proves a stranger can `npm install` the packed @bit-ds/react into a fresh project.
 // Steps: build → pnpm pack → temp project → npm install <tarball> → import ESM + CJS →
 // check CSS files → typecheck a small TS consumer against the shipped declarations.
+// With SMOKE_TARBALL=<path to a .tgz>, it skips the build and pack and tests that tarball,
+// so release.yml smoke-tests the exact file it publishes.
 import { execSync, spawn } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, writeFileSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
@@ -128,17 +130,33 @@ async function viteStage(app, tarballPath) {
   }
 }
 
-// 1. Build and pack into a temp directory
-const work = mkdtempSync(join(tmpdir(), 'bit-smoke-'));
-try {
+// Use SMOKE_TARBALL when set (resolved from where the command was run), else build and pack into `work`.
+function obtainTarball(work) {
+  const given = process.env.SMOKE_TARBALL;
+  if (given) {
+    const tarballPath = resolve(process.env.INIT_CWD ?? process.cwd(), given);
+    assert.ok(existsSync(tarballPath), `SMOKE_TARBALL does not exist: ${tarballPath}`);
+    console.log(`SMOKE_TARBALL set: testing ${tarballPath} (skipping pnpm build and pnpm pack)`);
+    return tarballPath;
+  }
   run('pnpm build', reactPkg);
   run(`pnpm pack --pack-destination "${work}"`, reactPkg);
   const tarball = readdirSync(work).find((f) => f.endsWith('.tgz'));
   assert.ok(tarball, 'pnpm pack produced no tarball');
-  const tarballPath = join(work, tarball);
+  return join(work, tarball);
+}
+
+// 1. Get the tarball: the one given in SMOKE_TARBALL, or a fresh build and pack
+const work = mkdtempSync(join(tmpdir(), 'bit-smoke-'));
+try {
+  const tarballPath = obtainTarball(work);
+
+  // The tarball must carry the version in packages/react/package.json.
+  const { name: realName, version: realVersion } = JSON.parse(readFileSync(join(reactPkg, 'package.json'), 'utf8'));
+  const packed = JSON.parse(run(`tar -xzOf "${tarballPath}" package/package.json`, work));
+  assert.equal(packed.version, realVersion, `tarball version ${packed.version} differs from packages/react/package.json ${realVersion}`);
 
   // The shared snippets must name the real package, and prepack must put README and LICENSE in the tarball.
-  const { name: realName } = JSON.parse(readFileSync(join(reactPkg, 'package.json'), 'utf8'));
   assert.equal(PACKAGE_NAME, realName, 'snippets.mjs PACKAGE_NAME differs from packages/react/package.json name');
   for (const [pm, cmd] of Object.entries(INSTALL_COMMANDS)) {
     assert.ok(cmd.endsWith(` ${realName}`), `INSTALL_COMMANDS.${pm} must end with " ${realName}": ${cmd}`);
@@ -153,7 +171,7 @@ try {
   mkdirSync(app);
   writeFileSync(join(app, 'package.json'), JSON.stringify({ name: 'consumer', private: true, type: 'module' }, null, 2));
   run(
-    `npm install --no-audit --no-fund --loglevel=error "${join(work, tarball)}" typescript @types/react @types/react-dom`,
+    `npm install --no-audit --no-fund --loglevel=error "${tarballPath}" typescript @types/react @types/react-dom`,
     app,
   );
 

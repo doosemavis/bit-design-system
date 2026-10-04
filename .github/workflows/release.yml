@@ -39,7 +39,12 @@ jobs:
       # prepack copies README.md and LICENSE into the package. pnpm 9 rejects `--filter` on pack
       # ("Unknown option: 'recursive'"), so point --dir at the package.
       - name: Pack
-        run: pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"
+        id: pack
+        run: |
+          pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"
+          tgz=("$RUNNER_TEMP"/out/*.tgz)
+          [ ${#tgz[@]} -eq 1 ] || { echo "::error::expected exactly one tarball, found ${#tgz[@]}"; exit 1; }
+          echo "tgz=${tgz[0]}" >> "$GITHUB_OUTPUT"
       # npm 11 refuses even a dry run over a version that is already on npm. So, like the real
       # publish, the dry run happens only for a new version. Other PRs say so and move on.
       - name: Decide whether this version is new
@@ -48,7 +53,7 @@ jobs:
       - name: npm publish --dry-run
         if: steps.decide.outputs.publish == 'true'
         # A dry run never signs, so publishConfig.provenance needs no OIDC token here.
-        run: npm publish "$RUNNER_TEMP"/out/*.tgz --dry-run --access public
+        run: npm publish "${{ steps.pack.outputs.tgz }}" --dry-run --access public
       - name: Note the skipped dry run
         if: steps.decide.outputs.publish == 'false'
         run: echo "::notice::This version is already on npm. Bump packages/react/package.json to dry-run a publish."
@@ -61,7 +66,10 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       # smoke:full uses the root `playwright` package. Runs on a cache hit too, for the system libraries.
       - run: pnpm exec playwright install --with-deps chromium
+      # smoke:full tests this exact tarball (SMOKE_TARBALL), and it is the file that would be published.
       - run: pnpm smoke:full
+        env:
+          SMOKE_TARBALL: ${{ steps.pack.outputs.tgz }}
       - run: pnpm gallery:build
 
   # Fails fast, before anyone is asked to approve a publish.
@@ -111,7 +119,12 @@ jobs:
       - run: pnpm build && pnpm verify
       # This tarball is the one that gets published. prepack adds README.md and LICENSE.
       - name: Pack
-        run: pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"
+        id: pack
+        run: |
+          pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"
+          tgz=("$RUNNER_TEMP"/out/*.tgz)
+          [ ${#tgz[@]} -eq 1 ] || { echo "::error::expected exactly one tarball, found ${#tgz[@]}"; exit 1; }
+          echo "tgz=${tgz[0]}" >> "$GITHUB_OUTPUT"
       - name: Read the Playwright version
         id: playwright
         run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
@@ -120,11 +133,12 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       - run: pnpm exec playwright install --with-deps chromium
-      # smoke-consumer.mjs packs its own tarball and takes no path. It packs the same commit with
-      # the same build, so it tests what the Pack step made.
+      # smoke:full tests this exact tarball (SMOKE_TARBALL), and it is the file that is published.
       - name: Smoke test
         id: smoke
         run: pnpm smoke:full
+        env:
+          SMOKE_TARBALL: ${{ steps.pack.outputs.tgz }}
       # Writes publish=true, or publish=false when this version is already on npm (a re-run).
       - name: Decide whether to publish
         id: decide
@@ -133,7 +147,7 @@ jobs:
       - name: Publish to npm
         id: publish
         if: steps.decide.outputs.publish == 'true'
-        run: npm publish "$RUNNER_TEMP"/out/*.tgz --provenance --access public
+        run: npm publish "${{ steps.pack.outputs.tgz }}" --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       # Runs after a successful publish, or after the publish was skipped because the version
