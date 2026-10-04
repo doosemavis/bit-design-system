@@ -1,0 +1,29 @@
+# Weekly version updates (security.md D2). Dependabot alerts and security updates are on in the
+# repo settings; this file adds the routine bumps.
+version: 2
+updates:
+  # The pnpm workspace: Dependabot reads pnpm-workspace.yaml and pnpm-lock.yaml from the root.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      # One PR a week for the tooling, instead of one per package.
+      dev-dependencies:
+        dependency-type: development
+    ignore:
+      # React is a peer of @bit-ds/react. A new major changes what consumers must install, so it is a
+      # deliberate change (and a release), never an automatic bump. Minors and patches still come.
+      - dependency-name: react
+        update-types: ['version-update:semver-major']
+      - dependency-name: react-dom
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/react'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/react-dom'
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
