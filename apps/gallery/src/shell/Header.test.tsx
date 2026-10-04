@@ -24,6 +24,12 @@ describe('Header color mode', () => {
     expect(within(header).getByRole('link', { name: 'bit Design System, gallery home' })).toHaveAttribute('href', '/');
   });
 
+  it('the brand link is a bit Link', async () => {
+    renderAt('/');
+    const header = await screen.findByRole('banner');
+    expect(within(header).getByRole('link', { name: 'bit Design System, gallery home' })).toHaveClass('bit-link');
+  });
+
   it('has no "gallery" text label beside the logo (Amendment 2, B3)', async () => {
     renderAt('/');
     const header = await screen.findByRole('banner');

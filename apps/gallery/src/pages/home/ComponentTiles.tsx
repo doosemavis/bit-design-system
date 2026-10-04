@@ -1,4 +1,4 @@
-import { Badge, Heading, Link, Stack } from '@bit-ds/react';
+import { Badge, Button, Card, Heading, Link, Stack } from '@bit-ds/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { MANIFESTS, routeFor } from '../../manifests';
 import type { Manifest } from '../../manifests';
@@ -38,7 +38,7 @@ export function isLargeTile(manifest: Manifest): boolean {
  */
 function LargeTile({ manifest }: { manifest: Manifest }) {
   return (
-    <div className="gallery-tile">
+    <Card className="gallery-tile">
       <div className="gallery-tile__preview" inert>
         {renderManifest(manifest, defaultState(manifest))}
       </div>
@@ -47,21 +47,23 @@ function LargeTile({ manifest }: { manifest: Manifest }) {
           {manifest.name} <span aria-hidden="true">→</span>
         </RouterLink>
       </Link>
-    </div>
+    </Card>
   );
 }
 
 function CompactTile({ manifest }: { manifest: Manifest }) {
   return (
-    <Link asChild color="neutral" className="gallery-chip">
+    <Button asChild variant="outline" color="neutral" size="sm" className="gallery-chip">
       <RouterLink to={routeFor(manifest)}>
-        <span className="gallery-chip__glyph" aria-hidden="true">
-          {glyphFor(manifest)}
+        <span aria-hidden="true">
+          <Badge variant="outline" size="sm">
+            {glyphFor(manifest)}
+          </Badge>
         </span>
         {manifest.name}
         <span aria-hidden="true">→</span>
       </RouterLink>
-    </Link>
+    </Button>
   );
 }
 

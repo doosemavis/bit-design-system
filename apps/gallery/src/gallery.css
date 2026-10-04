@@ -211,14 +211,6 @@ html {
 }
 
 /* ---------- preview ---------- */
-.gallery-preview {
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-14px);
-  background: var(--bit-color-surface);
-  box-shadow: var(--bit-shadow-md);
-  overflow: hidden;
-}
-
 .gallery-preview__bar {
   display: flex;
   align-items: center;
@@ -471,11 +463,6 @@ html {
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  background: var(--bit-color-surface);
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-14px);
-  box-shadow: var(--bit-shadow-md);
 }
 
 .gallery-tile__preview {
@@ -514,28 +501,6 @@ html {
   display: flex;
   flex-wrap: wrap;
   gap: var(--bit-space-12px);
-}
-
-.gallery-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--bit-space-8px);
-  padding: var(--bit-space-8px) var(--bit-space-12px);
-  background: var(--bit-color-surface);
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-10px);
-}
-
-.gallery-chip__glyph {
-  display: inline-grid;
-  place-items: center;
-  width: var(--bit-space-24px);
-  height: var(--bit-space-24px);
-  font-family: var(--bit-font-mono);
-  font-size: var(--bit-text-13px);
-  background: var(--bit-color-neutral-soft);
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-6px);
 }
 
 /* The naming rule: a code never wraps mid-word; on a phone the Table scrolls sideways inside its border. */

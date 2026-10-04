@@ -19,4 +19,10 @@ describe('Preview', () => {
     await userEvent.click(toggle);
     expect(stage).toHaveAttribute('data-checkerboard', '');
   });
+
+  it('the stage frame is a bit Card, still a named region', () => {
+    render(<Preview label="Button preview">x</Preview>);
+    const region = screen.getByRole('region', { name: 'Button preview' });
+    expect(region.querySelector('.bit-card')).not.toBeNull();
+  });
 });

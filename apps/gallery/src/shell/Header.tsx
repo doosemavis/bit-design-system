@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
-import { BitLogo, Button, ModeToggle } from '@bit-ds/react';
-import { Link } from 'react-router-dom';
+import { BitLogo, Button, Link, ModeToggle } from '@bit-ds/react';
+import { Link as RouterLink } from 'react-router-dom';
 import { ThemeSelect } from './ThemeSelect';
 import { THEMES } from './themes';
 
@@ -39,8 +39,10 @@ export const Header = forwardRef<HTMLButtonElement, HeaderProps>(function Header
       >
         Menu
       </Button>
-      <Link to="/" className="gallery-header__brand" aria-label="bit Design System, gallery home">
-        <BitLogo size="sm" />
+      <Link asChild color="neutral" className="gallery-header__brand">
+        <RouterLink to="/" aria-label="bit Design System, gallery home">
+          <BitLogo size="sm" />
+        </RouterLink>
       </Link>
       <div className="gallery-header__tools">
         {/* The theme dropdown appears once a second theme exists (plan §H.5); light/dark is a mode. */}

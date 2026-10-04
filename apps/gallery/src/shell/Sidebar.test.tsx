@@ -22,6 +22,16 @@ function linksUnder(heading: string): string[] {
 }
 
 describe('Sidebar', () => {
+  it('every nav link is a bit Link, and the current page is marked', () => {
+    render(
+      <MemoryRouter initialEntries={['/tokens']}>
+        <Sidebar items={NAV} open={false} onNavigate={() => {}} />
+      </MemoryRouter>,
+    );
+    for (const link of screen.getAllByRole('link')) expect(link).toHaveClass('bit-link');
+    expect(screen.getByRole('link', { name: 'Tokens' })).toHaveAttribute('aria-current', 'page');
+  });
+
   it('lists Foundations, Components, Forms and Brand, with Forms between Components and Brand', () => {
     expect(renderSidebar(NAV)).toEqual(['Foundations', 'Components', 'Forms', 'Brand']);
     expect(screen.getByRole('link', { name: 'Button' })).toHaveAttribute('href', '/components/button');
