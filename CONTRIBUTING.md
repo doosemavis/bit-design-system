@@ -87,6 +87,16 @@ The check first polls `npm view @bit-ds/react@<version> version` until npm print
 
 If the publish worked but the check or the deploy failed, re-run the failed jobs. The publish is skipped because the version exists. Never re-tag.
 
+### Switch to trusted publishing (do before January 2027)
+
+npm will stop letting 2FA-bypass tokens publish in January 2027. The release workflow uses one today (the `NPM_TOKEN` secret), so switch before then. Trusted publishing replaces the token with short-lived credentials minted for each run.
+
+1. On npmjs.com, open `@bit-ds/react`, then Settings, then Trusted Publisher, then GitHub Actions.
+2. Fill in owner `doosemavis`, repo `bit-design-system`, workflow `release.yml`, environment `npm-publish`.
+3. Then delete the `NPM_TOKEN` secret from the `npm-publish` environment and revoke the token on npm.
+
+`release.yml` is already ready for it. The `publish` job has `id-token: write`, and it installs npm 11.5.1 or later, which trusted publishing needs. Do the npm steps first. Don't remove the token from the workflow before npm trusts it, or the next publish will fail. Once npm trusts the workflow, a later PR can drop `NODE_AUTH_TOKEN` from the publish step.
+
 Before tagging, you can run `npm run smoke:full` and `npm run e2e` locally. Both need Chromium installed once. `smoke:full` uses the root `playwright` package, so install it from the repo root:
 
 ```bash
