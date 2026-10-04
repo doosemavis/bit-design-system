@@ -14,7 +14,7 @@ export interface TokenValues {
 }
 
 /** Read each token from the live document's computed style, so the values match the theme and the mode. */
-export function readTokenValues(mode: ColorMode, names: readonly string[] = SEMANTIC_TOKENS): TokenValues {
+function readTokenValues(mode: ColorMode, names: readonly string[] = SEMANTIC_TOKENS): TokenValues {
   const style = getComputedStyle(document.documentElement);
   return { mode, values: new Map(names.map((name) => [name, style.getPropertyValue(name).trim()])) };
 }

@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { COLOR_MODE_STORAGE_KEY } from '@bit-ds/react';
+import { seedColorMode } from './mode';
 import { themeValue } from './theme';
 
-const STORAGE_KEY = 'bit-color-mode';
 const BG = themeValue('--bit-color-bg');
 const SCHEMES = ['light', 'dark'] as const;
 
@@ -14,7 +15,7 @@ function rootBg(page: Page): Promise<string> {
 }
 
 function savedChoice(page: Page): Promise<string | null> {
-  return page.evaluate((key) => window.localStorage.getItem(key), STORAGE_KEY);
+  return page.evaluate((key) => window.localStorage.getItem(key), COLOR_MODE_STORAGE_KEY);
 }
 
 for (const scheme of SCHEMES) {
@@ -43,7 +44,7 @@ for (const scheme of SCHEMES) {
 
 test('a saved choice wins over the OS, as the a11y helpers rely on', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
-  await page.addInitScript((key) => window.localStorage.setItem(key, 'light'), STORAGE_KEY);
+  await seedColorMode(page, 'light');
   await page.goto('#/tokens');
   expect(await rootBg(page)).toBe(BG.light.toLowerCase());
   await expect(page.locator('html')).toHaveAttribute('data-mode', 'light');

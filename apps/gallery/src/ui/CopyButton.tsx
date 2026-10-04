@@ -8,7 +8,7 @@ const LABELS: Record<CopyState, string> = { idle: 'Copy', copied: 'Copied', fail
 /** How long "Copied" or "Copy failed" shows before the button reads "Copy" again. Same as CodeBlock's. */
 export const COPY_RESET_MS = 2000;
 
-export interface CopyButtonProps {
+interface CopyButtonProps {
   /** Exactly what lands on the clipboard. */
   text: string;
   /**

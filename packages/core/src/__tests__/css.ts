@@ -44,7 +44,7 @@ function channel(hex: string): number {
 }
 
 /** Relative luminance of a `#rrggbb` color per WCAG 2.x. */
-export function luminance(hex: string): number {
+function luminance(hex: string): number {
   const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex.trim());
   if (!m) throw new Error(`Expected #rrggbb, got "${hex}"`);
   return 0.2126 * channel(m[1]!) + 0.7152 * channel(m[2]!) + 0.0722 * channel(m[3]!);
@@ -123,7 +123,7 @@ export const VISUALLY_HIDDEN: readonly string[] = [
 export const OUTLINE_DECLARATION = /(^|[;{])\s*outline(-(color|style|width))?\s*:/m;
 
 /** One style rule: its selector text, its body, and the `@media` prelude it sits in (null at top level). */
-export interface CssRule {
+interface CssRule {
   selector: string;
   body: string;
   media: string | null;

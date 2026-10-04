@@ -5,7 +5,7 @@ import { ThemeSelect } from './ThemeSelect';
 import { VersionSelect } from './VersionSelect';
 import { THEMES } from './themes';
 
-export const REPO_URL = 'https://github.com/doosemavis/bit-design-system';
+const REPO_URL = 'https://github.com/doosemavis/bit-design-system';
 
 /** The GitHub button. The header shows it on wide screens; at phone width it moves into the sidebar sheet. */
 export function GitHubLink() {

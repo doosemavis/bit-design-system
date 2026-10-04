@@ -8,6 +8,7 @@ import { renderAt } from '../test/renderRoute';
 import { TokensPage } from './TokensPage';
 import { filterTokens } from './tokens/AllTokens';
 import { expectNoA11yViolations } from '../test/a11y';
+import { stubClipboard } from '../test/clipboard';
 
 /** jsdom loads no CSS, so give it a few literal token values, light and dark, to compute. */
 const THEME = `
@@ -170,7 +171,7 @@ describe('TokensPage', () => {
   it("a row's Copy puts var(--name) on the clipboard", async () => {
     await open();
     const writeText = vi.fn(() => Promise.resolve());
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    stubClipboard(writeText);
     const table = screen.getByRole('region', { name: 'Token values' });
     await act(async () => {
       fireEvent.click(within(table).getByRole('button', { name: 'Copy var(--bit-color-primary)' }));

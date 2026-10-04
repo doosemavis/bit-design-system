@@ -84,6 +84,9 @@ importers:
       axe-core:
         specifier: ^4.10.0
         version: 4.13.0
+      eslint:
+        specifier: ^9.39.0
+        version: 9.39.5
       jsdom:
         specifier: ^26.1.0
         version: 26.1.0

@@ -2,7 +2,7 @@ import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Box, Button, Stack, Text } from '@bit-ds/react';
 
-export interface DisclosureProps {
+interface DisclosureProps {
   /** The button's text, and the region's accessible name. */
   title: string;
   /** Start open. Closed by default. */

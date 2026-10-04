@@ -9,7 +9,7 @@ import { fullFile } from './fullFile';
  * One option in the Playground's code switcher. To add a mode, add an entry here: the SegmentedControl,
  * the CodeBlock and the tests all read this list.
  */
-export interface CodeFormat {
+interface CodeFormat {
   /** The SegmentedControl value. */
   id: string;
   /** The SegmentedControl label. */
