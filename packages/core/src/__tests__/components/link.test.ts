@@ -44,4 +44,13 @@ describe('components/link.css', () => {
   it('in dark mode the hover underline turns the accent (Q3b-A)', () => {
     expect(block(css, '[data-mode="dark"] .bit-link:hover')).toContain('text-decoration-color: var(--bit-color-accent);');
   });
+
+  it('inside a solid Alert the hover underline is currentColor (the Alert text) and overrides dark accent (Q1-A fix)', () => {
+    const solidAlert = block(css, '.bit-alert.bit-solid .bit-link:hover')!;
+    expect(solidAlert).toContain('text-decoration-color: currentColor;');
+    // Specificity: .bit-alert.bit-solid .bit-link:hover (0,4,0) > [data-mode="dark"] .bit-link:hover (0,3,0)
+    // so the solid-Alert rule wins even though it comes before the dark accent rule
+    expect(css).toContain('.bit-alert.bit-solid .bit-link:hover');
+    expect(css).toContain('[data-mode="dark"] .bit-link:hover');
+  });
 });

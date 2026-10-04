@@ -41,6 +41,7 @@
 .bit-alert.bit-solid .bit-link:hover {
   background: none;
   text-decoration-thickness: 4px;
+  text-decoration-color: currentColor;
 }
 
 /* Dark: the hover highlight is faint on the night surfaces, so the underline turns the accent. */
