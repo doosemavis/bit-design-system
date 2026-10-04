@@ -9,6 +9,27 @@ function systemDarkBody(source: string): string | null {
   return m ? m[2]! : null;
 }
 
+function darkBody(source: string): string {
+  const m = /(^|\n)\[data-mode="dark"\]\s*\{([^}]*)\}/.exec(source);
+  return m ? m[2]! : '';
+}
+
+function parseCustomPropsAndScheme(body: string): Map<string, string> {
+  const map = parseCustomProps(body);
+  const scheme = /(?<![-\w])color-scheme\s*:\s*([^;]+);/.exec(body);
+  if (scheme) map.set('color-scheme', scheme[1]!.trim());
+  return map;
+}
+
+/** Property names in a rule body that are not custom properties (`--*`). Comments are ignored. */
+function plainProperties(body: string): string[] {
+  return body
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split(';')
+    .map((declaration) => /^\s*([-\w]+)\s*:/.exec(declaration)?.[1])
+    .filter((name): name is string => name !== undefined && !name.startsWith('--'));
+}
+
 describe('data-mode="system" follows the OS in CSS', () => {
   it('is in the shared selector list, so any element set to system re-declares the shared tokens', () => {
     const shared = /:root,\s*\[data-theme="power-up"\],([^{]*)\{/.exec(css);
@@ -30,21 +51,14 @@ describe('data-mode="system" follows the OS in CSS', () => {
     expect(Object.fromEntries(system)).toEqual(Object.fromEntries(dark));
   });
 
+  it('neither body declares a plain property other than color-scheme, so parity sees everything', () => {
+    expect(plainProperties(systemDarkBody(css) ?? '')).toEqual(['color-scheme']);
+    expect(plainProperties(darkBody(css))).toEqual(['color-scheme']);
+  });
+
   it('does not leak dark values into the light theme', () => {
     const { light, dark } = themeModes(css);
     expect(light.get('--bit-color-bg')).not.toBe(dark.get('--bit-color-bg'));
     expect(light.get('--bit-color-text')).toBe('var(--bit-palette-ink)');
   });
 });
-
-function darkBody(source: string): string {
-  const m = /(^|\n)\[data-mode="dark"\]\s*\{([^}]*)\}/.exec(source);
-  return m ? m[2]! : '';
-}
-
-function parseCustomPropsAndScheme(body: string): Map<string, string> {
-  const map = parseCustomProps(body);
-  const scheme = /(?<![-\w])color-scheme\s*:\s*([^;]+);/.exec(body);
-  if (scheme) map.set('color-scheme', scheme[1]!.trim());
-  return map;
-}
