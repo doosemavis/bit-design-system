@@ -117,6 +117,16 @@ describe('Sidebar current section', () => {
     expect(sectionOf('Foundations')).not.toHaveAttribute('data-current');
   });
 
+  it('marks no section on an unknown path, and does not crash', () => {
+    renderAt('/nope');
+    for (const h of screen.getAllByRole('heading', { level: 2 })) expect(h.closest('section')).not.toHaveAttribute('data-current');
+  });
+
+  it('does not mark Foundations on /tokens-extra, which only shares a prefix with /tokens', () => {
+    renderAt('/tokens-extra');
+    expect(sectionOf('Foundations')).not.toHaveAttribute('data-current');
+  });
+
   it('keeps the same title node while the page changes inside one section', () => {
     renderAt('/tokens');
     const before = title('Foundations');

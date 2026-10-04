@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { matchPath, NavLink, useLocation } from 'react-router-dom';
 import { Link, Text } from '@bit-ds/react';
 import { MANIFESTS, routeFor } from '../manifests';
 import type { Manifest, ManifestGroup } from '../manifests';
@@ -42,9 +42,9 @@ interface SidebarProps {
   footer?: ReactNode;
 }
 
-/** The group of the item NavLink would mark current for `pathname` (end-matched for "/"), or null. */
+/** The group of the item NavLink would mark current for `pathname` (matchPath, as NavLink does), or null. */
 function currentGroup(items: readonly NavItem[], pathname: string): NavGroup | null {
-  const match = items.find((item) => (item.to === '/' ? pathname === '/' : pathname === item.to || pathname.startsWith(`${item.to}/`)));
+  const match = items.find((item) => matchPath({ path: item.to, end: item.to === '/' }, pathname));
   return match?.group ?? null;
 }
 
