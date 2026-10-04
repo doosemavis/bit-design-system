@@ -10,6 +10,7 @@ import { modeToggle } from '../manifests/modeToggle';
 import { stack } from '../manifests/stack';
 import { codeBlock } from '../manifests/codeBlock';
 import { expectNoA11yViolations } from '../test/a11y';
+import { stubClipboard } from '../test/clipboard';
 
 const shown = () => screen.getByRole('region', { name: 'Example code' }).textContent;
 const formatNames = () =>
@@ -55,7 +56,7 @@ describe('CodePanel', () => {
 
   it('Copy copies whichever mode is showing', async () => {
     const writeText = vi.fn(() => Promise.resolve());
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    stubClipboard(writeText);
     render(<CodePanel manifest={button} state={{ ...defaultState(button), size: 'lg' }} />);
     await userEvent.click(screen.getByRole('radio', { name: 'className' }));
     await act(async () => {
