@@ -351,7 +351,8 @@ test('release: the docs guard compares packages/ with the latest release tag on 
   const run = runOf(docsGuard());
   assert.ok(run.includes(GUARD_LATEST), 'reads the latest release tag merged into HEAD, skipping pre-releases, pipefail-safe');
   assert.ok(run.includes(GUARD_DIFF), 'diffs packages/ against it, minus the ignored paths');
-  for (const exclude of GUARD_EXCLUDES) assert.ok(run.includes(`'${exclude}'`), `ignores ${exclude}`);
+  const listed = /IGNORED=\(\n([\s\S]*?)\n\s*\)/.exec(run)?.[1].split('\n').map((l) => l.trim()).filter(Boolean).map((l) => l.replace(/^'|'$/g, ''));
+  assert.deepEqual(listed, GUARD_EXCLUDES, 'the exclude list is exactly the agreed test-only paths, nothing broader');
   assert.ok(run.includes(GUARD_NOTICE), 'says why it skipped');
 });
 
@@ -435,10 +436,13 @@ test('release: the docs guard script ignores test-only changes under packages/ b
       commit(file, 'changed');
       assert.match(runGuard(repo).output, /^deploy=true$/m, `${file} is test-only: docs still deploy`);
     }
+    commit('packages/react/scripts/build-css.mjs', 'x');
+    assert.match(runGuard(repo).output, /^deploy=false$/m, 'another packages/ script still skips');
+    git('tag', 'v0.1.1');
     commit('packages/react/src/Button.tsx', '2');
     const skipped = runGuard(repo);
     assert.match(skipped.output, /^deploy=false$/m, 'a src change still skips');
-    assert.ok(skipped.stdout.includes('::notice::packages/ changed since v0.1.0'), skipped.stdout);
+    assert.ok(skipped.stdout.includes('::notice::packages/ changed since v0.1.1'), skipped.stdout);
   } finally {
     rmSync(repo, { recursive: true, force: true });
   }

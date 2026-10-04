@@ -1,10 +1,9 @@
 // Proves the built package is consumable: ESM + CJS entries, types, bundled CSS, theme files.
 import { createRequire } from 'node:module';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
-import { SEMANTIC_TOKENS } from '@bit-ds/core/tokens';
 import { EXPECTED } from './expected-exports.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -26,7 +25,7 @@ assert.equal(typeof cjs.useColorMode, 'function', 'CJS export missing: useColorM
 assert.equal(typeof cjs.colorMode?.set, 'function', 'CJS export missing: colorMode.set');
 assert.equal(typeof cjs.ColorModeService, 'function', 'CJS export ColorModeService must be a class');
 assert.equal(typeof cjs.colorMode, 'object', 'CJS export colorMode must be the shared instance');
-assert.equal(cjs.SEMANTIC_TOKENS?.length, SEMANTIC_TOKENS.length, `CJS export SEMANTIC_TOKENS must list all ${SEMANTIC_TOKENS.length} names from @bit-ds/core/tokens`);
+assert.ok(Array.isArray(cjs.SEMANTIC_TOKENS), 'CJS export missing: SEMANTIC_TOKENS');
 
 // 2. ESM entry
 const esm = await import(resolve(dist, 'index.js'));
@@ -36,7 +35,26 @@ assert.equal(typeof esm.useColorMode, 'function', 'ESM export missing: useColorM
 assert.equal(typeof esm.colorMode?.set, 'function', 'ESM export missing: colorMode.set');
 assert.equal(typeof esm.ColorModeService, 'function', 'ESM export ColorModeService must be a class');
 assert.equal(typeof esm.colorMode, 'object', 'ESM export colorMode must be the shared instance');
-assert.equal(esm.SEMANTIC_TOKENS?.length, SEMANTIC_TOKENS.length, `ESM export SEMANTIC_TOKENS must list all ${SEMANTIC_TOKENS.length} names from @bit-ds/core/tokens`);
+assert.ok(Array.isArray(esm.SEMANTIC_TOKENS), 'ESM export missing: SEMANTIC_TOKENS');
+
+// 2b. SEMANTIC_TOKENS checked against the package itself (nothing outside dist, so any Node >= 20 runs it):
+// both builds agree, no blanks or duplicates, and the names are exactly the --bit-* custom properties
+// each shipped theme declares (tier-1 --bit-palette-* excluded).
+const tokens = esm.SEMANTIC_TOKENS;
+assert.deepEqual([...cjs.SEMANTIC_TOKENS], [...tokens], 'CJS and ESM SEMANTIC_TOKENS differ');
+assert.ok(tokens.length > 0, 'SEMANTIC_TOKENS is empty');
+assert.equal(new Set(tokens).size, tokens.length, 'SEMANTIC_TOKENS has duplicates');
+const themesDir = resolve(dist, 'themes');
+const themeFiles = readdirSync(themesDir).filter((f) => f.endsWith('.css'));
+assert.ok(themeFiles.length > 0, 'dist/themes has no CSS');
+for (const file of themeFiles) {
+  const declared = new Set(
+    [...readFileSync(resolve(themesDir, file), 'utf8').matchAll(/(--bit-[\w-]+)\s*:/g)].map((m) => m[1]).filter((n) => !n.startsWith('--bit-palette-')),
+  );
+  const missing = tokens.filter((t) => !declared.has(t));
+  const extra = [...declared].filter((t) => !tokens.includes(t));
+  assert.deepEqual({ missing, extra }, { missing: [], extra: [] }, `SEMANTIC_TOKENS and themes/${file} disagree`);
+}
 
 // 3. Types
 assert.ok(existsSync(resolve(dist, 'index.d.cts')), 'index.d.cts missing (CJS types entry)');

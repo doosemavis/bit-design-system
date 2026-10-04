@@ -117,6 +117,11 @@ test('readChangelogFacts collects each release\'s Breaking items, and only those
   assert.deepEqual(readChangelogFacts(text).breakingByVersion, { '0.2.0': ['`Button` lost `size`.', 'Second.'], '0.1.0': ['Old one.'] });
 });
 
+test('readChangelogFacts merges Breaking items of a duplicated version', () => {
+  const text = '## 0.2.0 — 2026-11-01\n### Breaking\n- One.\n## 0.2.0 — 2026-11-01\n### Breaking\n- Two.\n';
+  assert.deepEqual(readChangelogFacts(text).breakingByVersion, { '0.2.0': ['One.', 'Two.'] });
+});
+
 test('stripV drops one leading v', () => {
   assert.equal(stripV('v0.1.0'), '0.1.0');
   assert.equal(stripV('0.1.0'), '0.1.0');

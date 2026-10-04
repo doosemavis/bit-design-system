@@ -6,6 +6,10 @@ const sample = `# Changelog\n\n## 0.1.1 — 2026-10-10\n### Added\n- Versions pa
 const versionsOf = (text: string) => parseChangelog(text).map((r) => r.version);
 
 describe('parseChangelog', () => {
+  it('treats section names like constructor and __proto__ as unknown kinds, not properties', () => {
+    const text = '## 0.1.0 — 2026-10-04\n### constructor\n- a\n### __proto__\n- b\n### toString\n- c\n### Added\n- ok\n';
+    expect(parseChangelog(text)).toEqual([{ version: '0.1.0', date: '2026-10-04', sections: { Added: ['ok'] } }]);
+  });
   it('reads releases newest first with their sections', () => {
     expect(parseChangelog(sample)).toEqual([
       { version: '0.1.1', date: '2026-10-10', sections: { Added: ['Versions page.'], Fixed: ['`Code` in tables.'] } },

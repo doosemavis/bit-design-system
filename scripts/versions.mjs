@@ -64,7 +64,7 @@ export const readChangelogFacts = (text) => {
   const breakingByVersion = {};
   for (const { version, date, sections } of parseChangelogSections(text, { strict: false })) {
     dates[version] = date;
-    if (sections.Breaking) breakingByVersion[version] = sections.Breaking;
+    if (sections.Breaking) breakingByVersion[version] = [...(breakingByVersion[version] ?? []), ...sections.Breaking];
   }
   return { dates, breakingByVersion };
 };

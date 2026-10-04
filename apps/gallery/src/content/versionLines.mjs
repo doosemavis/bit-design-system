@@ -42,16 +42,17 @@ export const parseChangelogSections = (text, { strict }) => {
     if (line.startsWith('## ')) {
       const m = CHANGELOG_HEADING.exec(line);
       if (!m && strict) throw new Error(`CHANGELOG: bad heading "${line}"`);
-      current = m ? { version: m[1], date: m[2], sections: {} } : null;
+      current = m ? { version: m[1], date: m[2], sections: new Map() } : null;
       if (current) releases.push(current);
       kind = null;
     } else if (line.startsWith('### ')) {
       kind = line.slice(4).trim();
     } else if (line.startsWith('- ') && current && kind) {
-      current.sections[kind] = [...(current.sections[kind] ?? []), line.slice(2).trim()];
+      current.sections.set(kind, [...(current.sections.get(kind) ?? []), line.slice(2).trim()]);
     }
   }
-  return releases;
+  // A Map while walking, so a section named `constructor` or `__proto__` is just a name.
+  return releases.map(({ version, date, sections }) => ({ version, date, sections: Object.fromEntries(sections) }));
 };
 
 export const pathForLine = (line, latestLine) => (line === latestLine ? SITE_BASE : `${SITE_BASE}v${line}/`);
