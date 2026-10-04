@@ -8,8 +8,6 @@ const FIRST_COMPONENT = "import { Button } from '@bit-ds/react';\n\n<Button>Save
 
 export interface StepProps {
   n: number;
-  /** The title's heading level: 3 under a section heading, 2 on a page of its own. */
-  level?: 2 | 3;
   title: string;
   /** Shown after the title, outside the heading: the version on the Install step. */
   aside?: ReactNode;
@@ -18,14 +16,15 @@ export interface StepProps {
   children: ReactNode;
 }
 
-export function Step({ n, level = 3, title, aside, help, children }: StepProps) {
+/** One numbered step of Getting started: its title is a level-2 heading on that page. */
+export function Step({ n, title, aside, help, children }: StepProps) {
   return (
     <Stack gap={8}>
       <Stack direction="row" gap={8} align="center" wrap>
         <Badge color="warning" shape="square">
           {String(n)}
         </Badge>
-        <Heading level={level}>{title}</Heading>
+        <Heading level={2}>{title}</Heading>
         {aside}
       </Stack>
       <Text>{help}</Text>
@@ -35,12 +34,11 @@ export function Step({ n, level = 3, title, aside, help, children }: StepProps) 
 }
 
 /** The first three numbered steps (the Getting started page adds two): install, add the styles once, use a component. */
-export function GetStarted({ level = 3 }: { level?: 2 | 3 }) {
+export function GetStarted() {
   return (
     <Stack gap={24}>
       <Step
         n={1}
-        level={level}
         title="Install"
         aside={
           <Badge variant="outline" shape="square">
@@ -51,12 +49,11 @@ export function GetStarted({ level = 3 }: { level?: 2 | 3 }) {
       >
         <InstallCommand />
       </Step>
-      <Step n={2} level={level} title="Add the styles once" help="In your app's entry file. The theme comes first, then the component styles.">
+      <Step n={2} title="Add the styles once" help="In your app's entry file. The theme comes first, then the component styles.">
         <CodeBlock code={STYLE_IMPORTS} language="jsx" label="Style imports" />
       </Step>
       <Step
         n={3}
-        level={level}
         title="Use a component"
         help={
           <>

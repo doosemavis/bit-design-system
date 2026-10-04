@@ -19,9 +19,18 @@
   var SELECT_ID = 'bit-version-banner-select';
   // Only the site root or one v<line>/ folder below it: never another origin or a javascript: URL.
   // The same pattern as the gallery's isVersionsFile (apps/gallery/src/content/versionLines.mjs).
+  // scripts/version-banner.test.mjs checks the two accept exactly the same paths.
   var SAFE_PATH = /^\/bit-design-system\/(v[0-9][0-9.]*\/)?$/;
   var LINE = /^\d+(\.\d+)?$/;
   var VERSION = /^\d+\.\d+\.\d+$/;
+
+  function isSafePath(path) {
+    return typeof path === 'string' && SAFE_PATH.test(path);
+  }
+
+  function hasOwnPicker(doc) {
+    return !!(doc && doc.documentElement && doc.documentElement.hasAttribute('data-bit-version-picker'));
+  }
 
   function isEntry(entry) {
     return (
@@ -31,8 +40,7 @@
       LINE.test(entry.line) &&
       typeof entry.version === 'string' &&
       VERSION.test(entry.version) &&
-      typeof entry.path === 'string' &&
-      SAFE_PATH.test(entry.path)
+      isSafePath(entry.path)
     );
   }
 
@@ -88,7 +96,7 @@
     }
     select.value = ownPath;
     select.addEventListener('change', function () {
-      if (SAFE_PATH.test(select.value)) location.assign(select.value + (location.hash || ''));
+      if (isSafePath(select.value)) location.assign(select.value + (location.hash || ''));
     });
     wrap.appendChild(select);
     row.appendChild(label);
@@ -105,7 +113,7 @@
       var doc = opts && opts.doc;
       var location = opts && opts.location;
       if (!doc || !doc.documentElement || !doc.body || !location) return null;
-      if (doc.documentElement.hasAttribute('data-bit-version-picker')) return null;
+      if (hasOwnPicker(doc)) return null;
       if (doc.getElementById && doc.getElementById(BANNER_ID)) return null;
       var ownPath = ownPathOf(location.pathname);
       if (!ownPath) return null;
@@ -148,6 +156,8 @@
       renderBanner({ doc: win.document, versions: versions, location: win.location });
     };
     var start = function () {
+      // A build with its own picker needs nothing from here, not even the fetch.
+      if (hasOwnPicker(win.document)) return;
       if (typeof win.fetch !== 'function') return show(null);
       win
         .fetch(SITE_BASE + 'versions.json', { cache: 'no-cache' })
@@ -167,7 +177,7 @@
     }
   }
 
-  var api = { SITE_BASE: SITE_BASE, ownPathOf: ownPathOf, parseVersions: parseVersions, renderBanner: renderBanner, boot: boot };
+  var api = { SITE_BASE: SITE_BASE, isSafePath: isSafePath, ownPathOf: ownPathOf, parseVersions: parseVersions, renderBanner: renderBanner, boot: boot };
   if (typeof module === 'object' && module && module.exports) module.exports = api;
   else if (root && root.document) boot(root);
 })(typeof window !== 'undefined' ? window : undefined);

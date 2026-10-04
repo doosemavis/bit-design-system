@@ -25,14 +25,15 @@ describe('OldVersionBanner', () => {
   beforeEach(() => resetVersionsCache());
   afterEach(() => vi.unstubAllGlobals());
 
-  it('warns on an older copy, with a link to the latest named by its version', async () => {
+  it('warns on an older copy in the spec §3 wording, with a link to the latest docs', async () => {
     at(V01);
     vi.stubGlobal('fetch', vi.fn(() => ok(NEWER)));
     render(<OldVersionBanner />);
     const banner = await screen.findByRole('status');
-    expect(banner).toHaveTextContent(`You're viewing the docs for v${__BIT_VERSION__}`);
+    const v = `v${__BIT_VERSION__}`;
+    expect(banner).toHaveTextContent(`You're viewing the docs for ${v}. Components here behave as they did in ${v}. Go to the latest docs`);
     expect(banner).toHaveClass('bit-solid', 'bit-warning');
-    expect(screen.getByRole('link', { name: 'Go to the latest (v9.0.0) →' })).toHaveAttribute('href', '/bit-design-system/#/');
+    expect(screen.getByRole('link', { name: 'Go to the latest docs' })).toHaveAttribute('href', '/bit-design-system/#/');
   });
 
   it('warns on a v<line>/ copy of the latest line too (the as-older rehearsal)', async () => {
@@ -40,7 +41,7 @@ describe('OldVersionBanner', () => {
     vi.stubGlobal('fetch', vi.fn(() => ok({ latest: '0.1', lines: [entry('0.1', '0.1.1', ROOT), entry('0.1', '0.1.0', V01)] })));
     render(<OldVersionBanner />);
     expect(await screen.findByRole('status')).toHaveTextContent('You\'re viewing the docs for');
-    expect(screen.getByRole('link', { name: 'Go to the latest (v0.1.1) →' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Go to the latest docs' })).toBeInTheDocument();
   });
 
   it('renders nothing on the root copy, which is the latest', async () => {

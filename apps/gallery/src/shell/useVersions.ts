@@ -14,17 +14,26 @@ interface Settled {
 let pending: Promise<Settled> | null = null;
 let settled: Settled | null = null;
 
+const UNAVAILABLE: Settled = { status: 'unavailable', file: null };
+
+/** Says why, once per page load, then falls back: the picker shows the current build only. */
+function unavailable(reason: string): Settled {
+  console.warn(`[bit] versions.json unavailable: ${reason}`);
+  return UNAVAILABLE;
+}
+
 async function load(): Promise<Settled> {
   const url = import.meta.env.DEV ? '/versions.json' : `${SITE_BASE}versions.json`;
   try {
-    const response = await fetch(url);
-    if (!response.ok) return { status: 'unavailable', file: null };
+    // The file changes on every deploy while its URL stays put, so always revalidate.
+    const response = await fetch(url, { cache: 'no-cache' });
+    if (!response.ok) return unavailable(`HTTP ${response.status}`);
     const body: unknown = await response.json();
     // The same check build-versioned-site.mjs runs on the file it deploys (see versionLines.mjs).
-    return isVersionsFile(body) ? { status: 'ready', file: body } : { status: 'unavailable', file: null };
-  } catch {
-    // Offline, a 404 page that isn't JSON, a blocked request: the picker falls back to the current build.
-    return { status: 'unavailable', file: null };
+    return isVersionsFile(body) ? { status: 'ready', file: body } : unavailable('unexpected shape');
+  } catch (error) {
+    // Offline, a 404 page that isn't JSON, a blocked request.
+    return unavailable(error instanceof Error ? error.message : String(error));
   }
 }
 

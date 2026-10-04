@@ -20,8 +20,8 @@ export function OldVersionBanner() {
 
   return (
     <Alert color="warning" variant="solid" className="gallery-old-version">
-      You&apos;re viewing the docs for v{BUILD_VERSION}. Components here behave as they did in that release.{' '}
-      <Link href={urlForLine(latest.path, '')}>Go to the latest (v{latest.version}) →</Link>
+      You&apos;re viewing the docs for v{BUILD_VERSION}. Components here behave as they did in v{BUILD_VERSION}.{' '}
+      <Link href={urlForLine(latest.path, '')}>Go to the latest docs</Link>
     </Alert>
   );
 }

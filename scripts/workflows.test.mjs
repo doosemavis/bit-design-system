@@ -450,9 +450,9 @@ test('release: dry-run builds the versioned site with v0.1.0 as an older line, t
 });
 
 test('release: no run script interpolates an expression; values arrive through env', () => {
-  for (const { job, step } of allSteps(release())) {
-    if (/\bnpm publish\b/.test(runOf(step))) assert.doesNotMatch(runOf(step), /\$\{\{/, `${job}: ${keyOf(step)}`);
-  }
+  const runs = allSteps(release()).filter(({ step }) => typeof step.run === 'string');
+  assert.ok(runs.length > 20, 'every run step is checked');
+  for (const { job, step } of runs) assert.doesNotMatch(runOf(step), /\$\{\{/, `${job}: ${keyOf(step)}`);
 });
 
 test('release: no step outside publish runs npm publish without --dry-run', () => {

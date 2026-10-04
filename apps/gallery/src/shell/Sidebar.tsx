@@ -38,7 +38,7 @@ interface SidebarProps {
   items: readonly NavItem[];
   open: boolean;
   onNavigate: () => void;
-  /** Shown after the groups: the GitHub button, when the header is too narrow for it. */
+  /** Shown after the groups when the header is too narrow: the GitHub button and the version picker. */
   footer?: ReactNode;
 }
 

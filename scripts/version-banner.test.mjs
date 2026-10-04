@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { SITE_BASE, ownPathOf as galleryOwnPathOf } from '../apps/gallery/src/content/versionLines.mjs';
+import { SITE_BASE, isVersionsFile, ownPathOf as galleryOwnPathOf } from '../apps/gallery/src/content/versionLines.mjs';
 
 const source = readFileSync(new URL('./version-banner.js', import.meta.url), 'utf8');
 // The script logs (never throws) when it cannot render; the tests collect those warnings.
@@ -14,7 +14,7 @@ const load = () => {
   vm.runInNewContext(source, sandbox);
   return sandbox.module.exports;
 };
-const { renderBanner, parseVersions, ownPathOf, SITE_BASE: BANNER_BASE } = load();
+const { renderBanner, parseVersions, ownPathOf, isSafePath, boot, SITE_BASE: BANNER_BASE } = load();
 
 // --- a minimal fake DOM: just what the banner touches -------------------------------------------
 class FakeElement {
@@ -147,8 +147,73 @@ test('on an older path: a solid warning alert first in <body>, with a select of 
   assert.equal(label.getAttribute('for'), select.id);
   const [link] = banner.findAll('A');
   assert.equal(link.className, 'bit-link');
+  assert.equal(link.textContent, 'Go to the latest docs');
   assert.equal(link.getAttribute('href'), '/bit-design-system/#/components/button', 'the latest link keeps the page');
 });
+
+// --- boot: a build with its own picker never even asks for versions.json ------------------------
+const fakeWindow = (withPicker) => {
+  const doc = fakeDoc();
+  if (withPicker) doc.documentElement.setAttribute('data-bit-version-picker', '');
+  doc.readyState = 'complete';
+  const fetched = [];
+  const win = {
+    document: doc,
+    location: fakeLocation('/bit-design-system/v0.1/'),
+    addEventListener: () => {},
+    fetch: (...args) => (fetched.push(args), Promise.resolve({ ok: false })),
+  };
+  return { win, fetched };
+};
+
+test('boot: a build with data-bit-version-picker is skipped before versions.json is fetched', () => {
+  const { win, fetched } = fakeWindow(true);
+  boot(win);
+  assert.deepEqual(fetched, []);
+});
+
+test('boot: an archived build without its own picker fetches versions.json, revalidating', () => {
+  const { win, fetched } = fakeWindow(false);
+  boot(win);
+  // JSON round trip: the options object comes from the vm's realm.
+  assert.deepEqual(JSON.parse(JSON.stringify(fetched)), [['/bit-design-system/versions.json', { cache: 'no-cache' }]]);
+});
+
+// --- SAFE_PATH parity: the banner and the gallery's isVersionsFile accept exactly the same paths ---
+const PATHS = [
+  ['/bit-design-system/', true],
+  ['/bit-design-system/v0.1/', true],
+  ['/bit-design-system/v1/', true],
+  ['/bit-design-system/v0.10/', true],
+  ['/bit-design-system', false],
+  ['/bit-design-system/v0.1', false],
+  ['/bit-design-system/v0.1/index.html', false],
+  ['/bit-design-system/0.1/', false],
+  ['/bit-design-system/vx/', false],
+  ['/bit-design-system/v0.1/v0.2/', false],
+  ['/bit-design-system/../x/', false],
+  ['/bit-design-system/v0.1/../../', false],
+  ['//evil.example/bit-design-system/', false],
+  ['https://evil.example/bit-design-system/', false],
+  ['javascript:alert(1)', false],
+  ['/elsewhere/', false],
+  ['', false],
+  [' /bit-design-system/', false],
+  ['/bit-design-system/\n', false],
+];
+/** isVersionsFile's verdict on one path: a minimal file with that path as an older (or the root) entry. */
+const galleryAccepts = (path) => {
+  const at = (l, version, p) => ({ line: l, version, date: '', path: p, react: '', reactDom: '' });
+  const lines = path === SITE_BASE ? [at('0.2', '0.2.0', path)] : [at('0.2', '0.2.0', SITE_BASE), at('0.1', '0.1.0', path)];
+  return isVersionsFile({ latest: '0.2', lines });
+};
+
+for (const [path, expected] of PATHS) {
+  test(`SAFE_PATH parity: ${JSON.stringify(path)} is ${expected ? 'accepted' : 'rejected'} by both`, () => {
+    assert.equal(isSafePath(path), expected, 'version-banner.js');
+    assert.equal(galleryAccepts(path), expected, 'isVersionsFile');
+  });
+}
 
 test('changing the select goes to that copy, on the same hash route', () => {
   const doc = fakeDoc();

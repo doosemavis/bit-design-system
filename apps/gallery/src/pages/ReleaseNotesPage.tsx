@@ -1,11 +1,9 @@
 import { Badge, Heading, Stack, Text } from '@bit-ds/react';
 import type { BadgeProps } from '@bit-ds/react';
-import { RELEASES } from '../content/changelog';
+import { CHANGE_KINDS, RELEASES } from '../content/changelog';
 import type { ChangeKind } from '../content/changelog';
 import { ChangeList } from '../ui/ChangeList';
 import { PageHeader } from '../ui/PageHeader';
-
-const KIND_ORDER: readonly ChangeKind[] = ['Breaking', 'Added', 'Changed', 'Fixed', 'Removed'];
 
 const KIND_BADGE: Record<ChangeKind, Pick<BadgeProps, 'color' | 'variant'>> = {
   Breaking: { color: 'danger', variant: 'solid' },
@@ -32,7 +30,7 @@ export function ReleaseNotesPage() {
               </Badge>
             ) : null}
           </Stack>
-          {KIND_ORDER.map((kind) => {
+          {CHANGE_KINDS.map((kind) => {
             const items = release.sections[kind];
             if (!items || items.length === 0) return null;
             return (

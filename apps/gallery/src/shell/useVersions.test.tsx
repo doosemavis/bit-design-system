@@ -14,8 +14,15 @@ const FILE = {
 const ok = (body: unknown) => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
 
 describe('useVersions', () => {
-  beforeEach(() => resetVersionsCache());
-  afterEach(() => vi.unstubAllGlobals());
+  let warn: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    resetVersionsCache();
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    warn.mockRestore();
+  });
 
   it('is ready with a valid file', async () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(FILE)));
@@ -23,13 +30,14 @@ describe('useVersions', () => {
     expect(result.current.status).toBe('loading');
     await waitFor(() => expect(result.current.status).toBe('ready'));
     expect(result.current.file).toEqual(FILE);
+    expect(warn).not.toHaveBeenCalled();
   });
 
-  it('asks for /versions.json in dev', async () => {
+  it('asks for /versions.json in dev, revalidating with the server (no-cache)', async () => {
     const fetchMock = vi.fn(() => ok(FILE));
     vi.stubGlobal('fetch', fetchMock);
     renderHook(() => useVersions());
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/versions.json'));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/versions.json', { cache: 'no-cache' }));
   });
 
   it('asks for the Pages path outside dev', async () => {
@@ -37,7 +45,7 @@ describe('useVersions', () => {
     const fetchMock = vi.fn(() => ok(FILE));
     vi.stubGlobal('fetch', fetchMock);
     renderHook(() => useVersions());
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/bit-design-system/versions.json'));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/bit-design-system/versions.json', { cache: 'no-cache' }));
     vi.unstubAllEnvs();
   });
 
@@ -46,18 +54,21 @@ describe('useVersions', () => {
     const { result } = renderHook(() => useVersions());
     await waitFor(() => expect(result.current.status).toBe('unavailable'));
     expect(result.current.file).toBeNull();
+    expect(warn).toHaveBeenCalledWith('[bit] versions.json unavailable: HTTP 500');
   });
 
   it('is unavailable when the fetch rejects', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('offline'))));
     const { result } = renderHook(() => useVersions());
     await waitFor(() => expect(result.current.status).toBe('unavailable'));
+    expect(warn).toHaveBeenCalledWith('[bit] versions.json unavailable: offline');
   });
 
   it('is unavailable on invalid JSON', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.reject(new SyntaxError('x')) })));
     const { result } = renderHook(() => useVersions());
     await waitFor(() => expect(result.current.status).toBe('unavailable'));
+    expect(warn).toHaveBeenCalledWith('[bit] versions.json unavailable: x');
   });
 
   it.each([
@@ -81,6 +92,7 @@ describe('useVersions', () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(body)));
     const { result } = renderHook(() => useVersions());
     await waitFor(() => expect(result.current.status).toBe('unavailable'));
+    expect(warn).toHaveBeenCalledWith('[bit] versions.json unavailable: unexpected shape');
   });
 
   it('currentLine is the line of the build version', () => {

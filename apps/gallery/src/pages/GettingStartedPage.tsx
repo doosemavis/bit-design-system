@@ -1,7 +1,7 @@
 import { CodeBlock, Link, ModeToggle, COLOR_MODE_SCRIPT, Stack, Text } from '@bit-ds/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { PageHeader } from '../ui/PageHeader';
-import { GetStarted, Step } from './home/GetStarted';
+import { GetStarted, Step } from './getting-started/GetStarted';
 
 const NO_FLASH_EXAMPLE = `<script>${COLOR_MODE_SCRIPT}</script>`;
 
@@ -20,17 +20,17 @@ export function GettingStartedPage() {
         <Text size={18}>Install the package, add the styles once, and use your first component.</Text>
       </PageHeader>
       <Stack gap={24}>
-        <GetStarted level={2} />
+        <GetStarted />
         <Step
           n={4}
-          level={2}
+         
           title="Light and dark"
           help="Try the toggle. To stop a dark visitor seeing a light flash, put this script in your page's head before your app loads."
         >
           <ModeToggle />
           <CodeBlock code={NO_FLASH_EXAMPLE} language="html" label="No-flash script" />
         </Step>
-        <Step n={5} level={2} title="Next steps" help="Where to go from here.">
+        <Step n={5} title="Next steps" help="Where to go from here.">
           <Stack gap={8}>
             {NEXT_STEPS.map((step) => (
               <Text key={step.label}>
