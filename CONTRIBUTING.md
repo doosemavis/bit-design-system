@@ -94,21 +94,27 @@ The docs site, CI, scripts and tests never get a version. They deploy through th
 
 A change to the README alone waits for the next release, because npm shows the README only from a published version.
 
-Pushing the tag starts the `release.yml` workflow. It runs three jobs on a tag:
+Pushing the tag starts the `release.yml` workflow. On a tag it runs:
 
-- `guard` checks that the tag equals `v` plus the package version, and that the commit is on `main`.
-- `publish` smoke-tests the packed tarball, then runs `npm publish` with provenance on that same file. It skips the publish when that version already exists. Then it waits for npm to show the new version, and installs it to check it.
-- `deploy` publishes the gallery to https://doosemavis.github.io/bit-design-system/.
+1. `guard` checks that the tag equals `v` plus the package version, and that the commit is on `main`.
+2. `build` installs, builds, verifies and packs the package, and smoke-tests that tarball in a fresh project and in Chromium. It records the tarball's sha256 right after packing, then uploads the tarball.
+3. `publish` waits for your approval in GitHub Actions. It downloads the tarball, stops if its sha256 differs from the one `build` recorded, and runs `npm publish` with provenance on that file. It skips the publish when that version already exists.
+4. `verify-install` waits for npm to show the new version, then installs it to check it.
+5. `deploy` puts the site on https://doosemavis.github.io/bit-design-system/, once `verify-install` passes. `site-build` builds that site alongside the other jobs.
+
+The split is a security boundary. Only `publish` sees the npm token and can mint an OIDC token, and it installs nothing and runs no third-party code: no `pnpm install`, no smoke test, no Playwright. Everything that installs packages or runs their scripts happens in `build`, which holds no credential. The same goes for the site: `site-build` builds it with no Pages permission, and `deploy` only runs `actions/deploy-pages`. `scripts/workflows.test.mjs` fails if a change breaks these rules.
+
+The release pins its tools to exact versions. `NPM_VERSION` in `release.yml` is the npm that builds and publishes, and `SMOKE_PINS` in `scripts/smoke-pins.mjs` holds the versions the smoke test installs. Dependabot doesn't see either, so bump them by hand; the pull request's `dry-run` rehearses the new versions.
 
 The check first polls `npm view @bit-ds/react@<version> version` until npm prints the version. It tries up to 40 times, 15 seconds apart (about 10 minutes), because npm's CDN can serve a cached 404 for a few minutes after a publish. An E404 means "not yet"; any other npm error fails at once. Then it installs the version and imports it, retrying up to 10 times, 15 seconds apart.
 
-If the publish worked but the check or the deploy failed, re-run the failed jobs. The publish is skipped because the version exists. Never re-tag.
+If the publish worked but the check or the deploy failed, re-run the failed jobs. The publish is skipped because the version exists, and the re-run reuses the tarball `build` uploaded. Never re-tag.
 
 ### Docs site
 
 The site is versioned. `node scripts/build-versioned-site.mjs` puts the current gallery at the root. It builds each older release line (`0.1`, `0.2`, then `1`, `2` from 1.0) from that line's newest tag, in a git worktree, and serves it at `/bit-design-system/v<line>/`. It also writes `versions.json` and injects `version-banner.js` into those frozen copies. The banner warns that the copy is old and lets readers switch versions. `versions.json` carries each line's breaking changes from the current CHANGELOG, so an old copy's Versions page can warn about newer lines. Copies are cached by tag, so each line is built once.
 
-The docs deploy needs no version. A push to `main` runs two more jobs in the same workflow, `docs-check`, then `docs`. A manual "Run workflow" of Release on `main` does the same. They deploy the same site without a release, but only when `packages/` is unchanged since the latest `v*` tag, not counting test-only files (`*.test.*`, `__tests__/`, `src/test/`, `vitest.*` and the two export-check scripts, `verify-dist.mjs` and `expected-exports.mjs`). Otherwise they skip with a notice, and the next tag deploys. The main docs deploy doesn't wait for CI. It relies on CI having passed on the pull request, because `main` only changes through pull requests.
+The docs deploy needs no version. A push to `main` runs three more jobs in the same workflow: `docs-check`, then `docs-build`, which builds the site, then `docs`, which only deploys it. A manual "Run workflow" of Release on `main` does the same. They deploy the same site without a release, but only when `packages/` is unchanged since the latest `v*` tag, not counting test-only files (`*.test.*`, `__tests__/`, `src/test/`, `vitest.*` and the two export-check scripts, `verify-dist.mjs` and `expected-exports.mjs`). Otherwise they skip with a notice, and the next tag deploys. The main docs deploy doesn't wait for CI. It relies on CI having passed on the pull request, because `main` only changes through pull requests.
 
 Pull requests rehearse this with `--as-older v0.1.0`. To see it locally, run `npm run gallery:build && node scripts/build-versioned-site.mjs --out /tmp/bit-site/bit-design-system --as-older v0.1.0`, then `python3 -m http.server 4180 -d /tmp/bit-site`, and open http://localhost:4180/bit-design-system/.
 
@@ -120,7 +126,11 @@ npm will stop letting 2FA-bypass tokens publish in January 2027. The release wor
 2. Fill in owner `doosemavis`, repo `bit-design-system`, workflow `release.yml`, environment `npm-publish`.
 3. Then delete the `NPM_TOKEN` secret from the `npm-publish` environment and revoke the token on npm.
 
-`release.yml` is already ready for it. The `publish` job has `id-token: write`, and it installs npm 11.5.1 or later, which trusted publishing needs. Do the npm steps first. Don't remove the token from the workflow before npm trusts it, or the next publish will fail. Once npm trusts the workflow, a later PR can drop `NODE_AUTH_TOKEN` from the publish step.
+`release.yml` is already ready for it. The `publish` job has `id-token: write`, and it installs npm `NPM_VERSION` (11.5.1 or later), which trusted publishing needs.
+
+The switch is now safe. With trusted publishing, any code that runs in the `publish` job can mint a publish credential. Since the job split, `publish` runs no install and no third-party code, so nothing but the reviewed workflow and `scripts/release-steps.mjs` can reach that credential. Keep it that way: never add an install, `npx`, a cache or a third-party action to `publish`.
+
+Do the npm steps first. Don't remove the token from the workflow before npm trusts it, or the next publish will fail. Once npm trusts the workflow, a later PR can drop `NODE_AUTH_TOKEN` from the publish step.
 
 Before tagging, you can run `npm run smoke:full` and `npm run e2e` locally. Both need Chromium installed once. `smoke:full` uses the root `playwright` package, so install it from the repo root:
 

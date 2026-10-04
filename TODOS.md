@@ -35,7 +35,7 @@
 - **Why:** It removes the last long-lived npm credential stored in GitHub. Trusted publishing mints short-lived credentials per run, tied to the workflow.
 - **Pros:** No stored npm secret. Publishes are attributable to the exact workflow run.
 - **Cons:** A 5-minute manual step on npmjs.com. Do it before the deadline, and do not remove the token from `release.yml` until npm trusts the workflow.
-- **Context:** npm trusted publishing can't create a brand-new package (verified 2026-10-02), so v0.1.0 used the token. The publish job already has `id-token: write` and installs npm ^11.5.1, which trusted publishing requires.
+- **Context:** npm trusted publishing can't create a brand-new package (verified 2026-10-02), so v0.1.0 used the token. The publish job already has `id-token: write` and installs the exact `NPM_VERSION` (11.5.1 or later), which trusted publishing requires, and since the build/publish split it runs no install, so the switch is safe.
 - **Depends on / blocked by:** Nothing now. The steps are in CONTRIBUTING.md, "Releasing".
 
 ## Link: hover underline in light islands
