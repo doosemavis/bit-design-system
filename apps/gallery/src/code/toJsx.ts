@@ -85,7 +85,7 @@ function importLine(manifest: Manifest): string {
   return `import { ${unique.join(', ')} } from '@bit-ds/react';`;
 }
 
-export interface ToJsxOptions {
+interface ToJsxOptions {
   /**
    * `'props'` (the default) prints every axis as its prop: `color="danger"`. `'className'` prints the
    * non-default axes as one `className="bit-danger bit-outline"`, in control order, where the first of

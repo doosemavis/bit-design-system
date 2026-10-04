@@ -3,7 +3,7 @@ import type { AxisControl, ControlState, Manifest } from '../manifests/types';
 import { renderManifest } from './renderManifest';
 
 /** One row per color and one column per variant; or a single axis as one row (no `row`). */
-export interface VariantAxes {
+interface VariantAxes {
   row?: AxisControl;
   column: AxisControl;
 }

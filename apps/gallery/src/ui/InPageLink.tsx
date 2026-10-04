@@ -2,7 +2,7 @@ import { Link } from '@bit-ds/react';
 import type { LinkProps } from '@bit-ds/react';
 import { scrollToSection } from './scrollToSection';
 
-export interface InPageLinkProps extends Omit<LinkProps, 'href' | 'onClick' | 'asChild'> {
+interface InPageLinkProps extends Omit<LinkProps, 'href' | 'onClick' | 'asChild'> {
   /** The id of the element on this page to scroll to and focus. */
   targetId: string;
 }

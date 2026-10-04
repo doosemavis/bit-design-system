@@ -41,7 +41,7 @@ const UNION_SEPARATOR = ' | ';
  * A prop's type. A union is one unbreakable chip per member, joined by a plain "|", so a line breaks only
  * between members. The | holds to the member before it (a no-break space), so no line starts with a lone |.
  */
-export function TypeChips({ type }: { type: string }) {
+function TypeChips({ type }: { type: string }) {
   const members = type.split(UNION_SEPARATOR);
   if (members.length === 1) return <Code>{type}</Code>;
   return members.map((member, index) => (
@@ -53,7 +53,7 @@ export function TypeChips({ type }: { type: string }) {
 }
 
 /** One Props-table column. To add a column, add an entry here. */
-export interface PropColumn {
+interface PropColumn {
   header: string;
   cell: (prop: PropDoc) => ReactNode;
   /**

@@ -6,7 +6,7 @@ import { STYLE_IMPORTS } from '../../content/styleImports';
 
 const FIRST_COMPONENT = "import { Button } from '@bit-ds/react';\n\n<Button>Save</Button>";
 
-export interface StepProps {
+interface StepProps {
   n: number;
   title: string;
   /** Shown after the title, outside the heading: the version on the Install step. */

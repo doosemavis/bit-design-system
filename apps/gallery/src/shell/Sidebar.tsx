@@ -5,7 +5,7 @@ import { Link, Text } from '@bit-ds/react';
 import { MANIFESTS, routeFor } from '../manifests';
 import type { Manifest, ManifestGroup } from '../manifests';
 
-export type NavGroup = 'Start here' | 'Foundations' | 'Components' | 'Forms' | 'Brand';
+type NavGroup = 'Start here' | 'Foundations' | 'Components' | 'Forms' | 'Brand';
 export interface NavItem {
   group: NavGroup;
   label: string;
