@@ -30,13 +30,15 @@ export function shouldPublish({ publishedVersions, version }) {
   return !publishedVersions.includes(version);
 }
 
-// verify-install's budget: 10 attempts, 15 s apart, about 2 minutes 15 s for the registry to serve a new version.
+// The install check's budget: 10 attempts, 15 s apart, about 2 minutes 15 s for the registry to serve a new version.
 export async function retry(fn, { attempts = 10, delayMs = 15_000, sleep = defaultSleep } = {}) {
   let lastError;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       return await fn(attempt);
     } catch (error) {
+      // An error marked `fatal` is not worth another try: stop and report it as it is.
+      if (error?.fatal) throw error;
       lastError = error;
       if (attempt < attempts) await sleep(delayMs);
     }
@@ -63,16 +65,55 @@ function fetchPublishedVersions() {
   }
 }
 
-function verifyInstall(version) {
+// The last 20 lines of a failed command's stderr, enough to see why without flooding the log.
+function stderrTail(error) {
+  return String(error.stderr ?? '').trim().split('\n').slice(-20).join('\n');
+}
+
+function runCommand(cmd, args, cwd) {
+  try {
+    return execFileSync(cmd, args, { cwd, stdio: 'pipe', encoding: 'utf8' });
+  } catch (error) {
+    const tail = stderrTail(error);
+    throw Object.assign(new Error(`${cmd} ${args[0]} failed${tail ? `:\n${tail}` : `: ${error.message}`}`), {
+      stderr: error.stderr,
+      stdout: error.stdout,
+    });
+  }
+}
+
+// The wait for npm to show a new version: 40 attempts, 15 s apart, about 10 minutes. On the 0.1.0 release
+// npm's CDN served a cached 404 for the package for about 5 minutes after the publish.
+export const VERSION_WAIT = { attempts: 40, delayMs: 15_000 };
+
+// Polls `npm view PACKAGE@VERSION version` until it prints VERSION. An E404 or empty output means "not
+// yet". Any other npm error fails at once, with the last 20 lines of stderr. `run` and `sleep` are injected
+// so tests never touch the network.
+export function waitForVersion(version, { run = (cmd, args) => runCommand(cmd, args), sleep = defaultSleep, ...wait } = {}) {
+  return retry(
+    async () => {
+      let out;
+      try {
+        out = run('npm', ['view', `${PACKAGE}@${version}`, 'version']);
+      } catch (error) {
+        const text = `${error.stderr ?? ''}${error.stdout ?? ''}`;
+        if (isNotFound(text)) throw new Error('npm does not list the version yet (E404)');
+        const tail = stderrTail(error);
+        throw Object.assign(new Error(`npm view ${PACKAGE}@${version} failed${tail ? `:\n${tail}` : `: ${error.message}`}`), {
+          fatal: true,
+        });
+      }
+      if (String(out ?? '').trim() !== version) throw new Error(`npm does not show ${version} yet`);
+    },
+    { ...VERSION_WAIT, ...wait, sleep },
+  );
+}
+
+async function verifyInstall(version) {
+  // First wait until npm shows the version, so a cached 404 does not use up the install retries.
+  await waitForVersion(version);
   const dir = mkdtempSync(join(tmpdir(), 'bit-ds-verify-'));
-  const run = (cmd, args) => {
-    try {
-      execFileSync(cmd, args, { cwd: dir, stdio: 'pipe', encoding: 'utf8' });
-    } catch (error) {
-      const tail = String(error.stderr ?? '').trim().split('\n').slice(-20).join('\n');
-      throw new Error(`${cmd} ${args[0]} failed${tail ? `:\n${tail}` : `: ${error.message}`}`);
-    }
-  };
+  const run = (cmd, args) => void runCommand(cmd, args, dir);
   return retry(async () => {
     run('npm', ['init', '-y']);
     run('npm', ['install', `${PACKAGE}@${version}`]);

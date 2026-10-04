@@ -54,8 +54,10 @@ Releases are cut from a tag. Only admins can push `v*` tags.
 The `release.yml` workflow then runs three jobs:
 
 - `guard` checks that the tag equals `v` plus the package version, and that the commit is on `main`.
-- `publish` smoke-tests the packed tarball, then runs `npm publish` with provenance on that same file. It skips the publish when that version already exists. Then it installs the version from npm to check it, retrying up to 10 times, 15 seconds apart.
+- `publish` smoke-tests the packed tarball, then runs `npm publish` with provenance on that same file. It skips the publish when that version already exists. Then it waits for npm to show the new version, and installs it to check it.
 - `deploy` publishes the gallery to https://doosemavis.github.io/bit-design-system/.
+
+The check first polls `npm view @bit-ds/react@<version> version` until npm prints the version. It tries up to 40 times, 15 seconds apart (about 10 minutes), because npm's CDN can serve a cached 404 for a few minutes after a publish. An E404 means "not yet"; any other npm error fails at once. Then it installs the version and imports it, retrying up to 10 times, 15 seconds apart.
 
 If the publish worked but the check or the deploy failed, re-run the failed jobs. The publish is skipped because the version exists. Never re-tag.
 
