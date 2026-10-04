@@ -570,3 +570,11 @@ html {
 .gallery-old-version {
   margin-block-end: var(--bit-space-16px);
 }
+
+/* ---------- changelog lists ---------- */
+.gallery-changes {
+  margin: 0;
+  padding-left: var(--bit-space-24px);
+  display: grid;
+  gap: var(--bit-space-4px);
+}
