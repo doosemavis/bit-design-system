@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checkTag, expectedTag, retry, shouldPublish } from './release-steps.mjs';
+import { checkTag, expectedTag, isNotFound, retry, shouldPublish } from './release-steps.mjs';
 
 test('expectedTag prefixes v', () => assert.equal(expectedTag('0.1.0'), 'v0.1.0'));
 test('checkTag passes on a match', () => assert.doesNotThrow(() => checkTag({ tag: 'v0.1.0', version: '0.1.0' })));
@@ -23,4 +23,17 @@ test('retry gives up after 6 attempts and says so', async () => {
   await assert.rejects(retry(async () => { calls += 1; throw new Error('404'); }, { sleep: async () => {} }),
     /failed after 6 attempts: 404/);
   assert.equal(calls, 6);
+});
+
+test('isNotFound is true for npm E404 output (stderr text and --json forms)', () => {
+  assert.equal(isNotFound('npm error code E404\nnpm error 404 Not Found - GET https://registry.npmjs.org/x'), true);
+  assert.equal(isNotFound('{\n  "error": {\n    "code": "E404",\n    "summary": "Not Found"\n  }\n}'), true);
+});
+test('isNotFound is false for everything else', () => {
+  assert.equal(isNotFound('<html><title>404 Not Found</title></html>'), false);
+  assert.equal(isNotFound('npm error code ETIMEDOUT'), false);
+  assert.equal(isNotFound('npm error code ENOTFOUND\nnpm error errno ENOTFOUND'), false);
+  assert.equal(isNotFound('npm error code E401'), false);
+  assert.equal(isNotFound('{"error":{"code":"E403"}}'), false);
+  assert.equal(isNotFound(''), false);
 });

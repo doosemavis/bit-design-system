@@ -21,6 +21,11 @@ export function checkTag({ tag, version }) {
   }
 }
 
+// True only for npm's own not-found code (stderr "code E404" or the --json error shape).
+export function isNotFound(text) {
+  return /\bcode E404\b/.test(text) || /"code":\s*"E404"/.test(text);
+}
+
 export function shouldPublish({ publishedVersions, version }) {
   return !publishedVersions.includes(version);
 }
@@ -52,14 +57,21 @@ function fetchPublishedVersions() {
     return Array.isArray(parsed) ? parsed : [parsed];
   } catch (error) {
     const text = `${error.stderr ?? ''}${error.stdout ?? ''}`;
-    if (/E404|404 Not Found/.test(text)) return [];
+    if (isNotFound(text)) return [];
     throw new Error(`npm view ${PACKAGE} failed: ${(text || error.message).trim()}`);
   }
 }
 
 function verifyInstall(version) {
   const dir = mkdtempSync(join(tmpdir(), 'bit-ds-verify-'));
-  const run = (cmd, args) => execFileSync(cmd, args, { cwd: dir, stdio: 'pipe' });
+  const run = (cmd, args) => {
+    try {
+      execFileSync(cmd, args, { cwd: dir, stdio: 'pipe', encoding: 'utf8' });
+    } catch (error) {
+      const tail = String(error.stderr ?? '').trim().split('\n').slice(-20).join('\n');
+      throw new Error(`${cmd} ${args[0]} failed${tail ? `:\n${tail}` : `: ${error.message}`}`);
+    }
+  };
   return retry(async () => {
     run('npm', ['init', '-y']);
     run('npm', ['install', `${PACKAGE}@${version}`]);
