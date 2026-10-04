@@ -125,7 +125,7 @@ async function viteStage(app, tarballPath) {
     await page.evaluate(() => window.bitColorMode.set('dark'));
     const mode = await page.evaluate(() => document.documentElement.dataset.mode);
     assert.equal(mode, 'dark', `colorMode.set('dark') left data-mode as ${mode}`);
-    console.log(`vite OK: Button renders with bit-button and bit-primary classes and background ${bg}`);
+    console.log(`vite OK: Button renders with bit-button and bit-primary classes and background ${bg}; colorMode.set("dark") sets data-mode="dark"`);
   } finally {
     await browser?.close();
     try {
