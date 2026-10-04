@@ -25,6 +25,10 @@ export declare function newestPerLine(versions: readonly string[]): { line: stri
 export declare function compareVersions(a: string, b: string): number;
 /** `## X.Y.Z — YYYY-MM-DD` (em dash or hyphen); match a trimEnd()-ed line. Groups: version, date. */
 export declare const CHANGELOG_HEADING: RegExp;
+/** One CHANGELOG release: its heading's version and date, and its bullets by `### ` section name. */
+export interface ChangelogSections { version: string; date: string; sections: Record<string, string[]> }
+/** Walks CHANGELOG text once. `strict` throws on a malformed `## ` heading; otherwise that block is skipped. */
+export declare function parseChangelogSections(text: string, options: { strict: boolean }): ChangelogSections[];
 /** Negative when line `a` is older than `b`, compared numerically ('0.9' < '0.10' < '1'). */
 export declare function compareLines(a: string, b: string): number;
 /** A well-formed versions.json: `latest` is a line equal to the root entry's line, every entry complete, paths safe and unique, one entry at SITE_BASE. */

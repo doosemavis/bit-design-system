@@ -27,6 +27,33 @@ export const compareVersions = (a, b) => {
  */
 export const CHANGELOG_HEADING = /^## (\d+\.\d+\.\d+) (?:—|-) (\d{4}-\d{2}-\d{2})$/;
 
+/**
+ * One walk over CHANGELOG text: `[{ version, date, sections: { [kind]: items[] } }]`, newest first as written.
+ * Every `### ` name is kept as a section, so callers pick the kinds they know. A bullet counts only
+ * under a release and a section. A `## ` line that isn't a CHANGELOG_HEADING (an undated draft) throws
+ * when `strict`, and is skipped along with its bullets otherwise.
+ */
+export const parseChangelogSections = (text, { strict }) => {
+  const releases = [];
+  let current = null;
+  let kind = null;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trimEnd();
+    if (line.startsWith('## ')) {
+      const m = CHANGELOG_HEADING.exec(line);
+      if (!m && strict) throw new Error(`CHANGELOG: bad heading "${line}"`);
+      current = m ? { version: m[1], date: m[2], sections: {} } : null;
+      if (current) releases.push(current);
+      kind = null;
+    } else if (line.startsWith('### ')) {
+      kind = line.slice(4).trim();
+    } else if (line.startsWith('- ') && current && kind) {
+      current.sections[kind] = [...(current.sections[kind] ?? []), line.slice(2).trim()];
+    }
+  }
+  return releases;
+};
+
 export const pathForLine = (line, latestLine) => (line === latestLine ? SITE_BASE : `${SITE_BASE}v${line}/`);
 
 export const newestPerLine = (versions) => {
