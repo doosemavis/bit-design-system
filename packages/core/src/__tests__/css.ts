@@ -59,6 +59,9 @@ export function contrastRatio(hexA: string, hexB: string): number {
 /** A `[data-mode="dark"]` that starts a line and isn't continuing a comma-separated selector list. */
 const DARK_RULE = /(?<!,\s*)(^|\n)\[data-mode="dark"\]\s*\{/;
 
+/** The `@media (prefers-color-scheme: dark) { [data-mode="system"] { ... } }` rule. */
+const SYSTEM_RULE = /@media\s*\(prefers-color-scheme:\s*dark\)\s*\{\s*\[data-mode="system"\]\s*\{[^}]*\}\s*\}/;
+
 /**
  * Split a theme file into its light (default) declarations and its `[data-mode="dark"]` overrides.
  * The dark block is found with `/(?<!,\s*)(^|\n)\[data-mode="dark"\]\s*\{/`: a `[data-mode="dark"]`
@@ -71,8 +74,10 @@ export function themeModes(css: string): { light: Map<string, string>; dark: Map
   const start = match.index;
   const open = start + match[0].length - 1;
   const close = css.indexOf('}', open);
+  // The system block is the dark block again behind a dark-OS media query; keep it out of light.
+  const lightCss = (css.slice(0, start) + css.slice(close + 1)).replace(SYSTEM_RULE, '');
   return {
-    light: parseCustomProps(css.slice(0, start) + css.slice(close + 1)),
+    light: parseCustomProps(lightCss),
     dark: parseCustomProps(css.slice(open + 1, close)),
   };
 }

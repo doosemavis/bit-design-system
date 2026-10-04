@@ -38,8 +38,8 @@ describe('themes', () => {
       expect(css).toMatch(/(^|\n)\[data-mode="dark"\] \{/);
     });
 
-    it('the shared block also applies to [data-mode="light"] and [data-mode="dark"] elements, so derived tokens (shadows) re-resolve in a dark subtree', () => {
-      expect(css).toMatch(/:root,\s*\[data-theme="[^"]+"\],\s*\[data-mode="light"\],\s*\[data-mode="dark"\]\s*\{/);
+    it('the shared block also applies to [data-mode="light"], [data-mode="dark"] and [data-mode="system"] elements, so derived tokens (shadows) re-resolve in a dark subtree', () => {
+      expect(css).toMatch(/:root,\s*\[data-theme="[^"]+"\],\s*\[data-mode="light"\],\s*\[data-mode="dark"\],\s*\[data-mode="system"\]\s*\{/);
     });
 
     it('never uses the bare [data-mode] selector (without a value)', () => {

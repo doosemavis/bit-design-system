@@ -10,7 +10,8 @@
 :root,
 [data-theme="power-up"],
 [data-mode="light"],
-[data-mode="dark"] {
+[data-mode="dark"],
+[data-mode="system"] {
   color-scheme: light;
   /* ---------- tier 1: palette ---------- */
   --bit-palette-violet: #7C3AED;
@@ -202,4 +203,37 @@
   --bit-color-link-visited: #9D82E7;
   --bit-color-danger-text: #FF8A8A;
   --bit-color-code-text: var(--bit-palette-yellow);
+}
+
+/* data-mode="system": follows the OS. Light on a light OS (the shared block above), dark on a dark OS.
+   Keep in step with [data-mode="dark"]; the parity test enforces it. */
+@media (prefers-color-scheme: dark) {
+  [data-mode="system"] {
+    color-scheme: dark;
+    --bit-color-bg: var(--bit-palette-night);
+    --bit-color-surface: var(--bit-palette-night-surface);
+    --bit-color-text: var(--bit-palette-chalk);
+    --bit-color-text-muted: var(--bit-palette-chalk-muted);
+    --bit-color-line: var(--bit-palette-slate-line);
+    --bit-color-shadow: var(--bit-palette-slate-shadow);
+    --bit-color-neutral: var(--bit-palette-night-raised);
+    --bit-color-neutral-contrast: var(--bit-palette-chalk);
+    --bit-color-neutral-hover: var(--bit-palette-night-raised-hover);
+    --bit-color-neutral-soft: var(--bit-palette-night-raised);
+    --bit-color-stripe: var(--bit-palette-night-stripe);
+    --bit-color-primary-soft: var(--bit-palette-violet-night);
+    --bit-color-success-soft: var(--bit-palette-green-night);
+    --bit-color-warning-soft: var(--bit-palette-yellow-night);
+    --bit-color-danger-soft: var(--bit-palette-red-night);
+    --bit-shadow-inset: inset 3px 3px 0 rgba(0, 0, 0, 0.4);
+    --bit-code-bg: var(--bit-palette-night-code);
+    --bit-focus-ring-color: var(--bit-palette-yellow);
+    --bit-focus-ring-offset: 1px;
+    --bit-color-accent: var(--bit-palette-yellow);
+    --bit-color-link: #B79BFF;
+    /* The spec's #9B7FE6 is 4.45:1 on the hover highlight (primary-soft); #9D82E7 is the nearest that passes (4.59:1). */
+    --bit-color-link-visited: #9D82E7;
+    --bit-color-danger-text: #FF8A8A;
+    --bit-color-code-text: var(--bit-palette-yellow);
+  }
 }
