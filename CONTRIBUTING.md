@@ -97,9 +97,9 @@ A change to the README alone waits for the next release, because npm shows the R
 Pushing the tag starts the `release.yml` workflow. On a tag it runs:
 
 1. `guard` checks that the tag equals `v` plus the package version, and that the commit is on `main`.
-2. `build` installs, builds, verifies and packs the package, and smoke-tests that tarball in a fresh project and in Chromium. It records the tarball's sha256 right after packing, then uploads the tarball.
+2. `build` installs, builds, verifies and packs the package, and smoke-tests that tarball in a fresh project and in Chromium. It records the tarball's sha256 and npm integrity right after packing, checks the sha256 again after the smoke test, then uploads the tarball.
 3. `publish` waits for your approval in GitHub Actions. It downloads the tarball, stops if its sha256 differs from the one `build` recorded, and runs `npm publish` with provenance on that file. It skips the publish when that version already exists.
-4. `verify-install` waits for npm to show the new version, then installs it to check it.
+4. `verify-install` waits for npm to show the new version, checks that npm's integrity for it matches the tarball `build` packed, then installs it (with no install scripts) to check it.
 5. `deploy` puts the site on https://doosemavis.github.io/bit-design-system/, once `verify-install` passes. `site-build` builds that site alongside the other jobs.
 
 The split is a security boundary. Only `publish` sees the npm token and can mint an OIDC token, and it installs nothing and runs no third-party code: no `pnpm install`, no smoke test, no Playwright. Everything that installs packages or runs their scripts happens in `build`, which holds no credential. The same goes for the site: `site-build` builds it with no Pages permission, and `deploy` only runs `actions/deploy-pages`. `scripts/workflows.test.mjs` fails if a change breaks these rules.
@@ -108,7 +108,7 @@ No dependency runs an install script: `pnpm.onlyBuiltDependencies` in the root `
 
 The release pins its tools to exact versions. `NPM_VERSION` in `release.yml` is the npm that builds and publishes, and `SMOKE_PINS` in `scripts/smoke-pins.mjs` holds the versions the smoke test installs. Dependabot doesn't see either, so bump them by hand; the pull request's `dry-run` rehearses the new versions.
 
-The check first polls `npm view @bit-ds/react@<version> version` until npm prints the version. It tries up to 40 times, 15 seconds apart (about 10 minutes), because npm's CDN can serve a cached 404 for a few minutes after a publish. An E404 means "not yet"; any other npm error fails at once. Then it installs the version and imports it, retrying up to 10 times, 15 seconds apart.
+The check first polls `npm view @bit-ds/react@<version> version` until npm prints the version. It tries up to 40 times, 15 seconds apart (about 10 minutes), because npm's CDN can serve a cached 404 for a few minutes after a publish. An E404 means "not yet"; any other npm error fails at once. Then it compares npm's `dist.integrity` with the integrity `build` computed; a mismatch fails at once, because npm is serving different bytes from the ones that were built and tested. Then it installs the version and imports it, retrying up to 10 times, 15 seconds apart.
 
 If the publish worked but the check or the deploy failed, re-run the failed jobs. The publish is skipped because the version exists, and the re-run reuses the tarball `build` uploaded. Never re-tag.
 

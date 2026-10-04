@@ -38,6 +38,24 @@
 - **Context:** npm trusted publishing can't create a brand-new package (verified 2026-10-02), so v0.1.0 used the token. The publish job already has `id-token: write` and installs the exact `NPM_VERSION` (11.5.1 or later), which trusted publishing requires, and since the build/publish split it runs no install, so the switch is safe.
 - **Depends on / blocked by:** Nothing now. The steps are in CONTRIBUTING.md, "Releasing".
 
+## Release: pin the publish job's actions to commit SHAs
+
+- **What:** Pin `actions/checkout`, `actions/setup-node` and `actions/download-artifact` in the `publish` job to full commit SHAs with a `# vX.Y.Z` comment, then the rest of both workflows (security.md C3, review M5).
+- **Why:** A moved tag runs new code. In `publish` that code would hold `NPM_TOKEN` and, after the trusted-publishing switch, the right to mint a publish credential.
+- **Pros:** The credential job runs only reviewed action code. Dependabot's github-actions updates bump SHA pins too.
+- **Cons:** `PINNED_ACTIONS` in `scripts/workflows.test.mjs` must learn the SHA form, and every bump is a PR.
+- **Context:** All three are GitHub-owned. The repo still allows all actions; also consider "Require actions to be pinned to a full-length commit SHA".
+- **Depends on / blocked by:** Nothing.
+
+## Release: exact-key archive cache for the Pages site
+
+- **What:** Drop `restore-keys: site-archives-v2-` from `site-build` and `docs-build`, or verify a sha256 manifest of each cached archive before reuse (security.md C6, review M6).
+- **Why:** The archive cache is restored into the jobs whose output is deployed to Pages. A poisoned entry under the prefix would be served as an old version's HTML.
+- **Pros:** Only an archive built for exactly this tag set is reused.
+- **Cons:** Without restore-keys, each new tag rebuilds every older line once (a few minutes per line).
+- **Context:** Only `main` and the tag's own ref can write those caches, and the prefix moved to v2 with the `--ignore-scripts` recipe, so no entry from before is reused.
+- **Depends on / blocked by:** Nothing.
+
 ## Link: hover underline in light islands
 
 - **What:** Give Link's hover underline a per-mode private property, so a light island (`[data-mode="light"]`) inside a dark page gets the light underline.
