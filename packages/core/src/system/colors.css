@@ -1,12 +1,13 @@
 /* Color decorators. Written once; every component reads the private variables.
-   Adding a color = five tokens (color, contrast, hover, soft, edge) in each theme + one rule here.
-   The edge and outline shadow colour an outline Button or Badge's border and hard shadow. */
+   Adding a color = four tokens (color, contrast, hover, soft) in each theme + one rule here.
+   The edge and outline shadow color an outline Button or Badge's border and hard shadow. The edge is the
+   solid color itself (neutral uses the line color, since its solid is white or night). */
 .bit-primary {
   --_bit-color: var(--bit-color-primary);
   --_bit-color-contrast: var(--bit-color-primary-contrast);
   --_bit-color-hover: var(--bit-color-primary-hover);
   --_bit-color-soft: var(--bit-color-primary-soft);
-  --_bit-color-edge: var(--bit-color-primary-edge);
+  --_bit-color-edge: var(--bit-color-primary);
   --_bit-color-outline-shadow: var(--bit-color-primary);
 }
 
@@ -15,7 +16,7 @@
   --_bit-color-contrast: var(--bit-color-neutral-contrast);
   --_bit-color-hover: var(--bit-color-neutral-hover);
   --_bit-color-soft: var(--bit-color-neutral-soft);
-  --_bit-color-edge: var(--bit-color-neutral-edge);
+  --_bit-color-edge: var(--bit-color-line);
   --_bit-color-outline-shadow: var(--bit-color-shadow);
 }
 
@@ -24,7 +25,7 @@
   --_bit-color-contrast: var(--bit-color-success-contrast);
   --_bit-color-hover: var(--bit-color-success-hover);
   --_bit-color-soft: var(--bit-color-success-soft);
-  --_bit-color-edge: var(--bit-color-success-edge);
+  --_bit-color-edge: var(--bit-color-success);
   --_bit-color-outline-shadow: var(--bit-color-success);
 }
 
@@ -33,7 +34,7 @@
   --_bit-color-contrast: var(--bit-color-warning-contrast);
   --_bit-color-hover: var(--bit-color-warning-hover);
   --_bit-color-soft: var(--bit-color-warning-soft);
-  --_bit-color-edge: var(--bit-color-warning-edge);
+  --_bit-color-edge: var(--bit-color-warning);
   --_bit-color-outline-shadow: var(--bit-color-warning);
 }
 
@@ -42,6 +43,6 @@
   --_bit-color-contrast: var(--bit-color-danger-contrast);
   --_bit-color-hover: var(--bit-color-danger-hover);
   --_bit-color-soft: var(--bit-color-danger-soft);
-  --_bit-color-edge: var(--bit-color-danger-edge);
+  --_bit-color-edge: var(--bit-color-danger);
   --_bit-color-outline-shadow: var(--bit-color-danger);
 }

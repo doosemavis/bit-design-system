@@ -49,17 +49,17 @@ describe.each(MODES)('%s contrast', (_name, map) => {
     expect(contrastRatio(resolveColor('--bit-color-text'), resolveColor(`--bit-color-${color}-soft`))).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
-  // The outline edge is the border of an outline Button or Badge on the surface. Primary falls back to
-  // the line color in dark (violet is 2.83:1 on night) and warning in light (yellow is 1.55:1 on white).
-  it.each(COLORS)('outline: the %s edge stands out from the surface', (color) => {
-    expect(contrastRatio(resolveColor(`--bit-color-${color}-edge`), resolveColor('--bit-color-surface'))).toBeGreaterThanOrEqual(AA_NON_TEXT);
-  });
-
-  it('outline: the fallback edges resolve to the line color', () => {
-    const line = resolveColor('--bit-color-line').toLowerCase();
+  // Owner decision 2026-10-04 (outline option A): the outline border is always the solid colour. These two
+  // edges are under 3:1 against the surface by choice; any new colour or palette change that adds one fails
+  // here, so it is a deliberate decision.
+  it('outline: the colours whose edge is under 3:1 on the surface are exactly the accepted ones', () => {
     const isDark = resolveColor('--bit-color-surface').toLowerCase() !== '#ffffff';
-    const fallback = isDark ? 'primary' : 'warning';
-    expect(resolveColor(`--bit-color-${fallback}-edge`).toLowerCase()).toBe(line);
+    const surface = resolveColor('--bit-color-surface');
+    const under = COLORS.filter((color) => {
+      const edge = color === 'neutral' ? '--bit-color-line' : `--bit-color-${color}`;
+      return contrastRatio(resolveColor(edge), surface) < AA_NON_TEXT;
+    });
+    expect(under).toEqual(isDark ? ['primary'] : ['warning']);
   });
 
   it.each(CODE_KINDS)('code %s is at least 5.6:1 on the code background (Ink night)', (kind) => {

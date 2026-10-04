@@ -20,7 +20,8 @@ describe('system/colors.css', () => {
   const css = readCss('system/colors.css');
   it.each(COLORS)('.bit-%s sets the outline edge and outline shadow', (color) => {
     const body = block(css, `.bit-${color}`);
-    expect(body).toContain(`--_bit-color-edge: var(--bit-color-${color}-edge);`);
+    const edge = color === 'neutral' ? 'line' : color;
+    expect(body).toContain(`--_bit-color-edge: var(--bit-color-${edge});`);
     const shadow = color === 'neutral' ? 'shadow' : color;
     expect(body).toContain(`--_bit-color-outline-shadow: var(--bit-color-${shadow});`);
   });
