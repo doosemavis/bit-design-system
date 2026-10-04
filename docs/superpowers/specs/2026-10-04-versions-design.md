@@ -2,7 +2,7 @@
 
 **Status:** approved in brainstorming on 2026-10-04 (boards `designs/versions-20261004/board.html` and `designs/sidebar-titles-20261004/board-animated.html`, plus the engineering design in chat). The owner asked for the build to be done with subagents, stopping before merge and release.
 
-**Ships as:** the 0.1.1 PR on `feat/versions-0.1.1`. 0.1.1 is the first release whose gallery has the version picker.
+**Ships as:** a **docs-site update** on `feat/versions-0.1.1`, with **no package release**. `@bit-ds/react` stays at 0.1.0, because `packages/` hasn't changed since v0.1.0. The branch name predates this decision (owner, 2026-10-04). See §6 for the versioning rule.
 
 ## Goal
 
@@ -84,6 +84,13 @@ The `deploy` job in `release.yml` changes to these steps:
    - It also skips any build that already has `data-bit-version-picker` on `<html>`, so 0.1.1 and later don't get a second picker.
 5. Upload `site/` as the Pages artifact.
 
+**When the site deploys (owner, 2026-10-04: docs changes don't make a release):**
+- **On a `v*` tag:** after publish, as today.
+- **On a push to `main`:** a `docs` job runs the same site build, only if `git diff --quiet <latest v* tag> HEAD -- packages/` passes. If the library has changed but isn't released yet, the job skips with a notice, so the root never shows unreleased component behaviour as the current version. The next tag deploys it.
+- **`workflow_dispatch` ("Deploy docs"):** a manual run with the same guard.
+- **Concurrency:** the tag deploy and the main deploy share the `pages` concurrency group, with cancel-in-progress off.
+- **Archives are frozen at their line's last tag.** Docs fixes made after a line's last release don't reach its archived copy. That's accepted.
+
 **Logic lives in `scripts/build-versioned-site.mjs`.** It takes `--out`, `--current-dist` and `--tags`, has node tests for the path mapping and the injection, and is called by `release.yml`.
 
 **Deploy dry-run (PR):** the release `dry-run` job runs `node scripts/build-versioned-site.mjs --out $RUNNER_TEMP/site --as-older v0.1.0`. `--as-older` treats the given tag as an older line, even though it shares a line with the current version. That exercises archiving, the injected banner and switching before a second real line exists. The job then asserts:
@@ -142,12 +149,21 @@ The `deploy` job in `release.yml` changes to these steps:
   - The CSS guard still passes.
   - e2e with reduced motion: the bar is at full title width, with no running animation.
 
-## 6. Version bump and docs
+## 6. Versioning rule and docs
 
-- `@bit-ds/react` becomes **0.1.1**. The library code is unchanged.
-- `CHANGELOG.md` gets entries for 0.1.1 and 0.1.0.
-- CONTRIBUTING "Releasing" starts with "add a CHANGELOG entry", and explains the versioned site.
-- README gets a "Versions and release notes" line linking the live pages.
+- **No version bump in this work.** `@bit-ds/react` stays at **0.1.0**, and the CHANGELOG has only the 0.1.0 entry.
+- **The versioning rule** (owner, 2026-10-04) goes in CONTRIBUTING under "Releasing":
+  - A version describes the **npm package**. Anything that changes what people install gets a version:
+    - component behaviour, props and styles
+    - `@bit-ds/core` tokens and CSS
+    - types
+    - peer ranges
+    - package contents
+  - Use semver: a patch for a fix, a minor for a feature, and a major for a breaking change. While on 0.x, a breaking change is a minor.
+  - The docs site, CI, scripts and tests **never** trigger a version. They deploy through the `main` docs job.
+  - A README-only change waits for the next real release, because npm shows the README only from a published version.
+- CONTRIBUTING "Releasing" starts with "add a CHANGELOG entry", and explains the versioned site and the docs deploy.
+- README gets a "Versions and release notes" line that links the live pages.
 
 ## Gates
 
@@ -155,6 +171,7 @@ The `deploy` job in `release.yml` changes to these steps:
 - `pnpm e2e` passes, with the 3 new routes in light and dark and zero axe violations.
 - `node --test 'scripts/*.test.mjs'` passes.
 - `smoke:full` passes.
+- The workflow tests pin the `main` docs job's `packages/` guard and the `workflow_dispatch` trigger.
 - A local `build-versioned-site.mjs --as-older v0.1.0` run is served statically. `/bit-design-system/v0.1/` must show 0.1.0's gallery with the injected banner, and the root must show the picker. Screenshots go to the owner.
 
 ## Out of scope
