@@ -1,0 +1,176 @@
+name: Release
+
+# Pull requests run `dry-run`. A pushed v* tag runs guard -> publish -> deploy.
+# See CONTRIBUTING.md, "Releasing".
+on:
+  pull_request:
+  push:
+    tags: ['v*']
+
+# Read-only by default. Jobs that need more ask for it.
+permissions:
+  contents: read
+
+# All tag runs share one group, so two tags never publish or deploy at the same time.
+# A release in progress is never cancelled. Pull requests get one group each, and a new push
+# cancels the older dry run.
+# Note: GitHub keeps one pending run per group. A third tag pushed while one runs and one waits
+# replaces the waiting run, which then needs re-running.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && 'tags' || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Proves on every PR that the package would publish, without any secret or OIDC token.
+  dry-run:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build && pnpm verify
+      # prepack copies README.md and LICENSE into the package. pnpm 9 rejects `--filter` on pack
+      # ("Unknown option: 'recursive'"), so point --dir at the package.
+      - name: Pack
+        run: pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"
+      # npm 11 refuses even a dry run over a version that is already on npm. So, like the real
+      # publish, the dry run happens only for a new version. Other PRs say so and move on.
+      - name: Decide whether this version is new
+        id: decide
+        run: node scripts/release-steps.mjs should-publish
+      - name: npm publish --dry-run
+        if: steps.decide.outputs.publish == 'true'
+        # A dry run never signs, so publishConfig.provenance needs no OIDC token here.
+        run: npm publish "$RUNNER_TEMP"/out/*.tgz --dry-run --access public
+      - name: Note the skipped dry run
+        if: steps.decide.outputs.publish == 'false'
+        run: echo "::notice::This version is already on npm. Bump packages/react/package.json to dry-run a publish."
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      # smoke:full uses the root `playwright` package. Runs on a cache hit too, for the system libraries.
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm smoke:full
+      - run: pnpm gallery:build
+
+  # Fails fast, before anyone is asked to approve a publish.
+  guard:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # release-steps.mjs uses only Node built-ins, so this job needs no install.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: The tag matches the package version
+        run: node scripts/release-steps.mjs check-tag "$GITHUB_REF_NAME"
+      - name: The tag commit is on main
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $GITHUB_REF_NAME points at $GITHUB_SHA, which is not on main. Tag a commit on main."
+            exit 1
+          fi
+
+  publish:
+    needs: guard
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    # The environment allows only v* tags, needs a reviewer, and holds NPM_TOKEN.
+    environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write # signs the provenance statement
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      # Provenance and trusted publishing need npm 11.5.1 or later. Node 22 ships npm 10.
+      - run: npm i -g npm@^11.5.1
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build && pnpm verify
+      # This tarball is the one that gets published. prepack adds README.md and LICENSE.
+      - name: Pack
+        run: pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      - run: pnpm exec playwright install --with-deps chromium
+      # smoke-consumer.mjs packs its own tarball and takes no path. It packs the same commit with
+      # the same build, so it tests what the Pack step made.
+      - name: Smoke test
+        id: smoke
+        run: pnpm smoke:full
+      # Writes publish=true, or publish=false when this version is already on npm (a re-run).
+      - name: Decide whether to publish
+        id: decide
+        run: node scripts/release-steps.mjs should-publish
+      # The default success() also applies, so any earlier failure skips this step.
+      - name: Publish to npm
+        id: publish
+        if: steps.decide.outputs.publish == 'true'
+        run: npm publish "$RUNNER_TEMP"/out/*.tgz --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Runs after a successful publish, or after the publish was skipped because the version
+      # already exists (a re-run). success() is false once any earlier step failed (smoke, decide
+      # or publish), so a broken run stops here. A skipped step does not count as a failure.
+      - name: Check the published version installs
+        id: verify
+        if: success() && (steps.publish.outcome == 'success' || steps.decide.outputs.publish == 'false')
+        run: node scripts/release-steps.mjs verify-install "${GITHUB_REF_NAME#v}"
+
+  # Runs only when the publish job succeeded, including a re-run that skipped the publish.
+  deploy:
+    needs: publish
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Builds the library, then the gallery with base /bit-design-system/.
+      - run: pnpm gallery:build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/gallery/dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
