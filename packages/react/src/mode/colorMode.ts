@@ -40,6 +40,7 @@ function readSaved(): ColorMode | null {
     const value = window.localStorage.getItem(COLOR_MODE_STORAGE_KEY);
     return isColorMode(value) ? value : null;
   } catch {
+    // storage blocked: treat as nothing saved
     return null;
   }
 }
