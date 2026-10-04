@@ -13,8 +13,9 @@ export const BIT_VERSION: string = (require('@bit-ds/react/package.json') as { v
 /** Compile-time constants, shared with vitest.config.ts so tests see the same values. */
 export const DEFINE = { __BIT_VERSION__: JSON.stringify(BIT_VERSION) };
 
-export default defineConfig(({ command }) => ({
-  base: command === 'build' ? PAGES_BASE : '/',
+export default defineConfig(({ command, isPreview }) => ({
+  // Preview serves the build, whose asset URLs start with the Pages base.
+  base: command === 'build' || isPreview ? PAGES_BASE : '/',
   define: DEFINE,
   plugins: [react()],
   server: { port: 5173, strictPort: true },
