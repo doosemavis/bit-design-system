@@ -28,7 +28,7 @@ describe('HomePage', () => {
     expect(within(h1).getByRole('img', { name: 'bit Design System' })).toHaveClass('bit-lg');
     expect(
       screen.getByText(
-        'A retro-game React design system for people new to design systems. The prop you type is the class it emits is the token it reads.',
+        'A retro-styled React Design System for people who want a bit of nostalgia. The prop you type is the class it emits is the token it reads.',
       ),
     ).toBeInTheDocument();
     const browse = screen.getByRole('link', { name: 'Browse components' });
