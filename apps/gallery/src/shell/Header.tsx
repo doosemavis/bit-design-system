@@ -10,6 +10,7 @@ export const REPO_URL = 'https://github.com/doosemavis/bit-design-system';
 export function GitHubLink() {
   return (
     <Button asChild variant="outline" size="sm" color="neutral">
+      {/* eslint-disable-next-line no-restricted-syntax -- Button asChild renders this anchor as a bit Button */}
       <a href={REPO_URL} target="_blank" rel="noreferrer">
         GitHub
       </a>

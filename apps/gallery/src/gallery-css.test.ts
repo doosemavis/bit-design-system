@@ -3,6 +3,8 @@
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { describe, it, expect } from 'vitest';
+import { checkCss } from './cssGuard';
+import { GALLERY_CSS_EXCEPTIONS } from './gallery-css.exceptions';
 
 const require = createRequire(import.meta.url);
 /** The theme exactly as consumers get it, through @bit-ds/react's exports map (run `pnpm build` first). */
@@ -166,4 +168,11 @@ describe('gallery.css', () => {
     // No bare .gallery-sidebar__link rule is left to lose to bit Link on specificity.
     expect(galleryCss).not.toMatch(/\.gallery-sidebar__link(\.active|:hover)?\s*[{,]/);
   });
+});
+
+describe('gallery.css is layout only, apart from the documented exceptions', () => {
+  const result = checkCss(galleryCss, GALLERY_CSS_EXCEPTIONS);
+  it('every paint declaration has an exception', () => expect(result.unlisted).toEqual([]));
+  it('no exception is stale', () => expect(result.stale).toEqual([]));
+  it('every exception says why', () => expect(result.unexplained).toEqual([]));
 });
