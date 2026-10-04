@@ -26,7 +26,10 @@ export function GettingStartedPage() {
           title="Light and dark"
           help="Try the toggle. To stop a dark visitor seeing a light flash, put this script in your page's head before your app loads."
         >
-          <ModeToggle />
+          {/* The step's Stack stretches its children; this keeps the toggle at its own size. */}
+          <Stack align="start">
+            <ModeToggle />
+          </Stack>
           <CodeBlock code={NO_FLASH_EXAMPLE} language="html" label="No-flash script" />
         </Step>
         <Step n={5} title="Next steps" help="Where to go from here.">
