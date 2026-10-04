@@ -30,7 +30,7 @@
 
 A **consumer smoke test** joins §8.3's system tests: a script packs `@bit-ds/react` with `pnpm pack`, installs the tarball into a temporary project with `npm install`, imports the ESM and CJS entries, typechecks a small TypeScript consumer against the shipped declarations, and checks that `styles.css` and `themes/power-up.css` exist. It runs in CI. Consumers may use any package manager; the repo's own pnpm choice does not constrain them.
 
-## C. The gallery replaces Storybook
+## C. The gallery replaces Storybook  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
 
 ### C.1 Decision
 
@@ -102,7 +102,7 @@ Engine components on every component page:
 
 - `@bit-ds/gallery` is private. Vite `base` is `/bit-design-system/` in production builds.
 - Root scripts: `pnpm gallery` (builds `@bit-ds/react`, then dev server on :5173); `pnpm gallery:build` (builds `@bit-ds/react`, then the gallery to `apps/gallery/dist`). A component change needs `pnpm build` again in dev; documented in CONTRIBUTING.
-- `.github/workflows/ci.yml`: `pnpm storybook:build` is replaced by `pnpm gallery:build`, plus the consumer smoke test and the Playwright spec.
+- `.github/workflows/ci.yml`: `pnpm storybook:build` is replaced by `pnpm gallery:build`, plus the consumer smoke test and the Playwright spec.  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
 - `.github/workflows/deploy.yml`: on push to `main`, install → build + verify the package → build the gallery → upload artifact → deploy with the official Pages actions. Requires the one-time repo setting Settings → Pages → Source: GitHub Actions.
 - README: first link is the live gallery at `https://doosemavis.github.io/bit-design-system/`.
 

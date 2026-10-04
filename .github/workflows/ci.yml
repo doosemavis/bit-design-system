@@ -23,7 +23,7 @@ jobs:
       - name: No old npm scope
         run: |
           if grep -rnE '@bit(/|\\/)' packages apps scripts README.md CONTRIBUTING.md docs/superpowers/specs package.json \
-            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=coverage --exclude-dir=storybook-static; then
+            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=coverage; then
             echo "Found the old npm scope above. Use @bit-ds/ instead."
             exit 1
           fi
@@ -35,4 +35,4 @@ jobs:
       - run: pnpm test:coverage
       - run: pnpm --filter @bit-ds/gallery test
       - run: pnpm smoke
-      - run: pnpm storybook:build
+      - run: pnpm --filter @bit-ds/gallery build

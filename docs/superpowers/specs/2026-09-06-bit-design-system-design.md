@@ -201,7 +201,7 @@ Adding a variant to one component = add it to that array + add a CSS rule in the
 ## 5. Theming
 
 - **A theme is one CSS file** that defines its primitives and the complete semantic set under `[data-theme="{name}"]`. The first theme is also applied to `:root`, so a consumer with no attribute set still gets a fully styled app.
-- **Switching** is one attribute on the root element. No JavaScript required. Storybook gets a toolbar dropdown.
+- **Switching** is one attribute on the root element. No JavaScript required. Storybook gets a toolbar dropdown.  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
 - **Names are descriptive, never trademarks.** `power-up`, not `mario`.
 - **Effects are tokens even when unwanted.** A flat theme sets `--bit-gloss: none` and `--bit-shadow-md: none`. Component CSS never knows which theme is active.
 - **Fonts ship with the theme.** Each theme file starts with the Google Fonts `@import` for its faces. All power-up faces (Lilita One, Nunito, Press Start 2P, Bungee for the logo) are SIL Open Font License. Self-hosting is a Phase 4 improvement.
@@ -233,13 +233,13 @@ bit-design-system/
 │           ├── components/           Button/Button.tsx, Button.test.tsx, Button.stories.tsx
 │           ├── logo/                 BitLogo
 │           └── index.ts
-├── apps/docs/                    Storybook 9, autodocs, theme toolbar
+├── apps/docs/                    Storybook 9, autodocs, theme toolbar  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
 ├── docs/superpowers/             specs and plans
 ├── package.json                  pnpm workspaces
 └── tsconfig.base.json
 ```
 
-**Tooling:** pnpm workspaces, TypeScript strict, tsup (ESM + CJS + d.ts), Vitest + React Testing Library + vitest-axe, ESLint, Storybook 9. No Turborepo or Nx.
+**Tooling:** pnpm workspaces, TypeScript strict, tsup (ESM + CJS + d.ts), Vitest + React Testing Library + vitest-axe, ESLint, Storybook 9. No Turborepo or Nx.  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
 
 **Package contract for `@bit-ds/react`:**
 
@@ -278,7 +278,7 @@ The wordmark is `#-bit`. **`-bit` never changes**; the number cycles through con
 - Era treatments live in `core/src/components/logo.css` and reference semantic color tokens, so they retheme; a theme may override an era by selector.
 - The grow keyframes are exported as `--bit-motion-power-up` so other components can borrow them later.
 
-**Deliverables:** the React component, a Storybook story, and an animated SVG export for the README (GitHub renders CSS-animated SVG).
+**Deliverables:** the React component, a Storybook story, and an animated SVG export for the README (GitHub renders CSS-animated SVG).  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
 
 ## 8. Testing and error handling
 
@@ -309,10 +309,10 @@ Compile-time via unions. Runtime: dev-only `console.warn` for unknown axis value
 
 Each phase gets its own implementation plan.
 
-1. **Foundation.** Repo scaffold, tooling, core system CSS, power-up theme, `tokens.ts`, axes + `toClasses`, Button, Badge, Alert, Card, Stack, Text, Spinner, BitLogo, Storybook with theme switcher, CI (typecheck, test, axe), README, CONTRIBUTING, LICENSE.
+1. **Foundation.** Repo scaffold, tooling, core system CSS, power-up theme, `tokens.ts`, axes + `toClasses`, Button, Badge, Alert, Card, Stack, Text, Spinner, BitLogo, Storybook with theme switcher, CI (typecheck, test, axe), README, CONTRIBUTING, LICENSE.  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
 2. **Forms.** Input, Textarea, Select, Checkbox, RadioGroup, Switch, Field.
 3. **Interactive.** Modal, Tabs, Tooltip, Menu, Avatar, Table.
-4. **Distribution (documented, not built in v1).** Changesets + GitHub Actions publish, Style Dictionary token pipeline (JSON source → CSS / TS / Tailwind preset), Storybook deploy + Chromatic, `npx bit init`, self-hosted fonts, dark mode, canary builds.
+4. **Distribution (documented, not built in v1).** Changesets + GitHub Actions publish, Style Dictionary token pipeline (JSON source → CSS / TS / Tailwind preset), Storybook deploy + Chromatic, `npx bit init`, self-hosted fonts, dark mode, canary builds.  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
 
 ## 10. Repo hygiene (Phase 1)
 
@@ -331,7 +331,7 @@ Angular or other frameworks, dark mode, i18n / RTL, npm publishing, Style Dictio
 | Frameworks | React v1, CSS core separable | Web Components, React+Angular now | fastest path to a good v1 |
 | Interactive a11y | Radix Primitives | hand-rolled | weeks saved, fewer a11y bugs, documented |
 | Repo shape | pnpm monorepo, 2 packages + docs app | single package, Style Dictionary now | smallest layout that keeps the separation |
-| Docs | Storybook 9 | custom Vite playground | autodocs from types; juniors know it |
+| Docs | Storybook 9 | custom Vite playground | autodocs from types; juniors know it. _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._ |
 | Form controls | styled native elements | Radix Select/Checkbox | simpler, accessible by default |
 | Visual direction | C · Power-Up | A · Party Board, B · Ink & Cream | distinctive without hurting readability |
 | Logo transition | A2 three-size stepped grow, no fades | hard cut w/ flicker, pop, roll, two-size | matches NES power-up exactly |
