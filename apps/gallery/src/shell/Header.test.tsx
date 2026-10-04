@@ -1,6 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { COLOR_MODE_STORAGE_KEY } from '@bit-ds/react';
 import { renderAt } from '../test/renderRoute';
 import { stubMatchMedia } from '../test/matchMedia';
 import { NARROW_QUERY } from '../ui/useMediaQuery';
@@ -42,7 +43,7 @@ describe('Header color mode', () => {
     const header = await screen.findByRole('banner');
     await userEvent.click(within(header).getByRole('button', { name: 'Dark' }));
     expect(document.documentElement.dataset.mode).toBe('dark');
-    expect(localStorage.getItem('bit-color-mode')).toBe('dark');
+    expect(localStorage.getItem(COLOR_MODE_STORAGE_KEY)).toBe('dark');
     first.unmount();
 
     renderAt('/');

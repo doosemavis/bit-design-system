@@ -5,5 +5,3 @@ export const ROUTES: readonly { name: string; hash: string }[] = [
   ...NAV.map((item) => ({ name: item.label, hash: `#${item.to}` })),
   { name: 'Not found', hash: '#/no-such-page' },
 ];
-
-export const MODES = ['light', 'dark'] as const;
