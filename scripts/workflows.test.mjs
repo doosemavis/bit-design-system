@@ -548,6 +548,8 @@ test('release: the tarball check passes only the one file the build job hashed',
       'a hidden extra file': check('hidden', { files: { [NAME]: 'the packed tarball', '.npmrc': 'x' } }),
       'an empty artifact': check('empty', { files: {} }),
       'another integrity': check('integrity', { integrity: sri('another tarball') }),
+      // Each check must hold on its own: a swapped file whose integrity was forged to match still fails on sha256.
+      'tampered, integrity forged': check('forged', { files: { [NAME]: 'a swapped tarball' }, integrity: sri('a swapped tarball') }),
       'no integrity': check('nointegrity', { integrity: '' }),
     };
     for (const [label, result] of Object.entries(refused)) {
