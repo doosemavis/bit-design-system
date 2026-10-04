@@ -64,7 +64,8 @@ html {
   gap: var(--bit-space-12px);
 }
 
-.gallery-theme.bit-field {
+.gallery-theme.bit-field,
+.gallery-version.bit-field {
   flex-direction: row;
   align-items: center;
   gap: var(--bit-space-8px);

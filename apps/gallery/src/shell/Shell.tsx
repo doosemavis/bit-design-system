@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Header, GitHubLink } from './Header';
+import { OldVersionBanner } from './OldVersionBanner';
 import { Sidebar, NAV } from './Sidebar';
 import type { NavItem } from './Sidebar';
 import { useFocusHeading } from './useFocusHeading';
+import { VersionSelect } from './VersionSelect';
 import { InPageLink } from '../ui/InPageLink';
 import { NARROW_QUERY, useMediaQuery } from '../ui/useMediaQuery';
 
@@ -49,9 +51,17 @@ export function Shell({ nav = NAV }: ShellProps) {
         items={nav}
         open={menuOpen}
         onNavigate={() => setOpenOn(null)}
-        footer={narrow ? <GitHubLink /> : null}
+        footer={
+          narrow ? (
+            <>
+              <VersionSelect />
+              <GitHubLink />
+            </>
+          ) : null
+        }
       />
       <main id="main" className="gallery-main" tabIndex={-1}>
+        <OldVersionBanner />
         <Outlet />
       </main>
     </div>

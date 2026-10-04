@@ -73,4 +73,20 @@ describe('Header at phone width', () => {
     expect(within(header).getByRole('link', { name: 'GitHub' })).toBeInTheDocument();
     expect(within(screen.getByRole('navigation', { name: 'Gallery' })).queryByRole('link', { name: 'GitHub' })).toBeNull();
   });
+
+  it('puts the version picker in the sidebar sheet, with GitHub, not in the header', async () => {
+    restore = stubMatchMedia(NARROW_QUERY);
+    renderAt('/');
+    const header = await screen.findByRole('banner');
+    expect(within(header).queryByLabelText('Version')).toBeNull();
+    expect(within(screen.getByRole('navigation', { name: 'Gallery' })).getByLabelText('Version')).toBeInTheDocument();
+  });
+
+  it('on a wide screen the version picker is in the header, left of the mode toggle', async () => {
+    renderAt('/');
+    const header = await screen.findByRole('banner');
+    const picker = within(header).getByLabelText('Version');
+    const toggle = within(header).getByRole('group', { name: 'Color mode' });
+    expect(picker.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });
