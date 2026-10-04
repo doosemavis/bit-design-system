@@ -5,7 +5,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 
-const dist = resolve(dirname(fileURLToPath(import.meta.url)), '../dist');
+const here = dirname(fileURLToPath(import.meta.url));
+const dist = resolve(here, '../dist');
 const require = createRequire(import.meta.url);
 
 const EXPECTED = [
@@ -75,5 +76,16 @@ assert.ok(
 const theme = resolve(dist, 'themes/power-up.css');
 assert.ok(existsSync(theme), 'themes/power-up.css missing');
 assert.ok(readFileSync(theme, 'utf8').includes('--bit-color-primary'), 'theme lost its tokens');
+
+// 6. Publish metadata: what npm will ship and how it is described
+const pkg = JSON.parse(readFileSync(resolve(here, '../package.json'), 'utf8'));
+assert.notEqual(pkg.private, true, 'package.json must not be private');
+// The release guard ties the tag to this version, so here only its shape is checked.
+assert.match(pkg.version, /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/, `package.json version is not semver: ${pkg.version}`);
+assert.equal(pkg.repository?.url, 'git+https://github.com/doosemavis/bit-design-system.git', 'repository.url is wrong');
+assert.equal(pkg.repository?.directory, 'packages/react', 'repository.directory is wrong');
+assert.deepEqual(pkg.files, ['dist'], 'files must be exactly ["dist"]');
+assert.equal(pkg.publishConfig?.access, 'public', 'publishConfig.access must be public');
+assert.ok(!('@bit-ds/core' in (pkg.dependencies ?? {})), '@bit-ds/core must not be a runtime dependency');
 
 console.log(`dist OK: ${EXPECTED.length} components, styles.css ${css.length} bytes, themes present`);

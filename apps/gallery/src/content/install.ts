@@ -1,17 +1,11 @@
 /**
- * The install commands, in one place. The gallery's InstallCommand reads them; PR3c's snippets.mjs and the
- * consumer smoke test will import them too, so every install line anywhere matches.
+ * The install commands, in one place. The gallery's InstallCommand reads them; snippets.mjs is the source, so
+ * every install line anywhere matches.
  */
-export const PACKAGE_NAME = '@bit-ds/react';
+import { INSTALL_COMMANDS, PACKAGE_MANAGERS, PACKAGE_NAME } from './snippets.mjs';
 
-export const PACKAGE_MANAGERS = ['pnpm', 'npm', 'yarn'] as const;
+export { INSTALL_COMMANDS, PACKAGE_MANAGERS, PACKAGE_NAME };
 export type PackageManager = (typeof PACKAGE_MANAGERS)[number];
-
-export const INSTALL_COMMANDS: Readonly<Record<PackageManager, string>> = {
-  pnpm: `pnpm add ${PACKAGE_NAME}`,
-  npm: `npm install ${PACKAGE_NAME}`,
-  yarn: `yarn add ${PACKAGE_NAME}`,
-};
 
 export const DEFAULT_PACKAGE_MANAGER: PackageManager = 'pnpm';
 

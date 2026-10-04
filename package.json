@@ -11,10 +11,9 @@
     "test:coverage": "pnpm --filter @bit-ds/react test:coverage",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
-    "storybook": "pnpm --filter @bit-ds/docs storybook",
-    "storybook:build": "pnpm --filter @bit-ds/docs build",
     "logo:svg": "node scripts/build-logo-svg.mjs",
     "smoke": "node scripts/smoke-consumer.mjs",
+    "smoke:full": "node scripts/smoke-consumer.mjs --vite",
     "gallery": "pnpm build && pnpm --filter @bit-ds/gallery dev",
     "dev": "pnpm gallery",
     "gallery:build": "pnpm build && pnpm --filter @bit-ds/gallery build",
@@ -26,7 +25,9 @@
     "@fontsource/press-start-2p": "^5.3.0",
     "eslint": "^9.39.0",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "playwright": "^1.56.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.70.0"
+    "typescript-eslint": "^8.70.0",
+    "yaml": "^2.9.1"
   }
 }

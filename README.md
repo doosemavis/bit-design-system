@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/bit-logo.svg" width="353" alt="bit Design System"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/doosemavis/bit-design-system/main/assets/bit-logo.svg" width="353" alt="bit Design System"></p>
 
 # bit
 
@@ -12,9 +12,13 @@ A React design system for people who are new to design systems. One vocabulary e
 
 Themes are swappable and named after retro-game eras. The first theme is **power-up**.
 
+Browse every component, with live controls and copyable code, in the docs: https://doosemavis.github.io/bit-design-system/
+
 ## Install
 
-Once `@bit-ds/react` is published, install it with your package manager:
+Needs React 19 (`react` and `react-dom` ^19).
+
+Install `@bit-ds/react` with your package manager:
 
 ```bash
 pnpm add @bit-ds/react
@@ -32,7 +36,7 @@ import '@bit-ds/react/styles.css';
 import { Button } from '@bit-ds/react';
 ```
 
-Until then the packages are workspace-private. Clone the repo, run `pnpm install`, then `pnpm gallery` to browse every component.
+To work on bit itself, clone the repo, run `pnpm install`, then `pnpm dev` to start the gallery.
 
 ## The naming rule
 
@@ -80,6 +84,22 @@ Every one works in light and dark mode, and anything focusable shows the one foc
 - `Link` takes `color="primary"` or `color="neutral"` only.
 - `CodeBlock` takes an optional `label` (default `` `${language} code` ``). Its code area is a named region, so give each CodeBlock a unique `label` when a page has several in the same language. A failed copy turns the Copy button solid danger red.
 
+## Utilities
+
+`announce()` says a short message to screen readers, for results that appear without a focus move, such as "Saved".
+
+```tsx
+import { announce } from '@bit-ds/react';
+
+announce('Saved');
+```
+
+- It uses one shared, visually hidden live region.
+- It is safe during server rendering, where it does nothing.
+- It follows focus into an open modal dialog, so the message is still heard there.
+- When calls overlap, the last message wins.
+- bit's CodeBlock Copy button uses it.
+
 ## Themes
 
 A theme is one CSS file that fills in every semantic token. Switch with an attribute:
@@ -123,11 +143,12 @@ The theme file starts with a Google Fonts `@import`; if your bundler concatenate
 | Command | What it does |
 | --- | --- |
 | `pnpm dev` | build `@bit-ds/react`, then start the gallery at http://localhost:5173 |
-| `pnpm storybook` | component docs on http://localhost:6006 |
 | `pnpm test` | all unit, a11y, and system tests |
 | `pnpm test:coverage` | react tests with the 80% gate |
 | `pnpm build && pnpm verify` | build `@bit-ds/react` and prove the dist is consumable |
+| `pnpm e2e` | build the library and gallery, then run Playwright with axe on every page (needs Chromium once) |
 | `pnpm smoke` | packs `@bit-ds/react` and installs it with npm into a throwaway project to prove the tarball works |
+| `pnpm smoke:full` | `pnpm smoke`, then builds a Vite app from the tarball and checks the Button renders in Chromium (needs Chromium once; `SMOKE_TARBALL=<path>` tests a given tarball instead of packing) |
 | `pnpm logo:svg` | regenerate `assets/bit-logo.svg` |
 
 ## Docs

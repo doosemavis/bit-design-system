@@ -23,7 +23,7 @@ jobs:
       - name: No old npm scope
         run: |
           if grep -rnE '@bit(/|\\/)' packages apps scripts README.md CONTRIBUTING.md docs/superpowers/specs package.json \
-            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=coverage --exclude-dir=storybook-static; then
+            --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=coverage; then
             echo "Found the old npm scope above. Use @bit-ds/ instead."
             exit 1
           fi
@@ -34,5 +34,46 @@ jobs:
       - run: pnpm --filter @bit-ds/core test
       - run: pnpm test:coverage
       - run: pnpm --filter @bit-ds/gallery test
+      # Node 22 reads a bare `scripts/` as a module path, so pass a glob. Node expands it itself.
+      - run: node --test 'scripts/*.test.mjs'
       - run: pnpm smoke
-      - run: pnpm storybook:build
+      - run: pnpm --filter @bit-ds/gallery build
+
+  # Browser tests of the built gallery: page flows plus axe checks, in Chromium.
+  e2e:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      # Key the browser cache on the installed Playwright, so an upgrade fetches new browsers.
+      - name: Read the Playwright version
+        id: playwright
+        working-directory: apps/gallery
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      # Runs on a cache hit too: the browser download is skipped, but the system libraries still install.
+      - run: pnpm --filter @bit-ds/gallery exec playwright install --with-deps chromium
+      # CI=true, so the Playwright web server builds the gallery and starts its own preview.
+      - run: pnpm e2e
+      # In CI the reporter is `github`, which writes no HTML report, so also keep the traces in test-results.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            apps/gallery/playwright-report
+            apps/gallery/test-results
+          if-no-files-found: ignore
+          retention-days: 14

@@ -3,7 +3,6 @@ node_modules/
 
 # build output
 dist/
-storybook-static/
 coverage/
 
 # brainstorming companion mockups
@@ -19,3 +18,7 @@ coverage/
 # playwright
 apps/gallery/test-results/
 apps/gallery/playwright-report/
+
+# copied into the package by prepack
+packages/react/README.md
+packages/react/LICENSE
