@@ -3,7 +3,10 @@
 // triggers, jobs, needs, environments, permissions, step order and the step `if:` logic.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import { parse } from 'yaml';
 
 const load = (name) => parse(readFileSync(new URL(`../.github/workflows/${name}`, import.meta.url), 'utf8'));
@@ -13,6 +16,11 @@ const release = () => load('release.yml');
 const TAG_PUSH = { event_name: 'push', ref: 'refs/tags/v0.1.0', workflow: 'Release' };
 const BRANCH_PUSH = { event_name: 'push', ref: 'refs/heads/main', workflow: 'Release' };
 const PULL_REQUEST = { event_name: 'pull_request', ref: 'refs/pull/7/merge', workflow: 'Release' };
+const DISPATCH_MAIN = { event_name: 'workflow_dispatch', ref: 'refs/heads/main', workflow: 'Release' };
+// A manual run can pick any branch or tag. Neither a feature branch nor a tag may deploy or publish.
+const DISPATCH_BRANCH = { event_name: 'workflow_dispatch', ref: 'refs/heads/feature', workflow: 'Release' };
+const DISPATCH_TAG = { event_name: 'workflow_dispatch', ref: 'refs/tags/v0.1.0', workflow: 'Release' };
+const OTHER_BRANCH_PUSH = { event_name: 'push', ref: 'refs/heads/feature', workflow: 'Release' };
 
 const PINNED_ACTIONS = new Set([
   'actions/checkout@v4',
@@ -128,32 +136,56 @@ test('ci: the e2e job needs ci, installs Chromium from a cache and runs pnpm e2e
 });
 
 // --- release.yml: triggers, jobs and when they run ------------------------------------------
-test('release: triggers on pull requests and on v* tag pushes, with read-only default permissions', () => {
+test('release: triggers on pull requests, v* tags, pushes to main and a manual run, with read-only default permissions', () => {
   const wf = release();
   assert.ok('pull_request' in wf.on, 'on.pull_request');
   assert.deepEqual(wf.on.push.tags, ['v*']);
-  assert.equal(wf.on.push.branches, undefined, 'push runs only for tags');
+  assert.deepEqual(wf.on.push.branches, ['main'], 'push runs for tags and for main only');
+  assert.ok('workflow_dispatch' in wf.on, 'on.workflow_dispatch ("Deploy docs")');
   assert.deepEqual(wf.permissions, { contents: 'read' });
 });
 
-test('release: the jobs are exactly dry-run, guard, publish and deploy', () => {
-  assert.deepEqual(Object.keys(release().jobs).sort(), ['deploy', 'dry-run', 'guard', 'publish']);
+test('release: the jobs are exactly dry-run, guard, publish, deploy and docs', () => {
+  assert.deepEqual(Object.keys(release().jobs).sort(), ['deploy', 'docs', 'dry-run', 'guard', 'publish']);
 });
 
-test('release: dry-run runs only on pull requests; the others only on tag pushes', () => {
+test('release: dry-run on pull requests, the tag jobs only on tag pushes, docs only on main', () => {
   const { jobs } = release();
   const runsOn = (github) => Object.keys(jobs).filter((name) => evaluate(jobs[name].if ?? 'true', { github })).sort();
   assert.deepEqual(runsOn(PULL_REQUEST), ['dry-run']);
   assert.deepEqual(runsOn(TAG_PUSH), ['deploy', 'guard', 'publish']);
-  assert.deepEqual(runsOn(BRANCH_PUSH), []);
+  assert.deepEqual(runsOn(BRANCH_PUSH), ['docs'], 'a push to main deploys docs and never publishes');
+  assert.deepEqual(runsOn(DISPATCH_MAIN), ['docs']);
+  assert.deepEqual(runsOn(DISPATCH_BRANCH), [], 'a manual run on another branch does nothing');
+  assert.deepEqual(runsOn(DISPATCH_TAG), [], 'a manual run on a tag never publishes');
+  assert.deepEqual(runsOn(OTHER_BRANCH_PUSH), []);
 });
 
-test('release: concurrency queues every tag in one group and never cancels a release', () => {
+test('release: the tag jobs gate on a v* tag ref themselves', () => {
+  for (const name of ['guard', 'publish', 'deploy']) {
+    assert.match(String(release().jobs[name].if), /startsWith\(github\.ref, 'refs\/tags\/v'\)/, name);
+    assert.match(String(release().jobs[name].if), /github\.event_name == 'push'/, name);
+  }
+});
+
+test('release: concurrency queues every tag in one group and never cancels a release or a docs deploy', () => {
   const { concurrency } = release();
   const group = (github) => interpolate(concurrency.group, github);
   assert.equal(group(TAG_PUSH), group({ ...TAG_PUSH, ref: 'refs/tags/v0.2.0' }), 'two tags share one group');
   assert.notEqual(group(PULL_REQUEST), group(TAG_PUSH), 'pull requests do not queue behind releases');
-  assert.equal(interpolate(concurrency['cancel-in-progress'], TAG_PUSH), 'false');
+  // GitHub keeps one pending run per group, so a main push in the tags group could replace a waiting release.
+  assert.notEqual(group(BRANCH_PUSH), group(TAG_PUSH), 'main pushes do not queue in the release group');
+  assert.notEqual(group(DISPATCH_MAIN), group(TAG_PUSH));
+  for (const github of [TAG_PUSH, BRANCH_PUSH, DISPATCH_MAIN]) {
+    assert.equal(interpolate(concurrency['cancel-in-progress'], github), 'false', github.ref);
+  }
+  assert.equal(interpolate(concurrency['cancel-in-progress'], PULL_REQUEST), 'true');
+});
+
+test('release: the tag deploy and the docs deploy share the pages group and never cancel', () => {
+  for (const name of ['deploy', 'docs']) {
+    assert.deepEqual(release().jobs[name].concurrency, { group: 'pages', 'cancel-in-progress': false }, name);
+  }
 });
 
 // --- release.yml: jobs ----------------------------------------------------------------------
@@ -224,21 +256,122 @@ test('release: publish and verify-install run on the right outcomes', () => {
   assert.deepEqual(did({ ...newVersion, results: { publish: 'failure' } }), { published: true, verified: false }, 'publish failed');
 });
 
-test('release: deploy needs publish and ships the gallery to github-pages', () => {
+// The site build both deploys share: the gallery, then the versioned site with cached archives.
+const assertBuildsVersionedSite = (steps, label) => {
+  const checkout = steps.find((s) => s.uses === 'actions/checkout@v4');
+  assert.equal(checkout.with?.['fetch-depth'], 0, `${label}: full history, so the tags exist`);
+  const gallery = findIndex(steps, (s) => runOf(s) === 'pnpm gallery:build', `${label}: running gallery:build`);
+  const key = findIndex(
+    steps,
+    (s) => s.id === 'archives' && /node scripts\/build-versioned-site\.mjs --cache-key/.test(runOf(s)) && /key=.*>> "\$GITHUB_OUTPUT"/.test(runOf(s)),
+    `${label}: naming the archive cache from the archive tags`,
+  );
+  const cache = findIndex(
+    steps,
+    (s) => s.uses === 'actions/cache@v4' && s.with?.path === '${{ runner.temp }}/archive-cache',
+    `${label}: caching the archives`,
+  );
+  assert.equal(steps[cache].with.key, '${{ steps.archives.outputs.key }}', `${label}: the cache is keyed on the archive tags`);
+  assert.equal(steps[cache].with['restore-keys'], 'site-archives-', `${label}: a new tag reuses the archives already built`);
+  const site = findIndex(
+    steps,
+    (s) => runOf(s) === 'node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"',
+    `${label}: building the versioned site`,
+  );
+  const configure = findIndex(steps, (s) => s.uses === 'actions/configure-pages@v5', `${label}: configuring pages`);
+  const upload = findIndex(steps, (s) => s.uses === 'actions/upload-pages-artifact@v3', `${label}: uploading the pages artifact`);
+  const deploy = findIndex(steps, (s) => s.uses === 'actions/deploy-pages@v4', `${label}: deploying pages`);
+  assert.ok(gallery < key && key < cache && cache < site && site < configure && configure < upload && upload < deploy, `${label}: step order`);
+  // `with:` is not a shell, so $RUNNER_TEMP would stay literal there.
+  assert.equal(steps[upload].with.path, '${{ runner.temp }}/site', `${label}: uploads the versioned site`);
+  assert.equal(steps[deploy].id, 'deployment');
+};
+
+const assertPagesJob = (job, label) => {
+  assert.equal(job.environment.name, 'github-pages', label);
+  assert.equal(job.environment.url, '${{ steps.deployment.outputs.page_url }}', label);
+  assert.deepEqual(job.permissions, { contents: 'read', pages: 'write', 'id-token': 'write' }, label);
+  assert.doesNotMatch(JSON.stringify(job), /secrets\.|npm publish/, `${label}: no secrets, no publish`);
+};
+
+test('release: deploy needs publish and ships the versioned site to github-pages', () => {
   const job = release().jobs.deploy;
   assert.deepEqual([job.needs].flat(), ['publish']);
   assert.doesNotMatch(String(job.if), STATUS_FUNCTION, 'deploy runs only when publish succeeded');
-  assert.equal(job.environment.name, 'github-pages');
-  assert.equal(job.environment.url, '${{ steps.deployment.outputs.page_url }}');
-  assert.deepEqual(job.permissions, { contents: 'read', pages: 'write', 'id-token': 'write' });
-  const { steps } = job;
-  const build = findIndex(steps, (s) => runOf(s) === 'pnpm gallery:build', 'running gallery:build');
-  const configure = findIndex(steps, (s) => s.uses === 'actions/configure-pages@v5', 'configuring pages');
-  const upload = findIndex(steps, (s) => s.uses === 'actions/upload-pages-artifact@v3', 'uploading the pages artifact');
-  const deploy = findIndex(steps, (s) => s.uses === 'actions/deploy-pages@v4', 'deploying pages');
-  assert.ok(build < configure && configure < upload && upload < deploy, 'step order');
-  assert.equal(steps[upload].with.path, 'apps/gallery/dist');
-  assert.equal(steps[deploy].id, 'deployment');
+  assertPagesJob(job, 'deploy');
+  assertBuildsVersionedSite(job.steps, 'deploy');
+});
+
+// --- release.yml: the docs deploy without a release ------------------------------------------
+const GUARD_LATEST = "LATEST=$(git tag --list 'v*' --sort=-v:refname | grep -Ev -- '-' | head -1)";
+const GUARD_DIFF = 'git diff --quiet "$LATEST" HEAD -- packages/';
+const GUARD_NOTICE = '::notice::packages/ changed since $LATEST; docs deploy waits for the next release';
+const docsGuard = () => release().jobs.docs.steps.find((s) => s.id === 'released');
+
+test('release: docs runs alone, on main, and deploys to github-pages', () => {
+  const job = release().jobs.docs;
+  assert.equal(job.needs, undefined, 'docs does not wait for a release');
+  assertPagesJob(job, 'docs');
+  assertBuildsVersionedSite(job.steps, 'docs');
+});
+
+test('release: the docs guard compares packages/ with the latest release tag', () => {
+  const guard = docsGuard();
+  assert.ok(guard, 'docs has a step with id released');
+  const run = runOf(guard);
+  assert.ok(run.includes(GUARD_LATEST), 'reads the latest release tag, skipping pre-releases');
+  assert.ok(run.includes(GUARD_DIFF), 'diffs packages/ against it');
+  assert.ok(run.includes(GUARD_NOTICE), 'says why it skipped');
+  const steps = release().jobs.docs.steps;
+  assert.ok(steps[1].id === 'released' && steps[0].uses === 'actions/checkout@v4', 'the guard runs right after checkout');
+});
+
+test('release: docs runs every step after the guard only when packages/ is unchanged', () => {
+  const { steps } = release().jobs.docs;
+  const after = steps.slice(steps.findIndex((s) => s.id === 'released') + 1);
+  assert.ok(after.length > 0);
+  for (const step of after) assert.equal(step.if, "steps.released.outputs.deploy == 'true'", keyOf(step));
+  const ran = (deploy) => simulate(steps, { outputs: { released: { deploy } } });
+  assert.ok(ran('true').includes('deployment'), 'unchanged: builds and deploys');
+  assert.deepEqual(ran('false'), [keyOf(steps[0]), 'released'], 'changed: only checkout and the guard run');
+});
+
+// Runs the guard's own shell in a scratch repo: a docs-only change deploys, a packages/ change skips.
+const runGuard = (repo) => {
+  const output = join(repo, 'github-output');
+  writeFileSync(output, '');
+  const stdout = execFileSync('bash', ['-e', '-c', runOf(docsGuard())], {
+    cwd: repo,
+    encoding: 'utf8',
+    env: { ...process.env, GITHUB_OUTPUT: output },
+  });
+  return { stdout, output: readFileSync(output, 'utf8') };
+};
+
+test('release: the docs guard script deploys after a docs change and waits after a packages/ change', () => {
+  const repo = mkdtempSync(join(tmpdir(), 'bit-docs-guard-'));
+  const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8' });
+  const commit = (file, text) => {
+    mkdirSync(dirname(join(repo, file)), { recursive: true });
+    writeFileSync(join(repo, file), text);
+    git('add', '-A');
+    git('-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', 'commit', '-qm', file);
+  };
+  try {
+    git('init', '-q');
+    commit('packages/react/a.ts', '1');
+    git('tag', 'v0.1.0');
+    commit('packages/react/a.ts', '2');
+    git('tag', 'v0.2.0-rc.1'); // a pre-release never counts as the latest release
+    commit('apps/gallery/page.tsx', 'docs');
+    const changed = runGuard(repo);
+    assert.match(changed.output, /^deploy=false$/m, 'packages/ changed since v0.1.0');
+    assert.ok(changed.stdout.includes('::notice::packages/ changed since v0.1.0; docs deploy waits for the next release'));
+    git('tag', 'v0.2.0', 'HEAD~1');
+    assert.match(runGuard(repo).output, /^deploy=true$/m, 'only docs changed since v0.2.0');
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
+  }
 });
 
 test('release: dry-run packs, dry-runs the publish, smoke-tests in Chromium and builds the gallery, with no secrets', () => {
@@ -266,6 +399,27 @@ test('release: dry-run packs, dry-runs the publish, smoke-tests in Chromium and 
   const ran = (publish) => simulate(steps, { outputs: { decide: { publish } } }).includes(keyOf(steps[dry]));
   assert.equal(ran('true'), true, 'dry-run publishes a new version');
   assert.equal(ran('false'), false, 'dry-run skips a version that is already on npm');
+});
+
+test('release: dry-run builds the versioned site with v0.1.0 as an older line, then checks it', () => {
+  const { steps } = release().jobs['dry-run'];
+  const checkout = steps.find((s) => s.uses === 'actions/checkout@v4');
+  assert.equal(checkout.with?.['fetch-depth'], 0, 'full history, so v0.1.0 exists');
+  const gallery = findIndex(steps, (s) => runOf(s) === 'pnpm gallery:build', 'building the gallery');
+  const build = findIndex(
+    steps,
+    (s) => runOf(s) === 'node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --as-older v0.1.0',
+    'building the versioned site',
+  );
+  // --check asserts: index.html at the root, v0.1/index.html, a valid versions.json, and the
+  // banner script in the archives only (see checkSite in build-versioned-site.mjs).
+  const check = findIndex(
+    steps,
+    (s) => runOf(s) === 'node scripts/build-versioned-site.mjs --check "$RUNNER_TEMP/site" --as-older v0.1.0',
+    'checking the versioned site',
+  );
+  assert.ok(gallery < build && build < check, 'step order');
+  assert.ok(!steps.some((s) => s.uses?.startsWith('actions/upload-pages-artifact') || s.uses?.startsWith('actions/deploy-pages')), 'never deploys');
 });
 
 test('release: no step outside publish runs npm publish without --dry-run', () => {

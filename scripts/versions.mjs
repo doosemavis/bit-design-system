@@ -43,12 +43,11 @@ export const buildVersionsFile = ({ tags, current, readPackageJson, changelogDat
 export const parseChangelogDates = (text) =>
   Object.fromEntries([...text.matchAll(/^##\s+\[?(\d+\.\d+\.\d+)\]?\s+[—–-]\s+(\d{4}-\d{2}-\d{2})/gm)].map((m) => [m[1], m[2]]));
 
-const main = () => {
-  const args = process.argv.slice(2);
-  const flag = (name) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined);
-  const out = flag('--out');
-  if (!out) throw new Error('usage: versions.mjs --out <file> [--as-older <tag>]');
-  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+
+// Reads what buildVersionsFile needs from a checkout: the v* tags, the package's current
+// version, each tag's packages/react/package.json (via `git show`) and the CHANGELOG dates.
+export const readRepoInputs = (root = REPO_ROOT) => {
   const git = (...a) => execFileSync('git', a, { cwd: root, encoding: 'utf8' });
   const tags = git('tag', '--list', 'v*').split('\n').filter(Boolean);
   const current = JSON.parse(readFileSync(join(root, 'packages/react/package.json'), 'utf8')).version;
@@ -60,7 +59,7 @@ const main = () => {
     }
   };
   const changelog = join(root, 'CHANGELOG.md');
-  const file = buildVersionsFile({
+  return {
     tags,
     current,
     readPackageJson: (tag) =>
@@ -68,10 +67,21 @@ const main = () => {
         ? JSON.parse(readFileSync(join(root, 'packages/react/package.json'), 'utf8'))
         : readFromTag(tag),
     changelogDates: existsSync(changelog) ? parseChangelogDates(readFileSync(changelog, 'utf8')) : {},
-    asOlder: flag('--as-older'),
-  });
+  };
+};
+
+export const writeVersionsFile = (out, file) => {
   mkdirSync(dirname(resolve(out)), { recursive: true });
   writeFileSync(out, `${JSON.stringify(file, null, 2)}\n`);
+};
+
+const main = () => {
+  const args = process.argv.slice(2);
+  const flag = (name) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined);
+  const out = flag('--out');
+  if (!out) throw new Error('usage: versions.mjs --out <file> [--as-older <tag>]');
+  const file = buildVersionsFile({ ...readRepoInputs(), asOlder: flag('--as-older') });
+  writeVersionsFile(out, file);
   console.log(JSON.stringify(file, null, 2));
 };
 
