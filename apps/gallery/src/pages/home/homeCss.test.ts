@@ -22,6 +22,20 @@ describe('gallery.css, home page section', () => {
     expect(rule('.gallery-tile__link:focus-visible')?.trim()).toBe('outline: none;');
   });
 
+  it('a large tile is a flex column whose preview grows, so every link row sits at the bottom of equal-height tiles', () => {
+    // As a two-row grid, the stretched tile split its spare height between preview and link: Card's link sat ~26px low.
+    const tile = rule('.gallery-tile');
+    expect(tile).toContain('display: flex;');
+    expect(tile).toContain('flex-direction: column;');
+    expect(tile).not.toContain('grid-template-rows');
+    const preview = rule('.gallery-tile__preview');
+    // Grows into the spare height and never shrinks below its content, so a tall preview still sets the row height.
+    expect(preview).toContain('flex: 1 0 auto;');
+    expect(preview).toContain('min-height: 8rem;');
+    // The tiles in a row stretch to one height (the grid default, never overridden).
+    expect(rule('.gallery-tiles')).not.toMatch(/align-items|align-self/);
+  });
+
   it('the glyph chip border is the theme border width', () => {
     expect(rule('.gallery-chip__glyph')).toContain('border: var(--bit-border-width) solid var(--bit-color-line);');
   });

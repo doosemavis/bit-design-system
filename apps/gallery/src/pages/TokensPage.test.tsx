@@ -68,6 +68,17 @@ describe('TokensPage', () => {
     expect(within(screen.getByRole('group', { name: 'Surface tokens' })).getByText('#EEEFE9')).toBeInTheDocument();
   });
 
+  it('the five color cards share the color grid (five in a row on desktop, never 4 + 1)', async () => {
+    await open();
+    const grid = card('primary').parentElement!;
+    // gallery-css.test.ts pins the columns this class sets.
+    expect(grid).toHaveClass('gallery-color-grid');
+    expect(grid).not.toHaveClass('gallery-grid');
+    expect([...grid.children].map((el) => el.getAttribute('aria-label'))).toEqual(
+      ['primary', 'neutral', 'success', 'warning', 'danger'].map((c) => `${c} tokens`),
+    );
+  });
+
   it('the values are in the first commit, not filled in by a later effect', () => {
     // A layout effect in a later sibling runs in the same commit as the page's own DOM, before any effect's
     // setState could re-render, so it sees exactly what the first paint would show.

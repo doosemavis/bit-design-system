@@ -12,6 +12,31 @@ const galleryCss = readFileSync(new URL('./gallery.css', import.meta.url), 'utf8
 const declared = new Set([...theme.matchAll(/(--bit-[a-zA-Z0-9-]+)\s*:/g)].map((m) => m[1]!));
 const reads = [...galleryCss.matchAll(/var\((--bit-[a-zA-Z0-9-]+)/g)].map((m) => m[1]!);
 
+/** The bodies of every `@media <query> { … }` block, braces matched, joined into one string. */
+function mediaBody(query: string): string {
+  const head = `@media ${query} {`;
+  const bodies: string[] = [];
+  let at = galleryCss.indexOf(head);
+  while (at !== -1) {
+    const start = at + head.length;
+    let depth = 1;
+    let end = start;
+    for (; depth > 0; end += 1) {
+      if (galleryCss[end] === '{') depth += 1;
+      if (galleryCss[end] === '}') depth -= 1;
+    }
+    bodies.push(galleryCss.slice(start, end - 1));
+    at = galleryCss.indexOf(head, end);
+  }
+  return bodies.join('\n');
+}
+
+/** The declarations of `selector { … }` in `css` (the whole sheet outside any media block by default). */
+function ruleIn(css: string, selector: string): string | null {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?:^|\\n)\\s*${escaped} \\{([^}]*)\\}`).exec(css)?.[1] ?? null;
+}
+
 describe('gallery.css', () => {
   it('reads only tokens the theme declares (a browser would silently ignore a renamed one)', () => {
     expect(reads.filter((name) => !declared.has(name))).toEqual([]);
@@ -85,6 +110,40 @@ describe('gallery.css', () => {
     const presets = /\.gallery-presets \{([^}]*)\}/.exec(galleryCss)![1]!;
     expect(presets).toContain('padding: var(--bit-space-4px);');
     expect(presets).toContain('margin: calc(-1 * var(--bit-space-4px));');
+  });
+
+  it('below 720px the presets take their own full-width row under the title and the Checkerboard switch', () => {
+    // At 390px the bar's one row left the presets about 95px, so "Danger outline" never fully showed.
+    const narrow = mediaBody('(max-width: 720px)');
+    expect(ruleIn(narrow, '.gallery-preview__bar')).toContain('flex-wrap: wrap;');
+    const presets = ruleIn(narrow, '.gallery-presets');
+    expect(presets).toContain('order: 1;');
+    expect(presets).toContain('flex-basis: 100%;');
+    // Still one row that scrolls sideways, with the focus-ring padding kept (pinned by the tests above).
+    expect(presets).not.toContain('flex-wrap');
+    expect(presets).not.toMatch(/padding|margin|overflow/);
+  });
+
+  it('a union type in the Props table is one unbreakable chip per member', () => {
+    expect(ruleIn(galleryCss, '.gallery-nowrap')?.trim()).toBe('white-space: nowrap;');
+  });
+
+  it('the Props Description column keeps 16rem, so on a phone the table scrolls sideways instead of growing tall', () => {
+    // calc(4 × 64px) = 256px = 16rem, built from a token. The Table wrapper scrolls inside its border.
+    expect(ruleIn(galleryCss, '.gallery-props__description')?.trim()).toBe('min-width: calc(4 * var(--bit-space-64px));');
+  });
+
+  it('the Tokens color cards: one column on a phone, then 3 + 2, then all five in one row (never 4 + 1)', () => {
+    const grid = ruleIn(galleryCss, '.gallery-color-grid');
+    expect(grid).toContain('display: grid;');
+    expect(grid).toContain('grid-template-columns: minmax(0, 1fr);');
+    expect(grid).toContain('gap: var(--bit-space-12px);');
+    expect(ruleIn(mediaBody('(min-width: 30rem)'), '.gallery-color-grid')?.trim()).toBe(
+      'grid-template-columns: repeat(3, minmax(0, 1fr));',
+    );
+    expect(ruleIn(mediaBody('(min-width: 70rem)'), '.gallery-color-grid')?.trim()).toBe(
+      'grid-template-columns: repeat(5, minmax(0, 1fr));',
+    );
   });
 
   it('below 390px the header logo drops its caption, so Menu, the logo and both mode options fit 360px and 375px phones', () => {

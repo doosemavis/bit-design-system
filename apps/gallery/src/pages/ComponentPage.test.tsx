@@ -81,7 +81,33 @@ describe('ComponentPage (layout C)', () => {
     expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(PROP_COLUMNS.map((c) => c.header));
     expect(within(table).getAllByRole('row')).toHaveLength(button.docs.props.length + 1);
     const color = within(table).getByText('color').closest('tr')!;
-    expect(within(color).getByText("'primary'")).toHaveClass('bit-code');
+    // The Default cell; the Type cell has its own 'primary' chip (see the union test below).
+    expect(within(color.cells[2]!).getByText("'primary'")).toHaveClass('bit-code');
+  });
+
+  it('a union type is one unbreakable chip per member, joined by a plain " | ", so lines break only between members', async () => {
+    await open('/components/button', 'Button');
+    const table = region('Button props');
+    const typeCell = (name: string) => within(table).getByText(name, { selector: 'code' }).closest('tr')!.cells[1]!;
+    const chips = [...typeCell('color').querySelectorAll('.bit-code')];
+    expect(chips.map((chip) => chip.textContent)).toEqual(["'primary'", "'neutral'", "'success'", "'warning'", "'danger'"]);
+    for (const chip of chips) expect(chip).toHaveClass('gallery-nowrap');
+    // The separators are plain text, not code; the cell still reads as the whole union.
+    expect(typeCell('color')).toHaveTextContent("'primary' | 'neutral' | 'success' | 'warning' | 'danger'");
+    // The | holds to the member before it (a no-break space), so no line starts with a lone |.
+    expect(typeCell('color').textContent).toContain("'primary' | 'neutral'");
+    // A non-union type stays one plain chip.
+    const loading = [...typeCell('loading').querySelectorAll('.bit-code')];
+    expect(loading.map((chip) => chip.textContent)).toEqual(['boolean']);
+    expect(loading[0]).not.toHaveClass('gallery-nowrap');
+  });
+
+  it('the Props Description column keeps a minimum width, so a phone scrolls the table instead of stacking tall rows', async () => {
+    await open('/components/button', 'Button');
+    const rows = within(region('Button props')).getAllByRole('row').slice(1) as HTMLTableRowElement[];
+    // gallery-css.test.ts pins the 16rem this class sets.
+    for (const row of rows) expect(row.cells[4]).toHaveClass('gallery-props__description');
+    expect(rows[0]!.cells[1]).not.toHaveClass('gallery-props__description');
   });
 
   it('the Props table has a Class column: bit-{prop} on axis rows, — elsewhere', async () => {
