@@ -1,7 +1,7 @@
 name: Release
 
 # Pull requests run `dry-run`. A pushed v* tag runs guard -> publish -> deploy.
-# A push to main, or a manual "Deploy docs" run on main, runs docs-check -> docs: it deploys the
+# A push to main, or a manual "Run workflow" of Release on main, runs docs-check -> docs: it deploys the
 # site without a release, but only while packages/ is unchanged since the latest release tag.
 # See CONTRIBUTING.md, "Releasing".
 on:

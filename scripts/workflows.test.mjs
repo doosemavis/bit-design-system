@@ -142,7 +142,7 @@ test('release: triggers on pull requests, v* tags, pushes to main and a manual r
   assert.ok('pull_request' in wf.on, 'on.pull_request');
   assert.deepEqual(wf.on.push.tags, ['v*']);
   assert.deepEqual(wf.on.push.branches, ['main'], 'push runs for tags and for main only');
-  assert.ok('workflow_dispatch' in wf.on, 'on.workflow_dispatch ("Deploy docs")');
+  assert.ok('workflow_dispatch' in wf.on, 'on.workflow_dispatch (a manual "Run workflow" of Release on main)');
   assert.deepEqual(wf.permissions, { contents: 'read' });
 });
 

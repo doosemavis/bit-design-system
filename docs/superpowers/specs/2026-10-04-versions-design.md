@@ -89,11 +89,11 @@ The `deploy` job in `release.yml` changes to these steps:
 **When the site deploys (owner, 2026-10-04: docs changes don't make a release):**
 - **On a `v*` tag:** after publish, as today.
 - **On a push to `main`:** a `docs` job runs the same site build, only if `git diff --quiet <latest v* tag> HEAD -- packages/` passes. If the library has changed but isn't released yet, the job skips with a notice, so the root never shows unreleased component behaviour as the current version. The next tag deploys it.
-- **`workflow_dispatch` ("Deploy docs"):** a manual run with the same guard.
+- **`workflow_dispatch` (a manual "Run workflow" of Release on `main`):** the same guard.
 - **Concurrency:** the tag deploy and the main deploy share the `pages` concurrency group, with cancel-in-progress off.
 - **Archives are frozen at their line's last tag.** Docs fixes made after a line's last release don't reach its archived copy. That's accepted.
 
-**Logic lives in `scripts/build-versioned-site.mjs`.** It takes `--out`, `--current-dist` and `--tags`, has node tests for the path mapping and the injection, and is called by `release.yml`.
+**Logic lives in `scripts/build-versioned-site.mjs`.** It takes `--out`, `--current-dist`, `--as-older` and `--cache` (plus `--check` and `--cache-key`). There is no `--tags` flag: it reads the tags from git (`git tag --list 'v*' --merged HEAD`). It has node tests for the path mapping and the injection, and is called by `release.yml`.
 
 **Deploy dry-run (PR):** the release `dry-run` job runs `node scripts/build-versioned-site.mjs --out $RUNNER_TEMP/site --as-older v0.1.0`. `--as-older` treats the given tag as an older line, even though it shares a line with the current version. That exercises archiving, the injected banner and switching before a second real line exists. The job then asserts:
 - `index.html` exists at the root
@@ -120,10 +120,10 @@ The `deploy` job in `release.yml` changes to these steps:
 - **`NAV`** (`apps/gallery/src/shell/Sidebar.tsx`): add a new group, `'Start here'`, first: Overview `/`, Getting started `/getting-started`, Versions `/versions`, Release notes `/release-notes`. `NavGroup` gains `'Start here'`. The e2e route list picks these up automatically.
 - **Routes** (`router.tsx`): add three lazy pages, `GettingStartedPage`, `VersionsPage` and `ReleaseNotesPage`. They are built only from bit components; the raw-tag lint rule applies.
 - **Getting started:**
-  - The five steps move from `pages/home/GetStarted.tsx`, with the install switcher and the style imports.
+  - The five steps move from `pages/home/GetStarted.tsx` (now `pages/getting-started/GetStarted.tsx`), with the install switcher and the style imports.
   - Home keeps a teaser: one line plus a Link.
   - Step 4 shows `ModeToggle` and `COLOR_MODE_SCRIPT`.
-  - Step 5 links to Tokens, the naming rule on Home, and Components.
+  - Step 5 links to Tokens, the naming rule on Home, and Button (the first component, with live controls).
 - **Versions:**
   - a bit `Table` with columns bit / React / react-dom / Status
   - Status is a Badge: "Latest", "Viewing", or none
