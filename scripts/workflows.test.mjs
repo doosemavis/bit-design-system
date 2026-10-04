@@ -154,10 +154,6 @@ test('ci: the ci job runs the scripts tests after the gallery tests', () => {
   assert.ok(scripts > gallery, 'node --test runs after the gallery tests');
 });
 
-test('ci: no step mentions storybook', () => {
-  for (const { job, step } of allSteps(ci())) assert.doesNotMatch(JSON.stringify(step), /storybook/i, `ci.yml ${job}`);
-});
-
 test('ci: the e2e job needs ci, installs Chromium from a cache and runs pnpm e2e', () => {
   const e2e = ci().jobs.e2e;
   assert.ok(e2e, 'ci.yml has an e2e job');

@@ -16,7 +16,7 @@ const RAW_TAGS = [
 ];
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/storybook-static/**', '**/coverage/**', '.superpowers/**', '**/*.mjs'] },
+  { ignores: ['**/dist/**', '**/coverage/**', '.superpowers/**', '**/*.mjs'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
