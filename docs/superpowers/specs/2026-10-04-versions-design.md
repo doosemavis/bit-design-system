@@ -2,7 +2,7 @@
 
 **Status:** approved in brainstorming on 2026-10-04 (boards `designs/versions-20261004/board.html` and `designs/sidebar-titles-20261004/board-animated.html`, plus the engineering design in chat). The owner asked for the build to be done with subagents, stopping before merge and release.
 
-**Ships as:** the 0.2.0 PR on `feat/versions-0.2.0`. 0.2.0 is the first release whose gallery has the version picker.
+**Ships as:** the 0.1.1 PR on `feat/versions-0.1.1`. 0.1.1 is the first release whose gallery has the version picker.
 
 ## Goal
 
@@ -27,7 +27,7 @@ A person reading the docs can:
 ```md
 # Changelog
 
-## 0.2.0 — 2026-10-XX
+## 0.1.1 — 2026-10-XX
 ### Added
 - Versions page, release notes, version picker, "Start here" nav.
 
@@ -43,9 +43,9 @@ A person reading the docs can:
 
 ### 1.2 `versions.json` (generated at deploy, served at `/bit-design-system/versions.json`)
 ```json
-{ "latest": "0.2.0",
+{ "latest": "0.1.1",
   "versions": [
-    { "version": "0.2.0", "date": "2026-10-XX", "path": "/bit-design-system/",        "react": "^19.0.0", "reactDom": "^19.0.0" },
+    { "version": "0.1.1", "date": "2026-10-XX", "path": "/bit-design-system/",        "react": "^19.0.0", "reactDom": "^19.0.0" },
     { "version": "0.1.0", "date": "2026-10-04", "path": "/bit-design-system/v0.1.0/", "react": "^19.0.0", "reactDom": "^19.0.0" } ] }
 ```
 - **`scripts/versions.mjs`** is pure and has node tests. It builds this file from three inputs:
@@ -67,7 +67,7 @@ The `deploy` job in `release.yml` changes to these steps:
    - Copy `scripts/version-banner.js` to the site root. It is dependency-free and has no build step.
    - Add `<script src="/bit-design-system/version-banner.js" defer>` to every archived `index.html`.
    - The script fetches `versions.json`. If its own path isn't the latest, it renders the warning banner and a plain `<select>`, styled with bit's own CSS classes (`bit-select`, `bit-alert`), that switches versions. On the latest it does nothing.
-   - It also skips any build that already has `data-bit-version-picker` on `<html>`, so 0.2.0 and later don't get a second picker.
+   - It also skips any build that already has `data-bit-version-picker` on `<html>`, so 0.1.1 and later don't get a second picker.
 5. Upload `site/` as the Pages artifact.
 
 **Logic lives in `scripts/build-versioned-site.mjs`.** It takes `--out`, `--current-dist` and `--tags`, has node tests for the path mapping and the injection, and is called by `release.yml`.
@@ -129,8 +129,8 @@ The `deploy` job in `release.yml` changes to these steps:
 
 ## 6. Version bump and docs
 
-- `@bit-ds/react` becomes **0.2.0**. The library code is unchanged.
-- `CHANGELOG.md` gets entries for 0.2.0 and 0.1.0.
+- `@bit-ds/react` becomes **0.1.1**. The library code is unchanged.
+- `CHANGELOG.md` gets entries for 0.1.1 and 0.1.0.
 - CONTRIBUTING "Releasing" starts with "add a CHANGELOG entry", and explains the versioned site.
 - README gets a "Versions and release notes" line linking the live pages.
 
