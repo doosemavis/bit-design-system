@@ -399,9 +399,11 @@ test('release: build packs, hashes, smoke-tests and uploads the tarball, needing
   assertSmokesThePackedTarball(steps, pack, smoke);
   // The hash is taken in Pack, before smoke:full runs any freshly installed registry code.
   assert.match(runOf(steps[pack]), /sha256=\$\(sha256sum "\$\{tgz\[0\]\}"/);
+  const recheck = findIndex(steps, (s) => s.id === 'recheck', 'rechecking the tarball after the smoke test');
+  assert.deepEqual(steps[recheck].env, { TGZ: PACKED_TGZ, EXPECTED_SHA256: '${{ steps.pack.outputs.sha256 }}' });
   const upload = findIndex(steps, (s) => s.uses === 'actions/upload-artifact@v4', 'uploading the tarball');
   assert.deepEqual(steps[upload].with, { name: 'npm-tarball', path: PACKED_TGZ, 'if-no-files-found': 'error' });
-  assert.ok(npm < install && install < verify && verify < pack && pack < smoke && smoke < upload, 'step order');
+  assert.ok(npm < install && install < verify && verify < pack && pack < smoke && smoke < recheck && recheck < upload, 'step order');
   assert.equal(upload, steps.length - 1, 'the upload is the last step');
 });
 
@@ -436,6 +438,25 @@ test('release: the Pack shell writes the tarball path, name and sha256, and refu
       assert.notEqual(bad.result.status, 0, `${count} tarballs must fail`);
       assert.match(bad.result.stdout, new RegExp(`expected exactly one tarball, found ${count}`));
     }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// The smoke test runs freshly installed registry code. If it changed the tarball, build fails here,
+// before anyone is asked to approve a publish, instead of at publish's own hash check.
+test('release: the build recheck fails when the tarball changed after Pack hashed it', () => {
+  const recheck = release().jobs.build.steps.find((s) => s.id === 'recheck');
+  const dir = mkdtempSync(join(tmpdir(), 'bit-recheck-'));
+  try {
+    const tgz = join(dir, 'bit-ds-react-0.1.1.tgz');
+    writeFileSync(tgz, 'the packed tarball');
+    const run = (expected) => runShell(recheck, { TGZ: tgz, EXPECTED_SHA256: expected }, dir);
+    assert.equal(run(sha256('the packed tarball')).status, 0);
+    const changed = run(sha256('what Pack hashed before the smoke test'));
+    assert.notEqual(changed.status, 0, 'a changed tarball fails the build');
+    assert.match(changed.stdout, /changed after it was packed/);
+    assert.notEqual(run('').status, 0, 'no hash from Pack fails too');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

@@ -204,6 +204,20 @@ jobs:
         env:
           SMOKE_TARBALL: ${{ steps.pack.outputs.tgz }}
       # End of the steps shared with dry-run.
+      # The smoke test ran freshly installed registry code. If the tarball changed since Pack hashed
+      # it, fail here, before anyone is asked to approve a publish.
+      - name: The tarball is unchanged after the smoke test
+        id: recheck
+        run: |
+          actual=$(sha256sum "$TGZ" | cut -d ' ' -f 1)
+          if [ -z "$EXPECTED_SHA256" ] || [ "$actual" != "$EXPECTED_SHA256" ]; then
+            echo "::error::$TGZ changed after it was packed: Pack hashed ${EXPECTED_SHA256:-nothing}, it is now $actual"
+            exit 1
+          fi
+          echo "unchanged since Pack: sha256 $actual"
+        env:
+          TGZ: ${{ steps.pack.outputs.tgz }}
+          EXPECTED_SHA256: ${{ steps.pack.outputs.sha256 }}
       - name: Upload the tarball
         uses: actions/upload-artifact@v4
         with:
