@@ -74,27 +74,32 @@
   --bit-color-primary-contrast: var(--bit-palette-white);
   --bit-color-primary-hover: var(--bit-palette-violet-dark);
   --bit-color-primary-soft: var(--bit-palette-violet-soft);
+  --bit-color-primary-edge: var(--bit-color-primary);
 
   --bit-color-neutral: var(--bit-palette-white);
   --bit-color-neutral-contrast: var(--bit-palette-ink);
   --bit-color-neutral-hover: var(--bit-palette-stone-light);
   --bit-color-neutral-soft: var(--bit-palette-stone);
+  --bit-color-neutral-edge: var(--bit-color-line);
   --bit-color-stripe: var(--bit-palette-stone);
 
   --bit-color-success: var(--bit-palette-green);
   --bit-color-success-contrast: var(--bit-palette-ink);
   --bit-color-success-hover: var(--bit-palette-green-dark);
   --bit-color-success-soft: var(--bit-palette-green-soft);
+  --bit-color-success-edge: var(--bit-color-success);
 
   --bit-color-warning: var(--bit-palette-yellow);
   --bit-color-warning-contrast: var(--bit-palette-ink);
   --bit-color-warning-hover: var(--bit-palette-yellow-dark);
   --bit-color-warning-soft: var(--bit-palette-yellow-soft);
+  --bit-color-warning-edge: var(--bit-color-line);
 
   --bit-color-danger: var(--bit-palette-red);
   --bit-color-danger-contrast: var(--bit-palette-white);
   --bit-color-danger-hover: var(--bit-palette-red-dark);
   --bit-color-danger-soft: var(--bit-palette-red-soft);
+  --bit-color-danger-edge: var(--bit-color-danger);
 
   /* ---------- tier 2: shape (where the retro look lives) ---------- */
   --bit-border-width: 3px;
@@ -189,8 +194,10 @@
   --bit-color-neutral-soft: var(--bit-palette-night-raised);
   --bit-color-stripe: var(--bit-palette-night-stripe);
   --bit-color-primary-soft: var(--bit-palette-violet-night);
+  --bit-color-primary-edge: var(--bit-color-line);
   --bit-color-success-soft: var(--bit-palette-green-night);
   --bit-color-warning-soft: var(--bit-palette-yellow-night);
+  --bit-color-warning-edge: var(--bit-color-warning);
   --bit-color-danger-soft: var(--bit-palette-red-night);
   --bit-shadow-inset: inset 3px 3px 0 rgba(0, 0, 0, 0.4);
   --bit-code-bg: var(--bit-palette-night-code);

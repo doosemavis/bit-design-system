@@ -49,6 +49,19 @@ describe.each(MODES)('%s contrast', (_name, map) => {
     expect(contrastRatio(resolveColor('--bit-color-text'), resolveColor(`--bit-color-${color}-soft`))).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
+  // The outline edge is the border of an outline Button or Badge on the surface. Primary falls back to
+  // the line color in dark (violet is 2.83:1 on night) and warning in light (yellow is 1.55:1 on white).
+  it.each(COLORS)('outline: the %s edge stands out from the surface', (color) => {
+    expect(contrastRatio(resolveColor(`--bit-color-${color}-edge`), resolveColor('--bit-color-surface'))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  it('outline: the fallback edges resolve to the line color', () => {
+    const line = resolveColor('--bit-color-line').toLowerCase();
+    const isDark = resolveColor('--bit-color-surface').toLowerCase() !== '#ffffff';
+    const fallback = isDark ? 'primary' : 'warning';
+    expect(resolveColor(`--bit-color-${fallback}-edge`).toLowerCase()).toBe(line);
+  });
+
   it.each(CODE_KINDS)('code %s is at least 5.6:1 on the code background (Ink night)', (kind) => {
     expect(contrastRatio(resolveColor(`--bit-code-${kind}`), resolveColor('--bit-code-bg'))).toBeGreaterThanOrEqual(CODE_MIN);
   });

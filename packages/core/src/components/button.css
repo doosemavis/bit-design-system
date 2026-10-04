@@ -33,8 +33,10 @@
 }
 
 .bit-button.bit-outline {
-  background: var(--_bit-color-soft);
+  background: var(--bit-color-surface);
   color: var(--bit-color-text);
+  border-color: var(--_bit-color-edge);
+  box-shadow: 4px 4px 0 var(--_bit-color-outline-shadow);
 }
 
 .bit-button.bit-ghost {
@@ -54,7 +56,7 @@
 }
 
 .bit-button.bit-outline:hover:not(:disabled):not([aria-disabled="true"]) {
-  box-shadow: var(--bit-shadow-sm);
+  box-shadow: 2px 2px 0 var(--_bit-color-outline-shadow);
 }
 
 .bit-button.bit-ghost:hover:not(:disabled):not([aria-disabled="true"]) {

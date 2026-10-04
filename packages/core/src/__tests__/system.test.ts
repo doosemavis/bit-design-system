@@ -18,6 +18,12 @@ const INK_EXCEPTIONS: Readonly<Record<string, readonly string[]>> = {
 
 describe('system/colors.css', () => {
   const css = readCss('system/colors.css');
+  it.each(COLORS)('.bit-%s sets the outline edge and outline shadow', (color) => {
+    const body = block(css, `.bit-${color}`);
+    expect(body).toContain(`--_bit-color-edge: var(--bit-color-${color}-edge);`);
+    const shadow = color === 'neutral' ? 'shadow' : color;
+    expect(body).toContain(`--_bit-color-outline-shadow: var(--bit-color-${shadow});`);
+  });
   it.each(COLORS)('.bit-%s remaps the four private color variables', (color) => {
     const body = block(css, `.bit-${color}`);
     expect(body).not.toBeNull();
@@ -301,8 +307,34 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
   });
 });
 
+describe('components/button.css outline', () => {
+  const css = readCss('components/button.css');
+  it('fills with the surface, edges with the color edge, and casts the color outline shadow', () => {
+    const body = block(css, '.bit-button.bit-outline') ?? '';
+    expect(decl(body, 'background')).toBe('var(--bit-color-surface)');
+    expect(decl(body, 'color')).toBe('var(--bit-color-text)');
+    expect(decl(body, 'border-color')).toBe('var(--_bit-color-edge)');
+    expect(decl(body, 'box-shadow')).toBe('4px 4px 0 var(--_bit-color-outline-shadow)');
+  });
+  it('hover shrinks the shadow to the small offset, keeping its color', () => {
+    const body = block(css, '.bit-button.bit-outline:hover:not(:disabled):not([aria-disabled="true"])') ?? '';
+    expect(decl(body, 'box-shadow')).toBe('2px 2px 0 var(--_bit-color-outline-shadow)');
+  });
+  it('the ghost hover still uses the soft tint', () => {
+    const body = block(css, '.bit-button.bit-ghost:hover:not(:disabled):not([aria-disabled="true"])') ?? '';
+    expect(decl(body, 'background')).toBe('var(--_bit-color-soft)');
+  });
+});
+
 describe('components/badge.css', () => {
   const css = readCss('components/badge.css');
+  it('outline fills with the surface, edges with the color edge, and casts the small color shadow', () => {
+    const body = block(css, '.bit-badge.bit-outline') ?? '';
+    expect(decl(body, 'background')).toBe('var(--bit-color-surface)');
+    expect(decl(body, 'color')).toBe('var(--bit-color-text)');
+    expect(decl(body, 'border-color')).toBe('var(--_bit-color-edge)');
+    expect(decl(body, 'box-shadow')).toBe('2px 2px 0 var(--_bit-color-outline-shadow)');
+  });
   it('a pill reads radius-full; data-shape="square" reads the 6px radius', () => {
     expect(block(css, '.bit-badge')).toContain('border-radius: var(--bit-radius-full);');
     expect(block(css, '.bit-badge[data-shape="square"]')).toContain('border-radius: var(--bit-radius-6px);');

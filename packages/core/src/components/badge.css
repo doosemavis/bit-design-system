@@ -31,8 +31,10 @@
 }
 
 .bit-badge.bit-outline {
-  background: var(--_bit-color-soft);
+  background: var(--bit-color-surface);
   color: var(--bit-color-text);
+  border-color: var(--_bit-color-edge);
+  box-shadow: 2px 2px 0 var(--_bit-color-outline-shadow);
 }
 
 .bit-badge[data-shape="square"] {

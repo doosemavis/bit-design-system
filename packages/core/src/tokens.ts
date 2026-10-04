@@ -44,6 +44,12 @@ const colorTokens = COLORS.flatMap((color) => [
   token('color', color, 'soft'),
 ]);
 
+/**
+ * The border of an outline Button or Badge, one per color. Usually the color itself; where the color is
+ * under 3:1 on the surface (violet on night, yellow on white) it falls back to the line color.
+ */
+const edgeTokens = COLORS.map((color) => token('color', color, 'edge'));
+
 const shapeTokens = [
   token('border', 'width'),
   ...RADII.map((n) => token('radius', px(n))),
@@ -91,6 +97,7 @@ export const SEMANTIC_TOKENS: readonly string[] = [
   ...colorRoleTokens,
   ...pr2ColorTokens,
   ...colorTokens,
+  ...edgeTokens,
   ...shapeTokens,
   ...typeTokens,
   ...spaceTokens,
@@ -118,6 +125,8 @@ export const MODE_TOKENS: readonly string[] = [
   token('color', 'neutral', 'soft'),
   token('color', 'stripe'),
   ...['primary', 'success', 'warning', 'danger'].map((color) => token('color', color, 'soft')),
+  token('color', 'primary', 'edge'),
+  token('color', 'warning', 'edge'),
   token('shadow', 'inset'),
   token('code', 'bg'),
   token('focus', 'ring', 'color'),

@@ -9,9 +9,9 @@ describe('semantic token list', () => {
     expect(SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('contains exactly 94 unique names, all prefixed --bit-', () => {
-    expect(SEMANTIC_TOKENS).toHaveLength(94);
-    expect(new Set(SEMANTIC_TOKENS).size).toBe(94);
+  it('contains exactly 99 unique names, all prefixed --bit-', () => {
+    expect(SEMANTIC_TOKENS).toHaveLength(99);
+    expect(new Set(SEMANTIC_TOKENS).size).toBe(99);
     for (const name of SEMANTIC_TOKENS) expect(name).toMatch(/^--bit-[a-z0-9-]+$/);
   });
 
@@ -21,6 +21,13 @@ describe('semantic token list', () => {
         expect(SEMANTIC_TOKENS).toContain(`--bit-color-${color}${suffix}`);
       }
     }
+  });
+
+  it('includes the outline edge token for every color; only primary and warning change with the mode', () => {
+    for (const color of COLORS) expect(SEMANTIC_TOKENS).toContain(`--bit-color-${color}-edge`);
+    expect(MODE_TOKENS).toContain('--bit-color-primary-edge');
+    expect(MODE_TOKENS).toContain('--bit-color-warning-edge');
+    for (const color of ['neutral', 'success', 'danger']) expect(MODE_TOKENS).not.toContain(`--bit-color-${color}-edge`);
   });
 
   it('includes the shape, type, space, control, and motion tokens named in the spec', () => {
@@ -53,11 +60,14 @@ describe('semantic token list', () => {
   it('includes the seven PR2 color roles; six change with the mode, the knob is shared', () => {
     const pr2 = ['--bit-color-accent', '--bit-color-link', '--bit-color-link-visited', '--bit-color-danger-text', '--bit-color-knob', '--bit-color-stripe', '--bit-color-code-text'];
     for (const name of pr2) expect(SEMANTIC_TOKENS).toContain(name);
-    expect(MODE_TOKENS).toHaveLength(24);
-    expect(new Set(MODE_TOKENS).size).toBe(24);
     const sharedAcrossModes = ['--bit-color-knob'];
     for (const name of pr2.filter((n) => !sharedAcrossModes.includes(n))) expect(MODE_TOKENS).toContain(name);
     for (const name of sharedAcrossModes) expect(MODE_TOKENS).not.toContain(name);
+  });
+
+  it('has 26 unique mode tokens (the ones the dark block overrides)', () => {
+    expect(MODE_TOKENS).toHaveLength(26);
+    expect(new Set(MODE_TOKENS).size).toBe(26);
   });
 
   it('has no --bit-color-focus (the focus ring has its own tokens)', () => {
