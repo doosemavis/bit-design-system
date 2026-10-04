@@ -41,3 +41,42 @@ export const compareLines = (a, b) => {
   const [pa, pb] = [lineParts(a), lineParts(b)];
   return pa[0] - pb[0] || pa[1] - pb[1];
 };
+
+// --- versions.json: one contract for its writer (scripts/versions.mjs), its checker
+// (scripts/build-versioned-site.mjs) and its reader (the gallery). The file is untrusted at runtime.
+const LINE = /^\d+(\.\d+)?$/;
+/** Exactly the site root or `<site>/v<line>/`. Paths reach location.assign and hrefs, so nothing else gets through. */
+const SITE_PATH = /^\/bit-design-system\/(v[0-9][0-9.]*\/)?$/;
+
+const isRecord = (value) => typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isEntry = (entry) =>
+  isRecord(entry) &&
+  typeof entry.line === 'string' &&
+  LINE.test(entry.line) &&
+  isRelease(entry.version) &&
+  typeof entry.date === 'string' &&
+  typeof entry.path === 'string' &&
+  SITE_PATH.test(entry.path) &&
+  typeof entry.react === 'string' &&
+  typeof entry.reactDom === 'string';
+
+/**
+ * True for a well-formed versions.json: `latest` is a line ('0.2', not '0.2.0'), every entry is
+ * complete with a safe path, paths are unique, and exactly one entry (the latest line's) is at SITE_BASE.
+ */
+export const isVersionsFile = (value) => {
+  if (!isRecord(value) || typeof value.latest !== 'string' || !LINE.test(value.latest)) return false;
+  if (!Array.isArray(value.lines) || value.lines.length === 0 || !value.lines.every(isEntry)) return false;
+  const paths = value.lines.map((entry) => entry.path);
+  if (new Set(paths).size !== paths.length) return false;
+  const roots = value.lines.filter((entry) => entry.path === SITE_BASE);
+  return roots.length === 1 && roots[0].line === value.latest;
+};
+
+/** The copy a page is served from: SITE_BASE or `<site>/v<line>/`. Null outside the site (dev, tests). */
+export const ownPathOf = (pathname) => {
+  if (typeof pathname !== 'string' || !pathname.startsWith(SITE_BASE)) return null;
+  const folder = /^v[0-9][0-9.]*\//.exec(pathname.slice(SITE_BASE.length));
+  return SITE_BASE + (folder ? folder[0] : '');
+};

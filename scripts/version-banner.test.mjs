@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { SITE_BASE } from '../apps/gallery/src/content/versionLines.mjs';
+import { SITE_BASE, ownPathOf as galleryOwnPathOf } from '../apps/gallery/src/content/versionLines.mjs';
 
 const source = readFileSync(new URL('./version-banner.js', import.meta.url), 'utf8');
 // The script logs (never throws) when it cannot render; the tests collect those warnings.
@@ -14,7 +14,7 @@ const load = () => {
   vm.runInNewContext(source, sandbox);
   return sandbox.module.exports;
 };
-const { renderBanner, parseVersions, SITE_BASE: BANNER_BASE } = load();
+const { renderBanner, parseVersions, ownPathOf, SITE_BASE: BANNER_BASE } = load();
 
 // --- a minimal fake DOM: just what the banner touches -------------------------------------------
 class FakeElement {
@@ -82,6 +82,28 @@ const VERSIONS = {
 };
 
 test('the banner and the gallery agree on the site base', () => assert.equal(BANNER_BASE, SITE_BASE));
+
+test('finds its own copy exactly as the gallery does', () => {
+  for (const pathname of ['/bit-design-system/', '/bit-design-system/index.html', '/bit-design-system/v0.1/', '/bit-design-system/v0.1/x.html', '/bit-design-system/v12/', '/bit-design-system/v1.2.3/', '/', '/elsewhere/']) {
+    assert.equal(ownPathOf(pathname), galleryOwnPathOf(pathname), pathname);
+  }
+});
+
+test('the latest is the root entry, wherever it is listed (the as-older file has two 0.1 entries)', () => {
+  const doc = fakeDoc();
+  const versions = { latest: '0.1', lines: [line('0.1', '0.1.0', '/bit-design-system/v0.1/'), line('0.1', '0.1.1', '/bit-design-system/')] };
+  const banner = renderBanner({ doc, versions, location: fakeLocation('/bit-design-system/v0.1/') });
+  assert.ok(banner, 'the v0.1/ copy is not the latest, though it shares the latest line');
+  assert.match(banner.text, /docs for v0\.1\.0\./);
+  assert.deepEqual(
+    banner.findAll('SELECT')[0].findAll('OPTION').map((o) => [o.textContent, o.value]),
+    [
+      ['0.1 · 0.1.0', '/bit-design-system/v0.1/'],
+      ['0.1 (latest) · 0.1.1', '/bit-design-system/'],
+    ],
+  );
+  assert.equal(renderBanner({ doc: fakeDoc(), versions, location: fakeLocation('/bit-design-system/') }), null);
+});
 
 test('renders nothing when the build has its own picker (data-bit-version-picker)', () => {
   const doc = fakeDoc();

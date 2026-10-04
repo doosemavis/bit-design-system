@@ -15,6 +15,12 @@ describe('index.html', () => {
     expect(html.indexOf(COLOR_MODE_SCRIPT)).toBeLessThan(html.indexOf('/src/main.tsx'));
   });
 
+  // version-banner.js (injected into frozen copies) skips any build that has its own picker. The
+  // attribute is static so the banner never races the app's mount.
+  it('marks <html> as having its own version picker', () => {
+    expect(html).toMatch(/<html [^>]*\bdata-bit-version-picker\b[^>]*>/);
+  });
+
   it('tells the browser both color schemes are supported', () => {
     expect(html).toContain('<meta name="color-scheme" content="light dark" />');
   });

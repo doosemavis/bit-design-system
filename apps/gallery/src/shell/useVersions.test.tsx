@@ -4,7 +4,7 @@ import { lineOf } from '../content/versionLines.mjs';
 import { resetVersionsCache, useVersions } from './useVersions';
 
 const FILE = {
-  latest: '0.2.0',
+  latest: '0.2',
   lines: [
     { line: '0.2', version: '0.2.0', date: '2026-11-01', path: '/bit-design-system/', react: '19.2.0', reactDom: '19.2.0' },
     { line: '0.1', version: '0.1.0', date: '2026-10-04', path: '/bit-design-system/v0.1/', react: '19.2.0', reactDom: '19.2.0' },
@@ -62,19 +62,21 @@ describe('useVersions', () => {
 
   it.each([
     ['null', null],
-    ['no lines', { latest: '0.2.0' }],
+    ['no lines', { latest: '0.2' }],
+    ['a version as latest (the old, drifted shape)', { ...FILE, latest: '0.2.0' }],
+    ['duplicate paths', { ...FILE, lines: [FILE.lines[0], { ...FILE.lines[1], path: '/bit-design-system/' }] }],
     ['numeric latest', { latest: 2, lines: [] }],
     ['a pre-release latest', { latest: '1.0.0-rc.1', lines: [] }],
-    ['a line without a path', { latest: '0.2.0', lines: [{ line: '0.2', version: '0.2.0' }] }],
-    ['a null line entry', { latest: '0.2.0', lines: [null] }],
+    ['a line without a path', { latest: '0.2', lines: [{ line: '0.2', version: '0.2.0' }] }],
+    ['a null line entry', { latest: '0.2', lines: [null] }],
     ['an array root', [FILE]],
-    ['a line entry of only a number', { latest: '0.2.0', lines: [{ line: 1 }] }],
-    ['an entry version that is a pre-release', { latest: '0.2.0', lines: [{ ...FILE.lines[0], version: '1.0.0-rc.1' }] }],
-    ['an entry without a version', { latest: '0.2.0', lines: [{ line: '0.2', path: '/bit-design-system/' }] }],
-    ['a javascript: path', { latest: '0.2.0', lines: [{ ...FILE.lines[0], path: 'javascript:alert(1)' }] }],
-    ['a protocol-relative path', { latest: '0.2.0', lines: [{ ...FILE.lines[0], path: '//evil.example/' }] }],
-    ['a path outside the site', { latest: '0.2.0', lines: [{ ...FILE.lines[0], path: '/elsewhere/' }] }],
-    ['a path that climbs out', { latest: '0.2.0', lines: [{ ...FILE.lines[0], path: '/bit-design-system/../x' }] }],
+    ['a line entry of only a number', { latest: '0.2', lines: [{ line: 1 }] }],
+    ['an entry version that is a pre-release', { latest: '0.2', lines: [{ ...FILE.lines[0], version: '1.0.0-rc.1' }] }],
+    ['an entry without a version', { latest: '0.2', lines: [{ line: '0.2', path: '/bit-design-system/' }] }],
+    ['a javascript: path', { latest: '0.2', lines: [{ ...FILE.lines[0], path: 'javascript:alert(1)' }] }],
+    ['a protocol-relative path', { latest: '0.2', lines: [{ ...FILE.lines[0], path: '//evil.example/' }] }],
+    ['a path outside the site', { latest: '0.2', lines: [{ ...FILE.lines[0], path: '/elsewhere/' }] }],
+    ['a path that climbs out', { latest: '0.2', lines: [{ ...FILE.lines[0], path: '/bit-design-system/../x' }] }],
   ])('is unavailable on a wrong shape: %s', async (_name, body) => {
     vi.stubGlobal('fetch', vi.fn(() => ok(body)));
     const { result } = renderHook(() => useVersions());
@@ -85,6 +87,13 @@ describe('useVersions', () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(FILE)));
     const { result } = renderHook(() => useVersions());
     expect(result.current.currentLine).toBe(lineOf(__BIT_VERSION__));
+  });
+
+  it('ownPath is the copy this page is served from, or the site root outside the site (dev, tests)', () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
+    expect(renderHook(() => useVersions()).result.current.ownPath).toBe('/bit-design-system/');
+    vi.stubGlobal('location', { ...window.location, pathname: '/bit-design-system/v0.1/index.html' });
+    expect(renderHook(() => useVersions()).result.current.ownPath).toBe('/bit-design-system/v0.1/');
   });
 
   it('fetches once across two mounts', async () => {

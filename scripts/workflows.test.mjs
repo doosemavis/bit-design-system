@@ -73,6 +73,7 @@ function evaluate(expression, ctx = {}, { implicitSuccess = true } = {}) {
     .replace(/\bcancelled\(\)/g, 'false')
     .replace(/\bsteps\.([\w-]+)\.outputs\.([\w-]+)/g, (_, id, key) => JSON.stringify(ctx.steps?.[id]?.outputs?.[key] ?? ''))
     .replace(/\bsteps\.([\w-]+)\.outcome\b/g, (_, id) => JSON.stringify(ctx.steps?.[id]?.outcome ?? ''))
+    .replace(/\bneeds\.([\w-]+)\.outputs\.([\w-]+)/g, (_, job, key) => JSON.stringify(ctx.needs?.[job]?.outputs?.[key] ?? ''))
     .replace(/\bgithub\.(\w+)/g, (_, key) => JSON.stringify(ctx.github?.[key] ?? ''))
     .replace(/\bstartsWith\(/g, '__startsWith(')
     .replace(/!=/g, '!==')
@@ -145,17 +146,18 @@ test('release: triggers on pull requests, v* tags, pushes to main and a manual r
   assert.deepEqual(wf.permissions, { contents: 'read' });
 });
 
-test('release: the jobs are exactly dry-run, guard, publish, deploy and docs', () => {
-  assert.deepEqual(Object.keys(release().jobs).sort(), ['deploy', 'docs', 'dry-run', 'guard', 'publish']);
+test('release: the jobs are exactly dry-run, guard, publish, deploy, docs-check and docs', () => {
+  assert.deepEqual(Object.keys(release().jobs).sort(), ['deploy', 'docs', 'docs-check', 'dry-run', 'guard', 'publish']);
 });
 
-test('release: dry-run on pull requests, the tag jobs only on tag pushes, docs only on main', () => {
+test('release: dry-run on pull requests, the tag jobs only on tag pushes, docs-check only on main', () => {
   const { jobs } = release();
   const runsOn = (github) => Object.keys(jobs).filter((name) => evaluate(jobs[name].if ?? 'true', { github })).sort();
   assert.deepEqual(runsOn(PULL_REQUEST), ['dry-run']);
   assert.deepEqual(runsOn(TAG_PUSH), ['deploy', 'guard', 'publish']);
-  assert.deepEqual(runsOn(BRANCH_PUSH), ['docs'], 'a push to main deploys docs and never publishes');
-  assert.deepEqual(runsOn(DISPATCH_MAIN), ['docs']);
+  // docs itself waits on docs-check's output (see below), so with no output it does not run.
+  assert.deepEqual(runsOn(BRANCH_PUSH), ['docs-check'], 'a push to main checks for a docs deploy and never publishes');
+  assert.deepEqual(runsOn(DISPATCH_MAIN), ['docs-check']);
   assert.deepEqual(runsOn(DISPATCH_BRANCH), [], 'a manual run on another branch does nothing');
   assert.deepEqual(runsOn(DISPATCH_TAG), [], 'a manual run on a tag never publishes');
   assert.deepEqual(runsOn(OTHER_BRANCH_PUSH), []);
@@ -185,6 +187,20 @@ test('release: concurrency queues every tag in one group and never cancels a rel
 test('release: the tag deploy and the docs deploy share the pages group and never cancel', () => {
   for (const name of ['deploy', 'docs']) {
     assert.deepEqual(release().jobs[name].concurrency, { group: 'pages', 'cancel-in-progress': false }, name);
+  }
+});
+
+test('release: docs-check holds no pages slot and no environment, so a skip never queues or records a deployment', () => {
+  const job = release().jobs['docs-check'];
+  assert.equal(job.concurrency, undefined);
+  assert.equal(job.environment, undefined);
+  assert.equal(job.permissions, undefined, 'docs-check keeps the read-only default');
+});
+
+test('release: deploy, docs-check, docs and dry-run check out without persisting the token', () => {
+  for (const name of ['deploy', 'docs-check', 'docs', 'dry-run']) {
+    const checkout = release().jobs[name].steps.find((s) => s.uses === 'actions/checkout@v4');
+    assert.equal(checkout.with?.['persist-credentials'], false, name);
   }
 });
 
@@ -228,7 +244,9 @@ test('release: publish upgrades npm, packs, smoke-tests, decides, publishes the 
   assert.ok(npm < pack && pack < smoke && smoke < decide && decide < publish && publish < verify, 'step order');
 
   const step = steps[publish];
-  assert.equal(runOf(step), `npm publish "${PACKED_TGZ}" --provenance --access public`, 'publishes the smoke-tested tarball');
+  // The tarball path reaches the shell through env, never as ${{ }} text inside the script.
+  assert.equal(runOf(step), 'npm publish "$TGZ" --provenance --access public');
+  assert.equal(step.env?.TGZ, PACKED_TGZ, 'publishes the smoke-tested tarball');
   assert.equal(step.id, 'publish');
   assert.equal(step.env?.NODE_AUTH_TOKEN, '${{ secrets.NPM_TOKEN }}');
   assert.match(String(step.if), /steps\.decide\.outputs\.publish == 'true'/);
@@ -272,7 +290,7 @@ const assertBuildsVersionedSite = (steps, label) => {
     `${label}: caching the archives`,
   );
   assert.equal(steps[cache].with.key, '${{ steps.archives.outputs.key }}', `${label}: the cache is keyed on the archive tags`);
-  assert.equal(steps[cache].with['restore-keys'], 'site-archives-', `${label}: a new tag reuses the archives already built`);
+  assert.equal(steps[cache].with['restore-keys'], 'site-archives-v1-', `${label}: a new tag reuses archives built by this recipe`);
   const site = findIndex(
     steps,
     (s) => runOf(s) === 'node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"',
@@ -303,44 +321,50 @@ test('release: deploy needs publish and ships the versioned site to github-pages
 });
 
 // --- release.yml: the docs deploy without a release ------------------------------------------
-const GUARD_LATEST = "LATEST=$(git tag --list 'v*' --sort=-v:refname | grep -Ev -- '-' | head -1)";
+// docs-check runs the guard; docs (the Pages deploy) runs only when it says so.
+const GUARD_LATEST = "LATEST=$(git tag --list 'v[0-9]*' --merged HEAD --sort=-v:refname | grep -Ev -- '-' | head -1 || true)";
 const GUARD_DIFF = 'git diff --quiet "$LATEST" HEAD -- packages/';
 const GUARD_NOTICE = '::notice::packages/ changed since $LATEST; docs deploy waits for the next release';
-const docsGuard = () => release().jobs.docs.steps.find((s) => s.id === 'released');
+const docsGuard = () => release().jobs['docs-check'].steps.find((s) => s.id === 'released');
 
-test('release: docs runs alone, on main, and deploys to github-pages', () => {
-  const job = release().jobs.docs;
-  assert.equal(job.needs, undefined, 'docs does not wait for a release');
-  assertPagesJob(job, 'docs');
-  assertBuildsVersionedSite(job.steps, 'docs');
+test('release: docs-check runs the guard right after checkout and outputs deploy', () => {
+  const job = release().jobs['docs-check'];
+  assert.equal(job.needs, undefined, 'docs-check does not wait for a release');
+  assert.deepEqual(job.outputs, { deploy: '${{ steps.released.outputs.deploy }}' });
+  const { steps } = job;
+  assert.equal(steps.length, 2, 'checkout and the guard, nothing else');
+  assert.equal(steps[0].uses, 'actions/checkout@v4');
+  assert.equal(steps[0].with['fetch-depth'], 0, 'full history, so the tags exist');
+  assert.equal(steps[1].id, 'released');
+  assert.doesNotMatch(JSON.stringify(job), /secrets\.|npm publish/);
 });
 
-test('release: the docs guard compares packages/ with the latest release tag', () => {
-  const guard = docsGuard();
-  assert.ok(guard, 'docs has a step with id released');
-  const run = runOf(guard);
-  assert.ok(run.includes(GUARD_LATEST), 'reads the latest release tag, skipping pre-releases');
+test('release: the docs guard compares packages/ with the latest release tag on HEAD', () => {
+  const run = runOf(docsGuard());
+  assert.ok(run.includes(GUARD_LATEST), 'reads the latest release tag merged into HEAD, skipping pre-releases, pipefail-safe');
   assert.ok(run.includes(GUARD_DIFF), 'diffs packages/ against it');
   assert.ok(run.includes(GUARD_NOTICE), 'says why it skipped');
-  const steps = release().jobs.docs.steps;
-  assert.ok(steps[1].id === 'released' && steps[0].uses === 'actions/checkout@v4', 'the guard runs right after checkout');
 });
 
-test('release: docs runs every step after the guard only when packages/ is unchanged', () => {
-  const { steps } = release().jobs.docs;
-  const after = steps.slice(steps.findIndex((s) => s.id === 'released') + 1);
-  assert.ok(after.length > 0);
-  for (const step of after) assert.equal(step.if, "steps.released.outputs.deploy == 'true'", keyOf(step));
-  const ran = (deploy) => simulate(steps, { outputs: { released: { deploy } } });
-  assert.ok(ran('true').includes('deployment'), 'unchanged: builds and deploys');
-  assert.deepEqual(ran('false'), [keyOf(steps[0]), 'released'], 'changed: only checkout and the guard run');
+test('release: docs needs docs-check and runs only when it says deploy', () => {
+  const job = release().jobs.docs;
+  assert.deepEqual([job.needs].flat(), ['docs-check']);
+  assert.equal(job.if, "needs.docs-check.outputs.deploy == 'true'");
+  const runs = (deploy) => evaluate(job.if, { github: BRANCH_PUSH, needs: { 'docs-check': { outputs: { deploy } } } });
+  assert.equal(runs('true'), true);
+  assert.equal(runs('false'), false);
+  assert.equal(runs(''), false, 'no output (docs-check skipped or failed): no deploy');
+  for (const step of job.steps) assert.equal(step.if, undefined, `${keyOf(step)}: the job-level gate is enough`);
+  assertPagesJob(job, 'docs');
+  assertBuildsVersionedSite(job.steps, 'docs');
 });
 
 // Runs the guard's own shell in a scratch repo: a docs-only change deploys, a packages/ change skips.
 const runGuard = (repo) => {
   const output = join(repo, 'github-output');
   writeFileSync(output, '');
-  const stdout = execFileSync('bash', ['-e', '-c', runOf(docsGuard())], {
+  // Stricter than GitHub's default `bash -e`, so a pipeline that fails on no tags is caught.
+  const stdout = execFileSync('bash', ['-eo', 'pipefail', '-c', runOf(docsGuard())], {
     cwd: repo,
     encoding: 'utf8',
     env: { ...process.env, GITHUB_OUTPUT: output },
@@ -360,6 +384,9 @@ test('release: the docs guard script deploys after a docs change and waits after
   try {
     git('init', '-q');
     commit('packages/react/a.ts', '1');
+    const none = runGuard(repo);
+    assert.match(none.output, /^deploy=false$/m, 'no release tag yet');
+    assert.ok(none.stdout.includes('::notice::no release tag yet'), none.stdout);
     git('tag', 'v0.1.0');
     commit('packages/react/a.ts', '2');
     git('tag', 'v0.2.0-rc.1'); // a pre-release never counts as the latest release
@@ -389,7 +416,7 @@ test('release: dry-run packs, dry-runs the publish, smoke-tests in Chromium and 
     'packing',
   );
   assert.ok(node < npm && npm < pack, 'npm is upgraded after setup-node and before packing');
-  const dry = findIndex(steps, (s) => runOf(s) === `npm publish "${PACKED_TGZ}" --dry-run --access public`, 'dry-run publishing');
+  const dry = findIndex(steps, (s) => runOf(s) === 'npm publish "$TGZ" --dry-run --access public' && s.env?.TGZ === PACKED_TGZ, 'dry-run publishing');
   const install = findIndex(steps, (s) => runOf(s) === 'pnpm exec playwright install --with-deps chromium', 'installing Chromium');
   const smoke = findIndex(steps, (s) => runOf(s) === 'pnpm smoke:full', 'running smoke:full');
   assertSmokesThePackedTarball(steps, pack, smoke);
@@ -420,6 +447,12 @@ test('release: dry-run builds the versioned site with v0.1.0 as an older line, t
   );
   assert.ok(gallery < build && build < check, 'step order');
   assert.ok(!steps.some((s) => s.uses?.startsWith('actions/upload-pages-artifact') || s.uses?.startsWith('actions/deploy-pages')), 'never deploys');
+});
+
+test('release: no run script interpolates an expression; values arrive through env', () => {
+  for (const { job, step } of allSteps(release())) {
+    if (/\bnpm publish\b/.test(runOf(step))) assert.doesNotMatch(runOf(step), /\$\{\{/, `${job}: ${keyOf(step)}`);
+  }
 });
 
 test('release: no step outside publish runs npm publish without --dry-run', () => {

@@ -10,7 +10,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, 
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SITE_BASE, isRelease, newestPerLine, pathForLine } from '../apps/gallery/src/content/versionLines.mjs';
+import { SITE_BASE, isRelease, isVersionsFile, lineOf, newestPerLine, pathForLine } from '../apps/gallery/src/content/versionLines.mjs';
 import { REPO_ROOT, buildVersionsFile, readRepoInputs, writeVersionsFile } from './versions.mjs';
 
 export const BANNER_FILE = 'version-banner.js';
@@ -32,6 +32,11 @@ export const planSite = ({ tags, currentVersion, asOlder }) => {
   const all = newestPerLine([...tagged, ...(isRelease(currentVersion) ? [currentVersion] : [])]);
   if (all.length === 0) throw new Error('build-versioned-site: no release tags and no current release version');
   const latestLine = all[0].line;
+  // The root is built from this checkout, so it must be on the newest line. A checkout behind the
+  // newest tag's line would put old components at the root as "latest".
+  if (isRelease(currentVersion) && lineOf(currentVersion) !== latestLine) {
+    throw new Error(`stale checkout: packages/react is ${currentVersion}, behind the newest tag line ${latestLine}`);
+  }
   const archives = newestPerLine(tagged)
     .filter(({ line }) => line !== latestLine)
     .map(({ line, version }) => ({ line, tag: `v${version}`, outDir: outDirFor(line, latestLine) }));
@@ -46,8 +51,11 @@ export const planSite = ({ tags, currentVersion, asOlder }) => {
   return { latestLine, archives };
 };
 
-/** The actions/cache key: the archive tags, so a new patch on an old line rebuilds that line once. */
-export const cacheKey = ({ archives }) => `site-archives-${archives.map((a) => a.tag).join('_') || 'none'}`;
+/** Bump when the archive build recipe changes, so old cached builds are not reused (release.yml restore-keys too). */
+export const CACHE_PREFIX = 'site-archives-v1-';
+
+/** The actions/cache key: the recipe, then the archive tags, so a new patch on an old line rebuilds that line once. */
+export const cacheKey = ({ archives }) => `${CACHE_PREFIX}${archives.map((a) => a.tag).join('_') || 'none'}`;
 
 /** Adds the banner script before </head>. Idempotent; HTML without </head> comes back unchanged. */
 export const injectBanner = (html) =>
@@ -110,13 +118,6 @@ export const assembleSite = ({ out, currentDist, plan, versionsFile, bannerSourc
   cpSync(bannerSource, join(out, BANNER_FILE));
 };
 
-const validVersionsFile = (file) =>
-  typeof file?.latest === 'string' &&
-  Array.isArray(file.lines) &&
-  file.lines.length > 0 &&
-  file.lines.every((l) => ['line', 'version', 'path'].every((k) => typeof l?.[k] === 'string' && l[k] !== '')) &&
-  file.lines.some((l) => l.line === file.latest && l.path === SITE_BASE);
-
 const readJson = (file) => {
   try {
     return JSON.parse(readFileSync(file, 'utf8'));
@@ -130,9 +131,20 @@ export const checkSite = ({ out, plan }) => {
   const problems = [];
   const root = join(out, 'index.html');
   if (!existsSync(root)) problems.push('the root index.html is missing');
-  else if (readFileSync(root, 'utf8').includes(BANNER_TAG)) problems.push('the root index.html has the banner script');
-  if (!validVersionsFile(readJson(join(out, 'versions.json')))) {
-    problems.push('versions.json is missing or invalid (needs latest, and lines with line/version/path, the latest at the root)');
+  else {
+    const html = readFileSync(root, 'utf8');
+    if (html.includes(BANNER_TAG)) problems.push('the root index.html has the banner script');
+    if (!/<html\b[^>]*\bdata-bit-version-picker\b/.test(html)) problems.push('the root index.html has no data-bit-version-picker on <html>');
+  }
+  // The gallery reads versions.json with this same check, so drift fails the dry run, not the site.
+  const versions = readJson(join(out, 'versions.json'));
+  if (!isVersionsFile(versions)) {
+    problems.push('versions.json is missing or fails isVersionsFile (apps/gallery/src/content/versionLines.mjs)');
+  } else {
+    for (const { outDir } of plan.archives) {
+      const path = `${SITE_BASE}${outDir}/`;
+      if (!versions.lines.some((l) => l.path === path)) problems.push(`versions.json lists no entry at ${path}`);
+    }
   }
   if (!existsSync(join(out, BANNER_FILE))) problems.push(`${BANNER_FILE} is missing at the root`);
   for (const { outDir } of plan.archives) {
@@ -144,9 +156,19 @@ export const checkSite = ({ out, plan }) => {
 };
 
 // --- the real archive build: a git worktree at the tag -----------------------------------------
-const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, stdio: 'inherit' });
+const execRun = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, stdio: 'inherit' });
 
-const gitBuildArchive = (root) => (archive, dest) => {
+// Cleanup runs in `finally`, so it must never replace the build's own error.
+const quietly = (label, fn) => {
+  try {
+    fn();
+  } catch (error) {
+    console.error(`${label}: ${error.message}`);
+  }
+};
+
+/** Builds one archive in a temporary git worktree at its tag. `run(cmd, args, cwd)` is injectable for tests. */
+export const gitBuildArchive = (root, run = execRun) => (archive, dest) => {
   const work = mkdtempSync(join(tmpdir(), `bit-archive-${archive.tag}-`));
   try {
     run('git', ['worktree', 'add', '--detach', work, archive.tag], root);
@@ -159,13 +181,9 @@ const gitBuildArchive = (root) => (archive, dest) => {
       work,
     );
   } finally {
-    try {
-      run('git', ['worktree', 'remove', '--force', work], root);
-    } catch (error) {
-      console.error(`could not remove the worktree ${work}: ${error.message}`);
-    }
-    rmSync(work, { recursive: true, force: true });
-    run('git', ['worktree', 'prune'], root);
+    quietly(`could not remove the worktree ${work}`, () => run('git', ['worktree', 'remove', '--force', work], root));
+    quietly(`could not delete ${work}`, () => rmSync(work, { recursive: true, force: true }));
+    quietly('could not prune worktrees', () => run('git', ['worktree', 'prune'], root));
   }
 };
 

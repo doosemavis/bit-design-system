@@ -7,12 +7,19 @@ import { urlForLine, VersionSelect } from './VersionSelect';
 
 const CURRENT = lineOf(__BIT_VERSION__);
 const entry = (line: string, version: string, path: string) => ({ line, version, date: '2026-10-04', path, react: '19.2.0', reactDom: '19.2.0' });
-const TWO = {
-  latest: '0.2.0',
-  lines: [entry('0.2', '0.2.0', '/bit-design-system/'), entry('0.1', '0.1.3', '/bit-design-system/v0.1/')],
-};
-const ONE = { latest: '0.1.0', lines: [entry('0.1', '0.1.0', '/bit-design-system/')] };
+const ROOT = '/bit-design-system/';
+const V01 = '/bit-design-system/v0.1/';
+const TWO = { latest: '0.2', lines: [entry('0.2', '0.2.0', ROOT), entry('0.1', '0.1.3', V01)] };
+const ONE = { latest: '0.1', lines: [entry('0.1', '0.1.0', ROOT)] };
+// The PR dry-run's --as-older file: the same line twice, told apart only by path.
+const AS_OLDER = { latest: '0.1', lines: [entry('0.1', '0.1.0', ROOT), entry('0.1', '0.1.0', V01)] };
 const ok = (body: unknown) => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
+/** Serves the page from `pathname` (jsdom's own is '/', outside the site, which counts as the root). */
+const at = (pathname: string, hash = '') => {
+  const assign = vi.fn();
+  vi.stubGlobal('location', { ...window.location, pathname, hash, assign });
+  return assign;
+};
 
 describe('urlForLine', () => {
   it('keeps the hash route', () => expect(urlForLine('/bit-design-system/v0.1/', '#/release-notes')).toBe('/bit-design-system/v0.1/#/release-notes'));
@@ -29,25 +36,49 @@ describe('VersionSelect', () => {
     vi.unstubAllEnvs();
   });
 
-  it('lists one option per line and selects the current line', async () => {
+  it('lists one option per entry, valued by path, and selects this copy (the root here)', async () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
     render(<VersionSelect />);
     const select = screen.getByLabelText('Version');
     await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(2));
-    expect(screen.getByRole('option', { name: '0.2 (latest) · 0.2.0' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: '0.1 · 0.1.3' })).toBeInTheDocument();
-    expect(select).toHaveValue(CURRENT);
+    expect(screen.getByRole('option', { name: '0.2 (latest) · 0.2.0' })).toHaveValue(ROOT);
+    expect(screen.getByRole('option', { name: '0.1 · 0.1.3' })).toHaveValue(V01);
+    expect(select).toHaveValue(ROOT);
     expect(select).toBeEnabled();
   });
 
-  it('goes to the chosen line, keeping the hash route', async () => {
+  it('selects the archived copy it is served from', async () => {
+    at(`${V01}index.html`);
     vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
-    const assign = vi.fn();
-    vi.stubGlobal('location', { ...window.location, hash: '#/release-notes', assign });
     render(<VersionSelect />);
     await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(2));
-    await userEvent.selectOptions(screen.getByLabelText('Version'), '0.2');
-    expect(assign).toHaveBeenCalledWith('/bit-design-system/#/release-notes');
+    expect(screen.getByLabelText('Version')).toHaveValue(V01);
+  });
+
+  it('goes to the chosen copy, keeping the hash route', async () => {
+    const assign = at(ROOT, '#/release-notes');
+    vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
+    render(<VersionSelect />);
+    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(2));
+    await userEvent.selectOptions(screen.getByLabelText('Version'), V01);
+    expect(assign).toHaveBeenCalledWith('/bit-design-system/v0.1/#/release-notes');
+  });
+
+  it('tells two entries on one line apart by path (the as-older rehearsal)', async () => {
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const assign = at(ROOT, '#/versions');
+    vi.stubGlobal('fetch', vi.fn(() => ok(AS_OLDER)));
+    render(<VersionSelect />);
+    const select = screen.getByLabelText('Version');
+    await waitFor(() => expect(select).toBeEnabled());
+    expect(screen.getAllByRole('option').map((o) => [o.textContent, (o as HTMLOptionElement).value])).toEqual([
+      ['0.1 (latest) · 0.1.0', ROOT],
+      ['0.1 · 0.1.0', V01],
+    ]);
+    await userEvent.selectOptions(select, V01);
+    expect(assign).toHaveBeenCalledWith('/bit-design-system/v0.1/#/versions');
+    expect(errors).not.toHaveBeenCalled();
+    errors.mockRestore();
   });
 
   it('is disabled with a title when there is one line', async () => {
@@ -64,7 +95,8 @@ describe('VersionSelect', () => {
     render(<VersionSelect />);
     expect(screen.getByLabelText('Version')).toBeDisabled();
     expect(screen.getAllByRole('option')).toHaveLength(1);
-    expect(screen.getByRole('option')).toHaveValue(CURRENT);
+    expect(screen.getByRole('option')).toHaveValue(ROOT);
+    expect(screen.getByRole('option')).toHaveTextContent(`${CURRENT} · ${__BIT_VERSION__}`);
   });
 
   it('shows dev (unreleased) when unavailable in dev', async () => {
@@ -84,11 +116,13 @@ describe('VersionSelect', () => {
     expect(screen.getByRole('option', { name: `${CURRENT} · ${__BIT_VERSION__}` })).toBeInTheDocument();
   });
 
-  it('adds the current build when the file does not list its line', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => ok({ latest: '0.9.0', lines: [entry('0.9', '0.9.0', '/bit-design-system/')] })));
+  it('adds this copy when the file does not list its path', async () => {
+    at('/bit-design-system/v0.0/');
+    vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
     render(<VersionSelect />);
-    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(2));
-    expect(screen.getByLabelText('Version')).toHaveValue(CURRENT);
+    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(3));
+    expect(screen.getByRole('option', { name: `${CURRENT} · ${__BIT_VERSION__}` })).toHaveValue('/bit-design-system/v0.0/');
+    expect(screen.getByLabelText('Version')).toHaveValue('/bit-design-system/v0.0/');
   });
 
   it('marks the document once mounted', () => {

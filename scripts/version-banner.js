@@ -18,7 +18,8 @@
   var BANNER_ID = 'bit-version-banner';
   var SELECT_ID = 'bit-version-banner-select';
   // Only the site root or one v<line>/ folder below it: never another origin or a javascript: URL.
-  var SAFE_PATH = /^\/bit-design-system\/(v\d+(\.\d+)?\/)?$/;
+  // The same pattern as the gallery's isVersionsFile (apps/gallery/src/content/versionLines.mjs).
+  var SAFE_PATH = /^\/bit-design-system\/(v[0-9][0-9.]*\/)?$/;
   var LINE = /^\d+(\.\d+)?$/;
   var VERSION = /^\d+\.\d+\.\d+$/;
 
@@ -45,7 +46,7 @@
   // The copy this page belongs to: the site root, or the v<line>/ folder right below it.
   function ownPathOf(pathname) {
     if (typeof pathname !== 'string' || pathname.indexOf(SITE_BASE) !== 0) return null;
-    var match = /^v\d+(\.\d+)?\//.exec(pathname.slice(SITE_BASE.length));
+    var match = /^v[0-9][0-9.]*\//.exec(pathname.slice(SITE_BASE.length));
     return SITE_BASE + (match ? match[0] : '');
   }
 
@@ -74,7 +75,7 @@
     select.id = SELECT_ID;
     var listed = false;
     data.lines.forEach(function (entry) {
-      var latest = entry.line === data.latest && entry.path === SITE_BASE;
+      var latest = entry.path === SITE_BASE;
       var option = el(doc, 'option', '', entry.line + (latest ? ' (latest)' : '') + ' · ' + entry.version);
       option.value = entry.path;
       if (entry.path === ownPath) listed = true;
@@ -109,9 +110,9 @@
       var ownPath = ownPathOf(location.pathname);
       if (!ownPath) return null;
       var data = parseVersions(opts.versions);
-      var latest = data && find(data.lines, function (l) { return l.line === data.latest; });
-      var latestPath = latest ? latest.path : SITE_BASE;
-      if (ownPath === latestPath) return null;
+      // The latest copy is always the root; two entries can share the latest line (the as-older rehearsal).
+      if (ownPath === SITE_BASE) return null;
+      var latestPath = SITE_BASE;
       var own = data && find(data.lines, function (l) { return l.path === ownPath; });
       var ownLine = ownPath.slice(SITE_BASE.length + 1, -1) || '?';
       var name = 'v' + (own ? own.version : ownLine);
@@ -166,7 +167,7 @@
     }
   }
 
-  var api = { SITE_BASE: SITE_BASE, parseVersions: parseVersions, renderBanner: renderBanner, boot: boot };
+  var api = { SITE_BASE: SITE_BASE, ownPathOf: ownPathOf, parseVersions: parseVersions, renderBanner: renderBanner, boot: boot };
   if (typeof module === 'object' && module && module.exports) module.exports = api;
   else if (root && root.document) boot(root);
 })(typeof window !== 'undefined' ? window : undefined);

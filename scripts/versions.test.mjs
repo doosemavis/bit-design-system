@@ -61,6 +61,17 @@ test('asOlder on the latest line gives the latest at the root and the older at v
   ]);
 });
 
+test('asOlder is deduped by path only: the same version as the root still gets its v<line>/ copy', () => {
+  // The docs-only state: package.json and the newest tag are both 0.1.0. The PR rehearsal archives
+  // v0.1.0 at v0.1/, so versions.json must list that copy for the picker to reach it.
+  const file = buildVersionsFile({ tags: ['v0.1.0'], current: '0.1.0', readPackageJson, changelogDates: {}, asOlder: 'v0.1.0' });
+  assert.equal(file.latest, '0.1');
+  assert.deepEqual(file.lines.map((l) => [l.line, l.version, l.path]), [
+    ['0.1', '0.1.0', '/bit-design-system/'],
+    ['0.1', '0.1.0', '/bit-design-system/v0.1/'],
+  ]);
+});
+
 test('a non-release asOlder throws a clear error', () =>
   assert.throws(
     () => buildVersionsFile({ tags: ['v0.1.0'], readPackageJson, changelogDates: {}, asOlder: 'v1.0.0-rc.1' }),

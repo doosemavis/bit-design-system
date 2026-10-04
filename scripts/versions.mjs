@@ -31,11 +31,12 @@ export const buildVersionsFile = ({ tags, current, readPackageJson, changelogDat
   if (asOlder !== undefined) {
     const older = asOlder.replace(/^v/, '');
     if (!isRelease(older)) throw new Error(`--as-older: not a release tag "${asOlder}"`);
-    // asOlder only exists to exercise archiving when no real older line does: a real entry
-    // that already owns this path (or version) wins and the extra entry is skipped.
+    // asOlder only exists to exercise archiving when no real older line does (production never
+    // passes it): a real entry that already owns this path wins and the extra entry is skipped.
+    // Deduped by path only, so the same version as the root still gets its v<line>/ copy.
     // latestLine '' makes the path v<line>/ even when it shares the latest's line.
     const extra = entryFor({ line: lineOf(older), version: older }, { ...ctx, latestLine: '' });
-    if (!lines.some((l) => l.version === older || l.path === extra.path)) lines.push(extra);
+    if (!lines.some((l) => l.path === extra.path)) lines.push(extra);
   }
   return { latest: latestLine, lines };
 };

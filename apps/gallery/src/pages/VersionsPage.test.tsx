@@ -17,10 +17,16 @@ vi.mock('../content/changelog', () => ({
 
 const entry = (line: string, version: string, react: string) => ({ line, version, date: '2026-10-04', path: line === '0.3' ? '/bit-design-system/' : `/bit-design-system/v${line}/`, react, reactDom: react });
 const ok = (body: unknown) => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
-const FILE = { latest: '0.3.0', lines: [entry('0.3', '0.3.0', '^19.1.0'), entry('0.2', '0.2.0', '^19.0.0'), entry('0.1', '0.1.0', '^18.3.0')] };
+const FILE = { latest: '0.3', lines: [entry('0.3', '0.3.0', '^19.1.0'), entry('0.2', '0.2.0', '^19.0.0'), entry('0.1', '0.1.0', '^18.3.0')] };
+
+/** Serves the page from `pathname` (jsdom's own '/' is outside the site, which counts as the root). */
+const at = (pathname: string) => vi.stubGlobal('location', { ...window.location, pathname, hash: '' });
 
 describe('VersionsPage', () => {
-  beforeEach(() => resetVersionsCache());
+  beforeEach(() => {
+    resetVersionsCache();
+    at('/bit-design-system/v0.1/');
+  });
   afterEach(() => vi.unstubAllGlobals());
 
   it('lists one row per line in a table named Versions, with Latest and Viewing badges', async () => {
@@ -35,6 +41,26 @@ describe('VersionsPage', () => {
     expect(within(rows[0]!).queryByText('Viewing')).toBeNull();
     expect(within(rows[2]!).getByText('Viewing')).toHaveClass('bit-badge');
     expect(within(rows[2]!).getByText('^18.3.0', { selector: 'td:nth-child(2) *' })).toBeInTheDocument();
+  });
+
+  it('keys rows by path: two entries on one line are two rows, and only the root one is Latest', async () => {
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const asOlder = {
+      latest: '0.1',
+      lines: [
+        { ...entry('0.1', '0.1.0', '^19.0.0'), path: '/bit-design-system/' },
+        { ...entry('0.1', '0.1.0', '^19.0.0'), path: '/bit-design-system/v0.1/' },
+      ],
+    };
+    vi.stubGlobal('fetch', vi.fn(() => ok(asOlder)));
+    render(<VersionsPage />);
+    await waitFor(() => expect(screen.getAllByText('v0.1.0')).toHaveLength(2));
+    const rows = screen.getAllByRole('row').slice(1);
+    expect(within(rows[0]!).getByText('Latest')).toBeInTheDocument();
+    expect(within(rows[1]!).queryByText('Latest')).toBeNull();
+    expect(within(rows[1]!).getByText('Viewing')).toBeInTheDocument();
+    expect(errors).not.toHaveBeenCalled();
+    errors.mockRestore();
   });
 
   it('shows a warning outline Alert for each newer release with Breaking, not older ones', async () => {
@@ -64,7 +90,10 @@ describe('VersionsPage', () => {
 });
 
 describe('VersionsPage route', () => {
-  beforeEach(() => resetVersionsCache());
+  beforeEach(() => {
+    resetVersionsCache();
+    at('/bit-design-system/v0.1/');
+  });
   afterEach(() => vi.unstubAllGlobals());
   it('has the Start here eyebrow and no axe violations', async () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(FILE)));

@@ -10,7 +10,8 @@ describe('a pre-release build', () => {
     renderAt('/');
     const header = await screen.findByRole('banner');
     const picker = within(header).getByLabelText('Version');
-    expect(picker).toHaveValue('1.0.0-rc.1');
+    // Options are valued by path (this copy's, the root here), so a raw version never breaks the value.
+    expect(picker).toHaveValue('/bit-design-system/');
     expect(screen.queryByText(/You're viewing the docs/)).toBeNull();
   });
 });

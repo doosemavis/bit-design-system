@@ -1,6 +1,6 @@
 import { Alert, Badge, Heading, Stack, Table, TableBody, TableCell, TableHead, TableRow, Text } from '@bit-ds/react';
 import { RELEASES } from '../content/changelog';
-import { compareLines, isRelease, lineOf } from '../content/versionLines.mjs';
+import { compareLines, isRelease, lineOf, SITE_BASE } from '../content/versionLines.mjs';
 import { BUILD_VERSION } from '../buildVersion';
 import { useVersions } from '../shell/useVersions';
 import { ChangeList } from '../ui/ChangeList';
@@ -8,6 +8,7 @@ import { PageHeader } from '../ui/PageHeader';
 import pkg from '../../../../packages/react/package.json';
 
 interface Row {
+  path: string;
   line: string;
   version: string;
   react: string;
@@ -25,22 +26,24 @@ function newerBreaking(currentLine: string) {
 }
 
 export function VersionsPage() {
-  const { status, file, currentLine } = useVersions();
+  const { status, file, currentLine, ownPath } = useVersions();
 
+  // Rows are told apart by path: the as-older rehearsal lists one line twice.
   const rows: Row[] =
     status === 'ready' && file
       ? file.lines.map((entry) => ({
+          path: entry.path,
           line: entry.line,
           version: entry.version,
           react: entry.react,
           reactDom: entry.reactDom,
-          latest: entry.line === lineOf(file.latest),
-          viewing: entry.line === currentLine,
+          latest: entry.path === SITE_BASE,
+          viewing: entry.path === ownPath,
         }))
       : // Unavailable (or still loading): the one build we know, with the peers this package declares.
-        [{ line: currentLine, version: BUILD_VERSION, react: pkg.peerDependencies.react, reactDom: pkg.peerDependencies['react-dom'], latest: false, viewing: true }];
+        [{ path: ownPath, line: currentLine, version: BUILD_VERSION, react: pkg.peerDependencies.react, reactDom: pkg.peerDependencies['react-dom'], latest: false, viewing: true }];
 
-  const latestLine = status === 'ready' && file ? lineOf(file.latest) : null;
+  const latestLine = status === 'ready' && file ? file.latest : null;
   const olderThanLatest = latestLine !== null && compareLines(currentLine, latestLine) < 0;
   const breaking = olderThanLatest ? newerBreaking(currentLine) : [];
 
@@ -60,7 +63,7 @@ export function VersionsPage() {
         </TableHead>
         <TableBody>
           {rows.map((row) => (
-            <TableRow key={row.line}>
+            <TableRow key={row.path}>
               <TableCell>
                 <Text weight="bold">{`v${row.version}`}</Text>
               </TableCell>

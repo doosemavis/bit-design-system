@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { BANNER_TAG, assembleSite, cacheKey, checkSite, injectBanner, planSite } from './build-versioned-site.mjs';
+import { BANNER_TAG, assembleSite, cacheKey, checkSite, gitBuildArchive, injectBanner, planSite } from './build-versioned-site.mjs';
 
 // --- planSite ---------------------------------------------------------------------------------
 test('planSite: one tag on the current line gives no archives', () =>
@@ -45,15 +45,23 @@ test('planSite: asOlder must be an existing release tag', () => {
   assert.throws(() => planSite({ tags: ['v0.1.0'], currentVersion: '0.1.0', asOlder: 'v0.0.9' }), /no tag "v0\.0\.9"/);
 });
 
+test('planSite: a stale checkout, behind the newest tag line, throws', () =>
+  assert.throws(() => planSite({ tags: ['v0.1.0', 'v0.2.0'], currentVersion: '0.1.0' }), /stale checkout.*0\.1\.0.*0\.2/));
+
+test('planSite: an older patch on the newest line is not stale', () =>
+  assert.deepEqual(planSite({ tags: ['v0.1.0', 'v0.1.1'], currentVersion: '0.1.0' }), { latestLine: '0.1', archives: [] }));
+
 test('planSite: no release at all throws', () => assert.throws(() => planSite({ tags: [], currentVersion: '' }), /no release/));
 
-test('cacheKey names the archive tags, or none', () => {
-  assert.equal(cacheKey({ archives: [] }), 'site-archives-none');
-  assert.equal(cacheKey({ archives: [{ tag: 'v1.2.3' }, { tag: 'v0.9.4' }] }), 'site-archives-v1.2.3_v0.9.4');
+test('cacheKey names the recipe version and the archive tags, or none', () => {
+  assert.equal(cacheKey({ archives: [] }), 'site-archives-v1-none');
+  assert.equal(cacheKey({ archives: [{ tag: 'v1.2.3' }, { tag: 'v0.9.4' }] }), 'site-archives-v1-v1.2.3_v0.9.4');
 });
 
 // --- injectBanner -----------------------------------------------------------------------------
 const HTML = '<!doctype html><html><head><title>x</title></head><body></body></html>';
+// The current gallery marks <html> as having its own picker; 0.1.0's archive does not.
+const ROOT_HTML = '<!doctype html><html lang="en" data-bit-version-picker><head><title>x</title></head><body></body></html>';
 
 test('injectBanner: adds the deferred banner script once, before </head>', () => {
   assert.equal(BANNER_TAG, '<script src="/bit-design-system/version-banner.js" defer></script>');
@@ -73,14 +81,17 @@ const write = (file, text) => {
 };
 const VERSIONS = {
   latest: '0.1',
-  lines: [{ line: '0.1', version: '0.1.0', date: '', path: '/bit-design-system/', react: '^19.0.0', reactDom: '^19.0.0' }],
+  lines: [
+    { line: '0.1', version: '0.1.0', date: '', path: '/bit-design-system/', react: '^19.0.0', reactDom: '^19.0.0' },
+    { line: '0.1', version: '0.1.0', date: '', path: '/bit-design-system/v0.1/', react: '^19.0.0', reactDom: '^19.0.0' },
+  ],
 };
 const PLAN = { latestLine: '0.1', archives: [{ line: '0.1', tag: 'v0.1.0', outDir: 'v0.1' }] };
 
 const fixture = () => {
   const dir = mkdtempSync(join(tmpdir(), 'bit-site-test-'));
   const currentDist = join(dir, 'dist');
-  write(join(currentDist, 'index.html'), HTML);
+  write(join(currentDist, 'index.html'), ROOT_HTML);
   write(join(currentDist, 'assets', 'a.js'), 'current');
   const bannerSource = join(dir, 'version-banner.js');
   write(bannerSource, '/* banner */');
@@ -159,13 +170,23 @@ test(
   'checkSite: reports a missing archive, a bad versions.json, a banner in the root and no banner script',
   withFixture((f) => {
     write(join(f.out, 'index.html'), injectBanner(HTML));
-    write(join(f.out, 'versions.json'), '{"latest": 1}');
+    // The drift the review caught: a version where the gallery expects a line.
+    write(join(f.out, 'versions.json'), JSON.stringify({ ...VERSIONS, latest: '0.1.0' }));
     const problems = checkSite({ out: f.out, plan: PLAN });
     const has = (re) => assert.ok(problems.some((p) => re.test(p)), `${re}\n${problems.join('\n')}`);
     has(/v0\.1\/index\.html is missing/);
     has(/versions\.json/);
     has(/root index\.html has the banner/);
     has(/version-banner\.js is missing/);
+    has(/root index\.html has no data-bit-version-picker/);
+  }),
+);
+
+test(
+  'checkSite: a versions.json that lists no copy at an archived folder is reported',
+  withFixture((f) => {
+    assembleSite({ ...f, plan: PLAN, versionsFile: { latest: '0.1', lines: [VERSIONS.lines[0]] } });
+    assert.deepEqual(checkSite({ out: f.out, plan: PLAN }), ['versions.json lists no entry at /bit-design-system/v0.1/']);
   }),
 );
 
@@ -177,3 +198,23 @@ test(
     assert.deepEqual(checkSite({ out: f.out, plan: PLAN }), ['v0.1/index.html has no banner script']);
   }),
 );
+
+// --- gitBuildArchive: the worktree is always cleaned up, and cleanup never hides the real error --
+test('gitBuildArchive: a failed build throws its own error even when worktree cleanup also fails', () => {
+  const calls = [];
+  const run = (cmd, args) => {
+    calls.push(`${cmd} ${args.join(' ')}`);
+    if (args.includes('vite')) throw new Error('vite build failed');
+    if (args[0] === 'worktree' && args[1] !== 'add') throw new Error(`git ${args[1]} failed`);
+  };
+  const dest = mkdtempSync(join(tmpdir(), 'bit-archive-dest-'));
+  try {
+    assert.throws(() => gitBuildArchive('/repo', run)({ tag: 'v0.1.0', outDir: 'v0.1' }, dest), /vite build failed/);
+    assert.ok(calls.some((c) => c.startsWith('git worktree remove')), 'removes the worktree');
+    assert.ok(calls.some((c) => c === 'git worktree prune'), 'prunes');
+    const vite = calls.find((c) => c.includes('vite build'));
+    assert.match(vite, /--base \/bit-design-system\/v0\.1\/ --outDir /);
+  } finally {
+    rmSync(dest, { recursive: true, force: true });
+  }
+});
