@@ -13,7 +13,7 @@ describe('__BIT_VERSION__', () => {
     expect(__BIT_VERSION__).toBe(pkg.version);
   });
 
-  it('is a semver version (0.0.0 until PR3c sets the release)', () => {
+  it('is a semver version', () => {
     expect(__BIT_VERSION__).toMatch(/^\d+\.\d+\.\d+/);
   });
 });
