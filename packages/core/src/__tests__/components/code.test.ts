@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { block, readCss } from '../css';
+import { block, decl, readCss } from '../css';
 
 describe('components/code.css', () => {
   const css = readCss('components/code.css');
@@ -13,8 +13,8 @@ describe('components/code.css', () => {
       'font-variant-ligatures: none;',
       'padding: 1px 6px;',
       'border-radius: var(--bit-radius-6px);',
-      'background: var(--bit-color-neutral-soft);',
-      'color: var(--bit-color-text);',
+      'background: var(--bit-code-bg);',
+      'color: var(--bit-code-text);',
     ]) {
       expect(root).toContain(line);
     }
@@ -34,7 +34,16 @@ describe('components/code.css', () => {
     const lines = block(css, '.bit-code')!.split('\n').map((l) => l.trim()).filter((l) => l.endsWith(';'));
     expect(lines).toContain('padding: 1px 6px;');
     expect(lines).toContain('border: 2px solid var(--bit-color-accent);');
-    expect(lines).toContain('background: var(--bit-color-neutral-soft);');
-    expect(lines).toContain('color: var(--bit-color-text);');
+    expect(lines).toContain('background: var(--bit-code-bg);');
+    expect(lines).toContain('color: var(--bit-code-text);');
+  });
+
+  it('the pill reads the same background token as the CodeBlock panel, so they cannot drift', () => {
+    const panel = block(readCss('components/code-block.css'), '.bit-code__block')!;
+    const panelBg = decl(panel, 'background');
+    const pillBg = decl(block(css, '.bit-code')!, 'background');
+    expect(panelBg).toBe('var(--bit-code-bg)');
+    expect(pillBg).toBe(panelBg);
+    expect(decl(block(css, '.bit-code')!, 'color')).toBe(decl(panel, 'color'));
   });
 });

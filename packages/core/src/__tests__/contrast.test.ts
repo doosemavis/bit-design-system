@@ -30,6 +30,10 @@ describe.each(MODES)('%s contrast', (_name, map) => {
     }
   });
 
+  it('inline Code text is readable on the code background', () => {
+    expect(contrastRatio(resolveColor('--bit-code-text'), resolveColor('--bit-code-bg'))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
   it('focus: the ring stands out from the page and from surfaces', () => {
     for (const bg of ['--bit-color-bg', '--bit-color-surface']) {
       expect(contrastRatio(resolveColor('--bit-focus-ring-color'), resolveColor(bg)), bg).toBeGreaterThanOrEqual(AA_NON_TEXT);
