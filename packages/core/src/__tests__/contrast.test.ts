@@ -151,3 +151,22 @@ describe('PR2 light values (spec §2)', () => {
     expect(resolveVar(light, '--bit-color-stripe')).toBe('#DCDED6');
   });
 });
+
+describe('code-text (Code inside a Table)', () => {
+  const { light, dark } = themeModes(readCss('themes/power-up.css'));
+  const modes: [string, Map<string, string>, string][] = [
+    ['light', light, '#6527D4'],
+    ['dark', new Map([...light, ...dark]), '#FFC800'],
+  ];
+
+  it.each(modes)('%s --bit-color-code-text resolves to its hex', (_mode, map, hex) => {
+    expect(resolveVar(map, '--bit-color-code-text')).toBe(hex);
+  });
+
+  it.each(modes)('%s --bit-color-code-text is readable on surface, page and stripe', (_mode, map) => {
+    const text = resolveVar(map, '--bit-color-code-text');
+    for (const bg of ['--bit-color-surface', '--bit-color-bg', '--bit-color-stripe']) {
+      expect(contrastRatio(text, resolveVar(map, bg))).toBeGreaterThanOrEqual(AA_TEXT);
+    }
+  });
+});

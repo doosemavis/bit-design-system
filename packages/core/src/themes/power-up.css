@@ -65,6 +65,7 @@
   --bit-color-accent: var(--bit-palette-violet);
   --bit-color-link: var(--bit-palette-violet);
   --bit-color-link-visited: #5B2BB5;
+  --bit-color-code-text: var(--bit-palette-violet-dark);
   /* The spec's var(--bit-color-danger) (#D91A1A) is 4.41:1 on the page; #D61A1A is the nearest red that passes (4.51:1). */
   --bit-color-danger-text: #D61A1A;
   --bit-color-knob: var(--bit-palette-white);
@@ -200,4 +201,5 @@
   /* The spec's #9B7FE6 is 4.45:1 on the hover highlight (primary-soft); #9D82E7 is the nearest that passes (4.59:1). */
   --bit-color-link-visited: #9D82E7;
   --bit-color-danger-text: #FF8A8A;
+  --bit-color-code-text: var(--bit-palette-yellow);
 }

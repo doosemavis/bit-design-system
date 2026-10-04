@@ -12,3 +12,12 @@
   border: 2px solid var(--bit-color-accent);
   border-radius: var(--bit-radius-6px);
 }
+
+/* Inside a Table, Code is plain mono text in the code-text colour: rows of values read
+   better without a pill on each one. In running text the pill stays. */
+.bit-table .bit-code {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--bit-color-code-text);
+}

@@ -15,6 +15,7 @@ export const code: Manifest = {
       do: [
         'Use Code for a prop, a value or a file name inside a sentence: color="danger".',
         'Keep it to a few words.',
+        'Inside a Table, Code shows as plain colored mono text, without the pill; in running text it keeps the pill.',
       ],
       dont: [
         'Use Code for more than one line. Use CodeBlock.',
