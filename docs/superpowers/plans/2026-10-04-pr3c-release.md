@@ -177,7 +177,7 @@ export declare function fullFile(parts: { importLine: string; element: string })
   - `packages/react/scripts/prepack.mjs` copies the repo-root `README.md` and `LICENSE` into `packages/react/`.
   - Add `"prepack": "node scripts/prepack.mjs"` to the package's scripts.
   - Add `packages/react/README.md` and `packages/react/LICENSE` to `.gitignore`. Check first that `packages/react/README.md` isn't tracked today; if it is, report it and keep it tracked.
-  - Check with `cd packages/react && npm pack --dry-run`. The listing must be exactly `dist/**`, `package.json`, `README.md` and `LICENSE`. Paste the listing in the report.
+  - Check with `cd packages/react && npm pack --dry-run`. This is a listing check only: the published tarball comes from `pnpm --dir packages/react pack`. The listing must be exactly `dist/**`, `package.json`, `README.md` and `LICENSE`. Paste the listing in the report.
 - [ ] **Step 5: Update the version tests.** Run `grep -rn "0\.0\.0" apps/gallery/src` and update the tests that pin the Home badge version to `v0.1.0`. Leave unrelated matches alone.
 - [ ] **Step 6: Gate.** Run every ci.yml step. Expected: green.
 - [ ] **Step 7: Commit.** `feat(react): 0.1.0 package metadata for the first publish`
@@ -258,10 +258,10 @@ export declare function fullFile(parts: { importLine: string; element: string })
     assert.equal(calls, 6);
   });
   ```
-- [ ] **Step 2: Run them and check they fail.** Run `node --test scripts/`. Expected: they fail because the module is not found.
+- [ ] **Step 2: Run them and check they fail.** Run `node --test 'scripts/*.test.mjs'`. Expected: they fail because the module is not found.
 - [ ] **Step 3: Implement the helpers and the CLI.** Run the CLI only when `import.meta.url === pathToFileURL(process.argv[1]).href`. Errors print a one-line message to stderr and exit 1.
 - [ ] **Step 4: Run the tests and check the CLI by hand.**
-  - `node --test scripts/` must be green.
+  - `node --test 'scripts/*.test.mjs'` must be green.
   - `node scripts/release-steps.mjs check-tag v0.1.0` must exit 0. This needs Task 3's 0.1.0; if it isn't merged on the branch yet, report that.
   - `node scripts/release-steps.mjs check-tag v9.9.9` must exit 1 with the message.
   - `node scripts/release-steps.mjs should-publish` must print `true`, because the package isn't published yet.
@@ -276,7 +276,7 @@ export declare function fullFile(parts: { importLine: string; element: string })
 - Modify: `.github/workflows/ci.yml`
 - Create:
   - `.github/workflows/release.yml`
-  - `scripts/workflows.test.mjs` (run by `node --test scripts/`)
+  - `scripts/workflows.test.mjs` (run by `node --test 'scripts/*.test.mjs'`)
 - Modify: root `package.json` (add a `yaml` devDependency only if `actionlint` isn't installed)
 
 **Interfaces (consumed):**
@@ -286,7 +286,7 @@ export declare function fullFile(parts: { importLine: string; element: string })
 
 - [ ] **Step 1: Write the failing structure test** in `scripts/workflows.test.mjs`. Parse both files with `yaml`, and assert:
   - **ci.yml:**
-    - job `ci` has a step running `node --test scripts/`
+    - job `ci` has a step running `node --test 'scripts/*.test.mjs'`
     - no step mentions `storybook`
     - job `e2e` exists with `needs: ci`, and has steps that install Chromium and run `pnpm e2e`
   - **release.yml:**
@@ -298,26 +298,26 @@ export declare function fullFile(parts: { importLine: string; element: string })
     - `publish` has a `verify-install` step with `if: always()`, or one that runs after publish is skipped
     - `deploy.needs` is `publish`, and `deploy.environment.name` is `github-pages`
     - no step runs `npm publish` without `--dry-run` outside `publish`
-- [ ] **Step 2: Run it and check it fails.** Run `node --test scripts/`.
+- [ ] **Step 2: Run it and check it fails.** Run `node --test 'scripts/*.test.mjs'`.
 - [ ] **Step 3: Write `release.yml`** per §7. Copy the pnpm and node setup exactly from today's ci.yml (`pnpm/action-setup` version, `cache: pnpm`).
   - The `publish` job:
     - sets `registry-url: https://registry.npmjs.org` on setup-node
     - runs `npm i -g npm@^11.5.1`
-    - packs with `pnpm --filter @bit-ds/react pack --pack-destination "$RUNNER_TEMP/out"`
-    - runs `pnpm smoke:full`
+    - packs with `pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"` in a step with `id: pack` that resolves exactly one tarball and outputs it as `tgz`
+    - runs `pnpm smoke:full` with `env: SMOKE_TARBALL: ${{ steps.pack.outputs.tgz }}`
     - has an `id: decide` step running `should-publish`
-    - publishes with `if: steps.decide.outputs.publish == 'true'`, using `npm publish "$RUNNER_TEMP"/out/*.tgz --provenance --access public` and `env: NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}`
+    - publishes with `if: steps.decide.outputs.publish == 'true'`, using `npm publish "${{ steps.pack.outputs.tgz }}" --provenance --access public` and `env: NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}`
     - runs `verify-install "${GITHUB_REF_NAME#v}"`
   - The `deploy` job uses `actions/configure-pages@v5`, `actions/upload-pages-artifact@v3` with `path: apps/gallery/dist`, and `actions/deploy-pages@v4`, with `environment: { name: github-pages, url: ${{ steps.deployment.outputs.page_url }} }`.
 - [ ] **Step 4: Edit `ci.yml`.**
-  - Add `- run: node --test scripts/` after the gallery tests.
+  - Add `- run: node --test 'scripts/*.test.mjs'` after the gallery tests.
   - Add the `e2e` job per §7:
     - cache `~/.cache/ms-playwright`, keyed on the `@playwright/test` version from the lockfile
     - `pnpm --filter @bit-ds/gallery exec playwright install --with-deps chromium`
     - `pnpm e2e`
     - `actions/upload-artifact@v4` of `apps/gallery/playwright-report` with `if: failure()`
-- [ ] **Step 5: Run the test, and actionlint if you have it.** `node --test scripts/` must be green. If `actionlint` is on PATH, run `actionlint` and paste its output. If not, say so.
-- [ ] **Step 6: Gate.** Run every ci.yml step, including the new `node --test scripts/`. Also run `pnpm e2e` after stopping port 4173. Expected: green, with e2e 52/52.
+- [ ] **Step 5: Run the test, and actionlint if you have it.** `node --test 'scripts/*.test.mjs'` must be green. If `actionlint` is on PATH, run `actionlint` and paste its output. If not, say so.
+- [ ] **Step 6: Gate.** Run every ci.yml step, including the new `node --test 'scripts/*.test.mjs'`. Also run `pnpm e2e` after stopping port 4173. Expected: green, with e2e 52/52.
 - [ ] **Step 7: Commit.** `ci: release.yml (dry-run, guard, publish, deploy) and an e2e job in CI`
 
 ---
@@ -361,6 +361,6 @@ export declare function fullFile(parts: { importLine: string; element: string })
 ### Task 8: Final verification (controller)
 
 - [ ] Run every ci.yml step locally, plus `pnpm e2e` and `pnpm smoke:full`.
-- [ ] Run `cd packages/react && npm pack --dry-run`. The listing must be only `dist/**`, `package.json`, `README.md` and `LICENSE`.
+- [ ] Run `cd packages/react && npm pack --dry-run` as a listing check only (the published tarball comes from `pnpm --dir packages/react pack`). The listing must be only `dist/**`, `package.json`, `README.md` and `LICENSE`.
 - [ ] Run `npm publish <tgz> --dry-run --access public` on the packed tarball.
 - [ ] Push, open the PR, and watch `ci`, `e2e` and `release / dry-run` go green.

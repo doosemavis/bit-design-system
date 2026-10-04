@@ -54,16 +54,18 @@ Releases are cut from a tag. Only admins can push `v*` tags.
 The `release.yml` workflow then runs three jobs:
 
 - `guard` checks that the tag equals `v` plus the package version, and that the commit is on `main`.
-- `publish` smoke-tests the packed tarball, then runs `npm publish` with provenance. It skips the publish when that version already exists. Then it installs the version from npm to check it, retrying 6 times, 10 seconds apart.
+- `publish` smoke-tests the packed tarball, then runs `npm publish` with provenance on that same file. It skips the publish when that version already exists. Then it installs the version from npm to check it, retrying 6 times, 10 seconds apart.
 - `deploy` publishes the gallery to https://doosemavis.github.io/bit-design-system/.
 
 If the publish worked but the check or the deploy failed, re-run the failed jobs. The publish is skipped because the version exists. Never re-tag.
 
-Before tagging, you can run `pnpm smoke:full` and `pnpm e2e` locally. Both need Chromium installed once:
+Before tagging, you can run `pnpm smoke:full` and `pnpm e2e` locally. Both need Chromium installed once. `smoke:full` uses the root `playwright` package, so install it from the repo root:
 
 ```bash
-pnpm --filter @bit-ds/gallery exec playwright install chromium
+pnpm exec playwright install chromium
 ```
+
+Keep the root `playwright` and the gallery's `@playwright/test` on the same version, so both use the same Chromium.
 
 ## Conventions
 

@@ -132,7 +132,7 @@ export async function retry(fn, { attempts = 6, delayMs = 10_000, sleep }) // ca
 
 A thin CLI calls these: `node scripts/release-steps.mjs check-tag <tag>`, `should-publish`, and `verify-install <version>`. `verify-install` scaffolds a scratch dir, runs `npm install @bit-ds/react@<version>` and imports it, using `retry`.
 
-Tests (`scripts/release-steps.test.mjs`, run with `node --test scripts/`):
+Tests (`scripts/release-steps.test.mjs`, run with `node --test 'scripts/*.test.mjs'`):
 - a tag/version mismatch throws
 - a matching tag passes
 - the version-exists case skips publishing
@@ -144,7 +144,7 @@ Tests (`scripts/release-steps.test.mjs`, run with `node --test scripts/`):
 
 ### `ci.yml`
 
-- Add `node --test scripts/`.
+- Add `node --test 'scripts/*.test.mjs'`.
 - Swap Storybook for the gallery build (§1).
 - Add a second job, `e2e`, that runs after `ci`:
   1. install
@@ -160,9 +160,9 @@ Tests (`scripts/release-steps.test.mjs`, run with `node --test scripts/`):
 - **`dry-run`:**
   1. install
   2. build
-  3. `pnpm --filter @bit-ds/react pack --pack-destination ./out`
-  4. `npm publish ./out/*.tgz --dry-run --access public`
-  5. `pnpm smoke:full`, with Chromium installed and cached
+  3. `pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"`, in a step `pack` that resolves exactly one tarball and outputs its path as `tgz`
+  4. `should-publish`, then `npm publish "${{ steps.pack.outputs.tgz }}" --dry-run --access public` only when it reports a new version. Otherwise emit a `::notice::`, because npm 11 refuses a dry-run over an existing version.
+  5. `pnpm smoke:full` on that tarball via `SMOKE_TARBALL`, with Chromium installed and cached
   6. gallery build
 - **`guard`:**
   1. Checkout with `fetch-depth: 0`.
@@ -171,11 +171,11 @@ Tests (`scripts/release-steps.test.mjs`, run with `node --test scripts/`):
 - **`publish`** (`needs: guard`, `environment: npm-publish`, permissions `contents: read` and `id-token: write`):
   1. setup-node 22, with registry-url `https://registry.npmjs.org`
   2. `npm i -g npm@^11.5.1`
-  3. install, build, pack
-  4. `smoke:full` on that tarball
+  3. install, build, pack (the `pack` step, which outputs the one tarball as `tgz`)
+  4. `smoke:full` on that tarball, via `SMOKE_TARBALL: ${{ steps.pack.outputs.tgz }}`
   5. `should-publish`
-  6. if true, `npm publish ./out/*.tgz --provenance --access public`, with `NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}`
-  7. always, `verify-install` with the version
+  6. if true, `npm publish "${{ steps.pack.outputs.tgz }}" --provenance --access public`, with `NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}`
+  7. `verify-install` with the version, when the publish step succeeded or was skipped because the version exists. It does not use `always()`, so a failed smoke, decide or publish step stops it.
 - **`deploy`** (`needs: publish`, `environment: github-pages`, permissions `pages: write` and `id-token: write`):
   1. install, build
   2. `pnpm gallery:build`
@@ -207,11 +207,21 @@ Tests (`scripts/release-steps.test.mjs`, run with `node --test scripts/`):
 
 ## Gates
 
-- Every `ci.yml` step passes locally, in order: install, scope grep, build plus verify, typecheck, lint, core tests, react coverage at 100%, gallery tests, `node --test scripts/`, `pnpm smoke`, gallery build.
+- Every `ci.yml` step passes locally, in order: install, scope grep, build plus verify, typecheck, lint, core tests, react coverage at 100%, gallery tests, `node --test 'scripts/*.test.mjs'`, `pnpm smoke`, gallery build.
 - `pnpm e2e` passes: 52/52 with zero axe violations.
 - `pnpm smoke:full` passes locally: the Vite build and Chromium check.
 - `npm publish --dry-run` on the packed tarball passes, and the tarball listing contains only `dist/`, `package.json`, `README.md` and `LICENSE`.
 - The CI and release `dry-run` checks are green on the PR.
+
+## Amendments from the build (2026-10-04)
+
+What shipped differs from the first draft of this spec in these ways. The sections above are already updated.
+
+- **Scripts tests:** `node --test 'scripts/*.test.mjs'`, not `node --test scripts/`. Node 22 reads a bare directory as a module path.
+- **Pack:** `pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"`, not `pnpm --filter @bit-ds/react pack`. pnpm 9 rejects `--filter` on pack.
+- **One tarball, smoke-tested and published:** the `pack` step resolves exactly one `.tgz` and outputs it as `tgz`. `smoke:full` tests that file through `SMOKE_TARBALL` and skips its own build and pack. The publish and the dry-run publish name that file, not a glob.
+- **Dry-run publish only for a new version:** npm 11 refuses a dry-run over a version that is already on npm, so `dry-run` runs `should-publish` first and emits a `::notice::` instead when the version exists.
+- **`verify-install` is not `always()`:** it runs when the publish step succeeded, or was skipped because the version exists.
 
 ## Out of scope
 
