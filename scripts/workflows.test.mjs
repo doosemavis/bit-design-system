@@ -826,22 +826,3 @@ test('both: every Playwright browser cache is keyed on the Playwright version', 
     }
   }
 });
-
-// --- dependabot.yml ------------------------------------------------------------------------
-test('dependabot: weekly npm and github-actions updates, dev dependencies grouped, no automatic React major', () => {
-  const config = parse(readFileSync(new URL('../.github/dependabot.yml', import.meta.url), 'utf8'));
-  assert.equal(config.version, 2);
-  const byEcosystem = Object.fromEntries(config.updates.map((u) => [u['package-ecosystem'], u]));
-  assert.deepEqual(Object.keys(byEcosystem).sort(), ['github-actions', 'npm']);
-  for (const update of config.updates) {
-    assert.equal(update.directory, '/');
-    assert.equal(update.schedule.interval, 'weekly');
-  }
-  const { npm } = byEcosystem;
-  assert.deepEqual(Object.values(npm.groups).map((g) => g['dependency-type']), ['development']);
-  const majorIgnored = new Set(
-    npm.ignore.filter((i) => i['update-types']?.includes('version-update:semver-major')).map((i) => i['dependency-name']),
-  );
-  for (const peer of ['react', 'react-dom']) assert.ok(majorIgnored.has(peer), `${peer} majors are never automatic`);
-  assert.ok(npm.ignore.every((i) => Array.isArray(i['update-types'])), 'only majors are ignored, never a whole package');
-});

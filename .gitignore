@@ -33,4 +33,5 @@ apps/gallery/public/versions.json
 *.pem
 *.key
 .vercel/
+# pnpm settings live in package.json (the "pnpm" field), so the project needs no .npmrc.
 .npmrc

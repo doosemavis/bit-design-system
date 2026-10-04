@@ -7,6 +7,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Wait 7 days after a release before proposing it: hijacked versions are usually caught and
+    # pulled from the registry within days.
+    cooldown:
+      default-days: 7
     groups:
       # One PR a week for the tooling, instead of one per package.
       dev-dependencies:
@@ -27,3 +31,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Wait 7 days after a release before proposing it: hijacked versions are usually caught and
+    # pulled from the registry within days.
+    cooldown:
+      default-days: 7
