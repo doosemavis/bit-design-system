@@ -15,7 +15,7 @@ Run each one as `npm run <name>` or `pnpm <name>`.
 | `npm run dev` | build `@bit-ds/react`, then start the gallery at http://localhost:5173 |
 | `npm run preview` | build the library and the gallery, then serve the production build at http://localhost:4173/bit-design-system/, the same way Pages does |
 | `npm test` | all unit, a11y, and system tests |
-| `npm run test:coverage` | react tests with the coverage gate (100%) |
+| `npm run test:coverage` | react tests with the coverage gate (80%) |
 | `npm run build && npm run verify` | build `@bit-ds/react` and prove the dist is consumable |
 | `npm run e2e` | build the library and gallery, then run Playwright with axe on every page (needs Chromium once) |
 | `npm run smoke` | packs `@bit-ds/react` and installs it with npm into a throwaway project to prove the tarball works |
