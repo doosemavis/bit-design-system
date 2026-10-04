@@ -54,7 +54,7 @@ export const codeBlock: Manifest = {
     ],
     a11y: [
       'The code area is a named, focusable region, so keyboard users can scroll long lines.',
-      'Copy announces "Copied" or "Copy failed" through a hidden status line.',
+      'The Copy button is named "Copy <label>" (or "Copy <language> code" if there is no label), so screen readers distinguish several code blocks on a page. Copy results ("Copied" or "Copy failed") are announced through a shared, visually hidden live region.',
     ],
   },
   interactive: true,

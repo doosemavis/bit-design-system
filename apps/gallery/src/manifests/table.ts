@@ -75,7 +75,7 @@ export const table: Manifest = {
     ],
     a11y: [
       'A native <table>, so screen readers announce rows, columns and the head cell for each value.',
-      'The frame scrolls sideways when the table is wider than the screen, and it is focusable, so the keyboard can scroll it too.',
+      'The scroll wrapper is a focusable region only when the table is too wide and scrolls; otherwise it adds no extra keyboard stop. An aria-label or aria-labelledby still names the region.',
     ],
   },
 };
