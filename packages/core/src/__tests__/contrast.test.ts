@@ -114,6 +114,16 @@ describe('dark mode values (owner-locked 2026-10-03)', () => {
     expect(dark.get('--bit-focus-ring-offset')).toBe('1px');
     expect(dark.get('--bit-shadow-inset')).toBe('inset 3px 3px 0 rgba(0, 0, 0, 0.4)');
   });
+
+  it('dark stripes step off the surface like light does, and keep text readable', () => {
+    const stripe = resolveVar(merged, '--bit-color-stripe');
+    const surface = resolveVar(merged, '--bit-color-surface');
+    expect(stripe).toBe('#353545');
+    // Light's stone on white is 1.36:1; dark #353545 on #20202A is 1.34:1.
+    expect(contrastRatio(stripe, surface)).toBeGreaterThanOrEqual(1.3);
+    expect(contrastRatio(resolveVar(merged, '--bit-color-text'), stripe)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(resolveVar(merged, '--bit-color-text-muted'), stripe)).toBeGreaterThanOrEqual(4.5);
+  });
 });
 
 describe('PR2 light values (spec §2)', () => {
@@ -134,5 +144,10 @@ describe('PR2 light values (spec §2)', () => {
     expect(light.get('--bit-color-accent')).toBe('var(--bit-palette-violet)');
     expect(light.get('--bit-color-link')).toBe('var(--bit-palette-violet)');
     expect(light.get('--bit-color-knob')).toBe('var(--bit-palette-white)');
+  });
+
+  it('light stripes are stone', () => {
+    const { light } = themeModes(readCss('themes/power-up.css'));
+    expect(resolveVar(light, '--bit-color-stripe')).toBe('#DCDED6');
   });
 });

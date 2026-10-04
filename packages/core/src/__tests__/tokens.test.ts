@@ -9,9 +9,9 @@ describe('semantic token list', () => {
     expect(SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('contains exactly 92 unique names, all prefixed --bit-', () => {
-    expect(SEMANTIC_TOKENS).toHaveLength(92);
-    expect(new Set(SEMANTIC_TOKENS).size).toBe(92);
+  it('contains exactly 93 unique names, all prefixed --bit-', () => {
+    expect(SEMANTIC_TOKENS).toHaveLength(93);
+    expect(new Set(SEMANTIC_TOKENS).size).toBe(93);
     for (const name of SEMANTIC_TOKENS) expect(name).toMatch(/^--bit-[a-z0-9-]+$/);
   });
 
@@ -51,11 +51,11 @@ describe('semantic token list', () => {
   });
 
   it('includes the five PR2 color roles; four of them change with the mode, the knob is shared', () => {
-    const pr2 = ['--bit-color-accent', '--bit-color-link', '--bit-color-link-visited', '--bit-color-danger-text', '--bit-color-knob'];
+    const pr2 = ['--bit-color-accent', '--bit-color-link', '--bit-color-link-visited', '--bit-color-danger-text', '--bit-color-knob', '--bit-color-stripe'];
     for (const name of pr2) expect(SEMANTIC_TOKENS).toContain(name);
-    expect(MODE_TOKENS).toHaveLength(22);
-    expect(new Set(MODE_TOKENS).size).toBe(22);
-    for (const name of pr2.slice(0, 4)) expect(MODE_TOKENS).toContain(name);
+    expect(MODE_TOKENS).toHaveLength(23);
+    expect(new Set(MODE_TOKENS).size).toBe(23);
+    for (const name of pr2.slice(0, 4).concat(['--bit-color-stripe'])) expect(MODE_TOKENS).toContain(name);
     expect(MODE_TOKENS).not.toContain('--bit-color-knob');
   });
 

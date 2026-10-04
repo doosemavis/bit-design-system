@@ -50,7 +50,12 @@ describe('components/table.css', () => {
 
   it('data-striped shades even body rows neutral-soft', () => {
     expect(block(css, '.bit-table[data-striped] .bit-table__body .bit-table__row:nth-child(even)')).toContain(
-      'background: var(--bit-color-neutral-soft);',
+      'background: var(--bit-color-stripe);',
     );
+  });
+
+  it('stripes read the stripe token, not neutral-soft (Q3a-A)', () => {
+    const body = block(css, '.bit-table[data-striped] .bit-table__body .bit-table__row:nth-child(even)')!;
+    expect(body).toContain('background: var(--bit-color-stripe);');
   });
 });

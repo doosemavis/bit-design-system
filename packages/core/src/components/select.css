@@ -51,3 +51,10 @@
 .bit-select:has(.bit-select__control:disabled)::after {
   opacity: 0.5;
 }
+
+/* Forced colours replace the danger border with the system text colour, so invalid needs a shape. */
+@media (forced-colors: active) {
+  .bit-select__control[aria-invalid="true"] {
+    border-inline-start-width: 10px;
+  }
+}

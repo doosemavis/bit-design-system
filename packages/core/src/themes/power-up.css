@@ -51,6 +51,7 @@
   --bit-palette-green-night: #173A25;
   --bit-palette-yellow-night: #3B3212;
   --bit-palette-red-night: #40191B;
+  --bit-palette-night-stripe: #353545;
 
   /* ---------- tier 2: color ---------- */
   --bit-color-bg: var(--bit-palette-paper);
@@ -77,6 +78,7 @@
   --bit-color-neutral-contrast: var(--bit-palette-ink);
   --bit-color-neutral-hover: var(--bit-palette-stone-light);
   --bit-color-neutral-soft: var(--bit-palette-stone);
+  --bit-color-stripe: var(--bit-palette-stone);
 
   --bit-color-success: var(--bit-palette-green);
   --bit-color-success-contrast: var(--bit-palette-ink);
@@ -184,6 +186,7 @@
   --bit-color-neutral-contrast: var(--bit-palette-chalk);
   --bit-color-neutral-hover: var(--bit-palette-night-raised-hover);
   --bit-color-neutral-soft: var(--bit-palette-night-raised);
+  --bit-color-stripe: var(--bit-palette-night-stripe);
   --bit-color-primary-soft: var(--bit-palette-violet-night);
   --bit-color-success-soft: var(--bit-palette-green-night);
   --bit-color-warning-soft: var(--bit-palette-yellow-night);

@@ -42,4 +42,10 @@ describe('components/input.css', () => {
     expect(css).not.toContain('search-cancel-button');
     expect(css).not.toContain('[type="search"]');
   });
+
+  it('in forced colours an invalid field gets a 10px start edge, since the red border is gone (Q2-A)', () => {
+    expect(css).toMatch(
+      /@media \(forced-colors: active\) \{[^@]*\.bit-input\[aria-invalid="true"\] \{\s*border-inline-start-width: 10px;\s*\}/,
+    );
+  });
 });
