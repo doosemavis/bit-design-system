@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CHANGELOG_HEADING, compareVersions, isRelease, lineOf, newestPerLine, pathForLine } from '../apps/gallery/src/content/versionLines.mjs';
+import { compareVersions, isRelease, lineOf, newestPerLine, parseChangelogSections, pathForLine } from '../apps/gallery/src/content/versionLines.mjs';
 
 /** 'v0.1.0' → '0.1.0'. The one copy; build-versioned-site.mjs imports it. */
 export const stripV = (tag) => tag.replace(/^v/, '');
@@ -56,27 +56,15 @@ export const buildVersionsFile = ({ tags, current, readPackageJson, changelogDat
 };
 
 /**
- * One pass over CHANGELOG.md: each release's date and its Breaking bullets. Headings use the
- * gallery's CHANGELOG_HEADING; one that doesn't match (an undated draft) is skipped here, and the
- * gallery's changelog tests reject it in CI.
+ * Each release's date and its Breaking bullets, from the gallery's shared walker. A heading that
+ * doesn't match (an undated draft) is skipped here, and the gallery's changelog tests reject it in CI.
  */
-export const parseChangelog = (text) => {
+export const readChangelogFacts = (text) => {
   const dates = {};
   const breakingByVersion = {};
-  let version = null;
-  let inBreaking = false;
-  for (const raw of text.split(/\r?\n/)) {
-    const line = raw.trimEnd();
-    if (line.startsWith('## ')) {
-      const m = CHANGELOG_HEADING.exec(line);
-      version = m ? m[1] : null;
-      if (m) dates[m[1]] = m[2];
-      inBreaking = false;
-    } else if (line.startsWith('### ')) {
-      inBreaking = line.slice(4).trim() === 'Breaking';
-    } else if (line.startsWith('- ') && version && inBreaking) {
-      breakingByVersion[version] = [...(breakingByVersion[version] ?? []), line.slice(2).trim()];
-    }
+  for (const { version, date, sections } of parseChangelogSections(text, { strict: false })) {
+    dates[version] = date;
+    if (sections.Breaking) breakingByVersion[version] = [...(breakingByVersion[version] ?? []), ...sections.Breaking];
   }
   return { dates, breakingByVersion };
 };
@@ -98,7 +86,7 @@ export const readRepoInputs = (root = REPO_ROOT) => {
     }
   };
   const changelog = join(root, 'CHANGELOG.md');
-  const { dates, breakingByVersion } = existsSync(changelog) ? parseChangelog(readFileSync(changelog, 'utf8')) : { dates: {}, breakingByVersion: {} };
+  const { dates, breakingByVersion } = existsSync(changelog) ? readChangelogFacts(readFileSync(changelog, 'utf8')) : { dates: {}, breakingByVersion: {} };
   return {
     tags,
     current,

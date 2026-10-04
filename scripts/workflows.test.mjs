@@ -323,7 +323,15 @@ test('release: deploy needs publish and ships the versioned site to github-pages
 // --- release.yml: the docs deploy without a release ------------------------------------------
 // docs-check runs the guard; docs (the Pages deploy) runs only when it says so.
 const GUARD_LATEST = "LATEST=$(git tag --list 'v[0-9]*' --merged HEAD --sort=-v:refname | grep -Ev -- '-' | head -1 || true)";
-const GUARD_DIFF = 'git diff --quiet "$LATEST" HEAD -- packages/';
+const GUARD_DIFF = 'git diff --quiet "$LATEST" HEAD -- packages/ "${IGNORED[@]}"';
+const GUARD_EXCLUDES = [
+  ':(exclude,glob)packages/**/*.test.*',
+  ':(exclude,glob)packages/**/__tests__/**',
+  ':(exclude,glob)packages/**/src/test/**',
+  ':(exclude,glob)packages/**/vitest.*',
+  ':(exclude)packages/react/scripts/verify-dist.mjs',
+  ':(exclude)packages/react/scripts/expected-exports.mjs',
+];
 const GUARD_NOTICE = '::notice::packages/ changed since $LATEST; docs deploy waits for the next release';
 const docsGuard = () => release().jobs['docs-check'].steps.find((s) => s.id === 'released');
 
@@ -342,7 +350,9 @@ test('release: docs-check runs the guard right after checkout and outputs deploy
 test('release: the docs guard compares packages/ with the latest release tag on HEAD', () => {
   const run = runOf(docsGuard());
   assert.ok(run.includes(GUARD_LATEST), 'reads the latest release tag merged into HEAD, skipping pre-releases, pipefail-safe');
-  assert.ok(run.includes(GUARD_DIFF), 'diffs packages/ against it');
+  assert.ok(run.includes(GUARD_DIFF), 'diffs packages/ against it, minus the ignored paths');
+  const listed = /IGNORED=\(\n([\s\S]*?)\n\s*\)/.exec(run)?.[1].split('\n').map((l) => l.trim()).filter(Boolean).map((l) => l.replace(/^'|'$/g, ''));
+  assert.deepEqual(listed, GUARD_EXCLUDES, 'the exclude list is exactly the agreed test-only paths, nothing broader');
   assert.ok(run.includes(GUARD_NOTICE), 'says why it skipped');
 });
 
@@ -396,6 +406,43 @@ test('release: the docs guard script deploys after a docs change and waits after
     assert.ok(changed.stdout.includes('::notice::packages/ changed since v0.1.0; docs deploy waits for the next release'));
     git('tag', 'v0.2.0', 'HEAD~1');
     assert.match(runGuard(repo).output, /^deploy=true$/m, 'only docs changed since v0.2.0');
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test('release: the docs guard script ignores test-only changes under packages/ but not src changes', () => {
+  const repo = mkdtempSync(join(tmpdir(), 'bit-docs-guard-'));
+  const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8' });
+  const commit = (file, text) => {
+    mkdirSync(dirname(join(repo, file)), { recursive: true });
+    writeFileSync(join(repo, file), text);
+    git('add', '-A');
+    git('-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', 'commit', '-qm', file);
+  };
+  try {
+    git('init', '-q');
+    commit('packages/react/src/Button.tsx', '1');
+    git('tag', 'v0.1.0');
+    const testOnly = [
+      'packages/react/src/Button.test.tsx',
+      'packages/core/src/__tests__/tokens.test.ts',
+      'packages/react/src/test/setup.ts',
+      'packages/react/vitest.config.ts',
+      'packages/react/scripts/verify-dist.mjs',
+      'packages/react/scripts/expected-exports.mjs',
+    ];
+    for (const file of testOnly) {
+      commit(file, 'changed');
+      assert.match(runGuard(repo).output, /^deploy=true$/m, `${file} is test-only: docs still deploy`);
+    }
+    commit('packages/react/scripts/build-css.mjs', 'x');
+    assert.match(runGuard(repo).output, /^deploy=false$/m, 'another packages/ script still skips');
+    git('tag', 'v0.1.1');
+    commit('packages/react/src/Button.tsx', '2');
+    const skipped = runGuard(repo);
+    assert.match(skipped.output, /^deploy=false$/m, 'a src change still skips');
+    assert.ok(skipped.stdout.includes('::notice::packages/ changed since v0.1.1'), skipped.stdout);
   } finally {
     rmSync(repo, { recursive: true, force: true });
   }

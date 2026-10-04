@@ -1,12 +1,12 @@
 import raw from '../../../../CHANGELOG.md?raw';
-import { CHANGELOG_HEADING, compareVersions } from './versionLines.mjs';
+import { compareVersions, parseChangelogSections } from './versionLines.mjs';
 
 export type ChangeKind = 'Breaking' | 'Added' | 'Changed' | 'Fixed' | 'Removed';
 
 /** Every CHANGELOG section, in the order Release notes shows them. */
 export const CHANGE_KINDS: readonly ChangeKind[] = ['Breaking', 'Added', 'Changed', 'Fixed', 'Removed'];
 
-export interface Release {
+interface Release {
   version: string;
   date: string;
   sections: Partial<Record<ChangeKind, string[]>>;
@@ -15,25 +15,11 @@ export interface Release {
 const isKind = (name: string): name is ChangeKind => (CHANGE_KINDS as readonly string[]).includes(name);
 
 export function parseChangelog(text: string): Release[] {
-  const releases: Release[] = [];
-  let current: Release | null = null;
-  let kind: ChangeKind | null = null;
-
-  for (const line of text.split(/\r?\n/).map((l) => l.trimEnd())) {
-    if (line.startsWith('## ')) {
-      const m = CHANGELOG_HEADING.exec(line);
-      if (!m) throw new Error(`CHANGELOG: bad heading "${line}"`);
-      current = { version: m[1]!, date: m[2]!, sections: {} };
-      releases.push(current);
-      kind = null;
-    } else if (line.startsWith('### ')) {
-      const name = line.slice(4).trim();
-      kind = isKind(name) ? name : null;
-    } else if (line.startsWith('- ') && current && kind) {
-      current.sections[kind] = [...(current.sections[kind] ?? []), line.slice(2).trim()];
-    }
-  }
-  return releases;
+  return parseChangelogSections(text, { strict: true }).map(({ version, date, sections }) => ({
+    version,
+    date,
+    sections: Object.fromEntries(Object.entries(sections).filter(([name]) => isKind(name))),
+  }));
 }
 
 /** True when each version is newer than the next: no duplicates, newest first. */

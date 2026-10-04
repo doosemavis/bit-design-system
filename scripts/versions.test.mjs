@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { isVersionsFile } from '../apps/gallery/src/content/versionLines.mjs';
-import { buildVersionsFile, parseChangelog, readRepoInputs, stripV, writeVersionsFile } from './versions.mjs';
+import { buildVersionsFile, readChangelogFacts, readRepoInputs, stripV, writeVersionsFile } from './versions.mjs';
 
 const readPackageJson = () => ({ peerDependencies: { react: '^19.0.0', 'react-dom': '^19.0.0' } });
 
@@ -93,12 +93,12 @@ test('no tags, current only: one root entry', () => {
   assert.deepEqual(file.lines.map((l) => [l.line, l.version, l.path]), [['0.1', '0.1.0', '/bit-design-system/']]);
 });
 
-test('parseChangelog reads dated headings (em dash or hyphen, trailing spaces ok) and skips others', () => {
+test('readChangelogFacts reads dated headings (em dash or hyphen, trailing spaces ok) and skips others', () => {
   const text = '# Changelog\n\n## 0.1.1 — 2026-10-XX\n\n## 0.1.0 - 2026-10-04  \r\n\n## [0.0.9] — 2026-09-01\n\n## 0.0.8 — 2026-08-01\n';
-  assert.deepEqual(parseChangelog(text).dates, { '0.1.0': '2026-10-04', '0.0.8': '2026-08-01' });
+  assert.deepEqual(readChangelogFacts(text).dates, { '0.1.0': '2026-10-04', '0.0.8': '2026-08-01' });
 });
 
-test('parseChangelog collects each release\'s Breaking items, and only those', () => {
+test('readChangelogFacts collects each release\'s Breaking items, and only those', () => {
   const text = [
     '# Changelog',
     '## 0.2.0 — 2026-11-01',
@@ -114,7 +114,12 @@ test('parseChangelog collects each release\'s Breaking items, and only those', (
     '### Breaking',
     '- Old one.',
   ].join('\n');
-  assert.deepEqual(parseChangelog(text).breakingByVersion, { '0.2.0': ['`Button` lost `size`.', 'Second.'], '0.1.0': ['Old one.'] });
+  assert.deepEqual(readChangelogFacts(text).breakingByVersion, { '0.2.0': ['`Button` lost `size`.', 'Second.'], '0.1.0': ['Old one.'] });
+});
+
+test('readChangelogFacts merges Breaking items of a duplicated version', () => {
+  const text = '## 0.2.0 — 2026-11-01\n### Breaking\n- One.\n## 0.2.0 — 2026-11-01\n### Breaking\n- Two.\n';
+  assert.deepEqual(readChangelogFacts(text).breakingByVersion, { '0.2.0': ['One.', 'Two.'] });
 });
 
 test('stripV drops one leading v', () => {

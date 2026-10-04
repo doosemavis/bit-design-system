@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { CHANGE_KINDS, isStrictlyDescending, parseChangelog, RELEASES, releaseGateProblem } from './changelog';
-import { compareVersions } from './versionLines.mjs';
 import pkg from '../../../../packages/react/package.json';
 
 const sample = `# Changelog\n\n## 0.1.1 — 2026-10-10\n### Added\n- Versions page.\n### Fixed\n- \`Code\` in tables.\n\n## 0.1.0 — 2026-10-04\n### Added\n- First release.\n`;
 const versionsOf = (text: string) => parseChangelog(text).map((r) => r.version);
 
 describe('parseChangelog', () => {
+  it('treats section names like constructor and __proto__ as unknown kinds, not properties', () => {
+    const text = '## 0.1.0 — 2026-10-04\n### constructor\n- a\n### __proto__\n- b\n### toString\n- c\n### Added\n- ok\n';
+    expect(parseChangelog(text)).toEqual([{ version: '0.1.0', date: '2026-10-04', sections: { Added: ['ok'] } }]);
+  });
   it('reads releases newest first with their sections', () => {
     expect(parseChangelog(sample)).toEqual([
       { version: '0.1.1', date: '2026-10-10', sections: { Added: ['Versions page.'], Fixed: ['`Code` in tables.'] } },
@@ -35,10 +38,6 @@ describe('isStrictlyDescending', () => {
     expect(isStrictlyDescending(['0.10.0', '0.9.1', '0.1.0'])).toBe(true);
     expect(isStrictlyDescending([])).toBe(true);
     expect(isStrictlyDescending(['0.1.0'])).toBe(true);
-  });
-  it('agrees with compareVersions on adjacent pairs', () => {
-    const versions = ['1.0.0', '0.10.0', '0.9.9'];
-    expect(versions.slice(1).every((v, i) => compareVersions(versions[i]!, v) > 0)).toBe(isStrictlyDescending(versions));
   });
 });
 
