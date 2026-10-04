@@ -2,7 +2,7 @@
 
 # bit
 
-React components and design tokens for the bit design system. One vocabulary everywhere: the prop you type is the class it emits is the token it reads.
+React components and design tokens for the bit design system.
 
 ```tsx
 <Button color="primary" size="lg">Save</Button>

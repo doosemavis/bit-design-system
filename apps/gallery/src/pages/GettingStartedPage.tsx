@@ -23,7 +23,7 @@ const SAVED_CHOICE_EXAMPLE = `<script>
 const NEXT_STEPS = [
   { label: 'Tokens', to: '/tokens', note: 'the colours, sizes and spacing every component reads' },
   // Goes to Home, not an anchor: hash routing has no in-page anchors to link to.
-  { label: 'The naming rule', to: '/', note: 'on Home: the prop you type is the class it emits' },
+  { label: 'The naming rule', to: '/', note: 'on Home: how props, classes and tokens line up' },
   { label: 'Button', to: '/components/button', note: 'the first component, with live controls' },
 ] as const;
 
