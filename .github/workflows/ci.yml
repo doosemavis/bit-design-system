@@ -76,7 +76,7 @@ jobs:
       # CI=true, so the Playwright web server builds the gallery and starts its own preview.
       - run: pnpm e2e
       # In CI the reporter is `github`, which writes no HTML report, so also keep the traces in test-results.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
