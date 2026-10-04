@@ -140,6 +140,8 @@ const runShell = (step, env, cwd) =>
 const readOutputs = (file) =>
   Object.fromEntries(readFileSync(file, 'utf8').split('\n').filter(Boolean).map((line) => [line.slice(0, line.indexOf('=')), line.slice(line.indexOf('=') + 1)]));
 const sha256 = (text) => createHash('sha256').update(text).digest('hex');
+// The integrity npm records for a tarball: sha512 as a Subresource Integrity string.
+const sri = (text) => `sha512-${createHash('sha512').update(text).digest('base64')}`;
 
 // --- ci.yml -------------------------------------------------------------------------------
 test('ci: read-only permissions at the top', () => assert.deepEqual(ci().permissions, { contents: 'read' }));
@@ -389,7 +391,11 @@ const sharedBuildSteps = (steps) => {
 test('release: build packs, hashes, smoke-tests and uploads the tarball, needing guard', () => {
   const job = release().jobs.build;
   assert.deepEqual([job.needs].flat(), ['guard']);
-  assert.deepEqual(job.outputs, { 'tgz-name': '${{ steps.pack.outputs.name }}', sha256: '${{ steps.pack.outputs.sha256 }}' });
+  assert.deepEqual(job.outputs, {
+    'tgz-name': '${{ steps.pack.outputs.name }}',
+    sha256: '${{ steps.pack.outputs.sha256 }}',
+    integrity: '${{ steps.pack.outputs.integrity }}',
+  });
   const { steps } = job;
   const npm = findIndex(steps, (s) => runOf(s) === NPM_PIN, 'installing the pinned npm');
   const install = findIndex(steps, (s) => runOf(s) === 'pnpm install --frozen-lockfile', 'installing');
@@ -432,7 +438,12 @@ test('release: the Pack shell writes the tarball path, name and sha256, and refu
     };
     const one = run(1, 'one');
     assert.equal(one.result.status, 0, one.result.stderr);
-    assert.deepEqual(one.outputs, { tgz: join(one.temp, 'out', 'bit-ds-react-9.9.1.tgz'), name: 'bit-ds-react-9.9.1.tgz', sha256: sha256('tarball 1') });
+    assert.deepEqual(one.outputs, {
+      tgz: join(one.temp, 'out', 'bit-ds-react-9.9.1.tgz'),
+      name: 'bit-ds-react-9.9.1.tgz',
+      sha256: sha256('tarball 1'),
+      integrity: sri('tarball 1'),
+    });
     for (const count of [0, 2]) {
       const bad = run(count, `n${count}`);
       assert.notEqual(bad.result.status, 0, `${count} tarballs must fail`);
@@ -479,7 +490,13 @@ test('release: publish downloads the artifact, checks its hash, decides, then pu
   const download = findIndex(steps, (s) => s.uses === 'actions/download-artifact@v4', 'downloading the tarball');
   assert.deepEqual(steps[download].with, { name: 'npm-tarball', path: '${{ runner.temp }}/release' });
   const verify = findIndex(steps, (s) => s.id === 'tarball', 'verifying the tarball');
-  assert.deepEqual(steps[verify].env, { TGZ_NAME: '${{ needs.build.outputs.tgz-name }}', EXPECTED_SHA256: '${{ needs.build.outputs.sha256 }}' });
+  assert.deepEqual(steps[verify].env, {
+    TGZ_NAME: '${{ needs.build.outputs.tgz-name }}',
+    EXPECTED_SHA256: '${{ needs.build.outputs.sha256 }}',
+    EXPECTED_INTEGRITY: '${{ needs.build.outputs.integrity }}',
+  });
+  // verify-install compares npm's dist.integrity with this, so it travels build -> publish -> verify-install.
+  assert.deepEqual(release().jobs.publish.outputs, { integrity: '${{ steps.tarball.outputs.integrity }}' });
   const decide = findIndex(steps, (s) => s.id === 'decide' && runOf(s) === 'node scripts/release-steps.mjs should-publish', 'deciding');
   const publish = findIndex(steps, (s) => /\bnpm publish\b/.test(runOf(s)), 'publishing');
   assert.ok(checkout < node && node < npm && npm < download && download < verify && verify < decide && decide < publish, 'step order');
@@ -509,18 +526,18 @@ test('release: the tarball check passes only the one file the build job hashed',
   const NAME = 'bit-ds-react-0.1.1.tgz';
   const GOOD = sha256('the packed tarball');
   try {
-    const check = (label, { files = { [NAME]: 'the packed tarball' }, name = NAME, sha = GOOD } = {}) => {
+    const check = (label, { files = { [NAME]: 'the packed tarball' }, name = NAME, sha = GOOD, integrity = sri('the packed tarball') } = {}) => {
       const temp = join(dir, label);
       mkdirSync(join(temp, 'release'), { recursive: true });
       for (const [file, text] of Object.entries(files)) writeFileSync(join(temp, 'release', file), text);
       const output = join(temp, 'github-output');
       writeFileSync(output, '');
-      const result = runShell(verify, { RUNNER_TEMP: temp, GITHUB_OUTPUT: output, TGZ_NAME: name, EXPECTED_SHA256: sha }, dir);
+      const result = runShell(verify, { RUNNER_TEMP: temp, GITHUB_OUTPUT: output, TGZ_NAME: name, EXPECTED_SHA256: sha, EXPECTED_INTEGRITY: integrity }, dir);
       return { ok: result.status === 0, out: result.stdout, outputs: readOutputs(output), temp };
     };
     const good = check('good');
     assert.equal(good.ok, true, good.out);
-    assert.deepEqual(good.outputs, { tgz: join(good.temp, 'release', NAME) });
+    assert.deepEqual(good.outputs, { tgz: join(good.temp, 'release', NAME), integrity: sri('the packed tarball') });
     const refused = {
       tampered: check('tampered', { files: { [NAME]: 'a swapped tarball' } }),
       'no sha256': check('nosha', { sha: '' }),
@@ -530,12 +547,15 @@ test('release: the tarball check passes only the one file the build job hashed',
       'an extra file': check('extra', { files: { [NAME]: 'the packed tarball', 'other.tgz': 'x' } }),
       'a hidden extra file': check('hidden', { files: { [NAME]: 'the packed tarball', '.npmrc': 'x' } }),
       'an empty artifact': check('empty', { files: {} }),
+      'another integrity': check('integrity', { integrity: sri('another tarball') }),
+      'no integrity': check('nointegrity', { integrity: '' }),
     };
     for (const [label, result] of Object.entries(refused)) {
       assert.equal(result.ok, false, `${label} must fail`);
       assert.deepEqual(result.outputs, {}, `${label}: no tgz output`);
     }
     assert.match(refused.tampered.out, /sha256 mismatch/);
+    assert.match(refused['another integrity'].out, /integrity mismatch/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -545,8 +565,9 @@ test('release: verify-install needs publish and checks the install with no crede
   const job = release().jobs['verify-install'];
   assert.deepEqual([job.needs].flat(), ['publish']);
   assert.doesNotMatch(String(job.if), STATUS_FUNCTION, 'runs only when publish succeeded (published or skipped as existing)');
-  const runs = job.steps.filter((s) => s.run).map(runOf);
-  assert.deepEqual(runs, ['node scripts/release-steps.mjs verify-install "${GITHUB_REF_NAME#v}"']);
+  const runs = job.steps.filter((s) => s.run);
+  assert.deepEqual(runs.map(runOf), ['node scripts/release-steps.mjs verify-install "${GITHUB_REF_NAME#v}"']);
+  assert.deepEqual(runs[0].env, { EXPECTED_INTEGRITY: '${{ needs.publish.outputs.integrity }}' }, 'checks npm serves the bytes build packed');
 });
 
 // --- release.yml: the Pages site -------------------------------------------------------------

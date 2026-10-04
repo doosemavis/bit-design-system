@@ -109,16 +109,47 @@ export function waitForVersion(version, { run = (cmd, args) => runCommand(cmd, a
   );
 }
 
-async function verifyInstall(version) {
+const SHA512_SRI = /^sha512-[A-Za-z0-9+/]{86}==$/;
+
+/**
+ * Throws unless npm's dist.integrity for the version equals the sha512 integrity the build job
+ * computed from the tarball it packed, so the install check below tests the bytes that were built.
+ */
+export function checkIntegrity({ version, expected, published }) {
+  if (!SHA512_SRI.test(String(expected ?? ''))) throw new Error(`the expected value is not a sha512 integrity: "${expected}"`);
+  const actual = String(published ?? '').trim();
+  if (actual !== expected) {
+    throw new Error(`${PACKAGE}@${version} on npm has integrity ${actual || '(none)'}, but the build job packed ${expected}`);
+  }
+}
+
+// Waits for npm to show the version, checks its integrity against the build's, then installs it in a
+// scratch project with no lifecycle scripts and imports it. `run` and `sleep` are injectable for tests.
+export async function verifyInstall(version, { expectedIntegrity, run = runCommand, sleep = defaultSleep } = {}) {
+  if (!expectedIntegrity) throw new Error('verify-install needs EXPECTED_INTEGRITY, the sha512 integrity of the packed tarball');
   // First wait until npm shows the version, so a cached 404 does not use up the install retries.
-  await waitForVersion(version);
+  await waitForVersion(version, { run: (cmd, args) => run(cmd, args), sleep });
+  await retry(
+    async () => {
+      const published = run('npm', ['view', `${PACKAGE}@${version}`, 'dist.integrity']);
+      try {
+        checkIntegrity({ version, expected: expectedIntegrity, published });
+      } catch (error) {
+        throw Object.assign(error, { fatal: true });
+      }
+    },
+    { sleep },
+  );
   const dir = mkdtempSync(join(tmpdir(), 'bit-ds-verify-'));
-  const run = (cmd, args) => void runCommand(cmd, args, dir);
-  return retry(async () => {
-    run('npm', ['init', '-y']);
-    run('npm', ['install', `${PACKAGE}@${version}`]);
-    run('node', ['-e', "import('@bit-ds/react').then(m=>{if(!m.Button)process.exit(1)})"]);
-  }).finally(() => rmSync(dir, { recursive: true, force: true }));
+  const inDir = (cmd, args) => void run(cmd, args, dir);
+  return retry(
+    async () => {
+      inDir('npm', ['init', '-y']);
+      inDir('npm', ['install', '--ignore-scripts', `${PACKAGE}@${version}`]);
+      inDir('node', ['-e', "import('@bit-ds/react').then(m=>{if(!m.Button)process.exit(1)})"]);
+    },
+    { sleep },
+  ).finally(() => rmSync(dir, { recursive: true, force: true }));
 }
 
 async function main([command, arg]) {
@@ -136,7 +167,7 @@ async function main([command, arg]) {
     }
     case 'verify-install': {
       if (!arg) throw new Error('usage: verify-install VERSION');
-      await verifyInstall(arg);
+      await verifyInstall(arg, { expectedIntegrity: process.env.EXPECTED_INTEGRITY });
       return;
     }
     default:

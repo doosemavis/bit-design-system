@@ -73,10 +73,13 @@ jobs:
           tgz=("$RUNNER_TEMP"/out/*.tgz)
           [ ${#tgz[@]} -eq 1 ] || { echo "::error::expected exactly one tarball, found ${#tgz[@]}"; exit 1; }
           sha256=$(sha256sum "${tgz[0]}" | cut -d ' ' -f 1)
+          # The integrity npm will record for this file; verify-install compares the two.
+          integrity="sha512-$(openssl dgst -sha512 -binary "${tgz[0]}" | openssl base64 -A)"
           {
             echo "tgz=${tgz[0]}"
             echo "name=${tgz[0]##*/}"
             echo "sha256=$sha256"
+            echo "integrity=$integrity"
           } >> "$GITHUB_OUTPUT"
           echo "packed ${tgz[0]##*/}, sha256 $sha256"
       - name: Read the Playwright version
@@ -153,6 +156,7 @@ jobs:
     outputs:
       tgz-name: ${{ steps.pack.outputs.name }}
       sha256: ${{ steps.pack.outputs.sha256 }}
+      integrity: ${{ steps.pack.outputs.integrity }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -182,10 +186,13 @@ jobs:
           tgz=("$RUNNER_TEMP"/out/*.tgz)
           [ ${#tgz[@]} -eq 1 ] || { echo "::error::expected exactly one tarball, found ${#tgz[@]}"; exit 1; }
           sha256=$(sha256sum "${tgz[0]}" | cut -d ' ' -f 1)
+          # The integrity npm will record for this file; verify-install compares the two.
+          integrity="sha512-$(openssl dgst -sha512 -binary "${tgz[0]}" | openssl base64 -A)"
           {
             echo "tgz=${tgz[0]}"
             echo "name=${tgz[0]##*/}"
             echo "sha256=$sha256"
+            echo "integrity=$integrity"
           } >> "$GITHUB_OUTPUT"
           echo "packed ${tgz[0]##*/}, sha256 $sha256"
       - name: Read the Playwright version
@@ -237,6 +244,9 @@ jobs:
     permissions:
       contents: read
       id-token: write # signs the provenance statement
+    # verify-install checks that npm serves exactly these bytes.
+    outputs:
+      integrity: ${{ steps.tarball.outputs.integrity }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -269,11 +279,20 @@ jobs:
             echo "::error::sha256 mismatch for $TGZ_NAME: the build job packed $EXPECTED_SHA256, the artifact is $actual"
             exit 1
           fi
+          integrity="sha512-$(openssl dgst -sha512 -binary "$tgz" | openssl base64 -A)"
+          if [ "$integrity" != "$EXPECTED_INTEGRITY" ]; then
+            echo "::error::integrity mismatch for $TGZ_NAME: the build job gave ${EXPECTED_INTEGRITY:-nothing}, the artifact is $integrity"
+            exit 1
+          fi
           echo "$TGZ_NAME matches the build job's sha256 $actual"
-          echo "tgz=$tgz" >> "$GITHUB_OUTPUT"
+          {
+            echo "tgz=$tgz"
+            echo "integrity=$integrity"
+          } >> "$GITHUB_OUTPUT"
         env:
           TGZ_NAME: ${{ needs.build.outputs.tgz-name }}
           EXPECTED_SHA256: ${{ needs.build.outputs.sha256 }}
+          EXPECTED_INTEGRITY: ${{ needs.build.outputs.integrity }}
       # Writes publish=true, or publish=false when this version is already on npm (a re-run).
       - name: Decide whether to publish
         id: decide
@@ -288,7 +307,8 @@ jobs:
           TGZ: ${{ steps.tarball.outputs.tgz }}
 
   # Runs after a successful publish, or after the publish was skipped because the version already
-  # exists (a re-run). It waits for npm to show the version, then installs it, with no secret.
+  # exists (a re-run). It waits for npm to show the version, checks npm's dist.integrity against the
+  # tarball the build job packed, then installs it with no lifecycle scripts, with no secret.
   verify-install:
     needs: publish
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -302,6 +322,8 @@ jobs:
           node-version: 22
       - name: Check the published version installs
         run: node scripts/release-steps.mjs verify-install "${GITHUB_REF_NAME#v}"
+        env:
+          EXPECTED_INTEGRITY: ${{ needs.publish.outputs.integrity }}
 
   # Builds the tag's Pages site with no Pages permission. It runs alongside build and publish;
   # deploy uses its artifact only after verify-install passes.

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checkTag, expectedTag, isNotFound, retry, shouldPublish, waitForVersion } from './release-steps.mjs';
+import { checkIntegrity, checkTag, expectedTag, isNotFound, retry, shouldPublish, verifyInstall, waitForVersion } from './release-steps.mjs';
 
 test('expectedTag prefixes v', () => assert.equal(expectedTag('0.1.0'), 'v0.1.0'));
 test('checkTag passes on a match', () => assert.doesNotThrow(() => checkTag({ tag: 'v0.1.0', version: '0.1.0' })));
@@ -78,4 +78,58 @@ test('waitForVersion treats a different version in the output as not yet', async
   const outputs = ['0.1.0\n', '0.1.1\n']; let calls = 0;
   await waitForVersion('0.1.1', { run: () => outputs[calls++], sleep: async () => {} });
   assert.equal(calls, 2);
+});
+
+// --- verify-install: npm serves the bytes the build job packed, and installs them without scripts --
+const SRI = 'sha512-' + 'A'.repeat(86) + '==';
+const OTHER_SRI = 'sha512-' + 'B'.repeat(86) + '==';
+
+test('checkIntegrity passes when npm serves the integrity the build job packed', () =>
+  assert.doesNotThrow(() => checkIntegrity({ version: '0.1.1', expected: SRI, published: `${SRI}\n` })));
+test('checkIntegrity fails on a different integrity, naming both', () =>
+  assert.throws(() => checkIntegrity({ version: '0.1.1', expected: SRI, published: OTHER_SRI }), (error) => {
+    assert.match(error.message, /@bit-ds\/react@0\.1\.1 on npm has integrity sha512-B/);
+    assert.match(error.message, /the build job packed sha512-A/);
+    return true;
+  }));
+test('checkIntegrity refuses an expected value that is not a sha512 SRI', () => {
+  for (const expected of ['', 'sha1-abc=', 'sha512-', `${SRI} extra`]) {
+    assert.throws(() => checkIntegrity({ version: '0.1.1', expected, published: SRI }), /not a sha512 integrity/, expected);
+  }
+});
+
+// A fake npm: `view ... version` and `view ... dist.integrity` answer from `registry`, the rest succeed.
+const fakeNpm = (registry) => {
+  const calls = [];
+  const run = (cmd, args) => {
+    calls.push([cmd, ...args].join(' '));
+    if (args[0] === 'view' && args.at(-1) === 'version') return `${registry.version}\n`;
+    if (args[0] === 'view' && args.at(-1) === 'dist.integrity') return `${registry.integrity}\n`;
+    return '';
+  };
+  return { calls, run };
+};
+const noSleep = { sleep: async () => {} };
+
+test('verifyInstall checks the integrity, then installs with --ignore-scripts and imports the package', async () => {
+  const npm = fakeNpm({ version: '0.1.1', integrity: SRI });
+  await verifyInstall('0.1.1', { expectedIntegrity: SRI, run: npm.run, ...noSleep });
+  const integrity = npm.calls.indexOf('npm view @bit-ds/react@0.1.1 dist.integrity');
+  const install = npm.calls.indexOf('npm install --ignore-scripts @bit-ds/react@0.1.1');
+  assert.ok(integrity >= 0, npm.calls.join('\n'));
+  assert.ok(install > integrity, 'installs only after the integrity matched');
+  assert.ok(npm.calls.some((c) => c.startsWith('node -e ')), 'imports the installed package');
+});
+
+test('verifyInstall fails at once on an integrity mismatch and never installs', async () => {
+  const npm = fakeNpm({ version: '0.1.1', integrity: OTHER_SRI });
+  await assert.rejects(verifyInstall('0.1.1', { expectedIntegrity: SRI, run: npm.run, ...noSleep }), /has integrity sha512-B/);
+  assert.equal(npm.calls.filter((c) => c.endsWith('dist.integrity')).length, 1, 'a mismatch is not retried');
+  assert.ok(!npm.calls.some((c) => c.startsWith('npm install')));
+});
+
+test('verifyInstall needs the expected integrity', async () => {
+  const npm = fakeNpm({ version: '0.1.1', integrity: SRI });
+  await assert.rejects(verifyInstall('0.1.1', { expectedIntegrity: undefined, run: npm.run, ...noSleep }), /EXPECTED_INTEGRITY/);
+  assert.deepEqual(npm.calls, []);
 });
