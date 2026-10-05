@@ -5,10 +5,10 @@
 // the range the repo itself declares, so a Dependabot bump of the repo never strands the smoke test.
 export const SMOKE_PINS = Object.freeze({
   typescript: '5.9.3',
-  '@types/react': '19.2.18',
-  '@types/react-dom': '19.2.7',
-  react: '19.2.8',
-  'react-dom': '19.2.8',
+  '@types/react': '19.3.0',
+  '@types/react-dom': '19.3.0',
+  react: '19.3.0',
+  'react-dom': '19.3.0',
   vite: '7.3.6',
   '@vitejs/plugin-react': '5.2.0',
 });
