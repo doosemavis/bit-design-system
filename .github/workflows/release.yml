@@ -44,16 +44,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Full history, so the versioned-site rehearsal can check out v0.1.0.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
           persist-credentials: false
       # From here to the smoke test, the steps are the build job's, word for word
       # (workflows.test.mjs pins them equal), so the PR rehearses exactly what a tag builds.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
         with:
           version: 9.15.9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: pnpm
@@ -85,7 +85,7 @@ jobs:
       - name: Read the Playwright version
         id: playwright
         run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
@@ -128,14 +128,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # The repo is public, so the fetch of main below needs no stored token.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
           persist-credentials: false
       # release-steps.mjs uses only Node built-ins, so this job needs no install.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
+          # setup-node v5+ caches the packageManager's store on its own; this job stays cache-free.
+          package-manager-cache: false
       - name: The tag matches the package version
         run: node scripts/release-steps.mjs check-tag "$GITHUB_REF_NAME"
       - name: The tag commit is on main
@@ -158,15 +160,15 @@ jobs:
       sha256: ${{ steps.pack.outputs.sha256 }}
       integrity: ${{ steps.pack.outputs.integrity }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
       # From here to the smoke test, the steps are dry-run's, word for word
       # (workflows.test.mjs pins them equal).
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
         with:
           version: 9.15.9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: pnpm
@@ -198,7 +200,7 @@ jobs:
       - name: Read the Playwright version
         id: playwright
         run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
@@ -226,7 +228,7 @@ jobs:
           TGZ: ${{ steps.pack.outputs.tgz }}
           EXPECTED_SHA256: ${{ steps.pack.outputs.sha256 }}
       - name: Upload the tarball
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: npm-tarball
           path: ${{ steps.pack.outputs.tgz }}
@@ -248,16 +250,18 @@ jobs:
     outputs:
       integrity: ${{ steps.tarball.outputs.integrity }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
+          # setup-node v5+ caches the packageManager's store on its own; this job stays cache-free.
+          package-manager-cache: false
           registry-url: https://registry.npmjs.org
       - name: Install the pinned npm
         run: npm install -g --ignore-scripts "npm@$NPM_VERSION"
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: npm-tarball
           path: ${{ runner.temp }}/release
@@ -314,12 +318,14 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
+          # setup-node v5+ caches the packageManager's store on its own; this job stays cache-free.
+          package-manager-cache: false
       - name: Check the published version installs
         run: node scripts/release-steps.mjs verify-install "${GITHUB_REF_NAME#v}"
         env:
@@ -333,14 +339,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Full history, so the tags of the older lines exist.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
         with:
           version: 9.15.9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: pnpm
@@ -353,7 +359,7 @@ jobs:
       - name: Name the archive cache
         id: archives
         run: echo "key=$(node scripts/build-versioned-site.mjs --cache-key)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ${{ runner.temp }}/archive-cache
           key: ${{ steps.archives.outputs.key }}
@@ -363,7 +369,7 @@ jobs:
         run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"
       # `with:` is not a shell, so the path uses runner.temp, not $RUNNER_TEMP. The default retention
       # is 1 day; site-build runs before the publish approval, so keep the site for a slow approval.
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: ${{ runner.temp }}/site
           retention-days: 7
@@ -386,7 +392,7 @@ jobs:
       id-token: write
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 
   # Docs changes don't make a release (CONTRIBUTING.md, "Releasing"). A push to main, or a manual
   # run on main, deploys the same site as a tag, but only while packages/ is unchanged since the
@@ -400,7 +406,7 @@ jobs:
     outputs:
       deploy: ${{ steps.released.outputs.deploy }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -440,14 +446,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Full history, so the tags of the older lines exist.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
         with:
           version: 9.15.9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: pnpm
@@ -460,7 +466,7 @@ jobs:
       - name: Name the archive cache
         id: archives
         run: echo "key=$(node scripts/build-versioned-site.mjs --cache-key)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ${{ runner.temp }}/archive-cache
           key: ${{ steps.archives.outputs.key }}
@@ -470,7 +476,7 @@ jobs:
         run: node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"
       # `with:` is not a shell, so the path uses runner.temp, not $RUNNER_TEMP. The default retention
       # is 1 day; site-build runs before the publish approval, so keep the site for a slow approval.
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: ${{ runner.temp }}/site
           retention-days: 7
@@ -493,4 +499,4 @@ jobs:
       id-token: write
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

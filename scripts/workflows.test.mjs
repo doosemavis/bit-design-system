@@ -27,16 +27,22 @@ const DISPATCH_TAG = { event_name: 'workflow_dispatch', ref: 'refs/tags/v0.1.0',
 const OTHER_BRANCH_PUSH = { event_name: 'push', ref: 'refs/heads/feature', workflow: 'Release' };
 const NOT_TAG_PUSH = [BRANCH_PUSH, PULL_REQUEST, DISPATCH_MAIN, DISPATCH_BRANCH, DISPATCH_TAG, OTHER_BRANCH_PUSH];
 
-const PINNED_ACTIONS = new Set([
-  'actions/checkout@v4',
-  'pnpm/action-setup@v4',
-  'actions/setup-node@v4',
-  'actions/cache@v4',
-  'actions/upload-artifact@v4',
-  'actions/download-artifact@v4',
-  'actions/upload-pages-artifact@v3',
-  'actions/deploy-pages@v4',
-]);
+/**
+ * Every action, pinned to a full commit SHA (security.md C3/M5): a tag can be moved, a commit can't. The
+ * workflow files name each SHA's release in a comment, which Dependabot keeps current.
+ */
+const ACTIONS = {
+  checkout: 'actions/checkout@11d5960a326750d5838078e36cf38b85af677262',
+  pnpmSetup: 'pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320',
+  setupNode: 'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020',
+  cache: 'actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830',
+  uploadArtifact: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a',
+  downloadArtifact: 'actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c',
+  uploadPagesArtifact: 'actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9',
+  deployPages: 'actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346',
+};
+
+const PINNED_ACTIONS = new Set(Object.values(ACTIONS));
 
 const TAG_JOBS = ['build', 'deploy', 'guard', 'publish', 'site-build', 'verify-install'];
 const PAGES_DEPLOY_JOBS = ['deploy', 'docs'];
@@ -66,7 +72,7 @@ const assertSmokesThePackedTarball = (steps, packIndex, smokeIndex) => {
 };
 const allSteps = (workflow) =>
   Object.entries(workflow.jobs).flatMap(([job, def]) => (def.steps ?? []).map((step) => ({ job, step })));
-const checkouts = (def) => (def.steps ?? []).filter((s) => s.uses === 'actions/checkout@v4');
+const checkouts = (def) => (def.steps ?? []).filter((s) => s.uses === ACTIONS.checkout);
 
 // --- A small evaluator for the GitHub expression subset these workflows use. ---------------
 // It lets the tests check what the conditions do, not how they are worded.
@@ -160,7 +166,7 @@ test('ci: the e2e job needs ci, installs Chromium from a cache and runs pnpm e2e
   assert.deepEqual([e2e.needs].flat(), ['ci']);
   const steps = e2e.steps;
   const build = findIndex(steps, (s) => runOf(s) === 'pnpm build', 'running pnpm build');
-  const cache = findIndex(steps, (s) => s.uses === 'actions/cache@v4', 'using actions/cache');
+  const cache = findIndex(steps, (s) => s.uses === ACTIONS.cache, 'using actions/cache');
   assert.equal(steps[cache].with.path, '~/.cache/ms-playwright');
   const install = findIndex(
     steps,
@@ -169,7 +175,7 @@ test('ci: the e2e job needs ci, installs Chromium from a cache and runs pnpm e2e
   );
   const run = findIndex(steps, (s) => runOf(s) === 'pnpm e2e', 'running pnpm e2e');
   assert.ok(build < run && cache < install && install < run, 'build, cache and install come before pnpm e2e');
-  const upload = steps.find((s) => s.uses === 'actions/upload-artifact@v4');
+  const upload = steps.find((s) => s.uses === ACTIONS.uploadArtifact);
   assert.ok(upload, 'e2e uploads an artifact');
   assert.equal(upload.if, 'failure()');
   assert.match(String(upload.with.path), /apps\/gallery\/playwright-report/);
@@ -238,7 +244,7 @@ test('release: only publish, deploy and docs hold a credential; the build, site 
 });
 
 // The credential jobs may run only these actions, and no package manager beyond the npm pin.
-const CREDENTIAL_JOB_ACTIONS = new Set(['actions/checkout@v4', 'actions/setup-node@v4', 'actions/download-artifact@v4', 'actions/deploy-pages@v4']);
+const CREDENTIAL_JOB_ACTIONS = new Set([ACTIONS.checkout, ACTIONS.setupNode, ACTIONS.downloadArtifact, ACTIONS.deployPages]);
 const INSTALLS = /\b(pnpm|yarn|npx|corepack|bun)\b|\bnpm\s+(install|i|ci|add|exec|x|run|run-script|rebuild|update|link)\b/;
 
 test('both: no job that holds id-token: write installs a dependency or runs a package manager', () => {
@@ -250,7 +256,11 @@ test('both: no job that holds id-token: write installs a dependency or runs a pa
       for (const step of def.steps) {
         const label = `${file} ${name}: ${keyOf(step)}`;
         if (step.uses) assert.ok(CREDENTIAL_JOB_ACTIONS.has(step.uses), `${label} is not allowed in a credential job`);
-        if (step.uses === 'actions/setup-node@v4') assert.equal(step.with?.cache, undefined, `${label}: no dependency cache`);
+        if (step.uses === ACTIONS.setupNode) {
+          assert.equal(step.with?.cache, undefined, `${label}: no dependency cache`);
+          // setup-node v5+ caches the packageManager's store unless told not to.
+          assert.equal(step.with?.['package-manager-cache'], false, `${label}: automatic cache off`);
+        }
         const run = runOf(step);
         if (run === NPM_PIN) continue;
         assert.doesNotMatch(run, INSTALLS, label);
@@ -369,7 +379,7 @@ test('release: only the two Pages deploy jobs hold the pages group, and it never
 // --- release.yml: guard, build, publish, verify-install --------------------------------------
 test('release: guard checks the tag and that the commit is on main', () => {
   const { steps } = release().jobs.guard;
-  const checkout = steps.find((s) => s.uses === 'actions/checkout@v4');
+  const checkout = steps.find((s) => s.uses === ACTIONS.checkout);
   assert.equal(checkout.with['fetch-depth'], 0);
   findIndex(steps, (s) => runOf(s).includes('node scripts/release-steps.mjs check-tag "$GITHUB_REF_NAME"'), 'running check-tag');
   const onMain = steps.find((s) => runOf(s).includes('git merge-base --is-ancestor "$GITHUB_SHA" origin/main'));
@@ -379,7 +389,7 @@ test('release: guard checks the tag and that the commit is on main', () => {
 
 // The build steps dry-run and build share: from pnpm setup to the smoke test, word for word.
 const sharedBuildSteps = (steps) => {
-  const start = findIndex(steps, (s) => s.uses === 'pnpm/action-setup@v4', 'setting up pnpm');
+  const start = findIndex(steps, (s) => s.uses === ACTIONS.pnpmSetup, 'setting up pnpm');
   const end = findIndex(steps, (s) => s.id === 'smoke', 'the smoke test');
   return steps.slice(start, end + 1);
 };
@@ -403,7 +413,7 @@ test('release: build packs, hashes, smoke-tests and uploads the tarball, needing
   assert.match(runOf(steps[pack]), /sha256=\$\(sha256sum "\$\{tgz\[0\]\}"/);
   const recheck = findIndex(steps, (s) => s.id === 'recheck', 'rechecking the tarball after the smoke test');
   assert.deepEqual(steps[recheck].env, { TGZ: PACKED_TGZ, EXPECTED_SHA256: '${{ steps.pack.outputs.sha256 }}' });
-  const upload = findIndex(steps, (s) => s.uses === 'actions/upload-artifact@v4', 'uploading the tarball');
+  const upload = findIndex(steps, (s) => s.uses === ACTIONS.uploadArtifact, 'uploading the tarball');
   assert.deepEqual(steps[upload].with, { name: 'npm-tarball', path: PACKED_TGZ, 'if-no-files-found': 'error' });
   assert.ok(npm < install && install < verify && verify < pack && pack < smoke && smoke < recheck && recheck < upload, 'step order');
   assert.equal(upload, steps.length - 1, 'the upload is the last step');
@@ -479,11 +489,11 @@ test('release: publish needs guard and build, uses npm-publish and may mint an O
 test('release: publish downloads the artifact, checks its hash, decides, then publishes that file', () => {
   const { steps } = release().jobs.publish;
   assert.equal(steps.length, 7, 'checkout, node, npm, download, verify, decide, publish: nothing else');
-  const checkout = findIndex(steps, (s) => s.uses === 'actions/checkout@v4', 'checking out');
-  const node = findIndex(steps, (s) => s.uses === 'actions/setup-node@v4', 'setting up node');
-  assert.deepEqual(steps[node].with, { 'node-version': 22, 'registry-url': 'https://registry.npmjs.org' });
+  const checkout = findIndex(steps, (s) => s.uses === ACTIONS.checkout, 'checking out');
+  const node = findIndex(steps, (s) => s.uses === ACTIONS.setupNode, 'setting up node');
+  assert.deepEqual(steps[node].with, { 'node-version': 22, 'package-manager-cache': false, 'registry-url': 'https://registry.npmjs.org' });
   const npm = findIndex(steps, (s) => runOf(s) === NPM_PIN, 'installing the pinned npm');
-  const download = findIndex(steps, (s) => s.uses === 'actions/download-artifact@v4', 'downloading the tarball');
+  const download = findIndex(steps, (s) => s.uses === ACTIONS.downloadArtifact, 'downloading the tarball');
   assert.deepEqual(steps[download].with, { name: 'npm-tarball', path: '${{ runner.temp }}/release' });
   const verify = findIndex(steps, (s) => s.id === 'tarball', 'verifying the tarball');
   assert.deepEqual(steps[verify].env, {
@@ -573,7 +583,7 @@ test('release: verify-install needs publish and checks the install with no crede
 // ending with the Pages artifact upload. No Pages permission, nothing deployed here.
 const assertBuildsVersionedSite = (job, label) => {
   const { steps } = job;
-  const checkout = steps.find((s) => s.uses === 'actions/checkout@v4');
+  const checkout = steps.find((s) => s.uses === ACTIONS.checkout);
   assert.equal(checkout.with?.['fetch-depth'], 0, `${label}: full history, so the tags exist`);
   const gallery = findIndex(steps, (s) => runOf(s) === 'pnpm gallery:build', `${label}: running gallery:build`);
   const key = findIndex(
@@ -583,7 +593,7 @@ const assertBuildsVersionedSite = (job, label) => {
   );
   const cache = findIndex(
     steps,
-    (s) => s.uses === 'actions/cache@v4' && s.with?.path === '${{ runner.temp }}/archive-cache',
+    (s) => s.uses === ACTIONS.cache && s.with?.path === '${{ runner.temp }}/archive-cache',
     `${label}: caching the archives`,
   );
   assert.equal(steps[cache].with.key, '${{ steps.archives.outputs.key }}', `${label}: the cache is keyed on the archive tags`);
@@ -593,7 +603,7 @@ const assertBuildsVersionedSite = (job, label) => {
     (s) => runOf(s) === 'node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --cache "$RUNNER_TEMP/archive-cache"',
     `${label}: building the versioned site`,
   );
-  const upload = findIndex(steps, (s) => s.uses === 'actions/upload-pages-artifact@v3', `${label}: uploading the pages artifact`);
+  const upload = findIndex(steps, (s) => s.uses === ACTIONS.uploadPagesArtifact, `${label}: uploading the pages artifact`);
   assert.ok(gallery < key && key < cache && cache < site && site < upload, `${label}: step order`);
   assert.equal(upload, steps.length - 1, `${label}: the upload is the last step`);
   // `with:` is not a shell, so $RUNNER_TEMP would stay literal there.
@@ -601,14 +611,14 @@ const assertBuildsVersionedSite = (job, label) => {
   // The default is 1 day. site-build runs before the publish approval, so a slow approval must not
   // leave deploy with an expired artifact after npm already has the release.
   assert.equal(steps[upload].with['retention-days'], 7, `${label}: the site artifact outlives a slow approval`);
-  assert.ok(!steps.some((s) => s.uses === 'actions/deploy-pages@v4'), `${label}: never deploys`);
+  assert.ok(!steps.some((s) => s.uses === ACTIONS.deployPages), `${label}: never deploys`);
 };
 
 const assertPagesDeployJob = (job, label) => {
   assert.equal(job.environment.name, 'github-pages', label);
   assert.equal(job.environment.url, '${{ steps.deployment.outputs.page_url }}', label);
   assert.deepEqual(job.permissions, { contents: 'read', pages: 'write', 'id-token': 'write' }, label);
-  assert.deepEqual(job.steps, [{ id: 'deployment', uses: 'actions/deploy-pages@v4' }], `${label}: deploy-pages and nothing else`);
+  assert.deepEqual(job.steps, [{ id: 'deployment', uses: ACTIONS.deployPages }], `${label}: deploy-pages and nothing else`);
 };
 
 test('release: site-build and docs-build build the same site, with no Pages permission', () => {
@@ -646,7 +656,7 @@ test('release: docs-check runs the guard right after checkout and outputs deploy
   assert.deepEqual(job.outputs, { deploy: '${{ steps.released.outputs.deploy }}' });
   const { steps } = job;
   assert.equal(steps.length, 2, 'checkout and the guard, nothing else');
-  assert.equal(steps[0].uses, 'actions/checkout@v4');
+  assert.equal(steps[0].uses, ACTIONS.checkout);
   assert.equal(steps[0].with['fetch-depth'], 0, 'full history, so the tags exist');
   assert.equal(steps[1].id, 'released');
 });
@@ -693,7 +703,7 @@ test('release: dry-run smoke-tests, dry-runs the publish of a new version and bu
 
 test('release: dry-run builds the versioned site with v0.1.0 as an older line, then checks it', () => {
   const { steps } = release().jobs['dry-run'];
-  const checkout = steps.find((s) => s.uses === 'actions/checkout@v4');
+  const checkout = steps.find((s) => s.uses === ACTIONS.checkout);
   assert.equal(checkout.with?.['fetch-depth'], 0, 'full history, so v0.1.0 exists');
   const gallery = findIndex(steps, (s) => runOf(s) === 'pnpm gallery:build', 'building the gallery');
   const build = findIndex(
@@ -721,15 +731,15 @@ test('both: actions are pinned to the agreed major tags, with the ci.yml pnpm an
   for (const [file, wf] of BOTH()) {
     for (const { job, step } of allSteps(wf)) {
       if (step.uses) assert.ok(PINNED_ACTIONS.has(step.uses), `${file} ${job}: ${step.uses} is not an agreed pin`);
-      if (step.uses === 'pnpm/action-setup@v4') assert.equal(step.with.version, '9.15.9', `${file} ${job}`);
-      if (step.uses === 'actions/setup-node@v4') assert.equal(step.with['node-version'], 22, `${file} ${job}`);
+      if (step.uses === ACTIONS.pnpmSetup) assert.equal(step.with.version, '9.15.9', `${file} ${job}`);
+      if (step.uses === ACTIONS.setupNode) assert.equal(step.with['node-version'], 22, `${file} ${job}`);
       if (/^pnpm install\b/.test(runOf(step))) assert.equal(runOf(step), 'pnpm install --frozen-lockfile', `${file} ${job}`);
     }
     for (const [job, def] of Object.entries(wf.jobs)) {
       if (!(def.steps ?? []).some((s) => /^pnpm install\b/.test(runOf(s)))) continue;
-      const node = def.steps.find((s) => s.uses === 'actions/setup-node@v4');
+      const node = def.steps.find((s) => s.uses === ACTIONS.setupNode);
       assert.equal(node?.with.cache, 'pnpm', `${file} ${job} caches the pnpm store`);
-      assert.ok(def.steps.some((s) => s.uses === 'pnpm/action-setup@v4'), `${file} ${job} sets up pnpm`);
+      assert.ok(def.steps.some((s) => s.uses === ACTIONS.pnpmSetup), `${file} ${job} sets up pnpm`);
     }
   }
 });
@@ -739,12 +749,32 @@ test('both: every Playwright browser cache is keyed on the Playwright version', 
     for (const [job, def] of Object.entries(wf.jobs)) {
       const steps = def.steps ?? [];
       if (!steps.some((s) => /playwright install/.test(runOf(s)))) continue;
-      const cache = steps.find((s) => s.uses === 'actions/cache@v4');
+      const cache = steps.find((s) => s.uses === ACTIONS.cache);
       assert.equal(cache?.with.path, '~/.cache/ms-playwright', `${file} ${job}`);
       const id = /\$\{\{\s*steps\.([\w-]+)\.outputs\.version\s*\}\}/.exec(cache.with.key)?.[1];
       assert.ok(id, `${file} ${job}: the cache key uses a version output`);
       const reader = steps.find((s) => s.id === id);
       assert.match(runOf(reader), /playwright(\/test)?\/package\.json'\)\.version/, `${file} ${job} reads the installed version`);
+    }
+  }
+});
+
+test('both: every action is pinned to a full commit SHA, with its release named in a comment', () => {
+  for (const name of ['ci.yml', 'release.yml']) {
+    const text = readFileSync(new URL(`../.github/workflows/${name}`, import.meta.url), 'utf8');
+    const uses = text.split('\n').filter((line) => /^\s*(- )?uses:/.test(line));
+    assert.ok(uses.length > 0, name);
+    for (const line of uses) assert.match(line, /uses: [\w-]+\/[\w-]+@[0-9a-f]{40} # v\d+\.\d+\.\d+$/, `${name}: ${line.trim()}`);
+  }
+});
+
+test('both: every setup-node step without a pnpm cache turns the automatic one off', () => {
+  for (const [file, wf] of BOTH()) {
+    for (const [job, def] of Object.entries(wf.jobs)) {
+      for (const step of def.steps ?? []) {
+        if (step.uses !== ACTIONS.setupNode || step.with?.cache === 'pnpm') continue;
+        assert.equal(step.with?.['package-manager-cache'], false, `${file} ${job}`);
+      }
     }
   }
 });
