@@ -8,7 +8,7 @@ const LEVELS = {
   3: { 'font-family': 'var(--bit-font-display)', 'font-size': 'var(--bit-text-18px)', 'font-weight': '400', 'line-height': 'var(--bit-leading-tight)', 'letter-spacing': '0.01em' },
   4: { 'font-family': 'var(--bit-font-body)', 'font-size': 'var(--bit-text-15px)', 'font-weight': 'var(--bit-weight-bold)', 'line-height': '1.3', 'letter-spacing': 'normal' },
   5: { 'font-family': 'var(--bit-font-body)', 'font-size': 'var(--bit-text-13px)', 'font-weight': 'var(--bit-weight-bold)', 'line-height': '1.3', 'letter-spacing': 'normal' },
-  6: { 'font-family': 'var(--bit-font-pixel)', 'font-size': 'var(--bit-text-11px)', 'font-weight': '400', 'line-height': '1.4', 'letter-spacing': '0.08em' },
+  6: { 'font-family': 'var(--bit-font-pixel)', 'font-size': 'var(--bit-text-13px)', 'font-weight': '400', 'line-height': '1.4', 'letter-spacing': '0.08em' },
 } as const;
 
 const TYPE_PROPS = ['font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing'] as const;

@@ -29,7 +29,7 @@ const HEADINGS: readonly { level: HeadingLevel; example: string; look: string }[
   { level: 3, example: 'Subsection', look: 'h3 · 18 · display' },
   { level: 4, example: 'Group title', look: 'h4 · 15 · body bold' },
   { level: 5, example: 'Small title', look: 'h5 · 13 · body bold' },
-  { level: 6, example: 'Eyebrow', look: 'h6 · 11 · pixel' },
+  { level: 6, example: 'Eyebrow', look: 'h6 · 13 · pixel' },
 ];
 
 const TEXT_SIZES: readonly { props: TextProps; example: string; look: string; code: string }[] = [
@@ -67,7 +67,7 @@ function Faces() {
                 {name}
               </Text>
               <Code>{`--bit-font-${face}`}</Code>
-              <Text size={13} color="neutral">
+              <Text color="neutral">
                 {use}
               </Text>
             </Stack>
@@ -92,7 +92,7 @@ function HeadingLevels() {
               </Heading>
             </TableCell>
             <TableCell>
-              <Text size={13} color="neutral">
+              <Text color="neutral">
                 {look}
               </Text>
             </TableCell>
@@ -117,7 +117,7 @@ function TextSizes() {
               <Text {...props}>{example}</Text>
             </TableCell>
             <TableCell>
-              <Text size={13} color="neutral">
+              <Text color="neutral">
                 {look}
               </Text>
             </TableCell>

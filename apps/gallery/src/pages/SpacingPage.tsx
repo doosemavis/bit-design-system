@@ -41,7 +41,7 @@ function Ruler() {
         <Stack gap={8}>
           {SPACE_STEPS.map((step) => (
             <Box key={step} className="gallery-ruler">
-              <Text as="span" size={13} color="neutral">
+              <Text as="span" color="neutral">
                 {step}
               </Text>
               <Box paddingLeft={step} className="gallery-ruler__bar" aria-hidden="true" />
@@ -109,7 +109,7 @@ function BoxProps() {
               <Text weight="bold">{props}</Text>
             </TableCell>
             <TableCell>
-              <Text size={13} color="neutral">
+              <Text color="neutral">
                 {sides}
               </Text>
             </TableCell>
@@ -145,7 +145,7 @@ export function SpacingPage() {
       <Stack gap={12}>
         <Heading level={2}>Box props</Heading>
         <BoxProps />
-        <Text size={13} color="neutral">
+        <Text color="neutral">
           When props overlap, the most specific wins: <Code>paddingTop</Code> beats <Code>paddingY</Code>, which beats{' '}
           <Code>padding</Code>.
         </Text>

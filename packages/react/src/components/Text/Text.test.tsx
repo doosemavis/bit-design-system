@@ -1,11 +1,14 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { Text } from './Text';
 import { TEXT_SIZES } from '../../system/axes';
 import { expectNoA11yViolations } from '../../test/a11y';
+import { resetDeprecationWarnings } from '../../system/warnDeprecated';
 
 describe('Text', () => {
+  // The deprecation warning fires once per page session, so each test starts with a fresh one.
+  beforeEach(() => resetDeprecationWarnings());
   afterEach(() => vi.restoreAllMocks());
 
   it('renders a <p> at 15px and normal weight by default', () => {
@@ -23,6 +26,33 @@ describe('Text', () => {
     expect(el.className).toBe('bit-text bit-neutral');
     expect(el).toHaveAttribute('data-size', '32');
     expect(el).toHaveAttribute('data-weight', 'bold');
+  });
+
+  it('size={11} still renders, but warns once that it is deprecated (under the 13px floor; removed in 0.2.0)', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(
+      <>
+        <Text size={11}>a</Text>
+        <Text size={11}>b</Text>
+      </>,
+    );
+    expect(screen.getByText('a')).toHaveAttribute('data-size', '11');
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(
+      '[bit] Text size={11} is deprecated: 11px is under the 13px minimum text size. Use size={13}. It will be removed in 0.2.0.',
+    );
+  });
+
+  it('size="11" from untyped JS or MDX warns too', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(<Text size={'11' as unknown as 11}>m</Text>);
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('no other size warns', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(<>{TEXT_SIZES.filter((n) => n !== 11).map((n) => <Text key={n} size={n}>{n}</Text>)}</>);
+    expect(warn).not.toHaveBeenCalled();
   });
 
   it.each(TEXT_SIZES)('size={%i} renders data-size with the same px number', (n) => {

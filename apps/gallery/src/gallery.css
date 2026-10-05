@@ -447,6 +447,28 @@ html {
   }
 }
 
+/* ---------- getting started ---------- */
+/* Code on the left, what it renders on the right. The result Card stretches to the code's height and centres
+   its content. Under 64rem they stack: beside the sidebar, the result column gets too narrow for three Buttons. */
+.gallery-split {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: stretch;
+  gap: var(--bit-space-16px);
+}
+
+.gallery-split__result {
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 64rem) {
+  .gallery-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------- tokens page ---------- */
 
 /* The five color role cards: one column on a phone, 3 + 2 from 30rem, and all five in one row from 70rem

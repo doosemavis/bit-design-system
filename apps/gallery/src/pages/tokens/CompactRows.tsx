@@ -1,4 +1,5 @@
-import { Box, Link, Stack, SPACE_STEPS, Text, TEXT_SIZES } from '@bit-ds/react';
+import { Box, Link, Stack, SPACE_STEPS, Text } from '@bit-ds/react';
+import { SUPPORTED_TEXT_SIZES } from '../../content/textSizes';
 import { Link as RouterLink } from 'react-router-dom';
 
 const FACES = [
@@ -28,7 +29,7 @@ export function TypeRow() {
         </Text>
       ))}
       <Stack direction="row" gap={12} align="end" wrap>
-        {TEXT_SIZES.map((size) => (
+        {SUPPORTED_TEXT_SIZES.map((size) => (
           <Text key={size} as="span" size={size}>
             {size}
           </Text>
@@ -47,7 +48,7 @@ export function SpaceRow() {
         {SPACE_STEPS.map((step) => (
           <Stack key={step} gap={4} align="center">
             <Box paddingLeft={step} className="gallery-ruler__bar" aria-hidden="true" />
-            <Text as="span" size={13} color="neutral">
+            <Text as="span" color="neutral">
               {step}
             </Text>
           </Stack>

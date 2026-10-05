@@ -14,7 +14,7 @@ interface PageHeaderProps {
 export function PageHeader({ eyebrow, title, children }: PageHeaderProps) {
   return (
     <Stack gap={8} align="start">
-      <Text as="p" size={11} color="neutral" className="gallery-eyebrow">
+      <Text as="p" size={13} color="neutral" className="gallery-eyebrow">
         {eyebrow}
       </Text>
       <Heading level={1}>{title}</Heading>

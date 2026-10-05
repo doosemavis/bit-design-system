@@ -16,7 +16,7 @@ export function Preview({ label, presets, children }: PreviewProps) {
     <section className="gallery-preview" aria-label={label} data-checkerboard={checkerboard ? '' : undefined}>
       <Card className="gallery-preview__card">
         <div className="gallery-preview__bar">
-          <Text as="span" size={11} className="gallery-preview__title">Preview</Text>
+          <Text as="span" size={13} className="gallery-preview__title">Preview</Text>
           {presets}
           <Switch size="sm" checked={checkerboard} onChange={(event) => setCheckerboard(event.target.checked)}>
             Checkerboard

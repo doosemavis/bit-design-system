@@ -1,17 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { fullFile, STYLE_COMMENT } from './fullFile';
-import { STYLE_IMPORTS } from '../content/styleImports';
+import { fullFile } from './fullFile';
 import { toJsx } from './toJsx';
 import { defaultState } from '../engine/state';
 import { card } from '../manifests/card';
 
 describe('fullFile', () => {
-  it('wraps a one-line element in the style imports, the component import and an Example component', () => {
+  it('wraps a one-line element in the component import and an Example component', () => {
     expect(fullFile("import { Button } from '@bit-ds/react';\n\n<Button>Save</Button>")).toBe(
       [
-        STYLE_COMMENT,
-        "import '@bit-ds/react/themes/power-up.css';",
-        "import '@bit-ds/react/styles.css';",
         "import { Button } from '@bit-ds/react';",
         '',
         'export function Example() {',
@@ -24,9 +20,10 @@ describe('fullFile', () => {
     );
   });
 
-  it('puts the theme first (its font @import must lead the CSS) and says the styles go in once', () => {
+  it('leaves out the style imports: they go in once per app (Getting started), not in every file', () => {
     const file = fullFile(toJsx(card, defaultState(card)));
-    expect(file.startsWith(`// once per app: skip if already in your entry file\n${STYLE_IMPORTS}\n`)).toBe(true);
+    expect(file.startsWith("import { Card, CardBody, CardFooter, CardHeader } from '@bit-ds/react';\n")).toBe(true);
+    expect(file).not.toContain('.css');
   });
 
   it('indents every line of a multi-line element inside return ( … )', () => {

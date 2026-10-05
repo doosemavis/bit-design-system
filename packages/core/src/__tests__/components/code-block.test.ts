@@ -26,11 +26,11 @@ describe('components/code-block.css', () => {
     expect(block(css, '.bit-code__block')).toContain('--_bit-focus-ring: initial;');
   });
 
-  it('the bar has a 2px accent rule; the language is pixel type at 11px in the punct color', () => {
+  it('the bar has a 2px accent rule; the language is pixel type at 13px (the floor) in the punct color', () => {
     expect(block(css, '.bit-code__bar')).toContain('border-bottom: 2px solid var(--bit-color-accent);');
     const lang = block(css, '.bit-code__lang')!;
     expect(lang).toContain('font-family: var(--bit-font-pixel);');
-    expect(lang).toContain('font-size: var(--bit-text-11px);');
+    expect(lang).toContain('font-size: var(--bit-text-13px);');
     expect(lang).toContain('color: var(--bit-code-punct);');
   });
 

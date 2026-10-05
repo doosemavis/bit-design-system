@@ -1,17 +1,35 @@
-/* Code: inline code, a small mono chip in running text on the same
-   dark background as CodeBlock. The border follows the mode accent
-   (violet in light, yellow in dark; decision 3). */
+/* Code: inline code, a small mono chip in running text. Its text has its own
+   colour, --bit-code-inline-text (light violet in light, yellow in dark), and no
+   visible border, so a page of chips stays quiet beside CodeBlocks. The transparent border keeps
+   the chip's size and still draws an outline in forced-colours mode.
+   The --bit-code-inline-* tokens arrived in 0.1.2. Each read falls back to a
+   0.1.1 token, so a custom theme written for 0.1.1 still draws the chip. */
 .bit-code {
   padding: 1px 6px;
   font-family: var(--bit-font-mono);
-  font-size: 0.9em;
+  /* 0.9em of the text around it, but never under the 13px floor (inside 13px text it would be 11.7px). */
+  font-size: max(0.9em, var(--bit-text-13px));
   /* JetBrains Mono ships 400 and 700; the page's 600 would snap to bold. */
   font-weight: 400;
   font-variant-ligatures: none;
-  color: var(--bit-code-text);
-  background: var(--bit-code-bg);
-  border: 2px solid var(--bit-color-accent);
+  color: var(--bit-code-inline-text, var(--bit-code-text));
+  background: var(--bit-code-inline-bg, var(--bit-code-bg));
+  border: 2px solid transparent;
   border-radius: var(--bit-radius-6px);
+}
+
+/* Selected text: yellow in light mode like the rest of the page; lilac in dark, where the text itself is yellow. */
+.bit-code::selection {
+  background: var(--bit-code-inline-selection, var(--bit-color-selection));
+  color: var(--bit-color-ink);
+}
+
+/* Tinted surfaces (every Alert, a Card footer, a hovered Link) sit close to the pill's dark-mode grey,
+   so there it takes its own background: the CodeBlock near-black in dark mode, unchanged in light. */
+.bit-alert .bit-code,
+.bit-card__footer .bit-code,
+.bit-link:hover .bit-code {
+  background: var(--bit-code-inline-bg-on-tint, var(--bit-code-inline-bg, var(--bit-code-bg)));
 }
 
 /* Inside a Table, Code is plain mono text in the code-text colour: rows of values read
@@ -21,4 +39,9 @@
   background: none;
   border: 0;
   color: var(--bit-color-code-text);
+}
+
+/* A hovered Link would otherwise put the tinted pill back on table Code (its rule is more specific). */
+.bit-table .bit-link:hover .bit-code {
+  background: none;
 }

@@ -11,7 +11,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { EXPECTED } from '../packages/react/scripts/expected-exports.mjs';
-import { INSTALL_COMMANDS, PACKAGE_NAME, STYLE_IMPORTS, fullFile } from '../apps/gallery/src/content/snippets.mjs';
+import { GLOBAL_CSS_IMPORTS, INSTALL_COMMANDS, PACKAGE_NAME, STYLE_IMPORTS, fullFile } from '../apps/gallery/src/content/snippets.mjs';
 import { SMOKE_INSTALL_FLAGS, pinnedSpecs } from './smoke-pins.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -53,6 +53,30 @@ const installPinned = (app, tarballPath, names, failureMessage) =>
 // Vite minifies `@import url("...")` to `@import"..."`, so accept both forms.
 const THEME_FONTS_IMPORT = /^@import\s*(?:url\()?["']https:\/\/fonts\.googleapis\.com\/css2\?[^"']*["']\)?\s*;/;
 
+// The other documented route: the same app with the styles as CSS @imports in its global stylesheet. Vite must still
+// put the theme's fonts @import first, and the tokens and component styles must both land in the built CSS.
+function globalCssBuild(app) {
+  // A marker only index.css declares, so the check below proves the built CSS came through it.
+  writeFileSync(join(app, 'src', 'index.css'), `${GLOBAL_CSS_IMPORTS}\n\n:root { --smoke-global-css: 1; }\n`);
+  const main = readFileSync(join(app, 'src', 'main.jsx'), 'utf8');
+  const swapped = main.replace(STYLE_IMPORTS, "import './index.css';");
+  // Without this, a main.jsx that no longer holds STYLE_IMPORTS would build through the JS imports and pass.
+  assert.notEqual(swapped, main, 'global stylesheet: main.jsx did not contain STYLE_IMPORTS, so nothing was swapped');
+  writeFileSync(join(app, 'src', 'main.jsx'), swapped);
+  try {
+    runLoudly('npx --no -- vite build --outDir dist-global-css', app, 'vite build (global stylesheet) failed');
+  } finally {
+    writeFileSync(join(app, 'src', 'main.jsx'), main);
+  }
+  const assets = join(app, 'dist-global-css', 'assets');
+  const cssFile = readdirSync(assets).find((f) => f.endsWith('.css'));
+  assert.ok(cssFile, 'vite build (global stylesheet) produced no CSS');
+  const css = readFileSync(join(assets, cssFile), 'utf8').trimStart();
+  assert.ok(THEME_FONTS_IMPORT.test(css), `global stylesheet: built CSS must start with the fonts @import, but starts with: ${css.slice(0, 120)}`);
+  for (const needle of ['--bit-color-bg', '.bit-button', '--smoke-global-css']) assert.ok(css.includes(needle), `global stylesheet: built CSS lacks ${needle}`);
+  console.log('global stylesheet OK: fonts @import first, theme tokens and component styles present');
+}
+
 // Stage 5: a real Vite app built from the tarball and the shared snippets, checked in Chromium.
 async function viteStage(app, tarballPath) {
   installPinned(app, tarballPath, ['vite', '@vitejs/plugin-react', 'react', 'react-dom'], 'vite-stage npm install failed');
@@ -82,6 +106,8 @@ async function viteStage(app, tarballPath) {
   const fontsImport = THEME_FONTS_IMPORT.exec(css)?.[0];
   assert.ok(fontsImport, `built CSS must start with the Google Fonts @import, but starts with: ${css.slice(0, 120)}`);
   console.log(`fonts @import first in built CSS: ${fontsImport}`);
+
+  globalCssBuild(app);
 
   const port = await freePort();
   const preview = spawn('npx', ['--no', '--', 'vite', 'preview', '--port', String(port), '--strictPort', '--host', '127.0.0.1'], {

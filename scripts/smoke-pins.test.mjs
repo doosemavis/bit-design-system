@@ -60,6 +60,6 @@ test('smoke consumer: every npm install goes through the pinned installer, and n
   assert.equal(code.match(/npm (install|i|add|ci)\b/g)?.length, 1, 'one npm install command, inside installPinned');
   assert.match(source, /\['npm install', \.\.\.SMOKE_INSTALL_FLAGS,/);
   const calls = [...source.matchAll(/(?:runLoudly\('npx[^']*'|spawn\('npx', \[[^\]]*\])/g)].map((m) => m[0]);
-  assert.equal(calls.length, 3, 'vite build, vite preview and tsc');
+  assert.equal(calls.length, 4, 'vite build, the global-stylesheet vite build, vite preview and tsc');
   for (const call of calls) assert.match(call, /npx(?:', \['| )--no(?:', '| )--/, `npx must never install: ${call}`);
 });

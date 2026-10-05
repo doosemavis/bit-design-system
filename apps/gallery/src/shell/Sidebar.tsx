@@ -64,7 +64,7 @@ export function Sidebar({ items, open, onNavigate, footer }: SidebarProps) {
             <Text
               key={group === current ? `${group}-${seen.count}` : group}
               as="h2"
-              size={11}
+              size={13}
               color="neutral"
               className="gallery-sidebar__title"
             >

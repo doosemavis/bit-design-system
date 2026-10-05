@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import type { ReactNode } from 'react';
-import { Alert, Box, Code, Stack, Table, TableBody, TableCell, TableHead, TableRow, Text } from '@bit-ds/react';
+import { Alert, Box, Card, CardBody, Code, Table, TableBody, TableCell, TableHead, TableRow, Text } from '@bit-ds/react';
 import type { AxisControl, Manifest, ManifestDocs, PropDoc } from '../../manifests/types';
 
 /** Do and Don't: soft success and soft danger, read as notes rather than live status. */
@@ -81,7 +81,7 @@ export const PROP_COLUMNS: readonly PropColumn[] = [
 ];
 
 /**
- * The example the tip under the Props table uses: the color axis if there is one, otherwise the first axis,
+ * The example the tip beside the Props heading uses: the color axis if there is one, otherwise the first axis,
  * at `danger` for color (when the axis offers it), otherwise at the axis's last value that is not its
  * default (a default prints nothing, so it would teach nothing). Null without an axis.
  */
@@ -94,11 +94,18 @@ export function classTip(manifest: Manifest): { prop: string; value: string } | 
   return { prop: axis.prop, value };
 }
 
-export function PropsTable({ manifest }: { manifest: Manifest }) {
-  const tip = classTip(manifest);
+/** The Props tip: the className that works the same as one prop. It sits on the right of the Props heading. */
+export function ClassTip({ tip }: { tip: { prop: string; value: string } }) {
   return (
-    <Stack gap={8}>
-      <Table aria-label={`${manifest.name} props`}>
+    <Text>
+      Prefer classes? <Code>{`className="bit-${tip.value}"`}</Code> works the same as <Code>{`${tip.prop}="${tip.value}"`}</Code>.
+    </Text>
+  );
+}
+
+export function PropsTable({ manifest }: { manifest: Manifest }) {
+  return (
+    <Table aria-label={`${manifest.name} props`}>
         <TableHead>
           <TableRow>
             {PROP_COLUMNS.map((column) => (
@@ -117,22 +124,21 @@ export function PropsTable({ manifest }: { manifest: Manifest }) {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
-      {tip ? (
-        <Text size={13}>
-          Prefer classes? <Code>{`className="bit-${tip.value}"`}</Code> works the same as <Code>{`${tip.prop}="${tip.value}"`}</Code>.
-        </Text>
-      ) : null}
-    </Stack>
+    </Table>
   );
 }
 
+/** The Accessibility notes, framed in a Card like the Props table and the Usage boxes around them. */
 export function A11yList({ lines }: { lines: readonly string[] }) {
   return (
-    <ul className="gallery-bullets">
-      {lines.map((line) => (
-        <li key={line}>{line}</li>
-      ))}
-    </ul>
+    <Card>
+      <CardBody>
+        <ul className="gallery-bullets">
+          {lines.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      </CardBody>
+    </Card>
   );
 }

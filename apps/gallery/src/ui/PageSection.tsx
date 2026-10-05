@@ -9,17 +9,29 @@ export interface SectionLink {
 }
 
 interface PageSectionProps extends SectionLink {
+  /** A short note on the right of the heading row, such as the Props tip. It wraps under the heading when narrow. */
+  aside?: ReactNode;
   children: ReactNode;
 }
 
 /** A page section named by its h2. The h2 takes tabIndex -1, so a section bar can move focus to it. */
-export function PageSection({ id, title, children }: PageSectionProps) {
+export function PageSection({ id, title, aside, children }: PageSectionProps) {
+  const heading = (
+    <Heading level={2} id={id} tabIndex={-1}>
+      {title}
+    </Heading>
+  );
   return (
     <section aria-labelledby={id}>
       <Stack gap={12}>
-        <Heading level={2} id={id} tabIndex={-1}>
-          {title}
-        </Heading>
+        {aside ? (
+          <Stack direction="row" justify="between" align="center" gap={8} wrap>
+            {heading}
+            {aside}
+          </Stack>
+        ) : (
+          heading
+        )}
         {children}
       </Stack>
     </section>

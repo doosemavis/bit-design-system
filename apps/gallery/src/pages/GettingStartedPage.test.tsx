@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { renderAt } from '../test/renderRoute';
 import { expectNoA11yViolations } from '../test/a11y';
-import { STYLE_IMPORTS } from '../content/styleImports';
+import { GLOBAL_CSS_IMPORTS, STYLE_IMPORTS } from '../content/snippets.mjs';
 
 async function open() {
   const utils = renderAt('/getting-started');
@@ -12,6 +12,16 @@ async function open() {
 }
 
 const main = () => screen.getByRole('main');
+/** A paragraph by its whole text, for lines broken up by inline Code. */
+const paragraph = (text: string) => within(main()).getByText((_, el) => el?.tagName === 'P' && el.textContent === text);
+/** A step's sub-heading (an h3), by its visible text (inline Code changes the computed accessible name's spacing). */
+const subheading = (text: string) => {
+  const match = within(main()).getAllByRole('heading', { level: 3 }).find((h) => h.textContent === text);
+  if (!match) throw new Error(`No h3 reads "${text}"`);
+  return match;
+};
+/** The step a heading belongs to, by the Step's data-step hook. */
+const stepOf = (heading: HTMLElement) => heading.closest<HTMLElement>('[data-step]')!;
 
 describe('GettingStartedPage', () => {
   beforeEach(() => {
@@ -30,6 +40,43 @@ describe('GettingStartedPage', () => {
     expect(steps).toEqual(['Install', 'Add the styles once', 'Use a component', 'Light and dark', 'Next steps']);
   });
 
+  it('every step frames its content in a Card, with the number and heading above it', async () => {
+    await open();
+    const headings = within(main()).getAllByRole('heading', { level: 2 });
+    for (const heading of headings) {
+      expect(heading.closest('.bit-card'), heading.textContent!).toBeNull();
+      const card = stepOf(heading).querySelector(':scope > .bit-card');
+      expect(card, heading.textContent!).not.toBeNull();
+      expect(card!.querySelector(':scope > .bit-card__body'), heading.textContent!).not.toBeNull();
+      expect(card!.contains(heading), heading.textContent!).toBe(false);
+    }
+  });
+
+  it('every step reads easily: no text under 15px, and its parts sit at least 16px apart', async () => {
+    await open();
+    for (const heading of within(main()).getAllByRole('heading', { level: 2 })) {
+      const body = stepOf(heading).querySelector('.bit-card__body > .bit-stack')!;
+      expect(body, heading.textContent!).toHaveAttribute('data-gap', '16');
+      for (const text of body.querySelectorAll('.bit-text')) {
+        expect(Number(text.getAttribute('data-size')), `${heading.textContent}: ${text.textContent}`).toBeGreaterThanOrEqual(15);
+      }
+    }
+  });
+
+  it("the steps' sub-labels are h3 headings, so screen readers can jump between them", async () => {
+    await open();
+    const names = within(main()).getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
+    expect(names).toEqual([
+      'In your entry file',
+      'Or in your global stylesheet',
+      '1. In a component file, such as src/Toolbar.tsx:',
+      'It renders:',
+      '2. Then use your component like any other, for example in src/App.tsx:',
+      'In index.html',
+      'In any file',
+    ]);
+  });
+
   it('Install keeps the version Badge and the package manager switcher', async () => {
     await open();
     expect(screen.getByText(`v${__BIT_VERSION__}`)).toHaveClass('bit-badge');
@@ -38,14 +85,128 @@ describe('GettingStartedPage', () => {
     expect(screen.getByRole('radio', { name: 'yarn' })).toBeInTheDocument();
   });
 
-  it('shows the style imports and the first component', async () => {
-    await open();
-    expect(screen.getByRole('region', { name: 'Style imports' }).textContent).toBe(STYLE_IMPORTS);
-    expect(screen.getByRole('region', { name: 'First component' }).textContent).toBe(
-      "import { Button } from '@bit-ds/react';\n\n<Button>Save</Button>",
-    );
-    const help = within(main()).getByText(/^Import it and use it\./);
-    expect(within(help).getByText('className="bit-danger"')).toHaveClass('bit-code');
+  describe('Add the styles once', () => {
+    it('says the two stylesheets go in once and apply to the whole app', async () => {
+      await open();
+      expect(within(main()).getByText(/^Two stylesheets, added once for the whole app\./)).toHaveTextContent(
+        'Two stylesheets, added once for the whole app. CSS imported in React is global, so every component in every folder gets these styles.',
+      );
+    });
+
+    it('explains each file: the theme first, then the component styles', async () => {
+      await open();
+      const items = within(main()).getAllByRole('listitem').map((li) => li.textContent);
+      expect(items).toContain('themes/power-up.css: the theme. Colours, fonts and sizes as --bit-* tokens, in light and dark. It comes first.');
+      expect(items).toContain('styles.css: the component styles. They read the theme\'s tokens.');
+    });
+
+    it('offers two places: the entry file (JS imports) or the global stylesheet (CSS @imports)', async () => {
+      await open();
+      expect(within(main()).getByText(/^In your entry file$/)).toBeInTheDocument();
+      expect(paragraph('src/main.tsx in Vite, app/layout.tsx in Next.js.')).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: 'Style imports' }).textContent).toBe(STYLE_IMPORTS);
+      expect(within(main()).getByText(/^Or in your global stylesheet$/)).toBeInTheDocument();
+      expect(paragraph('At the very top of src/index.css (Vite) or app/globals.css (Next.js), before any other rule.')).toBeInTheDocument();
+      const css = screen.getByRole('region', { name: 'Global stylesheet imports' });
+      expect(css.textContent).toBe(GLOBAL_CSS_IMPORTS);
+      expect(css.closest('.bit-code__block')).toHaveAttribute('data-language', 'css');
+    });
+
+    it('says not to repeat them per component', async () => {
+      await open();
+      expect(within(main()).getByText(/^Pick one\./)).toHaveTextContent(
+        "Pick one. You don't import them again in each component: the component examples on this site leave them out for that reason.",
+      );
+    });
+  });
+
+  describe('Use a component', () => {
+    it('says where the import goes and where the component goes', async () => {
+      await open();
+      expect(
+        paragraph('Import what you need from @bit-ds/react at the top of a component file, then put it in the JSX that component returns.'),
+      ).toBeInTheDocument();
+    });
+
+    it('shows a whole component file you can paste, not a bare element', async () => {
+      await open();
+      expect(subheading('1. In a component file, such as src/Toolbar.tsx:')).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: 'First component' }).textContent).toBe(
+        [
+          "import { Button, Stack } from '@bit-ds/react';",
+          '',
+          'export function Toolbar() {',
+          '  return (',
+          '    <Stack direction="row" gap={8} wrap>',
+          '      <Button>Save</Button>',
+          '      <Button color="danger">Delete</Button>',
+          '      <Button className="bit-danger">Delete</Button>',
+          '    </Stack>',
+          '  );',
+          '}',
+        ].join('\n'),
+      );
+    });
+
+    it('renders the same three Buttons live, so you see what the file makes', async () => {
+      await open();
+      const result = screen.getByRole('region', { name: 'What it renders' });
+      const buttons = within(result).getAllByRole('button');
+      expect(buttons.map((b) => b.textContent)).toEqual(['Save', 'Delete', 'Delete']);
+      expect(buttons[0]).toHaveClass('bit-primary');
+      expect(buttons[1]).toHaveClass('bit-danger');
+      expect(buttons[2]).toHaveClass('bit-danger');
+    });
+
+    it('puts the code and what it renders side by side, code first', async () => {
+      await open();
+      const code = screen.getByRole('region', { name: 'First component' }).closest('.gallery-split__code')!;
+      const result = screen.getByRole('region', { name: 'What it renders' });
+      expect(code.parentElement).toHaveClass('gallery-split');
+      expect(result).toHaveClass('gallery-split__result');
+      expect(result.closest('.gallery-split')).toBe(code.parentElement);
+      expect([...code.parentElement!.children].indexOf(code)).toBe(0);
+    });
+
+    it('reads easily: its part labels are body size, and the two parts sit 24px apart', async () => {
+      await open();
+      const one = subheading('1. In a component file, such as src/Toolbar.tsx:');
+      const two = subheading('2. Then use your component like any other, for example in src/App.tsx:');
+      for (const label of [one, two, subheading('It renders:')]) expect(label).toHaveAttribute('data-size', '15');
+      const parts = one.closest('[data-step-part="1"]')!.parentElement!;
+      expect(parts).toHaveAttribute('data-gap', '24');
+      expect(two.closest('[data-step-part="2"]')!.parentElement).toBe(parts);
+    });
+
+    it('the live result wraps like the code says, so no Button is cut off on a narrow screen', async () => {
+      await open();
+      const row = within(screen.getByRole('region', { name: 'What it renders' })).getAllByRole('button')[0]!.parentElement!;
+      expect(row).toHaveAttribute('data-direction', 'row');
+      expect(row).toHaveAttribute('data-wrap');
+    });
+
+    it('explains each part of the file', async () => {
+      await open();
+      const items = within(main()).getAllByRole('listitem').map((li) => li.textContent);
+      expect(items).toEqual(
+        expect.arrayContaining([
+          'import { Button, Stack }: name every component you use, in one import from @bit-ds/react.',
+          'export function Toolbar(): your own component. It returns the JSX to show.',
+          '<Button>Save</Button>: a Button with its defaults. The text between the tags is its label.',
+          'color="danger": a prop that changes the colour.',
+          'className="bit-danger": the same change written as a class. The last two Buttons look the same.',
+          '<Stack direction="row" gap={8} wrap>: lays the Buttons out in a row, 8px apart, and wraps them on a narrow screen.',
+        ]),
+      );
+    });
+
+    it('then shows how to use your component in the app', async () => {
+      await open();
+      expect(subheading('2. Then use your component like any other, for example in src/App.tsx:')).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: 'Use it in your app' }).textContent).toBe(
+        "import { Toolbar } from './Toolbar';\n\nexport default function App() {\n  return <Toolbar />;\n}",
+      );
+    });
   });
 
   describe('Light and dark', () => {
@@ -83,7 +244,7 @@ describe('GettingStartedPage', () => {
         ['In index.html', 'index.html', 'index.html'],
         ['In any file', 'Any file', null],
       ] as const) {
-        const text = within(main()).getByText((_, el) => el?.tagName === 'P' && el.textContent === caption);
+        const text = subheading(caption);
         expect(text).toHaveClass('bit-text');
         if (code) expect(within(text).getByText(code)).toHaveClass('bit-code');
         expect(text.nextElementSibling!.contains(screen.getByRole('region', { name: region }))).toBe(true);

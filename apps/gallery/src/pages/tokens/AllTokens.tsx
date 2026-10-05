@@ -45,7 +45,7 @@ export function AllTokens({ values }: { values: TokenValues }) {
       {shown.length === 0 ? (
         <Stack gap={8} align="start">
           <Text>No tokens match “{filter.trim()}”.</Text>
-          <Text size={13} color="neutral">
+          <Text color="neutral">
             Token names look like <Code>--bit-color-primary</Code> or <Code>--bit-space-16px</Code>. Try part of one, such as
             color or space.
           </Text>

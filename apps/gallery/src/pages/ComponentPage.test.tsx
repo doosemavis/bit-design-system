@@ -130,6 +130,18 @@ describe('ComponentPage (layout C)', () => {
     expect(tip).toHaveTextContent(`Prefer classes? ${asClass} works the same as ${asProp}.`);
   });
 
+  it('the tip sits above the Props table, on the right of the heading row, not under the table', async () => {
+    await open('/components/button', 'Button');
+    const heading = screen.getByRole('heading', { level: 2, name: 'Props' });
+    const row = heading.closest<HTMLElement>('[data-justify="between"]')!;
+    const tip = screen.getByText(/^Prefer classes\?/);
+    expect(row).toContainElement(tip);
+    expect(row).toHaveAttribute('data-direction', 'row');
+    expect(row).toHaveAttribute('data-wrap');
+    const table = screen.getByRole('table', { name: 'Button props' });
+    expect(row.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("the tip never teaches an axis's default: Switch and ModeToggle (sm | md, default md) use sm", () => {
     expect(classTip(switchManifest)).toEqual({ prop: 'size', value: 'sm' });
     expect(classTip(modeToggle)).toEqual({ prop: 'size', value: 'sm' });
@@ -161,10 +173,25 @@ describe('ComponentPage (layout C)', () => {
     expect(within(section).getAllByRole('listitem').map((li) => li.textContent)).toEqual([...button.docs.a11y]);
   });
 
+  it('Accessibility frames its list in a Card, like the Props table and Usage beside it', async () => {
+    await open('/components/button', 'Button');
+    const list = within(region('Accessibility')).getByRole('list');
+    expect(list.parentElement).toHaveClass('bit-card__body');
+    expect(list.parentElement!.parentElement).toHaveClass('bit-card');
+  });
+
+  // Value: protects=the Full file note's Getting started link opens that page in the real route table; fails_when=the route path or the link's to= changes without the other; why_new=CodePanel.test pins href in a bare MemoryRouter with no routes; seam=none
+  it("the Full file note's Getting started link opens Getting started", async () => {
+    await open('/components/button', 'Button');
+    const note = screen.getByText(/^Styles aren't in this file/);
+    await userEvent.click(within(note).getByRole('link', { name: 'Getting started' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Getting started' })).toBeInTheDocument();
+  });
+
   it("emptied children: the preview shows the empty component, the code a self-closing tag, the field the manifest's error", async () => {
     await open('/components/button?children=', 'Button');
     expect(within(region('Button preview')).getByRole('button', { name: '' })).toBeEmptyDOMElement();
-    expect(region('Example code').textContent).toBe("import { Button } from '@bit-ds/react';\n\n<Button />");
+    expect(region('Example code').textContent).toContain("import { Button } from '@bit-ds/react';\n\nexport function Example() {\n  return (\n    <Button />\n  );\n}");
     expect(screen.getByLabelText('children')).toHaveAccessibleDescription(button.docs.emptyChildrenError!);
   });
 

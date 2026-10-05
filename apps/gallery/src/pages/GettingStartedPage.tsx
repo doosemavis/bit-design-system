@@ -50,14 +50,14 @@ export function GettingStartedPage() {
           <Stack align="start">
             <ModeToggle />
           </Stack>
-          <Stack gap={4}>
-            <Text size={13} weight="bold">
+          <Stack gap={8}>
+            <Text as="h3" weight="bold">
               In <Code>index.html</Code>
             </Text>
             <CodeBlock code={HTML_EXAMPLE} language="html" label="index.html" />
           </Stack>
-          <Stack gap={4}>
-            <Text size={13} weight="bold">
+          <Stack gap={8}>
+            <Text as="h3" weight="bold">
               In any file
             </Text>
             <CodeBlock code={COLOR_MODE_EXAMPLE} language="jsx" label="Any file" />

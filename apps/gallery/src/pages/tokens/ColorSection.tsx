@@ -28,7 +28,7 @@ function SwatchRow({ name, token, values }: { name: string; token: string; value
     <Stack direction="row" gap={8} align="center">
       <Swatch token={token} />
       <Stack gap={4}>
-        <Text as="span" size={13} weight="bold">
+        <Text as="span" weight="bold">
           {name}
         </Text>
         <Code>{values.values.get(token)}</Code>
