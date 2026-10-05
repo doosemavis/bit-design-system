@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@9.15.9",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "pnpm --filter @bit-ds/react build",
     "verify": "pnpm --filter @bit-ds/react verify",
@@ -22,14 +24,14 @@
     "e2e": "pnpm --filter @bit-ds/gallery e2e"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.0",
+    "@eslint/js": "^10.0.1",
     "@fontsource/audiowide": "^5.3.0",
     "@fontsource/press-start-2p": "^5.3.0",
-    "eslint": "^9.39.0",
+    "eslint": "^10.11.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "playwright": "^1.56.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.70.0",
+    "typescript-eslint": "^8.70.1",
     "yaml": "^2.9.1"
   },
   "pnpm": {
