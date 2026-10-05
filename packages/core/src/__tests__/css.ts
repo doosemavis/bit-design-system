@@ -44,7 +44,7 @@ function channel(hex: string): number {
 }
 
 /** Relative luminance of a `#rrggbb` color per WCAG 2.x. */
-function luminance(hex: string): number {
+export function luminance(hex: string): number {
   const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex.trim());
   if (!m) throw new Error(`Expected #rrggbb, got "${hex}"`);
   return 0.2126 * channel(m[1]!) + 0.7152 * channel(m[2]!) + 0.0722 * channel(m[3]!);

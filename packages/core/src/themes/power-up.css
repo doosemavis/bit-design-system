@@ -17,6 +17,8 @@
   --bit-palette-violet: #7C3AED;
   --bit-palette-violet-dark: #6527D4;
   --bit-palette-violet-soft: #EBE1FD;
+  /* The light violet of dark-mode links and the inline Code chip: 7.95:1 on ink. */
+  --bit-palette-lilac: #B79BFF;
   --bit-palette-yellow: #FFC800;
   --bit-palette-yellow-dark: #F0B400;
   --bit-palette-yellow-soft: #FFF1B8;
@@ -113,6 +115,7 @@
   --bit-font-body: "Nunito", "Segoe UI", sans-serif;
   --bit-font-pixel: "Press Start 2P", monospace;
   --bit-font-mono: "JetBrains Mono", ui-monospace, monospace;
+  /* Deprecated: under the 13px minimum text size. Only Text size={11}, itself deprecated, reads it; both go in 0.2.0. */
   --bit-text-11px: 11px;
   --bit-text-13px: 13px;
   --bit-text-15px: 15px;
@@ -165,6 +168,13 @@
   --bit-code-comment: #8E8E9A;
   --bit-code-number: #FF9F7A;
   --bit-code-prop: #FF8FCB;
+  /* Inline Code: accent-coloured text on a dark pill with no visible border. Brand violet is 3.2:1 on ink,
+     so light mode uses the lighter violet that dark-mode links use (7.95:1). */
+  /* Light reads the CodeBlock background, so a --bit-code-bg override still restyles the pill. */
+  --bit-code-inline-bg: var(--bit-code-bg);
+  --bit-code-inline-bg-on-tint: var(--bit-code-inline-bg);
+  --bit-code-inline-text: var(--bit-palette-lilac);
+  --bit-code-inline-selection: var(--bit-palette-yellow);
 
   /* ---------- tier 2: logo (fixed coin golds and violet; never primary or warning) ---------- */
   --bit-logo-coin: var(--bit-palette-coin);
@@ -195,10 +205,17 @@
   --bit-color-danger-soft: var(--bit-palette-red-night);
   --bit-shadow-inset: inset 3px 3px 0 rgba(0, 0, 0, 0.4);
   --bit-code-bg: var(--bit-palette-night-code);
+  /* Raised: lighter than the page and the surface, so the borderless pill still reads as a chip. */
+  --bit-code-inline-bg: var(--bit-palette-night-raised);
+  /* Tinted surfaces sit close to night-raised, so there the pill takes the CodeBlock near-black. */
+  --bit-code-inline-bg-on-tint: var(--bit-palette-night-code);
+  --bit-code-inline-text: var(--bit-palette-yellow);
+  /* The text is yellow here, so selection switches to lilac (ink on it is 7.95:1). */
+  --bit-code-inline-selection: var(--bit-palette-lilac);
   --bit-focus-ring-color: var(--bit-palette-yellow);
   --bit-focus-ring-offset: 1px;
   --bit-color-accent: var(--bit-palette-yellow);
-  --bit-color-link: #B79BFF;
+  --bit-color-link: var(--bit-palette-lilac);
   /* The spec's #9B7FE6 is 4.45:1 on the hover highlight (primary-soft); #9D82E7 is the nearest that passes (4.59:1). */
   --bit-color-link-visited: #9D82E7;
   --bit-color-danger-text: #FF8A8A;
@@ -227,10 +244,17 @@
     --bit-color-danger-soft: var(--bit-palette-red-night);
     --bit-shadow-inset: inset 3px 3px 0 rgba(0, 0, 0, 0.4);
     --bit-code-bg: var(--bit-palette-night-code);
+    /* Raised: lighter than the page and the surface, so the borderless pill still reads as a chip. */
+    --bit-code-inline-bg: var(--bit-palette-night-raised);
+    /* Tinted surfaces sit close to night-raised, so there the pill takes the CodeBlock near-black. */
+    --bit-code-inline-bg-on-tint: var(--bit-palette-night-code);
+    --bit-code-inline-text: var(--bit-palette-yellow);
+    /* The text is yellow here, so selection switches to lilac (ink on it is 7.95:1). */
+    --bit-code-inline-selection: var(--bit-palette-lilac);
     --bit-focus-ring-color: var(--bit-palette-yellow);
     --bit-focus-ring-offset: 1px;
     --bit-color-accent: var(--bit-palette-yellow);
-    --bit-color-link: #B79BFF;
+    --bit-color-link: var(--bit-palette-lilac);
     /* The spec's #9B7FE6 is 4.45:1 on the hover highlight (primary-soft); #9D82E7 is the nearest that passes (4.59:1). */
     --bit-color-link-visited: #9D82E7;
     --bit-color-danger-text: #FF8A8A;

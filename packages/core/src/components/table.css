@@ -23,7 +23,7 @@
 
 .bit-table__head .bit-table__cell {
   font-family: var(--bit-font-pixel);
-  font-size: var(--bit-text-11px);
+  font-size: var(--bit-text-13px);
   font-weight: var(--bit-weight-normal);
   letter-spacing: 0.06em;
   text-transform: uppercase;

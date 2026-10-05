@@ -9,9 +9,9 @@ describe('semantic token list', () => {
     expect(SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('contains exactly 94 unique names, all prefixed --bit-', () => {
-    expect(SEMANTIC_TOKENS).toHaveLength(94);
-    expect(new Set(SEMANTIC_TOKENS).size).toBe(94);
+  it('contains exactly 98 unique names, all prefixed --bit-', () => {
+    expect(SEMANTIC_TOKENS).toHaveLength(98);
+    expect(new Set(SEMANTIC_TOKENS).size).toBe(98);
     for (const name of SEMANTIC_TOKENS) expect(name).toMatch(/^--bit-[a-z0-9-]+$/);
   });
 
@@ -58,9 +58,16 @@ describe('semantic token list', () => {
     for (const name of sharedAcrossModes) expect(MODE_TOKENS).not.toContain(name);
   });
 
-  it('has 24 unique mode tokens (the ones the dark block overrides)', () => {
-    expect(MODE_TOKENS).toHaveLength(24);
-    expect(new Set(MODE_TOKENS).size).toBe(24);
+  it('has the inline Code pill tokens, and both change with the mode', () => {
+    for (const name of ['--bit-code-inline-bg', '--bit-code-inline-bg-on-tint', '--bit-code-inline-text', '--bit-code-inline-selection']) {
+      expect(SEMANTIC_TOKENS).toContain(name);
+      expect(MODE_TOKENS).toContain(name);
+    }
+  });
+
+  it('has 28 unique mode tokens (the ones the dark block overrides)', () => {
+    expect(MODE_TOKENS).toHaveLength(28);
+    expect(new Set(MODE_TOKENS).size).toBe(28);
   });
 
   it('has no --bit-color-focus (the focus ring has its own tokens)', () => {

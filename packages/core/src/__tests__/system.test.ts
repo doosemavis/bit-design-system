@@ -14,6 +14,8 @@ const INK_EXCEPTIONS: Readonly<Record<string, readonly string[]>> = {
   ],
   // The Copy button is a light button on the dark code bar, edged and labelled in ink (board 1).
   'code-block.css': ['.bit-code__copy'],
+  // Selected Code text is ink on the highlight, like the page's own ::selection in system/reset.css.
+  'code.css': ['.bit-code::selection'],
 };
 
 describe('system/colors.css', () => {

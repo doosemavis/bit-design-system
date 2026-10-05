@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CODE_KINDS, COLORS } from '../tokens';
-import { contrastRatio, listCss, readCss, resolveVar, themeModes } from './css';
+import { contrastRatio, listCss, luminance, readCss, resolveVar, themeModes } from './css';
 
 const AA_TEXT = 4.5;
 const AA_NON_TEXT = 3;
@@ -166,6 +166,61 @@ describe('PR2 light values (spec §2)', () => {
   it('light stripes are stone', () => {
     const { light } = themeModes(readCss('themes/power-up.css'));
     expect(resolveVar(light, '--bit-color-stripe')).toBe('#DCDED6');
+  });
+});
+
+describe('inline Code pill', () => {
+  const { light, dark } = themeModes(readCss('themes/power-up.css'));
+  const darkMap = new Map([...light, ...dark]);
+  const modes: [string, Map<string, string>, string, string][] = [
+    ['light', light, '#B79BFF', '#151515'],
+    ['dark', darkMap, '#FFC800', '#2B2B37'],
+  ];
+
+  it.each(modes)('%s text and background resolve to their hexes', (_mode, map, text, bg) => {
+    expect(resolveVar(map, '--bit-code-inline-text')).toBe(text);
+    expect(resolveVar(map, '--bit-code-inline-bg')).toBe(bg);
+  });
+
+  it.each(modes)('%s text is readable on the pill', (_mode, map) => {
+    expect(contrastRatio(resolveVar(map, '--bit-code-inline-text'), resolveVar(map, '--bit-code-inline-bg'))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it.each([
+    ['light', light, '#FFC800'],
+    ['dark', darkMap, '#B79BFF'],
+  ] as const)('%s selection resolves to its hex, and selected ink text on it is readable', (_mode, map, hex) => {
+    const selection = resolveVar(map, '--bit-code-inline-selection');
+    expect(selection).toBe(hex);
+    expect(contrastRatio(resolveVar(map, '--bit-color-ink'), selection)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it.each([
+    ['light', light, '#151515'],
+    ['dark', darkMap, '#0B0B10'],
+  ] as const)('%s on-tint background resolves to its hex, and the chip text stays readable on it', (_mode, map, hex) => {
+    const bg = resolveVar(map, '--bit-code-inline-bg-on-tint');
+    expect(bg).toBe(hex);
+    expect(contrastRatio(resolveVar(map, '--bit-code-inline-text'), bg)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it('light: the pill reads the CodeBlock background token, so a --bit-code-bg override still reaches it', () => {
+    expect(light.get('--bit-code-inline-bg')).toBe('var(--bit-code-bg)');
+    expect(light.get('--bit-code-inline-bg-on-tint')).toBe('var(--bit-code-inline-bg)');
+  });
+
+  it('dark: on every tinted surface the borderless pill stands apart, so it still reads as a chip there', () => {
+    const pill = resolveVar(darkMap, '--bit-code-inline-bg-on-tint');
+    const tints = ['--bit-color-neutral', ...['primary', 'success', 'warning', 'danger', 'neutral'].map((c) => `--bit-color-${c}-soft`)];
+    for (const bg of tints) expect(contrastRatio(pill, resolveVar(darkMap, bg)), bg).toBeGreaterThan(1.25);
+  });
+
+  it('dark: with no border, the pill is lighter than the page and the surface, so it still reads as a chip', () => {
+    const pill = resolveVar(darkMap, '--bit-code-inline-bg');
+    for (const bg of ['--bit-color-bg', '--bit-color-surface']) {
+      expect(contrastRatio(pill, resolveVar(darkMap, bg)), bg).toBeGreaterThan(1.1);
+      expect(luminance(pill), bg).toBeGreaterThan(luminance(resolveVar(darkMap, bg)));
+    }
   });
 });
 

@@ -8,6 +8,7 @@ export const SIZES = ['sm', 'md', 'lg'] as const;
 /**
  * Text sizes in px. Same numbers as Text's `size` prop, its `data-size` attribute and the
  * `--bit-text-{n}px` token. The names describe power-up's scale; revisit if a theme needs another.
+ * 11 is deprecated (under the 13px minimum text size) and will be removed in 0.2.0.
  */
 export const TEXT_SIZES = [11, 13, 15, 18, 24, 32] as const;
 /** Space in px. Same numbers as Stack's `gap` prop, its `data-gap` attribute and the `--bit-space-{n}px` token. */
@@ -32,7 +33,7 @@ const colorRoleTokens = ['bg', 'surface', 'ink', 'text', 'text-muted', 'selectio
 );
 
 /**
- * PR2 roles: the code border accent, link text, field error text, the Switch thumb when on, Table stripes, and Code text inside a Table.
+ * PR2 roles: the accent (CodeBlock's border and bar rule), link text, field error text, the Switch thumb when on, Table stripes, and Code text inside a Table.
  * Each has one job, so a theme can tune it without moving primary, danger or the surfaces.
  */
 const pr2ColorTokens = ['accent', 'link', 'link-visited', 'danger-text', 'knob', 'stripe', 'code-text'].map((role) => token('color', role));
@@ -75,7 +76,19 @@ const motionTokens = [
 
 const focusTokens = ['color', 'width', 'offset'].map((part) => token('focus', 'ring', part));
 
-const codeTokens = [token('code', 'bg'), ...CODE_KINDS.map((kind) => token('code', kind))];
+/**
+ * The inline Code pill has its own text, background and selection colours, so it can stand apart from the
+ * CodeBlock panel, and selected text never matches the pill's text colour. on-tint is its background on
+ * tinted surfaces (Alerts, Card footers, hovered Links), which sit close to the pill's dark-mode grey.
+ */
+const inlineCodeTokens = [
+  token('code', 'inline', 'bg'),
+  token('code', 'inline', 'bg', 'on-tint'),
+  token('code', 'inline', 'text'),
+  token('code', 'inline', 'selection'),
+];
+
+const codeTokens = [token('code', 'bg'), ...CODE_KINDS.map((kind) => token('code', kind)), ...inlineCodeTokens];
 
 /**
  * The BitLogo's coin golds and the violet of 64-bit's hard drop. Fixed brand colors, so a palette change
@@ -120,6 +133,7 @@ export const MODE_TOKENS: readonly string[] = [
   ...['primary', 'success', 'warning', 'danger'].map((color) => token('color', color, 'soft')),
   token('shadow', 'inset'),
   token('code', 'bg'),
+  ...inlineCodeTokens,
   token('focus', 'ring', 'color'),
   token('focus', 'ring', 'offset'),
   token('color', 'accent'),
