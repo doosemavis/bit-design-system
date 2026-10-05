@@ -1,4 +1,5 @@
-import { TEXT_SIZES, Text } from '@bit-ds/react';
+import { Text } from '@bit-ds/react';
+import { SUPPORTED_TEXT_SIZES } from '../content/textSizes';
 import type { Manifest } from './types';
 
 export const text: Manifest = {
@@ -9,7 +10,7 @@ export const text: Manifest = {
   description: 'Typography. The element comes from `as`; the look comes from `size`, in px.',
   controls: [
     { kind: 'select', prop: 'as', values: ['p', 'span', 'div', 'label', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'], default: 'p' },
-    { kind: 'select', prop: 'size', values: TEXT_SIZES.map(String), default: '15', numeric: true },
+    { kind: 'select', prop: 'size', values: SUPPORTED_TEXT_SIZES.map(String), default: '15', numeric: true },
     { kind: 'select', prop: 'color', values: ['default', 'neutral'], default: 'default', label: 'color' },
     { kind: 'select', prop: 'weight', values: ['normal', 'bold'], default: 'normal' },
   ],
@@ -41,7 +42,8 @@ export const text: Manifest = {
         name: 'size',
         type: '11 | 13 | 15 | 18 | 24 | 32',
         default: '15',
-        description: 'Text size in px, from the type scale. Rendered as data-size; reads --bit-text-{size}px. 24 and 32 use the display face.',
+        description:
+          'Text size in px, from the type scale. Rendered as data-size; reads --bit-text-{size}px. 24 and 32 use the display face. 11 is deprecated (under the 13px minimum): use 13. It will be removed in 0.2.0.',
       },
       { name: 'color', type: "'neutral'", description: 'neutral renders muted text. Leave it off for the normal text color.' },
       {

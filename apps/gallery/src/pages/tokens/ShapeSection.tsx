@@ -10,7 +10,7 @@ function ShapeTile({ token, style, values }: { token: string; style: CSSProperti
     <Stack gap={8} align="start">
       <span className="gallery-shape" style={style} aria-hidden="true" />
       <Code>{token}</Code>
-      <Text as="span" size={13} color="neutral">
+      <Text as="span" color="neutral">
         {values.values.get(token)}
       </Text>
     </Stack>

@@ -1,6 +1,4 @@
-import { STYLE_COMMENT, fullFile as fullFileParts } from '../content/snippets.mjs';
-
-export { STYLE_COMMENT };
+import { fullFile as fullFileParts } from '../content/snippets.mjs';
 
 /** Wrap a toJsx snippet (import line, blank line, element) in a file you can paste and run. Gallery-private. */
 export function fullFile(jsx: string): string {

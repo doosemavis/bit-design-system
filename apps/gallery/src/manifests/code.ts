@@ -6,7 +6,7 @@ export const code: Manifest = {
   slug: 'code',
   group: 'components',
   component: Code,
-  description: 'Inline code: a small mono chip inside running text, on the same dark background as CodeBlock. The border follows the mode accent.',
+  description: 'Inline code: a small mono chip inside running text, in its own colour: light violet in light mode, yellow in dark.',
   controls: [],
   children: 'color="danger"',
   docs: {
@@ -25,7 +25,7 @@ export const code: Manifest = {
     props: [{ name: 'children', type: 'ReactNode', description: 'The code, shown exactly as written.' }],
     a11y: [
       'A real <code> element; screen readers read it as part of the sentence.',
-      'The accent border follows the mode, and the light text on the dark background keeps full contrast in both modes.',
+      'The text keeps at least 4.5:1 contrast on the pill in both modes. In forced-colours mode the pill gets a system outline.',
     ],
   },
 };

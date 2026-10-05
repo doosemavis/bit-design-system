@@ -33,7 +33,7 @@ export const NAMING_COLUMNS: readonly NamingColumn[] = [
     header: 'Token',
     cell: (row) =>
       row.token === null ? (
-        <Text as="span" size={13} color="neutral">
+        <Text as="span" color="neutral">
           per component CSS
         </Text>
       ) : (

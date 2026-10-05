@@ -19,16 +19,22 @@ export const INSTALL_COMMANDS = {
  */
 export const STYLE_IMPORTS = `import '${PACKAGE_NAME}/themes/power-up.css';\nimport '${PACKAGE_NAME}/styles.css';`;
 
-/** Above the style imports in the full file: they belong in the app's entry file, once. */
-export const STYLE_COMMENT = '// once per app: skip if already in your entry file';
+/**
+ * The same two files as CSS `@import`s, for an app's global stylesheet instead of its entry file. Vite and
+ * Next.js both keep the theme's fonts `@import` first when they inline these (checked 2026-10-05).
+ */
+export const GLOBAL_CSS_IMPORTS = `@import '${PACKAGE_NAME}/themes/power-up.css';\n@import '${PACKAGE_NAME}/styles.css';`;
 
 const BODY_INDENT = '    ';
 
-/** A file you can paste and run: the style imports, the component import, and an `Example` returning the element. */
+/**
+ * A component file you can paste: the component import and an `Example` returning the element. The style imports
+ * are left out: an app adds them once (Getting started), not in every file.
+ */
 export function fullFile({ importLine, element }) {
   const body = element
     .split('\n')
     .map((line) => BODY_INDENT + line)
     .join('\n');
-  return `${STYLE_COMMENT}\n${STYLE_IMPORTS}\n${importLine}\n\nexport function Example() {\n  return (\n${body}\n  );\n}\n`;
+  return `${importLine}\n\nexport function Example() {\n  return (\n${body}\n  );\n}\n`;
 }

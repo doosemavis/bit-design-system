@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { screen, within } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderAt } from '../test/renderRoute';
@@ -43,6 +46,21 @@ describe('Typography page', () => {
     for (const el of samples) expect(el).toHaveAttribute('role', 'presentation');
     expect(within(table).getByText('h4 · 15 · body bold')).toBeInTheDocument();
     expect(within(table).getByText('<Heading level={6}>')).toHaveClass('bit-code');
+  });
+
+  // Value: protects=each Headings row's "hN · size · face" text matches heading.css for that level; fails_when=heading.css changes a level's size or face (as h6 11→13 did) and the page text does not; why_new=only h4's text is checked, never against the CSS; seam=none
+  it("every Headings row's size and face match heading.css", async () => {
+    // Not new URL(..., import.meta.url): under jsdom Vite rewrites that to an http: URL; ?raw CSS comes back empty.
+    const css = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../../../packages/core/src/components/heading.css'), 'utf8');
+    await renderTypography();
+    const table = screen.getByRole('table', { name: 'Heading levels' });
+    for (let level = 1; level <= 6; level++) {
+      const rule = new RegExp(`\\.bit-heading\\[data-level="${level}"\\]\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? '';
+      const size = /font-size:\s*var\(--bit-text-(\d+)px\)/.exec(rule)?.[1];
+      const face = /font-family:\s*var\(--bit-font-(\w+)\)/.exec(rule)?.[1];
+      expect(size, `h${level} font-size`).toBeDefined();
+      expect(within(table).getByText(new RegExp(`^h${level} · ${size} · ${face}\\b`))).toBeInTheDocument();
+    }
   });
 
   it('the Text sizes table shows 18, 15 and 13 muted, with their code', async () => {

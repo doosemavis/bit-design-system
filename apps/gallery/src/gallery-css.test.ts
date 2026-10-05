@@ -53,6 +53,12 @@ describe('gallery.css', () => {
     expect(galleryCss).not.toMatch(/\.gallery-pre[\s{,]/);
   });
 
+  it('Getting started shows code and its result side by side, stacking under 64rem where the result column gets too narrow', () => {
+    expect(galleryCss).toMatch(/\.gallery-split \{[^}]*grid-template-columns: minmax\(0, 3fr\) minmax\(0, 2fr\);/);
+    expect(galleryCss).toMatch(/@media \(max-width: 64rem\) \{\s*\.gallery-split \{\s*grid-template-columns: minmax\(0, 1fr\);\s*\}\s*\}/);
+    expect(galleryCss).toMatch(/\.gallery-split__result \{[^}]*flex: 1;[^}]*place-items: center;/);
+  });
+
   it('outlines a previewed Box, dashed in the mode accent, and only the Box the stage shows', () => {
     expect(galleryCss).toMatch(/\.gallery-preview__stage > \.bit-box \{\s*outline: 2px dashed var\(--bit-color-accent\);\s*\}/);
   });

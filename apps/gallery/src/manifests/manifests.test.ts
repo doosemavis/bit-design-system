@@ -178,7 +178,8 @@ describe('manifest contract', () => {
       kind: 'select',
       numeric: true,
       default: '15',
-      values: ['11', '13', '15', '18', '24', '32'],
+      // 11 is deprecated (under the 13px floor), so the playground does not offer it.
+      values: ['13', '15', '18', '24', '32'],
     });
     expect(text.presets?.map((p) => p.state.size)).toEqual(['32', '13']);
   });

@@ -1,10 +1,27 @@
 import type { ReactNode } from 'react';
-import { Badge, Code, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
+import { Badge, Button, Card, CardBody, Code, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
 import { BUILD_VERSION } from '../../buildVersion';
 import { InstallCommand } from '../../content/InstallCommand';
-import { STYLE_IMPORTS } from '../../content/styleImports';
+import { GLOBAL_CSS_IMPORTS, STYLE_IMPORTS } from '../../content/styleImports';
 
-const FIRST_COMPONENT = "import { Button } from '@bit-ds/react';\n\n<Button>Save</Button>";
+/** A whole component file, so nobody has to guess where the element goes. The "It renders" Card shows the same tree. */
+const FIRST_COMPONENT = `import { Button, Stack } from '@bit-ds/react';
+
+export function Toolbar() {
+  return (
+    <Stack direction="row" gap={8} wrap>
+      <Button>Save</Button>
+      <Button color="danger">Delete</Button>
+      <Button className="bit-danger">Delete</Button>
+    </Stack>
+  );
+}`;
+
+const USE_IT = `import { Toolbar } from './Toolbar';
+
+export default function App() {
+  return <Toolbar />;
+}`;
 
 interface StepProps {
   n: number;
@@ -16,10 +33,13 @@ interface StepProps {
   children: ReactNode;
 }
 
-/** One numbered step of Getting started: its title is a level-2 heading on that page. */
+/**
+ * One numbered step of Getting started: its title is a level-2 heading on that page. The number and heading sit
+ * above a Card that frames the rest, so every step looks the same.
+ */
 export function Step({ n, title, aside, help, children }: StepProps) {
   return (
-    <Stack gap={8}>
+    <Stack gap={8} data-step={n}>
       <Stack direction="row" gap={8} align="center" wrap>
         <Badge color="warning" shape="square">
           {String(n)}
@@ -27,8 +47,14 @@ export function Step({ n, title, aside, help, children }: StepProps) {
         <Heading level={2}>{title}</Heading>
         {aside}
       </Stack>
-      <Text>{help}</Text>
-      {children}
+      <Card>
+        <CardBody>
+          <Stack gap={16}>
+            <Text>{help}</Text>
+            {children}
+          </Stack>
+        </CardBody>
+      </Card>
     </Stack>
   );
 }
@@ -49,19 +75,107 @@ export function GetStarted() {
       >
         <InstallCommand />
       </Step>
-      <Step n={2} title="Add the styles once" help="In your app's entry file. The theme comes first, then the component styles.">
-        <CodeBlock code={STYLE_IMPORTS} language="jsx" label="Style imports" />
+      <Step
+        n={2}
+        title="Add the styles once"
+        help="Two stylesheets, added once for the whole app. CSS imported in React is global, so every component in every folder gets these styles."
+      >
+        <ul className="gallery-bullets">
+          <li>
+            <Code>themes/power-up.css</Code>: the theme. Colours, fonts and sizes as <Code>--bit-*</Code> tokens, in light and dark.
+            It comes first.
+          </li>
+          <li>
+            <Code>styles.css</Code>: the component styles. They read the theme's tokens.
+          </li>
+        </ul>
+        <Stack gap={8}>
+          <Text as="h3" weight="bold">
+            In your entry file
+          </Text>
+          <Text>
+            <Code>src/main.tsx</Code> in Vite, <Code>app/layout.tsx</Code> in Next.js.
+          </Text>
+          <CodeBlock code={STYLE_IMPORTS} language="jsx" label="Style imports" />
+        </Stack>
+        <Stack gap={8}>
+          <Text as="h3" weight="bold">
+            Or in your global stylesheet
+          </Text>
+          <Text>
+            At the very top of <Code>src/index.css</Code> (Vite) or <Code>app/globals.css</Code> (Next.js), before any other rule.
+          </Text>
+          <CodeBlock code={GLOBAL_CSS_IMPORTS} language="css" label="Global stylesheet imports" />
+        </Stack>
+        <Text>
+          Pick one. You don't import them again in each component: the component examples on this site leave them out for
+          that reason.
+        </Text>
       </Step>
       <Step
         n={3}
         title="Use a component"
         help={
           <>
-            Import it and use it. <Code>color="danger"</Code> and <Code>className="bit-danger"</Code> give the same look.
+            Import what you need from <Code>@bit-ds/react</Code> at the top of a component file, then put it in the JSX that
+            component returns.
           </>
         }
       >
-        <CodeBlock code={FIRST_COMPONENT} language="jsx" label="First component" />
+        {/* Two parts, 24px apart, so the big code blocks and their labels don't run together. */}
+        <Stack gap={24}>
+          <Stack gap={16} data-step-part="1">
+            {/* The code and what it renders, side by side (stacked on a phone). */}
+            <div className="gallery-split">
+              <Stack gap={8} className="gallery-split__code">
+                <Text as="h3" weight="bold">
+                  1. In a component file, such as <Code>src/Toolbar.tsx</Code>:
+                </Text>
+                <CodeBlock code={FIRST_COMPONENT} language="jsx" label="First component" />
+              </Stack>
+              <Stack gap={8}>
+                <Text as="h3" weight="bold">
+                  It renders:
+                </Text>
+                <Card role="region" aria-label="What it renders" className="gallery-split__result">
+                  <CardBody>
+                    <Stack direction="row" gap={8} wrap>
+                      <Button>Save</Button>
+                      <Button color="danger">Delete</Button>
+                      <Button className="bit-danger">Delete</Button>
+                    </Stack>
+                  </CardBody>
+                </Card>
+              </Stack>
+            </div>
+            <ul className="gallery-bullets">
+              <li>
+                <Code>import {'{ Button, Stack }'}</Code>: name every component you use, in one import from <Code>@bit-ds/react</Code>.
+              </li>
+              <li>
+                <Code>export function Toolbar()</Code>: your own component. It returns the JSX to show.
+              </li>
+              <li>
+                <Code>{'<Button>Save</Button>'}</Code>: a Button with its defaults. The text between the tags is its label.
+              </li>
+              <li>
+                <Code>color="danger"</Code>: a prop that changes the colour.
+              </li>
+              <li>
+                <Code>className="bit-danger"</Code>: the same change written as a class. The last two Buttons look the same.
+              </li>
+              <li>
+                <Code>{'<Stack direction="row" gap={8} wrap>'}</Code>: lays the Buttons out in a row, 8px apart, and wraps them on a narrow screen.
+              </li>
+            </ul>
+          </Stack>
+          <Stack gap={8} data-step-part="2">
+            <Text as="h3" weight="bold">
+              2. Then use your component like any other, for example in <Code>src/App.tsx</Code>:
+            </Text>
+            <CodeBlock code={USE_IT} language="jsx" label="Use it in your app" />
+          </Stack>
+        </Stack>
       </Step>
     </Stack>
   );

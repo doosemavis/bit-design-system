@@ -30,12 +30,20 @@ npm install @bit-ds/react
 yarn add @bit-ds/react
 ```
 
-Then add the styles once, theme first, and use a component:
+Then add the styles once, theme first, and use a component. CSS imported in React is global, so one import in your
+entry file (`src/main.tsx` in Vite, `app/layout.tsx` in Next.js) styles every component in the app:
 
 ```tsx
 import '@bit-ds/react/themes/power-up.css';
 import '@bit-ds/react/styles.css';
 import { Button } from '@bit-ds/react';
+```
+
+Or put the styles at the very top of your global stylesheet (`src/index.css` or `app/globals.css`) instead:
+
+```css
+@import '@bit-ds/react/themes/power-up.css';
+@import '@bit-ds/react/styles.css';
 ```
 
 ## The naming rule

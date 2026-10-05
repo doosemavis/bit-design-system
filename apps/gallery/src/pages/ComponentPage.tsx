@@ -6,7 +6,7 @@ import { PageSection } from '../ui/PageSection';
 import { SectionBar } from '../ui/SectionBar';
 import { ComponentHeader } from './component/ComponentHeader';
 import { Playground } from './component/Playground';
-import { A11yList, PropsTable, UsageLists } from './component/DocsSections';
+import { A11yList, ClassTip, classTip, PropsTable, UsageLists } from './component/DocsSections';
 import { componentSections, SECTIONS } from './component/sections';
 
 interface ComponentPageProps {
@@ -17,6 +17,7 @@ interface ComponentPageProps {
 export function ComponentPage({ manifest }: ComponentPageProps) {
   const controls = useControlState(manifest);
   const axes = variantAxes(manifest);
+  const tip = classTip(manifest);
   return (
     <Stack gap={32}>
       <Stack gap={16}>
@@ -34,7 +35,7 @@ export function ComponentPage({ manifest }: ComponentPageProps) {
       <PageSection {...SECTIONS.usage}>
         <UsageLists usage={manifest.docs.usage} />
       </PageSection>
-      <PageSection {...SECTIONS.props}>
+      <PageSection {...SECTIONS.props} aside={tip ? <ClassTip tip={tip} /> : undefined}>
         <PropsTable manifest={manifest} />
       </PageSection>
       <PageSection {...SECTIONS.accessibility}>

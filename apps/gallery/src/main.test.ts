@@ -14,7 +14,7 @@ describe('main.tsx', () => {
     expect(styles).toBeGreaterThan(theme);
   });
 
-  it('starts its CSS with exactly STYLE_IMPORTS, the lines Home and the full file teach', () => {
+  it('starts its CSS with exactly STYLE_IMPORTS, the lines Getting started and the README teach', () => {
     expect(main).toContain(STYLE_IMPORTS);
   });
 });

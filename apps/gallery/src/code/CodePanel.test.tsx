@@ -1,4 +1,6 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import type { ReactElement } from 'react';
+import { act, fireEvent, render as rtlRender, screen, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { CodePanel } from './CodePanel';
@@ -12,6 +14,9 @@ import { codeBlock } from '../manifests/codeBlock';
 import { expectNoA11yViolations } from '../test/a11y';
 import { stubClipboard } from '../test/clipboard';
 
+/** The Full file note links to Getting started, so CodePanel needs a router. */
+const render = (ui: ReactElement) => rtlRender(<MemoryRouter>{ui}</MemoryRouter>);
+
 const shown = () => screen.getByRole('region', { name: 'Example code' }).textContent;
 const formatNames = () =>
   within(screen.getByRole('group', { name: 'Code format' }))
@@ -23,16 +28,18 @@ afterEach(() => {
 });
 
 describe('CodePanel', () => {
-  it('starts on Props: the toJsx snippet in a jsx CodeBlock named "Example code"', async () => {
+  it('starts on Props with Full file on: a file you can paste and run, in a jsx CodeBlock named "Example code"', async () => {
     const { container } = render(<CodePanel manifest={button} state={{ ...defaultState(button), color: 'danger' }} />);
     expect(screen.getByRole('radio', { name: 'Props' })).toBeChecked();
-    expect(shown()).toBe("import { Button } from '@bit-ds/react';\n\n<Button color=\"danger\">Save</Button>");
+    expect(screen.getByRole('switch', { name: 'Full file' })).toBeChecked();
+    expect(shown()).toBe("import { Button } from '@bit-ds/react';\n\nexport function Example() {\n  return (\n    <Button color=\"danger\">Save</Button>\n  );\n}\n");
     expect(container.querySelector('.bit-code__block')).toHaveAttribute('data-language', 'jsx');
     await expectNoA11yViolations(container);
   });
 
   it('className prints the changed axes as classes', async () => {
     render(<CodePanel manifest={button} state={{ ...defaultState(button), color: 'danger', variant: 'outline' }} />);
+    await userEvent.click(screen.getByRole('switch', { name: 'Full file' }));
     await userEvent.click(screen.getByRole('radio', { name: 'className' }));
     expect(shown()).toBe("import { Button } from '@bit-ds/react';\n\n<Button className=\"bit-danger bit-outline\">Save</Button>");
   });
@@ -47,17 +54,35 @@ describe('CodePanel', () => {
 
   it('Full file wraps Props and className code alike', async () => {
     render(<CodePanel manifest={button} state={{ ...defaultState(button), color: 'danger' }} />);
-    await userEvent.click(screen.getByRole('switch', { name: 'Full file' }));
-    expect(shown()).toContain("// once per app: skip if already in your entry file\nimport '@bit-ds/react/themes/power-up.css';");
     expect(shown()).toContain('export function Example() {\n  return (\n    <Button color="danger">Save</Button>\n  );\n}');
     await userEvent.click(screen.getByRole('radio', { name: 'className' }));
     expect(shown()).toContain('    <Button className="bit-danger">Save</Button>\n');
+  });
+
+  it('with Full file on, a note says the styles go in once and links to Getting started; off or on HTML, it goes', async () => {
+    render(<CodePanel manifest={button} state={defaultState(button)} />);
+    const note = () => screen.queryByText(/^Styles aren't in this file/);
+    expect(note()).toHaveTextContent("Styles aren't in this file: you add them once for the whole app. See Getting started.");
+    expect(within(note()!).getByRole('link', { name: 'Getting started' })).toHaveAttribute('href', '/getting-started');
+    await userEvent.click(screen.getByRole('switch', { name: 'Full file' }));
+    expect(note()).toBeNull();
+    await userEvent.click(screen.getByRole('switch', { name: 'Full file' }));
+    await userEvent.click(screen.getByRole('radio', { name: 'HTML' }));
+    expect(note()).toBeNull();
+  });
+
+  it('turning Full file off shows just the snippet: the import and the element', async () => {
+    render(<CodePanel manifest={button} state={{ ...defaultState(button), color: 'danger' }} />);
+    await userEvent.click(screen.getByRole('switch', { name: 'Full file' }));
+    expect(screen.getByRole('switch', { name: 'Full file' })).not.toBeChecked();
+    expect(shown()).toBe("import { Button } from '@bit-ds/react';\n\n<Button color=\"danger\">Save</Button>");
   });
 
   it('Copy copies whichever mode is showing', async () => {
     const writeText = vi.fn(() => Promise.resolve());
     stubClipboard(writeText);
     render(<CodePanel manifest={button} state={{ ...defaultState(button), size: 'lg' }} />);
+    await userEvent.click(screen.getByRole('switch', { name: 'Full file' }));
     await userEvent.click(screen.getByRole('radio', { name: 'className' }));
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Copy Example code' }));
