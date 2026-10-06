@@ -92,6 +92,22 @@ export type SegmentedControlProps = SegmentedControlBaseProps & (SingleSelect | 
 
 **Rules.** Reduced motion is not relevant (nothing animates). Forced colours: the system draws scrollbars, so the rules are wrapped in `@media not (forced-colors: active)`.
 
+### 5a. Owner's follow-up (2026-10-06, after seeing it live)
+The owner's words: "if the background is black like the codeblock the color of the slider should match that. And same goes for the table or cards that have a light background in the light mode. … the border around the slider should match the color of the codeblock component that's being used in whatever theme mode (light/dark)". The owner chose this scope: bit components plus the gallery.
+
+**The rule for every styled scrollbar.**
+- The track and the thumb fill are the background of the container the bar sits in.
+- The thumb has a 2px inset outline in `--bit-color-accent`, the CodeBlock border colour for the current mode: violet in light, yellow in dark.
+- On hover the thumb fills with the accent.
+- The shape is the same as §5: 14px, with the transparent 3px border that leaves an even gap.
+
+**Where it applies.**
+- **CodeBlock:** unchanged.
+- **Table:** the track and thumb fill stay `--bit-color-surface`, and the outline and hover move from `--bit-color-line` to `--bit-color-accent`. The Firefox fallback becomes `scrollbar-color: var(--bit-color-accent) var(--bit-color-surface)`.
+- **Gallery scroll areas:** the presets row in the preview bar (horizontal) and the sidebar (vertical, so `width: 14px` as well). These use `transparent` for the track and thumb fill, so they show their container's own background whatever it is. They also get the same `@supports` reset (`scrollbar-color: auto; scrollbar-width: auto`) so Chrome uses the pseudo-elements.
+  - These are paint, so they go on `gallery-css.exceptions.ts` with `frame:` reasons.
+- **Apps using bit:** their own page and panel scrollbars are untouched (`reset.css` is unchanged).
+
 ## 6. Tests
 **React `SegmentedControl.test.tsx`.**
 - Multi: checkboxes with a shared name; toggling on and off; option-order arrays; no mutation; controlled and uncontrolled use; the empty default.

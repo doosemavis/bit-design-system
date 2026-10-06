@@ -392,3 +392,32 @@ The owner's words: "The import statement code that is at the top of each compone
 - [ ] **Step 3: Implement.** Stretch the row so the chip's background box takes the Copy button's height, and centre the text vertically inside it. Only on the component pages' import line: Code elsewhere (body text, captions, tables) must not change.
 - [ ] **Step 4: Verify in the browser.** Measure on the Button and SegmentedControl pages with gstack `$B` that `getBoundingClientRect().height` of the chip equals the Copy button's, at 1280px and 390px, light and dark. Screenshot it.
 - [ ] **Step 5: Run the done gate and commit:** `feat(gallery): component import line matches its Copy button's height`.
+
+---
+
+### Task 8: Scrollbars match their container; the outline is always the CodeBlock border colour (owner follow-up; spec §5a)
+
+**Files:**
+- Modify:
+  - `packages/core/src/components/table.css` and `packages/core/src/__tests__/scrollbar.test.ts`
+  - `apps/gallery/src/gallery.css`: the presets row (`.gallery-presets`, `overflow-x: auto`) and the sidebar (the `overflow-y: auto` rule)
+  - `apps/gallery/src/gallery-css.exceptions.ts`
+  - `apps/gallery/src/gallery-css.test.ts`
+  - `apps/gallery/e2e/scrollbar.spec.ts`
+
+**Interfaces:** none. Runs after Task 4 merges, because both touch the presets and bar area of `gallery.css`.
+
+- [ ] **Step 1: Write failing tests**
+  - Core: in the Table cases of scrollbar.test.ts, the outline and hover tokens become `--bit-color-accent`, and the Firefox fallback becomes `var(--bit-color-accent) var(--bit-color-surface)`. CodeBlock's expectations stay as they are.
+  - Gallery CSS test: `.gallery-presets` and the sidebar scroll rule get:
+    - `::-webkit-scrollbar` rules: height 14px, plus width 14px for the sidebar;
+    - a `transparent` track;
+    - a thumb with `background: transparent; background-clip: padding-box; border: 3px solid transparent; border-radius: var(--bit-radius-10px); box-shadow: inset 0 0 0 2px var(--bit-color-accent)`;
+    - hover `background: var(--bit-color-accent)`;
+    - the `@supports selector(::-webkit-scrollbar)` reset to `auto`, inside `@media not (forced-colors: active)`.
+  - The exceptions file lists every new paint declaration with a `frame:` reason.
+  - e2e: the presets row's computed `scrollbar-color` is `auto`.
+- [ ] **Step 2: Run them and see them fail.**
+- [ ] **Step 3: Implement.** Match the comment style of the existing rules. To avoid repeating the gallery rule block, use one selector list for both scroll areas where the properties are identical.
+- [ ] **Step 4: Run the done gate,** including `pnpm e2e`.
+- [ ] **Step 5: Commit:** `feat: scrollbars take their container's background, outlined in the CodeBlock border colour`.
