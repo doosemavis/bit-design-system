@@ -20,9 +20,11 @@ describe('Preview', () => {
     expect(stage).toHaveAttribute('data-checkerboard', '');
   });
 
-  it('the stage frame is a bit Card, still a named region', () => {
+  it('has no Card of its own: a named region of the bar then the stage, framed by the Playground card', () => {
     render(<Preview label="Button preview">x</Preview>);
     const region = screen.getByRole('region', { name: 'Button preview' });
-    expect(region.querySelector('.bit-card')).not.toBeNull();
+    expect(region).toHaveClass('gallery-preview');
+    expect(region.querySelector('.bit-card')).toBeNull();
+    expect([...region.children].map((child) => child.className)).toEqual(['gallery-preview__bar', 'gallery-preview__stage']);
   });
 });

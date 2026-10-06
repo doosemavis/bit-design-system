@@ -4,6 +4,8 @@
   --_gallery-sidebar-width: 15rem;
   --_gallery-header-height: 3.5rem;
   --_gallery-gutter: var(--bit-space-16px);
+  /* The playground's header strip: a small control, the bar's padding and its bottom border. */
+  --_gallery-bar-height: calc(var(--bit-control-height-sm) + 2 * var(--bit-space-8px) + var(--bit-border-width));
 }
 
 html {
@@ -231,17 +233,19 @@ html {
 }
 
 /* ---------- controls ---------- */
-.gallery-controls__head {
+/* The controls half of the playground card: its bar, then the fields from the top down. The divider on its
+   start edge parts it from the preview; under 720px it moves to the top edge. */
+.gallery-controls {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--bit-space-12px);
+  flex-direction: column;
+  border-inline-start: var(--bit-border-width) solid var(--bit-color-line);
 }
 
 .gallery-controls__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   gap: var(--bit-space-12px);
+  padding: var(--bit-space-12px);
 }
 
 .gallery-control {
@@ -250,23 +254,38 @@ html {
 }
 
 /* ---------- preview ---------- */
-.gallery-preview__bar {
+/* The preview half of the playground card: the bar, then the stage. The stage takes the spare height, so it
+   reaches the card's floor however many controls stand beside it. */
+.gallery-preview {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* The preview bar and the controls bar are one header strip across the card: one height, one paint, one
+   title face. The controls bar holds only Reset, so the shared min-height lines it up with the preview bar. */
+.gallery-preview__bar,
+.gallery-controls__bar {
   display: flex;
   align-items: center;
   gap: var(--bit-space-12px);
   justify-content: space-between;
+  min-height: var(--_gallery-bar-height);
+  box-sizing: border-box;
   padding: var(--bit-space-8px) var(--bit-space-12px);
   border-bottom: var(--bit-border-width) solid var(--bit-color-line);
   background: var(--bit-color-bg);
 }
 
-.gallery-preview__title {
+.gallery-preview__title,
+.gallery-controls__title {
   font-family: var(--bit-font-pixel);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
 .gallery-preview__stage {
+  flex: 1;
   min-height: 12rem;
   display: grid;
   place-items: center;
@@ -366,7 +385,9 @@ html {
   min-height: var(--bit-control-height-sm);
 }
 
-/* Preview and controls side by side, the code under both. Under 720px the controls stack under the preview. */
+/* Preview and controls side by side in one bit Card, the code under both. Under 720px the controls stack
+   under the preview. The card draws the frame; this only splits it. Both halves stretch to the card's height
+   and meet at the controls' divider, so there is no gap. */
 .gallery-playground {
   display: grid;
   gap: var(--bit-space-16px);
@@ -375,8 +396,7 @@ html {
 .gallery-playground__top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 16rem;
-  align-items: start;
-  gap: var(--bit-space-16px);
+  align-items: stretch;
 }
 
 .gallery-codepanel {
@@ -438,6 +458,14 @@ html {
 @media (max-width: 720px) {
   .gallery-playground__top {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Stacked under the preview, the controls' divider moves from the start edge to the top edge. */
+@media (max-width: 720px) {
+  .gallery-controls {
+    border-inline-start: none;
+    border-top: var(--bit-border-width) solid var(--bit-color-line);
   }
 }
 

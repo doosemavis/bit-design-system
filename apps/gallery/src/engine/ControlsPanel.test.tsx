@@ -122,6 +122,23 @@ describe('ControlsPanel', () => {
     expect(container.querySelector('[class*="gallery-control__"], .gallery-switch')).toBeNull();
   });
 
+  it('starts with a bar like the preview bar: the h3 "Controls" in the pixel label face, then Reset', () => {
+    const { container } = render(
+      <ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={() => {}} />,
+    );
+    const section = container.querySelector('section.gallery-controls')!;
+    expect(section).toHaveAttribute('aria-labelledby', 'controls-heading');
+    const bar = section.firstElementChild!;
+    expect(bar).toHaveClass('gallery-controls__bar');
+    const heading = screen.getByRole('heading', { level: 3, name: 'Controls' });
+    expect(heading).toHaveAttribute('id', 'controls-heading');
+    // The same Text size as the preview title; the pixel face comes from the selector list it shares with it.
+    expect(heading).toHaveClass('bit-text', 'gallery-controls__title');
+    expect(heading).toHaveAttribute('data-size', '13');
+    expect([...bar.children]).toEqual([heading, screen.getByRole('button', { name: 'Reset' })]);
+    expect(bar.nextElementSibling).toHaveClass('gallery-controls__grid');
+  });
+
   it('Reset calls onReset', async () => {
     const onReset = vi.fn();
     render(<ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={onReset} />);

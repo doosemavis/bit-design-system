@@ -22,11 +22,12 @@ function sourceFiles(dir: string): string[] {
 const SMALL_TEXT_ALLOWED: Readonly<Record<string, readonly string[]>> = {
   // The type scale's 13px row has to show 13px: its props, and the code sample that documents them.
   'pages/TypographyPage.tsx': ['size: 13', 'size={13'],
-  // Pixel-face labels (eyebrows, sidebar groups, the preview title): uppercase display type, not reading text,
-  // at the 13px floor.
+  // Pixel-face labels (eyebrows, sidebar groups, the preview and controls titles): uppercase display type, not
+  // reading text, at the 13px floor.
   'ui/PageHeader.tsx': ['size={13'],
   'shell/Sidebar.tsx': ['size={13'],
   'engine/Preview.tsx': ['size={13'],
+  'engine/ControlsPanel.tsx': ['size={13'],
 };
 
 describe('gallery text size', () => {

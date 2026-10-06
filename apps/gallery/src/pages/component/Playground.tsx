@@ -1,3 +1,4 @@
+import { Card } from '@bit-ds/react';
 import type { Manifest } from '../../manifests/types';
 import type { ControlStateApi } from '../../engine/useControlState';
 import { renderManifest } from '../../engine/renderManifest';
@@ -11,17 +12,20 @@ interface PlaygroundProps {
   controls: ControlStateApi;
 }
 
-/** Preview (with presets) beside the controls, and the code under both. Under 720px the controls stack. */
+/**
+ * Preview (with presets) beside the controls in one bit Card, and the code under both. Under 720px the
+ * controls stack under the preview, still in the card.
+ */
 export function Playground({ manifest, controls }: PlaygroundProps) {
   const { state, setProp, apply, reset } = controls;
   return (
     <div className="gallery-playground">
-      <div className="gallery-playground__top">
+      <Card className="gallery-playground__top">
         <Preview label={`${manifest.name} preview`} presets={<Presets manifest={manifest} state={state} onApply={apply} />}>
           {renderManifest(manifest, state)}
         </Preview>
         <ControlsPanel manifest={manifest} state={state} onChange={setProp} onReset={reset} />
-      </div>
+      </Card>
       <CodePanel manifest={manifest} state={state} />
     </div>
   );
