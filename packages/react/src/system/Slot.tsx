@@ -1,4 +1,4 @@
-import { Children, cloneElement, forwardRef, isValidElement, useMemo } from 'react';
+import { Children, Fragment, cloneElement, forwardRef, isValidElement, useMemo } from 'react';
 import type { CSSProperties, HTMLAttributes, ReactElement, ReactNode, Ref, RefObject } from 'react';
 
 interface SlotProps extends HTMLAttributes<HTMLElement> {
@@ -10,12 +10,17 @@ type ChildProps = AnyProps & { className?: string; style?: CSSProperties; ref?: 
 /** What a React 19 callback ref may hand back: a function React runs instead of calling the ref with null. */
 type RefCleanup = () => void;
 
-/** Radix Slot's rules, for a component (Button) that has to keep them. Both default to false: Link's rules. */
+/** Radix Slot's rules, for a component (Button) that has to keep them. All default to false: Link's rules. */
 interface SlotOptions {
   /** No child (undefined, null, false or '') renders nothing instead of throwing. 0, text and 2+ children still throw. */
   emptyRendersNothing?: boolean;
   /** The Slot's handler runs after the child's even when the child called preventDefault(). */
   alwaysChainHandlers?: boolean;
+  /**
+   * A `<Fragment>` child keeps only its own ref; the Slot's ref is not attached, so it stays null. Without this,
+   * React 19.3+ hands the Slot's ref a FragmentInstance.
+   */
+  noFragmentRef?: boolean;
 }
 
 const HANDLER = /^on[A-Z]/;
@@ -87,7 +92,8 @@ export function mergeProps(slot: AnyProps, child: ChildProps, alwaysChain = fals
  * and behavior to another element (Link asChild around a router link, Button asChild around an `<a>`).
  * `owner` names the component in the error a wrong child throws. Internal: not exported from the package.
  */
-export function createSlot(owner: string, { emptyRendersNothing = false, alwaysChainHandlers = false }: SlotOptions = {}) {
+export function createSlot(owner: string, options: SlotOptions = {}) {
+  const { emptyRendersNothing = false, alwaysChainHandlers = false, noFragmentRef = false } = options;
   const Slot = forwardRef<HTMLElement, SlotProps>(function Slot({ children, ...slotProps }, forwardedRef) {
     const child = emptyRendersNothing && isEmpty(children) ? null : onlyElement(children, owner);
     const childRef = child?.props.ref;
@@ -95,7 +101,9 @@ export function createSlot(owner: string, { emptyRendersNothing = false, alwaysC
     // empty return so the hook order holds when children come and go.
     const ref = useMemo(() => composeRefs(forwardedRef, childRef), [forwardedRef, childRef]);
     if (!child) return null;
-    return cloneElement(child, { ...mergeProps(slotProps, child.props, alwaysChainHandlers), ref });
+    // The merged props already carry the child's own ref, so leaving `ref` out keeps just that one.
+    const merged = mergeProps(slotProps, child.props, alwaysChainHandlers);
+    return cloneElement(child, noFragmentRef && child.type === Fragment ? merged : { ...merged, ref });
   });
   Slot.displayName = `${owner}.Slot`;
   return Slot;

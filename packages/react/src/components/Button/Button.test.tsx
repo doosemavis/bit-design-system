@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createRef } from 'react';
+import { Fragment, createRef } from 'react';
 import type { MouseEvent } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -148,6 +148,21 @@ describe('Button', () => {
     ])('renders nothing with %s (as Radix Slot did)', (_name, children) => {
       const { container } = render(<Button asChild>{children}</Button>);
       expect(container).toBeEmptyDOMElement();
+    });
+
+    it('gives a Fragment child no ref, so the Button ref stays null (as Radix Slot did)', () => {
+      const ref = createRef<HTMLButtonElement>();
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      render(
+        <Button asChild ref={ref}>
+          <Fragment>
+            <a href="/docs">Docs</a>
+          </Fragment>
+        </Button>,
+      );
+      vi.restoreAllMocks();
+      expect(screen.getByRole('link')).toHaveAttribute('href', '/docs');
+      expect(ref.current).toBeNull();
     });
 
     it('can go from no child to a child and back', () => {
