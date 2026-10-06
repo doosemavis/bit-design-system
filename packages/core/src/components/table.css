@@ -9,27 +9,26 @@
   box-shadow: var(--bit-shadow-md);
 }
 
-/* The scrollbar sits on the page surface: a surface track and a thumb outlined in the line color.
-   The transparent border insets the outline, leaving an even strip of track between it and the table edge.
+/* The scrollbar sits on the page surface: a surface track and a solid thumb in the accent.
+   The transparent border slims the thumb, leaving an even strip of track around it, yet stays part of the
+   grab area. The thumb does not change on hover, so the bar never looks bigger.
    Forced colours draw their own scrollbars, so none of this applies there. */
 @media not (forced-colors: active) {
   .bit-table::-webkit-scrollbar { height: 14px; }
   .bit-table::-webkit-scrollbar-track { background: var(--bit-color-surface); }
   .bit-table::-webkit-scrollbar-thumb {
-    background: var(--bit-color-surface);
+    background: var(--bit-color-accent);
     background-clip: padding-box;
     border: 3px solid transparent;
     border-radius: var(--bit-radius-10px);
-    box-shadow: inset 0 0 0 2px var(--bit-color-line);
   }
-  .bit-table::-webkit-scrollbar-thumb:hover { background: var(--bit-color-line); }
   /* reset.css sets the standard scrollbar-color and scrollbar-width, which Chrome 121+ lets override ::-webkit-scrollbar.
      Where the pseudo-elements work, hand the scrollbar back to them. */
   @supports selector(::-webkit-scrollbar) {
     .bit-table { scrollbar-color: auto; scrollbar-width: auto; }
   }
   @supports not selector(::-webkit-scrollbar) {
-    .bit-table { scrollbar-color: var(--bit-color-line) var(--bit-color-surface); scrollbar-width: thin; }
+    .bit-table { scrollbar-color: var(--bit-color-accent) var(--bit-color-surface); scrollbar-width: thin; }
   }
 }
 

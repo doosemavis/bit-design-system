@@ -429,6 +429,26 @@ html {
   flex: none;
 }
 
+/* The presets row and the sidebar scroll on their own background: a transparent track and a solid accent
+   thumb, the same slim shape as the CodeBlock's (the transparent border stays part of the grab area, and
+   nothing changes on hover). Forced colours draw their own scrollbars. */
+@media not (forced-colors: active) {
+  .gallery-presets::-webkit-scrollbar { height: 14px; }
+  .gallery-sidebar::-webkit-scrollbar { width: 14px; }
+  .gallery-presets::-webkit-scrollbar-track, .gallery-sidebar::-webkit-scrollbar-track { background: transparent; }
+  .gallery-presets::-webkit-scrollbar-thumb, .gallery-sidebar::-webkit-scrollbar-thumb {
+    background: var(--bit-color-accent);
+    background-clip: padding-box;
+    border: 3px solid transparent;
+    border-radius: var(--bit-radius-10px);
+  }
+  /* reset.css sets the standard scrollbar-color and scrollbar-width, which Chrome 121+ lets override ::-webkit-scrollbar.
+     Where the pseudo-elements work, hand the scrollbar back to them. */
+  @supports selector(::-webkit-scrollbar) {
+    .gallery-presets, .gallery-sidebar { scrollbar-color: auto; scrollbar-width: auto; }
+  }
+}
+
 /* Short code (a prop name, a default, a class, one member of a union type) stays on one line in the Props
    table. A union wraps only between its members. */
 .gallery-nowrap {
