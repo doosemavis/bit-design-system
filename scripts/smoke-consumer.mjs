@@ -11,7 +11,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { EXPECTED } from '../packages/react/scripts/expected-exports.mjs';
-import { FONT_SUBSETS, THEME_FONTS } from '../packages/react/scripts/expected-fonts.mjs';
+import { FONT_FACES, FONT_FILES, SUBSET_SAMPLES } from '../packages/react/scripts/expected-fonts.mjs';
 import { cssRefs, isRemote, remoteImports, thirdPartyFontHosts, unresolvedRefs } from '../packages/react/scripts/css-refs.mjs';
 import { GLOBAL_CSS_IMPORTS, INSTALL_COMMANDS, PACKAGE_NAME, STYLE_IMPORTS, fullFile } from '../apps/gallery/src/content/snippets.mjs';
 import { SMOKE_INSTALL_FLAGS, pinnedSpecs } from './smoke-pins.mjs';
@@ -61,8 +61,8 @@ function assertSelfContainedCss(where, cssPath, css, files) {
   assert.deepEqual(unresolvedRefs(cssPath, css, files), [], `${where}: names files that are not there`);
 }
 
-// One @font-face per self-hosted family, weight and subset (16).
-const FONT_FACE_COUNT = THEME_FONTS.reduce((n, { weights }) => n + weights.length * FONT_SUBSETS.length, 0);
+// One @font-face per self-hosted family, weight and subset (36).
+const FONT_FACE_COUNT = FONT_FACES.length;
 
 // A Vite build's CSS: self-contained, and every @font-face came through, its font emitted beside the CSS
 // (or, under Vite's 4 KB inline limit, kept as a data: URI).
@@ -98,25 +98,53 @@ function globalCssBuild(app) {
   console.log(`global stylesheet OK: ${FONT_FACE_COUNT} self-hosted @font-face rules, theme tokens and component styles present`);
 }
 
-// Ask the page for every self-hosted face with a latin and a latin-ext sample, so both subset files load, then
-// check each face's status is 'loaded' and that no request (fonts included) left the app's own origin.
+// The woff2 files requested so far, by their source name (Vite keeps it, adding `-<hash>`).
+const requestedFonts = (requests) =>
+  requests.filter((u) => /\.woff2(\?|$)/.test(u)).map((u) => u.split('/').pop().replace(/-[\w-]{8}\.woff2.*$/, '.woff2'));
+
+// unicode-range keeps the subsets lazy: with only the app's Latin text on the page, no other subset is fetched.
+// Then the page renders sample text in every family, weight and subset, and each of those faces must reach
+// status 'loaded', with no request (fonts included) leaving the app's own origin.
 async function assertFontsLoadFromOrigin(page, origin, requests) {
-  const faces = THEME_FONTS.flatMap(({ family, weights }) => weights.map((weight) => ({ family, weight })));
-  const loaded = await page.evaluate(async (wanted) => {
-    const samples = { latin: 'Aa', 'latin-ext': 'ĀŁ' };
-    await Promise.all(wanted.flatMap(({ family, weight }) => Object.values(samples).map((text) => document.fonts.load(`${weight} 16px "${family}"`, text))));
-    // Chromium normalises unicode-range, so latin's starts U+0-FF; latin-ext's starts at U+100.
-    return [...document.fonts]
-      .filter((face) => face.status === 'loaded')
-      .map((face) => `${face.family.replace(/"/g, '')} ${face.weight} ${/^U\+0+-/i.test(face.unicodeRange) ? 'latin' : 'latin-ext'}`);
-  }, faces);
-  const expected = faces.flatMap(({ family, weight }) => FONT_SUBSETS.map((subset) => `${family} ${weight} ${subset}`));
-  assert.deepEqual([...loaded].sort(), [...expected].sort(), 'every self-hosted face and subset must reach status "loaded"');
+  await page.evaluate(() => document.fonts.ready);
+  const early = requestedFonts(requests);
+  assert.ok(early.length > 0, 'the page rendered Latin text but requested no woff2 from the app');
+  assert.deepEqual(early.filter((f) => !/-latin-\d+-normal\.woff2$/.test(f)), [], 'Latin-only text fetched another subset');
+
+  const loaded = await page.evaluate(
+    async ({ faces, samples }) => {
+      for (const { family, weight, subset } of faces) {
+        const el = document.createElement('span');
+        el.style.cssText = `font-family: "${family}"; font-weight: ${weight}`;
+        el.textContent = samples[subset];
+        document.body.append(el);
+      }
+      document.body.getBoundingClientRect(); // lay the samples out, so the browser asks for their fonts
+      await document.fonts.ready;
+      // Name each loaded face's subset by the sample its (browser-normalised) unicode-range covers.
+      const covers = (range, code) =>
+        range.split(',').some((part) => {
+          const [lo, hi = lo] = part.trim().replace(/^U\+/i, '').split('-').map((h) => parseInt(h, 16));
+          return code >= lo && code <= hi;
+        });
+      return [...document.fonts]
+        .filter((face) => face.status === 'loaded')
+        .map((face) => {
+          const subset = Object.keys(samples).find((s) => covers(face.unicodeRange, samples[s].codePointAt(0)));
+          return `${face.family.replace(/"/g, '')} ${face.weight} ${subset}`;
+        });
+    },
+    { faces: FONT_FACES, samples: SUBSET_SAMPLES },
+  );
+  const expected = FONT_FACES.map(({ family, weight, subset }) => `${family} ${weight} ${subset}`);
+  assert.deepEqual([...loaded].sort(), [...expected].sort(), 'every self-hosted face, in every subset, must reach status "loaded"');
   const offOrigin = requests.filter((u) => !u.startsWith(`${origin}/`) && !u.startsWith('data:'));
   assert.deepEqual(offOrigin, [], `requests left ${origin}`);
-  const fontRequests = requests.filter((u) => u.endsWith('.woff2'));
-  assert.ok(fontRequests.length > 0, 'no woff2 was requested from the app');
-  console.log(`fonts OK: ${loaded.length} faces loaded, ${fontRequests.length} woff2 requests, all from ${origin}; ${requests.length} requests in all, none third-party`);
+  const fonts = requestedFonts(requests);
+  assert.deepEqual(fonts.filter((f) => !FONT_FILES.includes(f)), [], 'requested a woff2 the theme does not ship');
+  console.log(
+    `fonts OK: Latin text fetched only latin files (${early.length}); samples in every subset loaded all ${loaded.length} faces, ${fonts.length} woff2 requests, all from ${origin}`,
+  );
 }
 
 // Stage 5: a real Vite app built from the tarball and the shared snippets, checked in Chromium.

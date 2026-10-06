@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { THIRD_PARTY_FONT_HOSTS, cssRefs, isRemote, remoteImports, thirdPartyFontHosts, unresolvedRefs } from '../packages/react/scripts/css-refs.mjs';
-import { FONT_FILES, THEME_FONTS } from '../packages/react/scripts/expected-fonts.mjs';
+import { FONT_FILES, SUBSET_SAMPLES, THEME_FONTS } from '../packages/react/scripts/expected-fonts.mjs';
 
 const FACE = `@font-face {
   font-family: "Nunito";
@@ -58,16 +60,47 @@ test('css refs: a root-absolute ref (what Vite writes into built CSS) resolves f
   assert.deepEqual(unresolvedRefs('assets/index-Cd34.css', css, new Set(['assets/nunito-latin-600-normal-Ab12.woff2'])), []);
 });
 
-test('expected fonts: the five families at the weights the Google import loaded, latin and latin-ext, plus each license', () => {
+test('expected fonts: the five families at the weights the Google import loaded, every subset, plus each license', () => {
   assert.deepEqual(
-    THEME_FONTS.map(({ family, weights }) => `${family} ${weights.join('/')}`),
-    ['Lilita One 400', 'Nunito 600/700/800', 'Press Start 2P 400', 'Audiowide 400', 'JetBrains Mono 400/700'],
+    THEME_FONTS.map(({ family, weights, subsets }) => `${family} ${weights.join('/')}: ${subsets.join(' ')}`),
+    [
+      'Lilita One 400: latin-ext latin',
+      'Nunito 600/700/800: cyrillic-ext cyrillic vietnamese latin-ext latin',
+      'Press Start 2P 400: cyrillic-ext cyrillic greek latin-ext latin',
+      'Audiowide 400: latin-ext latin',
+      'JetBrains Mono 400/700: cyrillic-ext cyrillic greek vietnamese latin-ext latin',
+    ],
   );
-  assert.equal(FONT_FILES.filter((f) => f.endsWith('.woff2')).length, 16);
-  assert.ok(FONT_FILES.includes('nunito-latin-ext-800-normal.woff2'));
-  assert.ok(FONT_FILES.includes('press-start-2p-latin-400-normal.woff2'));
+  assert.equal(FONT_FILES.filter((f) => f.endsWith('.woff2')).length, 36);
+  for (const file of ['nunito-vietnamese-800-normal.woff2', 'press-start-2p-greek-400-normal.woff2', 'jetbrains-mono-cyrillic-ext-700-normal.woff2']) {
+    assert.ok(FONT_FILES.includes(file), file);
+  }
   assert.deepEqual(
     FONT_FILES.filter((f) => f.endsWith('.txt')),
     ['OFL-lilita-one.txt', 'OFL-nunito.txt', 'OFL-press-start-2p.txt', 'OFL-audiowide.txt', 'OFL-jetbrains-mono.txt'],
   );
+});
+
+// The @fontsource packages are devDependencies of @bit-ds/react, so resolve them from there.
+const fontsource = createRequire(new URL('../packages/react/package.json', import.meta.url));
+const unicodeRanges = (id) => JSON.parse(readFileSync(fontsource.resolve(`@fontsource/${id}/unicode.json`), 'utf8'));
+
+test('expected fonts: each family ships every subset its @fontsource package has, in the package (and Google) order', () => {
+  for (const { id, subsets } of THEME_FONTS) assert.deepEqual(subsets, Object.keys(unicodeRanges(id)), id);
+});
+
+test('expected fonts: each subset sample falls in its own unicode-range and in no other, so it loads exactly that file', () => {
+  const inRange = (range, code) =>
+    range.split(',').some((part) => {
+      const [lo, hi = lo] = part.trim().replace(/^U\+/i, '').split('-').map((h) => parseInt(h, 16));
+      return code >= lo && code <= hi;
+    });
+  const ranges = Object.assign({}, ...THEME_FONTS.map(({ id }) => unicodeRanges(id)));
+  assert.deepEqual(Object.keys(SUBSET_SAMPLES).sort(), Object.keys(ranges).sort());
+  for (const [subset, sample] of Object.entries(SUBSET_SAMPLES)) {
+    for (const char of sample) {
+      const hits = Object.keys(ranges).filter((s) => inRange(ranges[s], char.codePointAt(0)));
+      assert.deepEqual(hits, [subset], `${subset} sample ${char} (U+${char.codePointAt(0).toString(16)})`);
+    }
+  }
 });

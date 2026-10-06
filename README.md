@@ -159,10 +159,11 @@ It applies a saved choice; with none it sets `system` when `<html>` has no `data
 
 ## Fonts
 
-The fonts ship in the package. The theme's `@font-face` rules load Lilita One, Nunito, Press Start 2P, Audiowide and JetBrains Mono from woff2 files next to it (`themes/fonts/`), so your bundler serves them from your own site with nothing extra to import or configure.
+The fonts ship in the package. The theme's `@font-face` rules load Lilita One, Nunito, Press Start 2P, Audiowide and JetBrains Mono from woff2 files next to it (`themes/fonts/`), so your bundler serves them from your own site with nothing extra to import.
 
 - The theme makes no third-party requests: no Google Fonts, and no CSP exception for a font host. `font-src 'self'` covers it; add `data:` if your bundler inlines small files (Vite does under 4 KB).
-- Each face comes in two files, latin and latin-ext, and the browser downloads only the ones a page uses.
+- Each face is split into every subset Google Fonts serves for it (latin, latin-ext, and cyrillic, greek or vietnamese where the font has them), each with its own `unicode-range`, so the browser downloads only the files for the scripts a page shows.
+- The theme points at its fonts with relative `url()`s. Vite, Next.js and Create React App handle these out of the box. A hand-written webpack 5 config needs a rule for them: `{ test: /\.woff2$/, type: 'asset/resource' }`.
 - The fonts are licensed under the SIL Open Font License 1.1. Each family's license (`OFL-<font>.txt`) ships beside its fonts in `themes/fonts/`.
 
 ## Links

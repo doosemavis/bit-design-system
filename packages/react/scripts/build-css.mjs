@@ -35,9 +35,9 @@ const FACE = /@font-face\s*\{[^}]*?url\("\.\/fonts\/([\w-]+\.woff2)"\)[^}]*?unic
 
 /** Copy one font file from its @fontsource package, checking the theme's unicode-range against the package's. */
 function copyFont(file, declaredRange, fontsDir) {
-  const id = FONT_IDS.find((candidate) => file.startsWith(`${candidate}-latin`));
+  const id = FONT_IDS.find((candidate) => file.startsWith(`${candidate}-`));
   if (!id) throw new Error(`build-css: no @fontsource devDependency provides ${file} (have: ${FONT_IDS.join(', ')})`);
-  const subset = /-(latin(?:-ext)?)-\d+-normal\.woff2$/.exec(file)?.[1];
+  const subset = file.slice(id.length + 1).replace(/-\d+-normal\.woff2$/, '');
   const ranges = JSON.parse(readFileSync(require.resolve(`@fontsource/${id}/unicode.json`), 'utf8'));
   if (ranges[subset]?.replace(/\s/g, '') !== declaredRange.replace(/\s/g, '')) {
     throw new Error(`build-css: ${file} declares unicode-range ${declaredRange}, but @fontsource/${id} has ${ranges[subset]}`);
