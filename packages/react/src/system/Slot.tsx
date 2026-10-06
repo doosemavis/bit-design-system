@@ -1,7 +1,7 @@
 import { Children, cloneElement, forwardRef, isValidElement, useMemo } from 'react';
 import type { CSSProperties, HTMLAttributes, ReactElement, ReactNode, Ref, RefObject } from 'react';
 
-export interface SlotProps extends HTMLAttributes<HTMLElement> {
+interface SlotProps extends HTMLAttributes<HTMLElement> {
   children?: ReactNode;
 }
 
