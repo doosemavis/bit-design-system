@@ -190,6 +190,20 @@ describe('toJsx hoists arrays, objects and long strings into consts', () => {
   const CODE_40 = 'const total = coins + bonus; // counted.';
   const LONG_LABEL = 'Loading every coin in the castle, please wait';
 
+  it('segments is virtual: it never prints, and sets how many options the const holds', () => {
+    const code = toJsx(segmentedControl, { ...defaultState(segmentedControl), segments: '4', multiple: true });
+    expect(code).not.toContain('segments');
+    expect(code).toContain('<SegmentedControl legend="Range" multiple options={options} />');
+    expect(code.match(/value: '/g)).toHaveLength(4);
+    expect(code).toContain("{ value: 'quarter', label: 'Quarter' },");
+  });
+
+  it('multiple is absent when off, and virtual controls stay out of the className format too', () => {
+    const state = { ...defaultState(segmentedControl), segments: '5' };
+    expect(toJsx(segmentedControl, state)).not.toMatch(/multiple|segments=/);
+    expect(toJsx(segmentedControl, state, { decorators: 'className' })).not.toContain('segments');
+  });
+
   it('prints SegmentedControl options as a const, one option per line, passed by name', () => {
     expect(toJsx(segmentedControl, defaultState(segmentedControl))).toBe(
       `import { SegmentedControl } from '@bit-ds/react';\n\n${OPTIONS_CONST}\n\n<SegmentedControl legend="Range" options={options} />`,

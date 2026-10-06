@@ -29,8 +29,19 @@ describe('buildProps', () => {
 
   it('starts from the manifest fixed props (SegmentedControl options), then adds the controls', () => {
     const props = buildProps(segmentedControl, defaultState(segmentedControl));
-    expect(props.options).toBe(segmentedControl.fixedProps!.options);
+    expect((props.options as { value: string }[]).map((o) => o.value)).toEqual(['day', 'week', 'month']);
     expect(props).toMatchObject({ legend: 'Range', color: 'primary', size: 'md', legendHidden: false });
+  });
+
+  it('derives SegmentedControl options from the virtual segments control, and never passes segments', () => {
+    const five = buildProps(segmentedControl, { ...defaultState(segmentedControl), segments: '5' });
+    expect((five.options as { value: string }[]).map((o) => o.value)).toEqual(['day', 'week', 'month', 'quarter', 'year']);
+    expect('segments' in five).toBe(false);
+    expect(buildProps(segmentedControl, { ...defaultState(segmentedControl), segments: '2' }).options).toHaveLength(2);
+  });
+
+  it('passes multiple through as a boolean prop', () => {
+    expect(buildProps(segmentedControl, { ...defaultState(segmentedControl), multiple: true }).multiple).toBe(true);
   });
 
   it('keeps aria-label as a prop name', () => {

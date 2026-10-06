@@ -20,6 +20,8 @@ interface SelectControl {
   label?: string;
   /** Print the prop in the code even at its default, because the component requires it (CodeBlock `language`). */
   alwaysPrint?: boolean;
+  /** A control that only shapes the page (how many segments): it shows in the panel and presets, but is never a prop and never printed. */
+  virtual?: boolean;
 }
 interface BooleanControl {
   kind: 'boolean';
@@ -109,6 +111,8 @@ export interface Manifest {
   children?: string | readonly ChildSpec[];
   /** Props every render gets that the page doesn't let you change. They print after the controls' props. */
   fixedProps?: Readonly<Record<string, LiteralValue>>;
+  /** Props worked out from the full control state (defaults merged in), joining `fixedProps` for the render and the code. */
+  deriveProps?: (state: ControlState) => Readonly<Record<string, LiteralValue>>;
   presets?: readonly Preset[];
   /** Compound parts documented on this page; the import line lists them. */
   parts?: readonly string[];
