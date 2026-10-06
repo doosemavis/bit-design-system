@@ -108,6 +108,19 @@ announce('Saved');
 - When calls overlap, the last message wins.
 - bit's CodeBlock Copy button uses it.
 
+`useCopyToClipboard(text)` runs a Copy button of your own, the same way CodeBlock's does.
+
+```tsx
+import { Button, useCopyToClipboard } from '@bit-ds/react';
+
+const { state, label, copy } = useCopyToClipboard(command);
+<Button color={state === 'failed' ? 'danger' : 'neutral'} onClick={() => void copy()}>{label}</Button>
+```
+
+- `label` reads "Copy", then "Copied" or "Copy failed" for two seconds; `state` is `idle`, `copied` or `failed`.
+- `copy()` resolves `true` when the text reached the clipboard and never rejects. It announces the result with `announce()`.
+- With several Copy buttons on a page, give each an `aria-label` such as "Copy install command" while `state` is `idle`.
+
 ## Themes
 
 A theme is one CSS file that fills in every semantic token. Switch with an attribute:
