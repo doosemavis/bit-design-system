@@ -62,6 +62,11 @@
   },
   "devDependencies": {
     "@bit-ds/core": "workspace:*",
+    "@fontsource/audiowide": "5.3.0",
+    "@fontsource/jetbrains-mono": "5.3.0",
+    "@fontsource/lilita-one": "5.3.0",
+    "@fontsource/nunito": "5.3.0",
+    "@fontsource/press-start-2p": "5.3.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",

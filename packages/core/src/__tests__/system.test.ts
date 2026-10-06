@@ -251,7 +251,7 @@ describe('components/logo.css', () => {
 describe('themes/power-up.css (logo)', () => {
   const css = readCss('themes/power-up.css');
   it('loads Audiowide instead of Bungee and drops the power-up motion token', () => {
-    expect(css).toContain('family=Audiowide');
+    expect(css).toMatch(/@font-face\s*\{[^}]*font-family: "Audiowide";/);
     expect(css).not.toContain('Bungee');
     expect(css).not.toContain('--bit-motion-power-up');
   });

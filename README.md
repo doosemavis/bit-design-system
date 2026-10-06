@@ -157,7 +157,13 @@ It applies a saved choice; with none it sets `system` when `<html>` has no `data
 - A subtree can be dark inside a light page with `data-mode="dark"`, but it paints its own background: give it `background: var(--bit-color-bg)`.
 - A `data-mode` hard-coded in your HTML wins until the visitor toggles.
 
-The theme file starts with a Google Fonts `@import`; if your bundler concatenates stylesheets, import the theme before other CSS so the `@import` stays first. Self-hosted fonts are planned.
+## Fonts
+
+The fonts ship in the package. The theme's `@font-face` rules load Lilita One, Nunito, Press Start 2P, Audiowide and JetBrains Mono from woff2 files next to it (`themes/fonts/`), so your bundler serves them from your own site with nothing extra to import or configure.
+
+- The theme makes no third-party requests: no Google Fonts, and no CSP exception for a font host. `font-src 'self'` covers it; add `data:` if your bundler inlines small files (Vite does under 4 KB).
+- Each face comes in two files, latin and latin-ext, and the browser downloads only the ones a page uses.
+- The fonts are licensed under the SIL Open Font License 1.1. Each family's license (`OFL-<font>.txt`) ships beside its fonts in `themes/fonts/`.
 
 ## Links
 

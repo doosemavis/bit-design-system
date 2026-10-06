@@ -1,10 +1,12 @@
 // Proves the built package is consumable: ESM + CJS entries, types, bundled CSS, theme files.
 import { createRequire } from 'node:module';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { dirname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { EXPECTED } from './expected-exports.mjs';
+import { FONT_FILES } from './expected-fonts.mjs';
+import { cssRefs, isRemote, remoteImports, thirdPartyFontHosts, unresolvedRefs } from './css-refs.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = resolve(here, '../dist');
@@ -91,10 +93,28 @@ assert.ok(
   `styles.css Box precedence tiers out of order: expected ${BOX_TIERS.join(' < ')}, got offsets ${tierAt.join(', ')}`,
 );
 
-// 5. Themes copied, not bundled (they keep their Google Fonts @import)
+// 5. Themes copied, not bundled, with their self-hosted fonts beside them (security audit A1: no third-party request)
 const theme = resolve(dist, 'themes/power-up.css');
 assert.ok(existsSync(theme), 'themes/power-up.css missing');
 assert.ok(readFileSync(theme, 'utf8').includes('--bit-color-primary'), 'theme lost its tokens');
+// Every font file power-up.css names, and each family's SIL OFL 1.1 license, which must travel with the fonts.
+const fontsDir = resolve(dist, 'themes/fonts');
+for (const file of FONT_FILES) assert.ok(existsSync(resolve(fontsDir, file)), `themes/fonts/${file} missing`);
+assert.deepEqual(readdirSync(fontsDir).sort(), [...FONT_FILES].sort(), 'themes/fonts holds exactly the expected fonts and licenses');
+for (const file of FONT_FILES.filter((f) => f.startsWith('OFL-'))) {
+  assert.match(readFileSync(resolve(fontsDir, file), 'utf8'), /SIL Open Font License, Version 1\.1/, `themes/fonts/${file} is not the OFL`);
+}
+const distFiles = readdirSync(dist, { recursive: true }).map((f) => f.split(sep).join('/'));
+const distSet = new Set(distFiles);
+for (const file of distFiles.filter((f) => f.endsWith('.css'))) {
+  const source = readFileSync(resolve(dist, file), 'utf8');
+  assert.deepEqual(remoteImports(source), [], `dist/${file} @imports a remote stylesheet`);
+  assert.deepEqual(cssRefs(source).filter(isRemote), [], `dist/${file} loads a remote url()`);
+  assert.deepEqual(unresolvedRefs(file, source, distSet), [], `dist/${file} names files that are not in dist`);
+}
+for (const file of distFiles.filter((f) => !f.endsWith('.woff2') && statSync(resolve(dist, f)).isFile())) {
+  assert.deepEqual(thirdPartyFontHosts(readFileSync(resolve(dist, file), 'utf8')), [], `dist/${file} mentions a Google Fonts host`);
+}
 
 // 6. Publish metadata: what npm will ship and how it is described
 const pkg = JSON.parse(readFileSync(resolve(here, '../package.json'), 'utf8'));
@@ -123,4 +143,4 @@ for (const [file, patterns] of Object.entries(IMPORT_PATTERNS)) {
   assert.deepEqual(extra, [], `dist/${file} imports something other than react, react-dom or react/jsx-runtime`);
 }
 
-console.log(`dist OK: ${EXPECTED.length} components, styles.css ${css.length} bytes, themes present`);
+console.log(`dist OK: ${EXPECTED.length} components, styles.css ${css.length} bytes, themes and ${FONT_FILES.length} font files present, nothing loaded from a third party`);
