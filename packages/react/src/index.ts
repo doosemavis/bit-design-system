@@ -54,7 +54,7 @@ export { CodeBlock } from './components/CodeBlock/CodeBlock';
 export type { CodeBlockProps, CodeLanguage } from './components/CodeBlock/CodeBlock';
 
 export { SegmentedControl } from './components/SegmentedControl/SegmentedControl';
-export type { SegmentedControlProps, SegmentedOption } from './components/SegmentedControl/SegmentedControl';
+export type { SegmentedControlProps, SegmentedControlMultipleProps, SegmentedOption } from './components/SegmentedControl/SegmentedControl';
 
 export { Table, TableHead, TableBody, TableRow, TableCell } from './components/Table/Table';
 export type { TableProps, TableSectionProps, TableRowProps, TableCellProps } from './components/Table/Table';
