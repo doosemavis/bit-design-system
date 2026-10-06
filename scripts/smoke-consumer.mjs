@@ -11,6 +11,8 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { EXPECTED } from '../packages/react/scripts/expected-exports.mjs';
+import { FONT_FACES, FONT_FILES, SUBSET_SAMPLES } from '../packages/react/scripts/expected-fonts.mjs';
+import { cssRefs, isRemote, remoteImports, thirdPartyFontHosts, unresolvedRefs } from '../packages/react/scripts/css-refs.mjs';
 import { GLOBAL_CSS_IMPORTS, INSTALL_COMMANDS, PACKAGE_NAME, STYLE_IMPORTS, fullFile } from '../apps/gallery/src/content/snippets.mjs';
 import { SMOKE_INSTALL_FLAGS, pinnedSpecs } from './smoke-pins.mjs';
 
@@ -50,11 +52,31 @@ const installPinned = (app, tarballPath, names, failureMessage) =>
     failureMessage,
   );
 
-// Vite minifies `@import url("...")` to `@import"..."`, so accept both forms.
-const THEME_FONTS_IMPORT = /^@import\s*(?:url\()?["']https:\/\/fonts\.googleapis\.com\/css2\?[^"']*["']\)?\s*;/;
+// Security audit A1: CSS must load nothing from a third party, and every file it names must be in `files`
+// (paths in the same scheme as `cssPath`). `where` names the CSS in failure messages.
+function assertSelfContainedCss(where, cssPath, css, files) {
+  assert.deepEqual(remoteImports(css), [], `${where}: @imports a remote stylesheet`);
+  assert.deepEqual(cssRefs(css).filter(isRemote), [], `${where}: loads a remote url()`);
+  assert.deepEqual(thirdPartyFontHosts(css), [], `${where}: mentions a Google Fonts host`);
+  assert.deepEqual(unresolvedRefs(cssPath, css, files), [], `${where}: names files that are not there`);
+}
+
+// One @font-face per self-hosted family, weight and subset (36).
+const FONT_FACE_COUNT = FONT_FACES.length;
+
+// A Vite build's CSS: self-contained, and every @font-face came through, its font emitted beside the CSS
+// (or, under Vite's 4 KB inline limit, kept as a data: URI).
+function assertBuiltCss(where, outDir, cssFile) {
+  const css = readFileSync(join(outDir, 'assets', cssFile), 'utf8');
+  const files = new Set(readdirSync(join(outDir, 'assets')).map((f) => `assets/${f}`));
+  assertSelfContainedCss(where, `assets/${cssFile}`, css, files);
+  const faces = css.match(/@font-face\s*\{/g)?.length ?? 0;
+  assert.equal(faces, FONT_FACE_COUNT, `${where}: built CSS has ${faces} @font-face rules, expected ${FONT_FACE_COUNT}`);
+  return css;
+}
 
 // The other documented route: the same app with the styles as CSS @imports in its global stylesheet. Vite must still
-// put the theme's fonts @import first, and the tokens and component styles must both land in the built CSS.
+// carry the theme's self-hosted fonts through, and the tokens and component styles must both land in the built CSS.
 function globalCssBuild(app) {
   // A marker only index.css declares, so the check below proves the built CSS came through it.
   writeFileSync(join(app, 'src', 'index.css'), `${GLOBAL_CSS_IMPORTS}\n\n:root { --smoke-global-css: 1; }\n`);
@@ -71,10 +93,58 @@ function globalCssBuild(app) {
   const assets = join(app, 'dist-global-css', 'assets');
   const cssFile = readdirSync(assets).find((f) => f.endsWith('.css'));
   assert.ok(cssFile, 'vite build (global stylesheet) produced no CSS');
-  const css = readFileSync(join(assets, cssFile), 'utf8').trimStart();
-  assert.ok(THEME_FONTS_IMPORT.test(css), `global stylesheet: built CSS must start with the fonts @import, but starts with: ${css.slice(0, 120)}`);
+  const css = assertBuiltCss('global stylesheet', join(app, 'dist-global-css'), cssFile);
   for (const needle of ['--bit-color-bg', '.bit-button', '--smoke-global-css']) assert.ok(css.includes(needle), `global stylesheet: built CSS lacks ${needle}`);
-  console.log('global stylesheet OK: fonts @import first, theme tokens and component styles present');
+  console.log(`global stylesheet OK: ${FONT_FACE_COUNT} self-hosted @font-face rules, theme tokens and component styles present`);
+}
+
+// The woff2 files requested so far, by their source name (Vite keeps it, adding `-<hash>`).
+const requestedFonts = (requests) =>
+  requests.filter((u) => /\.woff2(\?|$)/.test(u)).map((u) => u.split('/').pop().replace(/-[\w-]{8}\.woff2.*$/, '.woff2'));
+
+// unicode-range keeps the subsets lazy: with only the app's Latin text on the page, no other subset is fetched.
+// Then the page renders sample text in every family, weight and subset, and each of those faces must reach
+// status 'loaded', with no request (fonts included) leaving the app's own origin.
+async function assertFontsLoadFromOrigin(page, origin, requests) {
+  await page.evaluate(() => document.fonts.ready);
+  const early = requestedFonts(requests);
+  assert.ok(early.length > 0, 'the page rendered Latin text but requested no woff2 from the app');
+  assert.deepEqual(early.filter((f) => !/-latin-\d+-normal\.woff2$/.test(f)), [], 'Latin-only text fetched another subset');
+
+  const loaded = await page.evaluate(
+    async ({ faces, samples }) => {
+      for (const { family, weight, subset } of faces) {
+        const el = document.createElement('span');
+        el.style.cssText = `font-family: "${family}"; font-weight: ${weight}`;
+        el.textContent = samples[subset];
+        document.body.append(el);
+      }
+      document.body.getBoundingClientRect(); // lay the samples out, so the browser asks for their fonts
+      await document.fonts.ready;
+      // Name each loaded face's subset by the sample its (browser-normalised) unicode-range covers.
+      const covers = (range, code) =>
+        range.split(',').some((part) => {
+          const [lo, hi = lo] = part.trim().replace(/^U\+/i, '').split('-').map((h) => parseInt(h, 16));
+          return code >= lo && code <= hi;
+        });
+      return [...document.fonts]
+        .filter((face) => face.status === 'loaded')
+        .map((face) => {
+          const subset = Object.keys(samples).find((s) => covers(face.unicodeRange, samples[s].codePointAt(0)));
+          return `${face.family.replace(/"/g, '')} ${face.weight} ${subset}`;
+        });
+    },
+    { faces: FONT_FACES, samples: SUBSET_SAMPLES },
+  );
+  const expected = FONT_FACES.map(({ family, weight, subset }) => `${family} ${weight} ${subset}`);
+  assert.deepEqual([...loaded].sort(), [...expected].sort(), 'every self-hosted face, in every subset, must reach status "loaded"');
+  const offOrigin = requests.filter((u) => !u.startsWith(`${origin}/`) && !u.startsWith('data:'));
+  assert.deepEqual(offOrigin, [], `requests left ${origin}`);
+  const fonts = requestedFonts(requests);
+  assert.deepEqual(fonts.filter((f) => !FONT_FILES.includes(f)), [], 'requested a woff2 the theme does not ship');
+  console.log(
+    `fonts OK: Latin text fetched only latin files (${early.length}); samples in every subset loaded all ${loaded.length} faces, ${fonts.length} woff2 requests, all from ${origin}`,
+  );
 }
 
 // Stage 5: a real Vite app built from the tarball and the shared snippets, checked in Chromium.
@@ -102,10 +172,9 @@ async function viteStage(app, tarballPath) {
   const assets = join(app, 'dist', 'assets');
   const cssFile = readdirSync(assets).find((f) => f.endsWith('.css'));
   assert.ok(cssFile, 'vite build produced no CSS');
-  const css = readFileSync(join(assets, cssFile), 'utf8').trimStart();
-  const fontsImport = THEME_FONTS_IMPORT.exec(css)?.[0];
-  assert.ok(fontsImport, `built CSS must start with the Google Fonts @import, but starts with: ${css.slice(0, 120)}`);
-  console.log(`fonts @import first in built CSS: ${fontsImport}`);
+  assertBuiltCss('vite build', join(app, 'dist'), cssFile);
+  const woff2 = readdirSync(assets).filter((f) => f.endsWith('.woff2')).length;
+  console.log(`vite build OK: ${FONT_FACE_COUNT} @font-face rules, ${woff2} woff2 files emitted beside the CSS, nothing from a third party`);
 
   globalCssBuild(app);
 
@@ -132,7 +201,9 @@ async function viteStage(app, tarballPath) {
     const { chromium } = await import('playwright');
     browser = await chromium.launch();
     const page = await browser.newPage();
-    // Not 'load': that waits on Google Fonts. The button wait below is the readiness check.
+    const requests = [];
+    page.on('request', (request) => requests.push(request.url()));
+    // The button wait below is the readiness check.
     await page.goto(url, { waitUntil: 'domcontentloaded' });
     const button = page.locator('button.bit-button');
     await button.waitFor({ state: 'visible', timeout: 15_000 });
@@ -153,6 +224,7 @@ async function viteStage(app, tarballPath) {
     console.log(
       `vite OK: Button renders with bit-button and bit-primary classes and background ${bg}; colorMode.set("dark") sets data-mode="dark" and --bit-color-bg ${lightBg} -> ${darkBg}`,
     );
+    await assertFontsLoadFromOrigin(page, new URL(url).origin, requests);
   } finally {
     await browser?.close();
     try {
@@ -204,6 +276,19 @@ try {
   mkdirSync(app);
   writeFileSync(join(app, 'package.json'), JSON.stringify({ name: 'consumer', private: true, type: 'module' }, null, 2));
   installPinned(app, tarballPath, ['react', 'react-dom', 'typescript', '@types/react', '@types/react-dom'], 'consumer npm install failed');
+
+  // Security audit A1: no file in the package names a Google Fonts host, and its CSS loads nothing remote and
+  // names only files the tarball carries. Read from the installed copy, which holds exactly the tarball's files.
+  const installed = join(app, 'node_modules', ...realName.split('/'));
+  const packaged = files.filter((f) => f.startsWith('package/') && !f.endsWith('/')).map((f) => f.slice('package/'.length));
+  const packagedSet = new Set(packaged);
+  for (const file of packaged.filter((f) => !f.endsWith('.woff2'))) {
+    const text = readFileSync(join(installed, file), 'utf8');
+    assert.deepEqual(thirdPartyFontHosts(text), [], `tarball ${file} mentions a Google Fonts host`);
+    if (file.endsWith('.css')) assertSelfContainedCss(`tarball ${file}`, file, text, packagedSet);
+  }
+  const fonts = packaged.filter((f) => f.startsWith('dist/themes/fonts/'));
+  console.log(`tarball OK: ${fonts.length} font and license files in dist/themes/fonts, every CSS url() resolves, no third-party host`);
 
   // 3. Import both entry points and check the CSS shipped
   writeFileSync(

@@ -2,26 +2,27 @@ import { CodeBlock } from '@bit-ds/react';
 import type { CodeLanguage } from '@bit-ds/react';
 import type { Manifest } from './types';
 
-const LANGUAGES: readonly CodeLanguage[] = ['jsx', 'html', 'css', 'shell'];
+const LANGUAGES: readonly CodeLanguage[] = ['jsx', 'tsx', 'ts', 'html', 'css', 'shell'];
 
 export const codeBlock: Manifest = {
   name: 'CodeBlock',
   slug: 'codeblock',
   group: 'components',
   component: CodeBlock,
-  description: 'A dark code panel with editor colors, a language label and a Copy button. JSX, HTML, CSS and shell.',
+  description: 'A dark code panel with editor colors, a language label and a Copy button. JSX, TSX, TypeScript, HTML, CSS and shell.',
   controls: [
     { kind: 'select', prop: 'language', values: LANGUAGES, default: 'jsx', alwaysPrint: true },
     { kind: 'text', prop: 'code', default: 'const coins = 42; // collected', alwaysPrint: true },
     { kind: 'boolean', prop: 'copy', default: true },
   ],
   presets: [
+    { label: 'TSX', state: { language: 'tsx', code: 'const [coins, setCoins] = useState<number>(42);' } },
     { label: 'CSS', state: { language: 'css', code: '.bit-button { height: 40px; }' } },
     { label: 'Shell', state: { language: 'shell', code: 'pnpm add @bit-ds/react' } },
     { label: 'No Copy button', state: { copy: false } },
   ],
   docs: {
-    badges: ['Copy button', 'jsx · html · css · shell'],
+    badges: ['Copy button', 'jsx · tsx · ts · html · css · shell'],
     usage: {
       do: [
         'Use CodeBlock for anything people should copy: install commands, snippets, config.',
@@ -36,7 +37,7 @@ export const codeBlock: Manifest = {
       { name: 'code', type: 'string', description: 'Required. The code, exactly as written; it is also what Copy copies.' },
       {
         name: 'language',
-        type: "'jsx' | 'html' | 'css' | 'shell'",
+        type: "'jsx' | 'tsx' | 'ts' | 'html' | 'css' | 'shell'",
         description: 'Required. Picks the syntax colors and the label in the bar.',
       },
       { name: 'copy', type: 'boolean', default: 'true', description: 'Shows the Copy button.' },

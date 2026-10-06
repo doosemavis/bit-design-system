@@ -1,49 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
 import { element } from '../../system/toClasses';
-import { announce } from '../../system/announce';
-
-type CopyState = 'idle' | 'copied' | 'failed';
-
-const LABELS: Record<CopyState, string> = { idle: 'Copy', copied: 'Copied', failed: 'Copy failed' };
-
-/** How long "Copied" or "Copy failed" shows before the button reads "Copy" again. */
-export const COPY_RESET_MS = 2000;
-
-/** True when the text reached the clipboard. A missing or refusing clipboard is false, never a throw. */
-async function writeClipboard(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { useCopyToClipboard } from '../../system/useCopyToClipboard';
 
 /** CodeBlock's Copy button. It says the result through announce(). `name` is what is copied. Internal. */
 export function CopyButton({ code, name }: { code: string; name: string }) {
-  const [state, setState] = useState<CopyState>('idle');
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const mounted = useRef(false);
-
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-      clearTimeout(timer.current);
-    };
-  }, []);
-
-  async function copy() {
-    const ok = await writeClipboard(code);
-    // Unmounted while the clipboard was busy: start no timer that would outlive the component.
-    if (!mounted.current) return;
-    clearTimeout(timer.current);
-    const next = ok ? 'copied' : 'failed';
-    setState(next);
-    announce(LABELS[next]);
-    timer.current = setTimeout(() => setState('idle'), COPY_RESET_MS);
-  }
-
+  const { state, label, copy } = useCopyToClipboard(code);
   return (
     <button
       type="button"
@@ -52,7 +12,7 @@ export function CopyButton({ code, name }: { code: string; name: string }) {
       aria-label={state === 'idle' ? `Copy ${name}` : undefined}
       onClick={() => void copy()}
     >
-      {LABELS[state]}
+      {label}
     </button>
   );
 }

@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createRef } from 'react';
-import type { MouseEvent } from 'react';
+import { Fragment, createRef } from 'react';
+import type { FragmentInstance, MouseEvent } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Slot, composeRefs, mergeProps } from './Slot';
+import { composeRefs, createSlot, mergeProps } from './Slot';
 
+const Slot = createSlot('Link');
 const ERROR = '[bit] Link asChild needs exactly one child element.';
 
 describe('Slot', () => {
@@ -126,6 +127,106 @@ describe('Slot', () => {
     expect(() => render(<Slot>{children}</Slot>)).toThrow(ERROR);
     vi.restoreAllMocks();
   });
+
+  it('names its owner in the error and the display name', () => {
+    const ButtonSlot = createSlot('Button');
+    expect(ButtonSlot.displayName).toBe('Button.Slot');
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => render(<ButtonSlot />)).toThrow('[bit] Button asChild needs exactly one child element.');
+    vi.restoreAllMocks();
+  });
+
+  it('keeps the composed ref stable across re-renders, so a child callback ref fires once', () => {
+    const slotRef = createRef<HTMLElement>();
+    const childRef = vi.fn();
+    const ui = (label: string) => (
+      <Slot ref={slotRef}>
+        <a href="/docs" ref={childRef}>
+          {label}
+        </a>
+      </Slot>
+    );
+    const { rerender } = render(ui('Docs'));
+    rerender(ui('Docs again'));
+    expect(childRef).toHaveBeenCalledTimes(1);
+    expect(slotRef.current).toBe(screen.getByRole('link'));
+  });
+});
+
+describe('createSlot options (the Radix Slot rules Button keeps)', () => {
+  const RadixLike = createSlot('Button', { emptyRendersNothing: true, alwaysChainHandlers: true });
+
+  it.each([
+    ['no child', undefined],
+    ['null', null],
+    ['false', false],
+    ['an empty string', ''],
+  ])('emptyRendersNothing: renders nothing with %s', (_name, children) => {
+    const { container } = render(<RadixLike>{children}</RadixLike>);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it.each([
+    ['two children', [<a key="1" href="/a">A</a>, <a key="2" href="/b">B</a>]],
+    ['a text child', 'Docs'],
+    ['the number 0', 0],
+  ])('emptyRendersNothing: still throws with %s', (_name, children) => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => render(<RadixLike>{children}</RadixLike>)).toThrow('[bit] Button asChild needs exactly one child element.');
+    vi.restoreAllMocks();
+  });
+
+  it('noFragmentRef: a Fragment child keeps its own ref and gets no Slot ref', () => {
+    const NoFragmentRef = createSlot('Button', { noFragmentRef: true });
+    const slotRef = createRef<HTMLElement>();
+    const fragmentRef = createRef<FragmentInstance>();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { container } = render(
+      <NoFragmentRef ref={slotRef}>
+        <Fragment ref={fragmentRef}>
+          <a href="/docs">Docs</a>
+        </Fragment>
+      </NoFragmentRef>,
+    );
+    vi.restoreAllMocks();
+    expect(container.innerHTML).toBe('<a href="/docs">Docs</a>');
+    expect(slotRef.current).toBeNull();
+    expect(fragmentRef.current).not.toBeNull();
+  });
+
+  it('without noFragmentRef a Fragment child gets the Slot ref (React 19.3 Fragment refs)', () => {
+    const slotRef = createRef<HTMLElement>();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    render(
+      <Slot ref={slotRef}>
+        <Fragment>
+          <a href="/docs">Docs</a>
+        </Fragment>
+      </Slot>,
+    );
+    vi.restoreAllMocks();
+    expect(slotRef.current).not.toBeNull();
+    expect(slotRef.current).not.toBe(screen.getByRole('link'));
+  });
+
+  it('alwaysChainHandlers: runs the Slot handler even after the child prevents the default', async () => {
+    const calls: string[] = [];
+    render(
+      <RadixLike onClick={() => calls.push('slot')}>
+        <a
+          href="#x"
+          onClick={(event: MouseEvent) => {
+            event.preventDefault();
+            calls.push('child');
+          }}
+        >
+          Go
+        </a>
+      </RadixLike>,
+    );
+    await userEvent.click(screen.getByRole('link'));
+    expect(calls).toEqual(['child', 'slot']);
+  });
 });
 
 describe('mergeProps', () => {
@@ -151,5 +252,22 @@ describe('composeRefs', () => {
     composeRefs<HTMLElement>(object, fn, null, undefined)(node);
     expect(object.current).toBe(node);
     expect(fn).toHaveBeenCalledWith(node);
+  });
+
+  it('returns nothing when no ref hands back a cleanup', () => {
+    expect(composeRefs<HTMLElement>(createRef<HTMLElement>(), () => {})(document.createElement('a'))).toBeUndefined();
+  });
+
+  it('returns a cleanup when a ref does: it runs that cleanup and nulls the other refs (React 19)', () => {
+    const object = createRef<HTMLElement>();
+    const plain = vi.fn();
+    const cleanup = vi.fn();
+    const node = document.createElement('a');
+    const dispose = composeRefs<HTMLElement>(object, plain, () => cleanup)(node);
+    expect(typeof dispose).toBe('function');
+    if (typeof dispose === 'function') dispose();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(object.current).toBeNull();
+    expect(plain).toHaveBeenLastCalledWith(null);
   });
 });

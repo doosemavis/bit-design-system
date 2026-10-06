@@ -52,11 +52,11 @@ describe('GettingStartedPage', () => {
     }
   });
 
-  it('every step reads easily: no text under 15px, and its parts sit at least 16px apart', async () => {
+  it('every step reads easily: no text under 15px, and its parts sit 24px apart so each caption pairs with the code under it', async () => {
     await open();
     for (const heading of within(main()).getAllByRole('heading', { level: 2 })) {
       const body = stepOf(heading).querySelector('.bit-card__body > .bit-stack')!;
-      expect(body, heading.textContent!).toHaveAttribute('data-gap', '16');
+      expect(body, heading.textContent!).toHaveAttribute('data-gap', '24');
       for (const text of body.querySelectorAll('.bit-text')) {
         expect(Number(text.getAttribute('data-size')), `${heading.textContent}: ${text.textContent}`).toBeGreaterThanOrEqual(15);
       }
@@ -75,6 +75,22 @@ describe('GettingStartedPage', () => {
       'In index.html',
       'In any file',
     ]);
+  });
+
+  it('every sub-label is a gallery caption, so inline Code in it gets the slim chip', async () => {
+    await open();
+    for (const h3 of within(main()).getAllByRole('heading', { level: 3 })) {
+      expect(h3, h3.textContent!).toHaveClass('bit-text', 'gallery-caption');
+      expect(h3, h3.textContent!).toHaveAttribute('data-weight', 'bold');
+    }
+  });
+
+  it('code for a .tsx file is tsx; the colorMode lines, valid in any file, stay jsx', async () => {
+    await open();
+    const languageOf = (region: string) =>
+      screen.getByRole('region', { name: region }).closest('.bit-code__block')!.getAttribute('data-language');
+    for (const region of ['Style imports', 'First component', 'Use it in your app']) expect(languageOf(region)).toBe('tsx');
+    expect(languageOf('Any file')).toBe('jsx');
   });
 
   it('Install keeps the version Badge and the package manager switcher', async () => {

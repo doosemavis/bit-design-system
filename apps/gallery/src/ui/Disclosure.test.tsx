@@ -27,17 +27,18 @@ describe('Disclosure', () => {
     expect(screen.getByText('Shown')).toBeVisible();
   });
 
-  it('shows ▸ when closed and ▾ when open, hidden from the accessible name', async () => {
+  it('shows one ▸ that turns on open (CSS reads aria-expanded), hidden from the accessible name', async () => {
     render(<Disclosure title="More">Hidden text</Disclosure>);
     const button = screen.getByRole('button', { name: 'More' });
     const glyph = button.querySelector('[aria-hidden="true"]')!;
     expect(glyph).not.toBeNull();
     expect(glyph.tagName).toBe('SPAN');
-    expect(glyph).toHaveClass('bit-text');
+    expect(glyph).toHaveClass('bit-text', 'gallery-disclosure__glyph');
     expect(glyph.textContent).toBe('▸');
     expect(button.textContent?.indexOf('▸')).toBe(0);
     await userEvent.click(button);
-    expect(glyph.textContent).toBe('▾');
+    expect(glyph.textContent).toBe('▸');
+    expect(button).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('button', { name: 'More' })).toBe(button);
   });
 

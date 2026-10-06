@@ -136,4 +136,8 @@ describe('public index', () => {
   it('keeps the tokenizer and the copy button internal', () => {
     for (const name of ['tokenize', 'CODE_LANGUAGES', 'CopyButton', 'COPY_RESET_MS']) expect(name in lib).toBe(false);
   });
+
+  it('exports the copy hook CodeBlock uses', () => {
+    expect(typeof lib.useCopyToClipboard).toBe('function');
+  });
 });

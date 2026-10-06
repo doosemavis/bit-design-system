@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, it, expect, vi } from 'vitest';
-import { COPY_RESET_MS, CopyButton } from './CopyButton';
+import { CopyButton } from './CopyButton';
 import { expectNoA11yViolations } from '../test/a11y';
 import { stubClipboard } from '../test/clipboard';
 
@@ -35,7 +35,9 @@ describe('CopyButton', () => {
     expect(screen.getByRole('button')).toHaveTextContent('Copied');
     act(() => vi.advanceTimersByTime(100));
     expect(document.getElementById('bit-announcer')).toHaveTextContent('Copied');
-    act(() => vi.advanceTimersByTime(COPY_RESET_MS));
+    act(() => vi.advanceTimersByTime(1899));
+    expect(screen.getByRole('button')).toHaveTextContent('Copied');
+    act(() => vi.advanceTimersByTime(1));
     expect(screen.getByRole('button', { name: 'Copy import line' })).toHaveTextContent('Copy');
   });
 
@@ -45,16 +47,5 @@ describe('CopyButton', () => {
     await click(screen.getByRole('button'));
     expect(screen.getByRole('button')).toHaveTextContent('Copy failed');
     expect(screen.getByRole('button')).toHaveClass('bit-danger');
-  });
-
-  it('unmounting while the clipboard is busy starts no timer', async () => {
-    vi.useFakeTimers();
-    let finish: () => void = () => {};
-    stubClipboard(() => new Promise<void>((resolve) => (finish = resolve)));
-    const { unmount } = render(<CopyButton text="x" label="Copy x" />);
-    fireEvent.click(screen.getByRole('button'));
-    unmount();
-    await act(async () => finish());
-    expect(vi.getTimerCount()).toBe(0);
   });
 });

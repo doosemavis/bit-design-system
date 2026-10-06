@@ -108,6 +108,19 @@ announce('Saved');
 - When calls overlap, the last message wins.
 - bit's CodeBlock Copy button uses it.
 
+`useCopyToClipboard(text)` runs a Copy button of your own, the same way CodeBlock's does.
+
+```tsx
+import { Button, useCopyToClipboard } from '@bit-ds/react';
+
+const { state, label, copy } = useCopyToClipboard(command);
+<Button color={state === 'failed' ? 'danger' : 'neutral'} onClick={() => void copy()}>{label}</Button>
+```
+
+- `label` reads "Copy", then "Copied" or "Copy failed" for two seconds; `state` is `idle`, `copied` or `failed`.
+- `copy()` resolves `true` when the text reached the clipboard and never rejects. It announces the result with `announce()`.
+- With several Copy buttons on a page, give each an `aria-label` such as "Copy install command" while `state` is `idle`.
+
 ## Themes
 
 A theme is one CSS file that fills in every semantic token. Switch with an attribute:
@@ -144,7 +157,14 @@ It applies a saved choice; with none it sets `system` when `<html>` has no `data
 - A subtree can be dark inside a light page with `data-mode="dark"`, but it paints its own background: give it `background: var(--bit-color-bg)`.
 - A `data-mode` hard-coded in your HTML wins until the visitor toggles.
 
-The theme file starts with a Google Fonts `@import`; if your bundler concatenates stylesheets, import the theme before other CSS so the `@import` stays first. Self-hosted fonts are planned.
+## Fonts
+
+The fonts ship in the package. The theme's `@font-face` rules load Lilita One, Nunito, Press Start 2P, Audiowide and JetBrains Mono from woff2 files next to it (`themes/fonts/`), so your bundler serves them from your own site with nothing extra to import.
+
+- The theme makes no third-party requests: no Google Fonts, and no CSP exception for a font host. `font-src 'self'` covers it; add `data:` if your bundler inlines small files (Vite does under 4 KB).
+- Each face is split into every subset Google Fonts serves for it (latin, latin-ext, and cyrillic, greek or vietnamese where the font has them), each with its own `unicode-range`, so the browser downloads only the files for the scripts a page shows.
+- The theme points at its fonts with relative `url()`s. Vite, Next.js and Create React App handle these out of the box. A hand-written webpack 5 config needs a rule for them: `{ test: /\.woff2$/, type: 'asset/resource' }`.
+- The fonts are licensed under the SIL Open Font License 1.1. Each family's license (`OFL-<font>.txt`) ships beside its fonts in `themes/fonts/`.
 
 ## Links
 

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { CodeBlock } from './CodeBlock';
-import { COPY_RESET_MS } from './CopyButton';
+import { COPY_RESET_MS } from '../../system/useCopyToClipboard';
 import { CODE_LANGUAGES } from './tokenize';
 import { expectNoA11yViolations } from '../../test/a11y';
 import { SegmentedControl } from '../SegmentedControl/SegmentedControl';
@@ -95,6 +95,16 @@ describe('CodeBlock', () => {
     await expectNoA11yViolations(container);
   });
 
+  it('tsx: the bar says tsx, the root carries data-language="tsx" and the region is "tsx code"', () => {
+    const { container } = render(<CodeBlock code="const id = <T,>(x: T) => x;" language="tsx" />);
+    const root = container.firstElementChild as HTMLElement;
+    expect(root).toHaveAttribute('data-language', 'tsx');
+    expect(root.querySelector('.bit-code__lang')).toHaveTextContent(/^tsx$/);
+    expect(screen.getByRole('region', { name: 'tsx code' }).tagName).toBe('PRE');
+    expect(screen.getByRole('button', { name: 'Copy tsx code' })).toBeInTheDocument();
+    expect(root.querySelector('[data-kind="tag"]')).toBeNull();
+  });
+
   it('without label, the region is still named "<language> code"', () => {
     render(<CodeBlock code={JSX} language="jsx" />);
     expect(screen.getByRole('region', { name: 'jsx code' }).tagName).toBe('PRE');
@@ -135,6 +145,8 @@ describe('CodeBlock', () => {
 
   it.each([
     ['jsx', `import { Button } from '@bit-ds/react';`, ['keyword', 'component', 'string']],
+    ['tsx', 'export const A = <T,>({ x }: { x: T }) => <p>{String(x)}</p>;', ['keyword', 'component', 'prop', 'tag']],
+    ['ts', 'export enum Size { Sm = "sm" } // a < b', ['keyword', 'component', 'string', 'comment']],
     ['html', '<div class="bit-card"><!-- x --></div>', ['tag', 'attr', 'string', 'comment']],
     ['css', '.bit-card { height: 40px; }', ['tag', 'prop', 'number']],
     ['shell', 'pnpm add @bit-ds/react # go', ['keyword', 'comment']],
@@ -163,60 +175,14 @@ describe('CodeBlock', () => {
     expect(copyButton()).toHaveTextContent('Copy');
   });
 
-  it('a refused write shows "Copy failed", then resets', async () => {
-    vi.useFakeTimers();
-    stubClipboard(() => Promise.reject(new Error('denied')));
-    render(<CodeBlock code={JSX} language="jsx" />);
-    await click(copyButton());
-    expect(copyButton()).toHaveAttribute('data-state', 'failed');
-    expect(copyButton()).toHaveTextContent('Copy failed');
-    act(() => vi.advanceTimersByTime(50));
-    expect(announcer()).toHaveTextContent('Copy failed');
-    act(() => vi.advanceTimersByTime(COPY_RESET_MS));
-    expect(copyButton()).toHaveAttribute('data-state', 'idle');
-  });
-
-  it('no clipboard at all (an insecure page) shows "Copy failed" and does not throw', async () => {
+  // Timers, retries and unmounts are the hook's job: see system/useCopyToClipboard.test.ts.
+  it('a failed copy sets data-state="failed" (the solid danger style) and reads "Copy failed"', async () => {
     stubClipboard(undefined);
     render(<CodeBlock code={JSX} language="jsx" />);
     await click(copyButton());
     expect(copyButton()).toHaveAttribute('data-state', 'failed');
-  });
-
-  it('a second click restarts the 2000ms', async () => {
-    vi.useFakeTimers();
-    stubClipboard(() => Promise.resolve());
-    render(<CodeBlock code={JSX} language="jsx" />);
-    await click(copyButton());
-    act(() => vi.advanceTimersByTime(1500));
-    await click(copyButton());
-    act(() => vi.advanceTimersByTime(1500));
-    expect(copyButton()).toHaveAttribute('data-state', 'copied');
-    act(() => vi.advanceTimersByTime(500));
-    expect(copyButton()).toHaveAttribute('data-state', 'idle');
-  });
-
-  it('unmounting clears the reset timer', async () => {
-    vi.useFakeTimers();
-    stubClipboard(() => Promise.resolve());
-    const { unmount } = render(<CodeBlock code={JSX} language="jsx" />);
-    await click(copyButton());
-    // Let announce()'s own short timer finish, so only the reset timer is left.
-    act(() => vi.advanceTimersByTime(50));
-    expect(vi.getTimerCount()).toBe(1);
-    unmount();
-    expect(vi.getTimerCount()).toBe(0);
-  });
-
-  it('unmounting while the clipboard is still busy starts no timer and does not throw', async () => {
-    vi.useFakeTimers();
-    let finish: () => void = () => {};
-    stubClipboard(() => new Promise<void>((resolve) => (finish = resolve)));
-    const { unmount } = render(<CodeBlock code={JSX} language="jsx" />);
-    fireEvent.click(copyButton());
-    unmount();
-    await act(async () => finish());
-    expect(vi.getTimerCount()).toBe(0);
+    expect(copyButton()).toHaveTextContent('Copy failed');
+    expect(copyButton()).not.toHaveAttribute('aria-label');
   });
 
   it('copy={false} shows no button', () => {

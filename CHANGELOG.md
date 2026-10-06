@@ -2,6 +2,17 @@
 
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
+## 0.1.3 — 2026-10-06
+### Added
+- `useCopyToClipboard(text)` and the `CopyState` type: run a Copy button of your own the same way CodeBlock does. `copy()` resolves `true` when the text reached the clipboard and never rejects.
+- CodeBlock colours `language="ts"` and `language="tsx"`: TypeScript keywords, and generics such as `<T,>` and `<T extends U>` that are not JSX tags.
+### Changed
+- The Power Up theme loads its fonts from files in the package (`themes/fonts/`) instead of Google Fonts, so visitors' browsers make no third-party request. Every alphabet Google served is included, and a browser downloads a file only when the page uses its characters. Vite, Next.js and Create React App need no changes; a hand-written webpack 5 config needs a rule for `.woff2` files (`type: 'asset/resource'`). A strict CSP needs only `font-src 'self'` (plus `data:` if your bundler inlines small files). The SIL OFL licenses ship next to the fonts.
+- `@bit-ds/react` has no runtime dependencies: Button `asChild` uses the package's own Slot instead of `@radix-ui/react-slot`. A single child element behaves as before.
+### Fixed
+- CodeBlock colours code in linear time. A large crafted input could freeze the page before (200 kB of `{` took about 30 seconds). Code longer than 50,000 characters shows as plain text.
+- Link `asChild`: a callback ref on the child is no longer detached and re-attached on every render, and React 19 ref cleanup functions run.
+
 ## 0.1.2 — 2026-10-05
 ### Added
 - Theme tokens for inline `Code`: `--bit-code-inline-text`, `--bit-code-inline-bg`, `--bit-code-inline-bg-on-tint` and `--bit-code-inline-selection`. Custom themes should declare all four in `:root` and in the dark block. A theme from 0.1.1 still works: `Code` falls back to `--bit-code-text`, `--bit-code-bg` and `--bit-color-selection`, without the old accent border.

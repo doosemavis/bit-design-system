@@ -285,6 +285,14 @@ describe('manifest contract', () => {
     expect(button.docs.emptyChildrenError).toBe('A Button needs text or an aria-label, or screen readers announce just "button".');
   });
 
+  it('CodeBlock offers and documents every language, ts and tsx included', () => {
+    const languages = ['jsx', 'tsx', 'ts', 'html', 'css', 'shell'];
+    const control = codeBlock.controls.find((c) => c.kind === 'select' && c.prop === 'language');
+    expect(control?.kind === 'select' ? control.values : null).toEqual(languages);
+    expect(codeBlock.docs.props.find((p) => p.name === 'language')?.type).toBe(languages.map((l) => `'${l}'`).join(' | '));
+    expect(codeBlock.docs.badges).toContain(languages.join(' · '));
+  });
+
   it('CodeBlock documents its actions slot', () => {
     expect(codeBlock.docs.props.find((p) => p.name === 'actions')?.type).toBe('ReactNode');
   });

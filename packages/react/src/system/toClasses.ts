@@ -1,14 +1,14 @@
 import { PREFIX } from '@bit-ds/core/tokens';
 
 /** One axis of a component: its prop name, the allowed values, and the value the caller passed. */
-export interface Axis {
+interface Axis {
   name: string;
   allowed: readonly string[];
   value: string | undefined;
 }
 
 /** `bit-{block}` */
-export function block(blockName: string): string {
+function block(blockName: string): string {
   return `${PREFIX}-${blockName}`;
 }
 
@@ -49,7 +49,7 @@ function warnUnknown(blockName: string, axis: DataAxis): void {
 }
 
 /** A non-axis enum rendered as a `data-*` attribute: its prop name, allowed values, and the value passed. */
-export interface DataAxis {
+interface DataAxis {
   name: string;
   allowed: readonly (string | number)[];
   value: string | number | undefined;

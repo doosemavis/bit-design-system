@@ -14,14 +14,14 @@ export const INSTALL_COMMANDS = {
 };
 
 /**
- * The two stylesheet imports every app adds once, theme first: the theme's Google Fonts `@import` must stay
- * at the top when a bundler joins the CSS.
+ * The two stylesheet imports every app adds once, theme first by convention: the tokens, then the components
+ * that read them. The theme has no `@import` (its fonts are self-hosted), so a bundler may join them in either order.
  */
 export const STYLE_IMPORTS = `import '${PACKAGE_NAME}/themes/power-up.css';\nimport '${PACKAGE_NAME}/styles.css';`;
 
 /**
- * The same two files as CSS `@import`s, for an app's global stylesheet instead of its entry file. Vite and
- * Next.js both keep the theme's fonts `@import` first when they inline these (checked 2026-10-05).
+ * The same two files as CSS `@import`s, for an app's global stylesheet instead of its entry file. When Vite
+ * inlines them it rebases the theme's font `url()`s to the package; the consumer smoke test builds this route.
  */
 export const GLOBAL_CSS_IMPORTS = `@import '${PACKAGE_NAME}/themes/power-up.css';\n@import '${PACKAGE_NAME}/styles.css';`;
 

@@ -55,7 +55,7 @@ The contrast test verifies the new color's text is readable on its fill.
 
 Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1 palette and any tier-2 values, keep every token name. A theme also needs a `[data-mode="dark"]` rule that declares exactly the tokens in `MODE_TOKENS` (`packages/core/src/tokens.ts`). Add it to `THEMES` in `apps/gallery/src/shell/themes.ts`, after adding its CSS import in `apps/gallery/src/main.tsx`. Run `pnpm --filter @bit-ds/core test`. The test fails if any token is missing or any color fails WCAG AA contrast.
 
-The theme file starts with a Google Fonts `@import`. Self-hosted fonts are planned.
+Fonts are self-hosted, never loaded from a font service. A theme's `@font-face` rules point at `./fonts/<id>-<subset>-<weight>-normal.woff2`, one rule per weight and subset with that subset's `unicode-range`. Ship every subset the family's `@fontsource` package has (its `unicode.json`), in that file's order (latin last, so it wins the code points subsets share), so text in any script Google Fonts served keeps the face. Those paths resolve only in the build: `packages/react/scripts/build-css.mjs` copies each file a theme names from an `@fontsource/<id>` devDependency of `@bit-ds/react` (exact version) into `dist/themes/fonts/`, checks the `unicode-range` against the package's, and adds the family's license as `OFL-<id>.txt`. A new family needs its `@fontsource` package and an entry in `packages/react/scripts/expected-fonts.mjs`. `fonts.test.ts`, `pnpm verify` and `pnpm smoke` fail on any remote `@import` or `url()`.
 
 ## Testing
 
