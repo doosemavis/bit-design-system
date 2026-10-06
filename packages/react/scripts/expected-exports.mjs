@@ -4,5 +4,5 @@ export const EXPECTED = [
   'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
   'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
   'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
-  'Heading', 'Box', 'announce', 'colorMode', 'ColorModeService',
+  'Heading', 'Box', 'announce', 'useCopyToClipboard', 'colorMode', 'ColorModeService',
 ];
