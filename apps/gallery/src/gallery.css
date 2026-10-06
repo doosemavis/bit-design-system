@@ -286,10 +286,18 @@ html {
 
 .gallery-preview__stage {
   flex: 1;
+  min-width: 0;
   min-height: 12rem;
   display: grid;
   place-items: center;
   padding: var(--bit-space-32px);
+}
+
+/* The previewed component is centred at its own width but never wider than the stage, so a wide one (a long
+   CodeBlock line, a Table) scrolls inside itself instead of spilling over the controls. */
+.gallery-preview__stage > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .gallery-preview[data-checkerboard] .gallery-preview__stage {

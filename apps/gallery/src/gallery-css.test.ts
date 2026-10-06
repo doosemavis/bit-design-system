@@ -119,6 +119,15 @@ describe('gallery.css', () => {
     expect(ruleIn(galleryCss, '.gallery-preview__stage')).toContain('flex: 1;');
   });
 
+  it('a previewed component never outgrows the stage: the preview half, the stage and its child can all shrink', () => {
+    // A long CodeBlock line or a wide Table scrolls inside itself instead of spilling over the controls.
+    expect(ruleIn(galleryCss, '.gallery-preview')).toContain('min-width: 0;');
+    expect(ruleIn(galleryCss, '.gallery-preview__stage')).toContain('min-width: 0;');
+    const child = ruleIn(galleryCss, '.gallery-preview__stage > *');
+    expect(child).toContain('min-width: 0;');
+    expect(child).toContain('max-width: 100%;');
+  });
+
   it('B3: a divider on the start edge of the controls, which moves to their top edge under 720px', () => {
     const line = 'var(--bit-border-width) solid var(--bit-color-line);';
     expect(ruleIn(galleryCss, '.gallery-controls')).toContain(`border-inline-start: ${line}`);
