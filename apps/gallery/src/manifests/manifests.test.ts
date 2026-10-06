@@ -236,7 +236,9 @@ describe('manifest contract', () => {
   it.each(MANIFESTS.map((m) => [m.name, m] as const))('%s documents every prop its controls expose, once', (_name, m) => {
     const documented = m.docs.props.map((p) => p.name);
     expect(new Set(documented).size, 'duplicate prop rows').toBe(documented.length);
-    expect(m.controls.map((c) => c.prop).filter((prop) => !documented.includes(prop))).toEqual([]);
+    // A virtual control shapes the page and is not a prop, so it has no row.
+    const props = m.controls.filter((c) => !(c.kind === 'select' && c.virtual)).map((c) => c.prop);
+    expect(props.filter((prop) => !documented.includes(prop))).toEqual([]);
   });
 
   it.each(MANIFESTS.map((m) => [m.name, m] as const))('%s gives every axis prop row its bit-{prop} class, and no other row one', (_name, m) => {

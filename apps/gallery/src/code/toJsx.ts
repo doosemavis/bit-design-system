@@ -204,6 +204,7 @@ export function toJsx(manifest: Manifest, state: ControlState, options: ToJsxOpt
   const classAt = asClasses ? manifest.controls.findIndex((control) => axisChanged(control, state, defaults)) : -1;
   const printed = manifest.controls
     .map((control, index): PrintedProp | null => {
+      if (control.kind === 'select' && control.virtual) return null;
       if (asClasses && control.kind === 'axis') return index === classAt ? decoratorClassName(manifest, state, defaults) : null;
       return printProp(control, state[control.prop] ?? defaults[control.prop]!, defaults[control.prop]!);
     })

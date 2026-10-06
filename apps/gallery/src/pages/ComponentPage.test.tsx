@@ -17,6 +17,31 @@ async function open(path: string, name: string) {
 const region = (name: string) => screen.getByRole('region', { name });
 const main = () => screen.getByRole('main');
 
+describe('SegmentedControl page: segments and multiple', () => {
+  it('the controls offer a segments select (2 to 5) and a multiple switch', async () => {
+    await open('/components/segmentedcontrol', 'SegmentedControl');
+    const controls = region('Controls');
+    const segments = within(controls).getByRole('combobox', { name: 'segments' });
+    expect(within(segments).getAllByRole('option').map((o) => o.textContent)).toEqual(['2', '3', '4', '5']);
+    expect(within(controls).getByRole('switch', { name: 'multiple' })).not.toBeChecked();
+  });
+
+  it('the Multi-select preset renders four checkboxes', async () => {
+    await open('/components/segmentedcontrol', 'SegmentedControl');
+    await userEvent.click(screen.getByRole('button', { name: 'Multi-select' }));
+    const group = within(region('SegmentedControl preview')).getByRole('group', { name: 'Range' });
+    expect(within(group).getAllByRole('checkbox')).toHaveLength(4);
+  });
+
+  it('the Props table documents multiple as a boolean, default false', async () => {
+    await open('/components/segmentedcontrol', 'SegmentedControl');
+    const row = within(main()).getAllByRole('row').find((r) => within(r).queryByText('multiple', { selector: 'code' }));
+    expect(row).toBeDefined();
+    expect(within(row!).getByText('boolean')).toBeInTheDocument();
+    expect(within(row!).getByText('false')).toBeInTheDocument();
+  });
+});
+
 describe('ComponentPage (layout C)', () => {
   it('the header: eyebrow, h1, description, the import chip with Copy, and the badges', async () => {
     await open('/components/card', 'Card');
