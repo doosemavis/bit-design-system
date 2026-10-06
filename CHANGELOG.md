@@ -5,7 +5,7 @@ Package releases only. Docs-site changes don't appear here. One bullet per line.
 ## 0.1.3 — 2026-10-06
 ### Added
 - `useCopyToClipboard(text)` and the `CopyState` type: run a Copy button of your own the same way CodeBlock does. `copy()` resolves `true` when the text reached the clipboard and never rejects.
-- SegmentedControl `multiple`: native checkboxes, `value`/`defaultValue` as `string[]`, and `onValueChange` called with the chosen values in option order. Nothing is chosen by default, and every segment can be turned off. Without `multiple`, nothing changes.
+- SegmentedControl `multiple`: native checkboxes, `value`/`defaultValue` as `string[]`, and `onValueChange` called with the chosen values in option order. Nothing is chosen by default, and every segment can be turned off. Its props are the new `SegmentedControlMultipleProps` type; `SegmentedControlProps` stays the single-select props, unchanged. Pass `multiple` as a literal: a `boolean` variable doesn't type-check, so render the two cases separately.
 - CodeBlock colours `language="ts"` and `language="tsx"`: TypeScript keywords, and generics such as `<T,>` and `<T extends U>` that are not JSX tags.
 ### Changed
 - CodeBlock and Table scrollbars follow the theme. The track is the panel's own background (the dark code background, or the Table's surface), and the thumb is a solid bar in `--bit-color-accent` (violet in light, yellow in dark), set in from the edge so an even strip of track shows around it. The whole 14px bar stays draggable, and hovering doesn't change it. Firefox gets the same colours on its thin scrollbar.
