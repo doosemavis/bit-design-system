@@ -370,3 +370,25 @@ git commit -m "feat(gallery): segments and multiple controls on the SegmentedCon
 - [ ] Run one review pass.
 - [ ] Take headed screenshots for the owner: the scrollbar gap, the B3 layout, multi-select, and the hoisted code.
 - [ ] Open the PR. After the owner says go: merge, `git tag v0.1.3`, push the tag; the owner approves publish.
+
+---
+
+### Task 7: Import line height matches its Copy button (owner, 2026-10-06; gallery only)
+
+The owner's words: "The import statement code that is at the top of each component page, I want the height of that background to be the same height as the copy button next to it. Don't change the font or anything just the height of the background. Should be for all import statements in the component section. This should not apply to the Code component itself."
+
+**Files:**
+- Modify: `apps/gallery/src/pages/component/ComponentHeader.tsx` (the row holding `<Code>{line}</Code>` and `<CopyButton>`) and `apps/gallery/src/gallery.css`
+- Test: the ComponentHeader / ComponentPage tests and `gallery-css.test.ts`
+
+**Interfaces:** none.
+
+- [ ] **Step 1: Write failing tests**
+  - The import row stretches its children: the Stack takes `align="stretch"` if Stack supports it; otherwise use a gallery layout class.
+  - The import `Code` has the class `gallery-import-code`.
+  - `gallery.css` has `.gallery-import-code { display: inline-flex; align-items: center; }`. Both are layout properties, so the guard needs no exception.
+  - No other `.bit-code` rule changes, the Code component's CSS in packages/core is untouched, and the font size and padding stay the same.
+- [ ] **Step 2: Run them and see them fail.**
+- [ ] **Step 3: Implement.** Stretch the row so the chip's background box takes the Copy button's height, and centre the text vertically inside it. Only on the component pages' import line: Code elsewhere (body text, captions, tables) must not change.
+- [ ] **Step 4: Verify in the browser.** Measure on the Button and SegmentedControl pages with gstack `$B` that `getBoundingClientRect().height` of the chip equals the Copy button's, at 1280px and 390px, light and dark. Screenshot it.
+- [ ] **Step 5: Run the done gate and commit:** `feat(gallery): component import line matches its Copy button's height`.
