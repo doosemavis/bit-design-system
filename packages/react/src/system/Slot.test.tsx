@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createRef } from 'react';
-import type { MouseEvent } from 'react';
+import { Fragment, createRef } from 'react';
+import type { FragmentInstance, MouseEvent } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { composeRefs, createSlot, mergeProps } from './Slot';
@@ -174,6 +174,39 @@ describe('createSlot options (the Radix Slot rules Button keeps)', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<RadixLike>{children}</RadixLike>)).toThrow('[bit] Button asChild needs exactly one child element.');
     vi.restoreAllMocks();
+  });
+
+  it('noFragmentRef: a Fragment child keeps its own ref and gets no Slot ref', () => {
+    const NoFragmentRef = createSlot('Button', { noFragmentRef: true });
+    const slotRef = createRef<HTMLElement>();
+    const fragmentRef = createRef<FragmentInstance>();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { container } = render(
+      <NoFragmentRef ref={slotRef}>
+        <Fragment ref={fragmentRef}>
+          <a href="/docs">Docs</a>
+        </Fragment>
+      </NoFragmentRef>,
+    );
+    vi.restoreAllMocks();
+    expect(container.innerHTML).toBe('<a href="/docs">Docs</a>');
+    expect(slotRef.current).toBeNull();
+    expect(fragmentRef.current).not.toBeNull();
+  });
+
+  it('without noFragmentRef a Fragment child gets the Slot ref (React 19.3 Fragment refs)', () => {
+    const slotRef = createRef<HTMLElement>();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    render(
+      <Slot ref={slotRef}>
+        <Fragment>
+          <a href="/docs">Docs</a>
+        </Fragment>
+      </Slot>,
+    );
+    vi.restoreAllMocks();
+    expect(slotRef.current).not.toBeNull();
+    expect(slotRef.current).not.toBe(screen.getByRole('link'));
   });
 
   it('alwaysChainHandlers: runs the Slot handler even after the child prevents the default', async () => {
