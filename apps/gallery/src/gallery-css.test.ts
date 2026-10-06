@@ -53,9 +53,9 @@ describe('gallery.css', () => {
     expect(galleryCss).not.toMatch(/\.gallery-pre[\s{,]/);
   });
 
-  it('Getting started shows code and its result side by side, stacking under 64rem where the result column gets too narrow', () => {
+  it('Getting started shows code and its result side by side, stacking under 70rem where the code line clips and the Buttons wrap', () => {
     expect(galleryCss).toMatch(/\.gallery-split \{[^}]*grid-template-columns: minmax\(0, 3fr\) minmax\(0, 2fr\);/);
-    expect(galleryCss).toMatch(/@media \(max-width: 64rem\) \{\s*\.gallery-split \{\s*grid-template-columns: minmax\(0, 1fr\);\s*\}\s*\}/);
+    expect(galleryCss).toMatch(/@media \(max-width: 70rem\) \{\s*\.gallery-split \{\s*grid-template-columns: minmax\(0, 1fr\);\s*\}\s*\}/);
     expect(galleryCss).toMatch(/\.gallery-split__result \{[^}]*flex: 1;[^}]*place-items: center;/);
   });
 
@@ -184,6 +184,15 @@ describe('gallery.css', () => {
     expect(galleryCss).toMatch(/\.gallery-sidebar__link\.bit-link[^{,]*:hover \{/);
     // No bare .gallery-sidebar__link rule is left to lose to bit Link on specificity.
     expect(galleryCss).not.toMatch(/\.gallery-sidebar__link(\[aria-current="page"\]|:hover)?\s*[{,]/);
+  });
+  it('inline Code in a caption is a slim chip: no border or vertical padding, so it fits the bold line', () => {
+    expect(ruleIn(galleryCss, '.gallery-caption .bit-code')).toMatch(/^\s*padding: 0 5px;\s*border-width: 0;\s*$/);
+  });
+
+  it('the disclosure ▸ turns a quarter on open, and only snaps under reduced motion', () => {
+    expect(ruleIn(galleryCss, '.gallery-disclosure__glyph')).toMatch(/display: inline-block;[^}]*transition: transform var\(--bit-duration-fast\)/);
+    expect(ruleIn(galleryCss, '[aria-expanded="true"] > .gallery-disclosure__glyph')).toMatch(/transform: rotate\(90deg\);/);
+    expect(mediaBody('(prefers-reduced-motion: reduce)')).toMatch(/\.gallery-disclosure__glyph \{\s*transition: none;\s*\}/);
   });
 });
 

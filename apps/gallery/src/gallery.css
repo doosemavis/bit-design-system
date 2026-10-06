@@ -449,7 +449,7 @@ html {
 
 /* ---------- getting started ---------- */
 /* Code on the left, what it renders on the right. The result Card stretches to the code's height and centres
-   its content. Under 64rem they stack: beside the sidebar, the result column gets too narrow for three Buttons. */
+   its content. Under 70rem they stack: beside the sidebar, the longest code line clips and the three Buttons wrap. */
 .gallery-split {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
@@ -463,9 +463,31 @@ html {
   place-items: center;
 }
 
-@media (max-width: 64rem) {
+@media (max-width: 70rem) {
   .gallery-split {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A step's bold sub-label. Inline Code in it drops its border and vertical padding, so the chip fits the line. */
+.gallery-caption .bit-code {
+  padding: 0 5px;
+  border-width: 0;
+}
+
+/* The Disclosure ▸ turns a quarter on open instead of swapping to ▾, a wider glyph that nudged the title. */
+.gallery-disclosure__glyph {
+  display: inline-block;
+  transition: transform var(--bit-duration-fast);
+}
+
+[aria-expanded="true"] > .gallery-disclosure__glyph {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-disclosure__glyph {
+    transition: none;
   }
 }
 

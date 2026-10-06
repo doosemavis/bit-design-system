@@ -12,8 +12,9 @@ interface DisclosureProps {
 
 /**
  * A button that shows and hides a region. bit has no disclosure yet, so this is a ghost Button with aria-expanded.
- * The button sits in a start-aligned Stack so it keeps its own size inside a stretching column. A ▸/▾ glyph shows
- * the state, and the open region is indented under the button.
+ * The button sits in a start-aligned Stack so it keeps its own size inside a stretching column. One ▸ shows the
+ * state: gallery.css turns it a quarter when aria-expanded is true, so the title never moves. The open region is
+ * indented under the button.
  */
 export function Disclosure({ title, defaultOpen = false, children }: DisclosureProps) {
   const [open, setOpen] = useState(defaultOpen);
@@ -31,8 +32,8 @@ export function Disclosure({ title, defaultOpen = false, children }: DisclosureP
           onClick={() => setOpen((current) => !current)}
         >
           {/* Like ModeToggle's ☀/☾: the glyph is decoration, so the name stays the title. The Button's gap spaces it. */}
-          <Text as="span" aria-hidden="true">
-            {open ? '▾' : '▸'}
+          <Text as="span" aria-hidden="true" className="gallery-disclosure__glyph">
+            ▸
           </Text>
           {title}
         </Button>
