@@ -170,3 +170,81 @@ describe('SegmentedControl', () => {
     await expectNoA11yViolations(container);
   });
 });
+
+const box = (name: string) => screen.getByRole('checkbox', { name });
+
+describe('multiple', () => {
+  it('renders one checkbox per option, sharing one name, and marks the fieldset data-multiple', () => {
+    const { container } = render(<SegmentedControl multiple legend="Show" options={OPTIONS} name="show" />);
+    const fieldset = container.firstElementChild as HTMLElement;
+    expect(fieldset).toHaveAttribute('data-multiple');
+    expect(screen.queryAllByRole('radio')).toHaveLength(0);
+    expect(screen.getAllByRole('checkbox').map((c) => (c as HTMLInputElement).name)).toEqual(['show', 'show', 'show']);
+    expect(box('Week')).toHaveClass('bit-segmented-control__input');
+  });
+
+  it('starts with nothing chosen and toggles on and off, emitting arrays in option order', async () => {
+    const onValueChange = vi.fn();
+    render(<SegmentedControl multiple legend="Show" options={OPTIONS} onValueChange={onValueChange} />);
+    expect(screen.getAllByRole('checkbox').some((c) => (c as HTMLInputElement).checked)).toBe(false);
+    await userEvent.click(box('Month'));
+    await userEvent.click(box('Day'));
+    expect(onValueChange).toHaveBeenLastCalledWith(['day', 'month']);
+    await userEvent.click(box('Month'));
+    expect(onValueChange).toHaveBeenLastCalledWith(['day']);
+    await userEvent.click(box('Day'));
+    expect(onValueChange).toHaveBeenLastCalledWith([]);
+  });
+
+  it('starts from defaultValue and never mutates it', async () => {
+    const start = Object.freeze(['week']) as readonly string[];
+    render(<SegmentedControl multiple legend="Show" options={OPTIONS} defaultValue={start} />);
+    expect(box('Week')).toBeChecked();
+    await userEvent.click(box('Day'));
+    expect(box('Day')).toBeChecked();
+    expect(start).toEqual(['week']);
+  });
+
+  it('follows a controlled value and ignores values that match no option', async () => {
+    function Controlled() {
+      const [value, setValue] = useState<string[]>(['nope', 'week']);
+      return <SegmentedControl multiple legend="Show" options={OPTIONS} value={value} onValueChange={setValue} />;
+    }
+    render(<Controlled />);
+    expect(screen.getAllByRole('checkbox').filter((c) => (c as HTMLInputElement).checked).map((c) => (c as HTMLInputElement).value)).toEqual(['week']);
+    await userEvent.click(box('Day'));
+    expect(box('Day')).toBeChecked();
+    expect(box('Week')).toBeChecked();
+  });
+
+  it('a disabled option cannot be toggled; Space toggles a focused one', async () => {
+    const options = [...OPTIONS.slice(0, 2), { value: 'month', label: 'Month', disabled: true }];
+    render(<SegmentedControl multiple legend="Show" options={options} />);
+    await userEvent.click(box('Month'));
+    expect(box('Month')).not.toBeChecked();
+    box('Week').focus();
+    await userEvent.keyboard(' ');
+    expect(box('Week')).toBeChecked();
+  });
+
+  it("switching multiple on a mounted, uncontrolled control resets to that mode's default", () => {
+    const { rerender } = render(<SegmentedControl legend="Show" options={OPTIONS} />);
+    expect(radio('Day')).toBeChecked();
+    rerender(<SegmentedControl multiple legend="Show" options={OPTIONS} />);
+    expect(screen.getAllByRole('checkbox').some((c) => (c as HTMLInputElement).checked)).toBe(false);
+    rerender(<SegmentedControl legend="Show" options={OPTIONS} />);
+    expect(radio('Day')).toBeChecked();
+  });
+
+  it('has no axe violations', async () => {
+    const { container } = render(<SegmentedControl multiple legend="Show" options={OPTIONS} defaultValue={['day']} />);
+    await expectNoA11yViolations(container);
+  });
+
+  it('types: a string value with multiple is an error, and an array without it is too', () => {
+    // @ts-expect-error multiple takes string[]
+    void (<SegmentedControl multiple legend="x" options={OPTIONS} value="day" />);
+    // @ts-expect-error single takes string
+    void (<SegmentedControl legend="x" options={OPTIONS} value={['day']} />);
+  });
+});
