@@ -6,7 +6,7 @@ export interface CodeToken {
   kind: CodeKind;
   text: string;
 }
-export const CODE_LANGUAGES = ['jsx', 'html', 'css', 'shell'] as const;
+export const CODE_LANGUAGES = ['jsx', 'tsx', 'ts', 'html', 'css', 'shell'] as const;
 export type CodeLanguage = (typeof CODE_LANGUAGES)[number];
 /** Longer code is one plain-text token: colors are a nicety, never worth a slow page. */
 export const TOKENIZE_LIMIT = 50_000;
@@ -75,17 +75,49 @@ const push = (modes: JsxModes, mode: JsxMode): JsxModes => ({ mode, parent: mode
 /** The stack minus its top entry; popping the root gives the root again, so the stack is never empty. */
 const pop = (modes: JsxModes): JsxModes => modes.parent ?? JS_ROOT;
 
-const JS_RULES: readonly Rule[] = [
+const JS_KEYWORDS = [
+  'import', 'from', 'export', 'default', 'const', 'let', 'var', 'function', 'return', 'if', 'else', 'new', 'typeof',
+  'as', 'type', 'interface', 'true', 'false', 'null', 'undefined',
+];
+const TS_KEYWORDS = [
+  ...JS_KEYWORDS, 'enum', 'implements', 'extends', 'readonly', 'keyof', 'satisfies', 'declare', 'namespace', 'abstract',
+  'private', 'public', 'protected', 'unknown', 'never', 'any', 'string', 'number', 'boolean', 'void', 'infer', 'is',
+  'async', 'await', 'class', 'this', 'super', 'for', 'while', 'of', 'in', 'switch', 'case', 'break', 'continue', 'throw',
+  'try', 'catch', 'finally', 'yield', 'static', 'get', 'set',
+];
+
+/** Comments, strings and numbers: the same in JS and TS. */
+const LITERAL_RULES: readonly Rule[] = [
   ['comment', /\/\/[^\n]*/y],
   ['comment', BLOCK_COMMENT],
   ['string', STRING],
   ['number', /\d+(?:\.\d+)?/y],
-  ['keyword', /(?:import|from|export|default|const|let|var|function|return|if|else|new|typeof|as|type|interface|true|false|null|undefined)\b/y],
-  ['component', /[A-Z][\w$]*/y],
-  ['prop', /[A-Za-z_$][\w$]*(?=\s*:)/y],
+];
+const COMPONENT_RULE: Rule = ['component', /[A-Z][\w$]*/y];
+const NAME_AND_PUNCT_RULES: readonly Rule[] = [
   ['text', /[A-Za-z_$][\w$]*/y],
   ['punct', /[()[\];,.:=+\-*/!?&|<>%]/y],
 ];
+
+const JS_RULES: readonly Rule[] = [
+  ...LITERAL_RULES,
+  ['keyword', new RegExp(`(?:${JS_KEYWORDS.join('|')})\\b`, 'y')],
+  COMPONENT_RULE,
+  ['prop', /[A-Za-z_$][\w$]*(?=\s*:)/y],
+  ...NAME_AND_PUNCT_RULES,
+];
+
+/** TypeScript: more keywords, matched as whole names only, and an optional `name?:` is a prop too. */
+const TS_RULES: readonly Rule[] = [
+  ...LITERAL_RULES,
+  ['keyword', new RegExp(`(?:${TS_KEYWORDS.join('|')})(?![\\w$])`, 'y')],
+  COMPONENT_RULE,
+  ['prop', /[A-Za-z_$][\w$]*(?=\s*\??:)/y],
+  ...NAME_AND_PUNCT_RULES,
+];
+
+/** A .ts file has no JSX, so braces are plain punct like every `<` and `>`. */
+const TS_FILE_RULES: readonly Rule[] = [...TS_RULES, ['punct', /[{}]/y]];
 
 const TAG_RULES: readonly Rule[] = [
   ['string', STRING],
@@ -107,20 +139,32 @@ function jsxTagStep(code: string, at: number, modes: JsxModes): readonly [CodeTo
   return [token('punct', close), close === '/>' ? pop(modes) : push(pop(modes), 'children')];
 }
 
-const jsxStep: Step<JsxModes> = (code, at, modes) => {
-  const char = code[at];
-  const mode = modes.mode;
-  if (char === '{') return [token('punct', '{'), push(modes, 'js')];
-  if (mode === 'tag' || mode === 'closeTag') return jsxTagStep(code, at, modes);
-  if (mode === 'js' && char === '}') return [token('punct', '}'), pop(modes)];
-  // A `<` straight after an identifier (no space) is a type argument (`useState<string>`) or a
-  // comparison (`i<n`), never a JSX tag. JSX always follows a space, `(`, `=>`, `&&`, `?`, `{` or a line start.
-  if (mode === 'js' && char === '<' && /[\w$]/.test(code[at - 1] ?? '')) return [token('punct', '<'), modes];
-  const open = matchAt(JSX_TAG_OPEN, code, at);
-  if (open) return [token('punct', open), push(modes, open === '</' ? 'closeTag' : 'tag')];
-  if (mode === 'children') return [token('text', matchAt(JSX_CHILD_TEXT, code, at) ?? char!), modes];
-  return [match(JS_RULES, code, at), modes];
-};
+/** A `<` opening type parameters (`<T,>` or `<T extends U>`), which TypeScript never reads as JSX in .tsx. */
+const TYPE_PARAMS = /<(?=[A-Za-z_$][\w$]*(?:\s*,|\s+extends\b))/y;
+
+/** The JSX lexer over `rules` for plain code; `typeParams` also reads `<T,>` and `<T extends U>` as code (tsx). */
+function jsxStepFor(rules: readonly Rule[], typeParams: boolean): Step<JsxModes> {
+  return (code, at, modes) => {
+    const char = code[at];
+    const mode = modes.mode;
+    if (char === '{') return [token('punct', '{'), push(modes, 'js')];
+    if (mode === 'tag' || mode === 'closeTag') return jsxTagStep(code, at, modes);
+    if (mode === 'js' && char === '}') return [token('punct', '}'), pop(modes)];
+    // A `<` straight after an identifier (no space) is a type argument (`useState<string>`) or a
+    // comparison (`i<n`), never a JSX tag. JSX always follows a space, `(`, `=>`, `&&`, `?`, `{` or a line start.
+    if (mode === 'js' && char === '<' && (/[\w$]/.test(code[at - 1] ?? '') || (typeParams && matchAt(TYPE_PARAMS, code, at)))) {
+      return [token('punct', '<'), modes];
+    }
+    const open = matchAt(JSX_TAG_OPEN, code, at);
+    if (open) return [token('punct', open), push(modes, open === '</' ? 'closeTag' : 'tag')];
+    if (mode === 'children') return [token('text', matchAt(JSX_CHILD_TEXT, code, at) ?? char!), modes];
+    return [match(rules, code, at), modes];
+  };
+}
+
+const jsxStep = jsxStepFor(JS_RULES, false);
+const tsxStep = jsxStepFor(TS_RULES, true);
+const tsStep: Step<null> = (code, at) => [match(TS_FILE_RULES, code, at), null];
 
 // --------------------------------------------------------------------------------------- HTML
 
@@ -218,6 +262,8 @@ const shellStep: Step<boolean> = (code, at, atCommand) => {
 
 const LEXERS = new Map<string, (code: string) => CodeToken[]>([
   ['jsx', (code) => run(code, JS_ROOT, jsxStep)],
+  ['tsx', (code) => run(code, JS_ROOT, tsxStep)],
+  ['ts', (code) => run(code, null, tsStep)],
   ['html', (code) => run(code, false, htmlStep)],
   ['css', (code) => run(code, 0, cssStep)],
   ['shell', (code) => run(code, true, shellStep)],
