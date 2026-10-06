@@ -22,8 +22,10 @@ describe('ComponentPage (layout C)', () => {
     await open('/components/card', 'Card');
     expect(within(main()).getByText('Components')).toHaveClass('gallery-eyebrow');
     const chip = screen.getByText("import { Card, CardHeader, CardBody, CardFooter } from '@bit-ds/react';");
-    expect(chip).toHaveClass('bit-code');
+    expect(chip).toHaveClass('bit-code', 'gallery-import-code');
     expect(screen.getByRole('button', { name: 'Copy import line' })).toBeInTheDocument();
+    // The row stretches its children, so the chip's background takes the Copy button's height.
+    expect(chip.parentElement).toHaveAttribute('data-align', 'stretch');
     expect(screen.getByText('Compound')).toHaveClass('bit-badge', 'bit-outline');
   });
 

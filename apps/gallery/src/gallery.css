@@ -359,6 +359,13 @@ html {
 }
 
 /* ---------- component page ---------- */
+/* The row stretches the chip to the Copy button's height; min-height keeps that when the button wraps below, and the text stays centred. */
+.gallery-import-code {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--bit-control-height-sm);
+}
+
 /* Preview and controls side by side, the code under both. Under 720px the controls stack under the preview. */
 .gallery-playground {
   display: grid;

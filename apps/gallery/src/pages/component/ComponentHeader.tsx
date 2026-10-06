@@ -16,8 +16,8 @@ export function ComponentHeader({ manifest }: { manifest: Manifest }) {
   return (
     <PageHeader eyebrow={GROUP_LABELS[manifest.group]} title={manifest.name}>
       <Text size={18}>{manifest.description}</Text>
-      <Stack direction="row" gap={8} align="center" wrap>
-        <Code>{line}</Code>
+      <Stack direction="row" gap={8} align="stretch" wrap>
+        <Code className="gallery-import-code">{line}</Code>
         <CopyButton text={line} label="Copy import line" />
       </Stack>
       {manifest.docs.badges.length > 0 ? (

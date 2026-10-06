@@ -131,6 +131,16 @@ describe('gallery.css', () => {
     expect(presets).not.toMatch(/padding|margin|overflow/);
   });
 
+  it('the import chip centres its text in the Copy-button-tall box, with layout properties only', () => {
+    const rule = ruleIn(galleryCss, '.gallery-import-code');
+    expect(rule).toContain('display: inline-flex;');
+    expect(rule).toContain('align-items: center;');
+    // Copy is a small Button; when it wraps below the chip on a phone, the chip still matches its height.
+    expect(rule).toContain('min-height: var(--bit-control-height-sm);');
+    expect(rule).not.toMatch(/padding|font|margin/);
+    expect(galleryCss).not.toMatch(/(^|\n)\.bit-code\b/);
+  });
+
   it('a union type in the Props table is one unbreakable chip per member', () => {
     expect(ruleIn(galleryCss, '.gallery-nowrap')?.trim()).toBe('white-space: nowrap;');
   });
