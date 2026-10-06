@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { CODE_KINDS } from '@bit-ds/core/tokens';
-import { CODE_LANGUAGES, tokenize } from './tokenize';
+import { CODE_LANGUAGES, TOKENIZE_LIMIT, tokenize } from './tokenize';
 import type { CodeLanguage, CodeToken } from './tokenize';
 
 /** Tokens as [kind, text] pairs, which read better in expectations. */
 const pairs = (code: string, language: CodeLanguage) => tokenize(code, language).map((t) => [t.kind, t.text]);
 const kindOf = (code: string, language: CodeLanguage, text: string) =>
   tokenize(code, language).find((t) => t.text === text)?.kind;
+const joined = (tokens: readonly CodeToken[]) => tokens.map((t) => t.text).join('');
 
 describe('tokenize: jsx', () => {
   it('splits a JSX element into punct, component, attr, string and text', () => {
@@ -397,5 +398,73 @@ describe('tokenize: the invariant (property test)', () => {
       expectWellFormed(a, tokenize(a, language));
       for (const b of PIECES) expectWellFormed(a + b, tokenize(a + b, language));
     }
+  });
+});
+
+/** Inputs that have tripped lexers: unclosed openers, stacked modes, stray closers, generics. */
+const TRICKY = [
+  '{{{', '}}}', '<a', '<a>', '</a>', '<a><b>', '</>', '<>', '<a {b}>', '<a b={<c />}>', '<T,>(x: T) => x',
+  'a<b>c', 'x < y > z', 'Array<Promise<T>>', '`${a}`', "'", '"\\\\"', '/*', '<!--', '@media {', '$(',
+  'a && <b>{c}</b>', 'é<🙂>',
+];
+
+describe('tokenize: the invariant on tricky samples', () => {
+  it.each(CODE_LANGUAGES)('%s: joining the tokens gives back every tricky sample, alone and doubled', (language) => {
+    for (const code of TRICKY) {
+      expectWellFormed(code, tokenize(code, language));
+      expectWellFormed(code + code, tokenize(code + code, language));
+    }
+  });
+});
+
+/** Realistic code per language, repeated to fill a long input. */
+const SAMPLES: Record<CodeLanguage, string> = {
+  jsx: `import { Button } from '@bit-ds/react';\n// note\nconst n = useState<string>("x"); /* c */\nreturn (<Stack gap={16} style={{ a: 1 }}><p>Hi {n} ~</p><Button color="danger" /></Stack>);\n`,
+  html: `<div class="bit-card"><!-- hi -->Stats a < b <br data-x="" /></div>\n`,
+  css: `.bit-button:hover { height: 40px; border: var(--bit-line) !important; } /* c */ @media x { --a: #FFF "s" }\n`,
+  shell: `pnpm add @bit-ds/react --save-dev # dev\na 3 | b $HOME && c "x" > 5 $ ~\n`,
+};
+
+/** `piece` repeated to exactly `length` characters. */
+const fill = (piece: string, length: number) => piece.repeat(Math.ceil(length / piece.length)).slice(0, length);
+
+/** Tokenizes once, in well under a second, and gets the input back. The bound is loose so CI stays steady. */
+function expectFast(code: string, language: CodeLanguage): void {
+  const start = performance.now();
+  const tokens = tokenize(code, language);
+  expect(performance.now() - start).toBeLessThan(1500);
+  expect(joined(tokens)).toBe(code);
+}
+
+describe('tokenize: long input stays fast', () => {
+  it.each([
+    ['200,000 open braces', '{'.repeat(200_000)],
+    ['30,000 <a> tags', '<a>'.repeat(30_000)],
+    ['open braces up to the cap', '{'.repeat(TOKENIZE_LIMIT)],
+    ['<a> tags up to the cap', fill('<a>', TOKENIZE_LIMIT)],
+    ['nested elements up to the cap', fill('<a><b>{x}', TOKENIZE_LIMIT)],
+  ])('jsx: %s', (_, code) => {
+    expectFast(code, 'jsx');
+  });
+
+  it('shell: a word full of # (none starts a comment) up to the cap', () => {
+    expectFast(`a${'#'.repeat(TOKENIZE_LIMIT - 1)}`, 'shell');
+  });
+
+  it.each(CODE_LANGUAGES)('%s: realistic code up to the cap', (language) => {
+    expectFast(fill(SAMPLES[language], TOKENIZE_LIMIT), language);
+  });
+
+  it.each(CODE_LANGUAGES)('%s: one plain-text run up to the cap', (language) => {
+    expectFast(fill('~', TOKENIZE_LIMIT), language);
+  });
+
+  it.each(CODE_LANGUAGES)('%s: code at the cap is still colored', (language) => {
+    expect(tokenize(fill(SAMPLES[language], TOKENIZE_LIMIT), language).some((t) => t.kind !== 'text')).toBe(true);
+  });
+
+  it.each(CODE_LANGUAGES)('%s: code over the cap is one plain-text token', (language) => {
+    const code = fill(SAMPLES[language], TOKENIZE_LIMIT + 1);
+    expect(tokenize(code, language)).toEqual([{ kind: 'text', text: code }]);
   });
 });
