@@ -1,5 +1,5 @@
 import { forwardRef, useId, useState } from 'react';
-import type { FieldsetHTMLAttributes, ReactNode } from 'react';
+import type { FieldsetHTMLAttributes, ForwardRefExoticComponent, ReactElement, ReactNode, RefAttributes } from 'react';
 import { COLORS, SIZES } from '../../system/axes';
 import type { Color, Size } from '../../system/axes';
 import { element, toClasses } from '../../system/toClasses';
@@ -13,14 +13,14 @@ export interface SegmentedOption {
   disabled?: boolean;
 }
 
-interface SegmentedControlBaseProps
+interface SegmentedControlSharedProps
   extends Omit<FieldsetHTMLAttributes<HTMLFieldSetElement>, 'onChange' | 'color' | 'defaultValue'> {
   /** Names the group; read by screen readers even when hidden. */
   legend: ReactNode;
   /** Hide the legend visually. It is still read. */
   legendHidden?: boolean;
   options: readonly SegmentedOption[];
-  /** The inputs' shared name. Default: a generated id. */
+  /** The inputs' shared name: the radios, or the checkboxes with `multiple`. Default: a generated id. */
   name?: string;
   /** Fill of the chosen option. Class: `bit-{color}`. */
   color?: Color;
@@ -28,8 +28,12 @@ interface SegmentedControlBaseProps
   size?: Size;
 }
 
-interface SegmentedSingleProps {
-  /** Pick one option (radios). Default. */
+/** Props for a SegmentedControl that picks one option (radios). */
+export interface SegmentedControlProps extends SegmentedControlSharedProps {
+  /**
+   * Pick one option (radios). Default. A `boolean` variable doesn't type-check here: render two
+   * branches (with `multiple` and without), or cast.
+   */
   multiple?: false;
   /** The chosen value, when the parent owns it. */
   value?: string;
@@ -38,8 +42,12 @@ interface SegmentedSingleProps {
   onValueChange?: (value: string) => void;
 }
 
-interface SegmentedMultipleProps {
-  /** Pick any number of options (checkboxes). */
+/** Props for a SegmentedControl that picks any number of options (checkboxes). */
+export interface SegmentedControlMultipleProps extends SegmentedControlSharedProps {
+  /**
+   * Pick any number of options (checkboxes). A `boolean` variable doesn't type-check here: render
+   * two branches (with `multiple` and without), or cast.
+   */
   multiple: true;
   /** The chosen values, when the parent owns them. */
   value?: readonly string[];
@@ -49,7 +57,16 @@ interface SegmentedMultipleProps {
   onValueChange?: (value: string[]) => void;
 }
 
-export type SegmentedControlProps = SegmentedControlBaseProps & (SegmentedSingleProps | SegmentedMultipleProps);
+type SegmentedControlRef = RefAttributes<HTMLFieldSetElement>;
+
+/**
+ * One call signature per mode, so `value` and `onValueChange` follow `multiple`. Single-select comes
+ * last because `ComponentProps<typeof SegmentedControl>` reads the last signature, as it did in 0.1.2.
+ */
+interface SegmentedControlComponent extends ForwardRefExoticComponent<SegmentedControlProps & SegmentedControlRef> {
+  (props: SegmentedControlMultipleProps & SegmentedControlRef): ReactElement | null;
+  (props: SegmentedControlProps & SegmentedControlRef): ReactElement | null;
+}
 
 type OwnValue = { multiple: boolean; value: string | readonly string[] | undefined };
 
@@ -57,7 +74,7 @@ type OwnValue = { multiple: boolean; value: string | readonly string[] | undefin
  * Joined segments that pick one option, or several with `multiple`. Native radios (or checkboxes)
  * underneath, so arrow keys and Space work and Tab enters and leaves the group, with no custom keyboard code.
  */
-export const SegmentedControl = forwardRef<HTMLFieldSetElement, SegmentedControlProps>(function SegmentedControl(
+export const SegmentedControl = forwardRef<HTMLFieldSetElement, SegmentedControlProps | SegmentedControlMultipleProps>(function SegmentedControl(
   {
     legend,
     legendHidden = false,
@@ -131,4 +148,4 @@ export const SegmentedControl = forwardRef<HTMLFieldSetElement, SegmentedControl
       </div>
     </fieldset>
   );
-});
+}) as SegmentedControlComponent;

@@ -1,9 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { createRef, useState } from 'react';
+import type { ComponentProps } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SegmentedControl } from './SegmentedControl';
-import type { SegmentedOption } from './SegmentedControl';
+import type { SegmentedControlMultipleProps, SegmentedControlProps, SegmentedOption } from './SegmentedControl';
 import { COLORS, SIZES } from '../../system/axes';
 import { expectNoA11yViolations } from '../../test/a11y';
 
@@ -246,5 +247,30 @@ describe('multiple', () => {
     void (<SegmentedControl multiple legend="x" options={OPTIONS} value="day" />);
     // @ts-expect-error single takes string
     void (<SegmentedControl legend="x" options={OPTIONS} value={['day']} />);
+  });
+
+  it('types: SegmentedControlProps still works the way 0.1.2 consumers use it', () => {
+    // An interface can extend it, which a union type would not allow.
+    interface WithHint extends SegmentedControlProps {
+      hint?: string;
+    }
+    const withHint: WithHint = { legend: 'x', options: OPTIONS, hint: 'h' };
+    // A wrapper that fills one prop and spreads the rest.
+    const Wrap = (props: Omit<SegmentedControlProps, 'legend'>) => <SegmentedControl legend="x" {...props} />;
+    void (<Wrap options={OPTIONS} />);
+    // Indexed access gives the single-select handler, so `v` is a string without an annotation.
+    expectTypeOf<SegmentedControlProps['onValueChange']>().toEqualTypeOf<((value: string) => void) | undefined>();
+    const handler: SegmentedControlProps['onValueChange'] = (v) => void v.toUpperCase();
+    void handler;
+    expectTypeOf<ComponentProps<typeof SegmentedControl>['value']>().toEqualTypeOf<string | undefined>();
+    expectTypeOf<SegmentedControlMultipleProps['onValueChange']>().toEqualTypeOf<((value: string[]) => void) | undefined>();
+    // multiple={true} takes the array props; the two modes don't mix.
+    void (<SegmentedControl multiple legend="x" options={OPTIONS} value={['day']} onValueChange={(v) => v.join()} />);
+    void (<SegmentedControl legend="x" options={OPTIONS} value="day" onValueChange={(v) => v.toUpperCase()} />);
+    // @ts-expect-error multiple takes string[]
+    void (<SegmentedControl multiple legend="x" options={OPTIONS} value="day" />);
+    // @ts-expect-error single takes string
+    void (<SegmentedControl legend="x" options={OPTIONS} value={['day']} />);
+    expect(withHint.hint).toBe('h');
   });
 });

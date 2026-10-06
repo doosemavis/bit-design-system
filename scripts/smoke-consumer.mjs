@@ -335,13 +335,23 @@ assert.ok(existsSync(join(dist, 'themes', 'power-up.css')), 'themes/power-up.css
   );
   writeFileSync(
     join(app, 'check.tsx'),
-    `import { Button, COLORS } from '@bit-ds/react';
-import type { Color } from '@bit-ds/react';
+    `import { Button, COLORS, SegmentedControl } from '@bit-ds/react';
+import type { Color, SegmentedControlProps } from '@bit-ds/react';
 
 const c: Color = COLORS[0];
 
+// SegmentedControlProps used the ways 0.1.2 allowed: extended, wrapped with Omit, indexed.
+export interface Extended extends SegmentedControlProps { hint?: string }
+export const Wrap = (props: Omit<SegmentedControlProps, 'legend'>) => <SegmentedControl legend="x" {...props} />;
+export const onPick: SegmentedControlProps['onValueChange'] = (v) => void v.toUpperCase();
+
 export function App() {
-  return <Button color={c}>ok</Button>;
+  return (
+    <>
+      <Button color={c}>ok</Button>
+      <SegmentedControl multiple legend="x" options={[]} value={['a']} onValueChange={(v) => void v.join()} />
+    </>
+  );
 }
 `,
   );
