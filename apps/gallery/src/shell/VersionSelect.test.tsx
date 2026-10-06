@@ -9,7 +9,8 @@ const CURRENT = lineOf(__BIT_VERSION__);
 const entry = (line: string, version: string, path: string) => ({ line, version, date: '2026-10-04', path, react: '19.2.0', reactDom: '19.2.0' });
 const ROOT = '/bit-design-system/';
 const V01 = '/bit-design-system/v0.1/';
-const TWO = { latest: '0.2', lines: [entry('0.2', '0.2.0', ROOT), entry('0.1', '0.1.3', V01)] };
+// The older line's patch must never equal __BIT_VERSION__, or its option shares this copy's label.
+const TWO = { latest: '0.2', lines: [entry('0.2', '0.2.0', ROOT), entry('0.1', '0.1.0', V01)] };
 const ONE = { latest: '0.1', lines: [entry('0.1', '0.1.0', ROOT)] };
 // The PR dry-run's --as-older file: the same line twice, told apart only by path.
 const AS_OLDER = { latest: '0.1', lines: [entry('0.1', '0.1.0', ROOT), entry('0.1', '0.1.0', V01)] };
@@ -42,7 +43,7 @@ describe('VersionSelect', () => {
     const select = screen.getByLabelText('Version');
     await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(2));
     expect(screen.getByRole('option', { name: '0.2 (latest) · 0.2.0' })).toHaveValue(ROOT);
-    expect(screen.getByRole('option', { name: '0.1 · 0.1.3' })).toHaveValue(V01);
+    expect(screen.getByRole('option', { name: '0.1 · 0.1.0' })).toHaveValue(V01);
     expect(select).toHaveValue(ROOT);
     expect(select).toBeEnabled();
   });
