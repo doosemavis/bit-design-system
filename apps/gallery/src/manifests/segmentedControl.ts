@@ -63,19 +63,23 @@ export const segmentedControl: Manifest = {
       { name: 'options', type: 'readonly { value: string; label: ReactNode; disabled?: boolean }[]', description: 'Required. The choices, in order.' },
       {
         name: 'value',
-        type: 'string | string[]',
+        type: 'string | readonly string[]',
         description: 'The chosen value (a string[] with multiple), when the parent owns it. Use with onValueChange, or use defaultValue.',
       },
-      { name: 'onValueChange', type: '(value: string) => void | (value: string[]) => void', description: 'Called with the new value when the choice changes. With multiple, it gets the array of chosen values.' },
+      {
+        name: 'onValueChange',
+        type: '((value: string) => void) | ((value: string[]) => void)',
+        description: 'Called with the new value when the choice changes. With multiple, it gets the array of chosen values.',
+      },
       {
         name: 'defaultValue',
-        type: 'string | string[]',
+        type: 'string | readonly string[]',
         description: 'The first chosen value (a string[] with multiple), when the control owns it. Unset, the first option starts chosen; with multiple, nothing does.',
       },
       {
         name: 'name',
         type: 'string',
-        description: 'The name the radios share, for form submits. Unset, a unique one is generated.',
+        description: 'The name the inputs share (the radios, or the checkboxes with multiple), for form submits. Unset, a unique one is generated.',
       },
     ],
     a11y: [
