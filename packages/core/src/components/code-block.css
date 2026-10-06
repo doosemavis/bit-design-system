@@ -74,6 +74,25 @@
   white-space: pre;
 }
 
+/* The scrollbar sits on the panel's own dark: a code-bg track and a thumb outlined in the border's accent.
+   The transparent border insets the outline, leaving an even strip of track between it and the panel edge.
+   Forced colours draw their own scrollbars, so none of this applies there. */
+@media not (forced-colors: active) {
+  .bit-code__pre::-webkit-scrollbar { height: 14px; }
+  .bit-code__pre::-webkit-scrollbar-track { background: var(--bit-code-bg); }
+  .bit-code__pre::-webkit-scrollbar-thumb {
+    background: var(--bit-code-bg);
+    background-clip: padding-box;
+    border: 3px solid transparent;
+    border-radius: var(--bit-radius-10px);
+    box-shadow: inset 0 0 0 2px var(--bit-color-accent);
+  }
+  .bit-code__pre::-webkit-scrollbar-thumb:hover { background: var(--bit-color-accent); }
+  @supports not selector(::-webkit-scrollbar) {
+    .bit-code__pre { scrollbar-color: var(--bit-color-accent) var(--bit-code-bg); scrollbar-width: thin; }
+  }
+}
+
 .bit-code__pre code {
   font: inherit;
 }
