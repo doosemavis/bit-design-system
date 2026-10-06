@@ -95,6 +95,16 @@ describe('CodeBlock', () => {
     await expectNoA11yViolations(container);
   });
 
+  it('tsx: the bar says tsx, the root carries data-language="tsx" and the region is "tsx code"', () => {
+    const { container } = render(<CodeBlock code="const id = <T,>(x: T) => x;" language="tsx" />);
+    const root = container.firstElementChild as HTMLElement;
+    expect(root).toHaveAttribute('data-language', 'tsx');
+    expect(root.querySelector('.bit-code__lang')).toHaveTextContent(/^tsx$/);
+    expect(screen.getByRole('region', { name: 'tsx code' }).tagName).toBe('PRE');
+    expect(screen.getByRole('button', { name: 'Copy tsx code' })).toBeInTheDocument();
+    expect(root.querySelector('[data-kind="tag"]')).toBeNull();
+  });
+
   it('without label, the region is still named "<language> code"', () => {
     render(<CodeBlock code={JSX} language="jsx" />);
     expect(screen.getByRole('region', { name: 'jsx code' }).tagName).toBe('PRE');
@@ -135,6 +145,8 @@ describe('CodeBlock', () => {
 
   it.each([
     ['jsx', `import { Button } from '@bit-ds/react';`, ['keyword', 'component', 'string']],
+    ['tsx', 'export const A = <T,>({ x }: { x: T }) => <p>{String(x)}</p>;', ['keyword', 'component', 'prop', 'tag']],
+    ['ts', 'export enum Size { Sm = "sm" } // a < b', ['keyword', 'component', 'string', 'comment']],
     ['html', '<div class="bit-card"><!-- x --></div>', ['tag', 'attr', 'string', 'comment']],
     ['css', '.bit-card { height: 40px; }', ['tag', 'prop', 'number']],
     ['shell', 'pnpm add @bit-ds/react # go', ['keyword', 'comment']],

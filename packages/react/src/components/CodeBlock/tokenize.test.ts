@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { CODE_KINDS } from '@bit-ds/core/tokens';
-import { CODE_LANGUAGES, tokenize } from './tokenize';
+import { CODE_LANGUAGES, TOKENIZE_LIMIT, tokenize } from './tokenize';
 import type { CodeLanguage, CodeToken } from './tokenize';
 
 /** Tokens as [kind, text] pairs, which read better in expectations. */
 const pairs = (code: string, language: CodeLanguage) => tokenize(code, language).map((t) => [t.kind, t.text]);
 const kindOf = (code: string, language: CodeLanguage, text: string) =>
   tokenize(code, language).find((t) => t.text === text)?.kind;
+const joined = (tokens: readonly CodeToken[]) => tokens.map((t) => t.text).join('');
 
 describe('tokenize: jsx', () => {
   it('splits a JSX element into punct, component, attr, string and text', () => {
@@ -176,6 +177,152 @@ describe('tokenize: jsx generics', () => {
   });
 });
 
+const TS_KEYWORDS = [
+  'import', 'from', 'export', 'default', 'const', 'let', 'var', 'function', 'return', 'if', 'else', 'new', 'typeof',
+  'as', 'type', 'interface', 'true', 'false', 'null', 'undefined', 'enum', 'implements', 'extends', 'readonly', 'keyof',
+  'satisfies', 'declare', 'namespace', 'abstract', 'private', 'public', 'protected', 'unknown', 'never', 'any', 'string',
+  'number', 'boolean', 'void', 'infer', 'is', 'async', 'await', 'class', 'this', 'super', 'for', 'while', 'of', 'in',
+  'switch', 'case', 'break', 'continue', 'throw', 'try', 'catch', 'finally', 'yield', 'static', 'get', 'set',
+];
+
+describe('tokenize: ts and tsx', () => {
+  it.each(['ts', 'tsx'] as const)('%s: every TypeScript keyword is a keyword, but not inside a longer name', (language) => {
+    for (const word of TS_KEYWORDS) {
+      expect(kindOf(`${word} x`, language, word)).toBe('keyword');
+      expect(pairs(`${word}$x ${word}2`, language)).toEqual([['text', `${word}$x ${word}2`]]);
+    }
+  });
+
+  it('jsx keeps its own, shorter keyword list', () => {
+    for (const word of ['enum', 'async', 'await', 'class', 'this', 'readonly', 'string', 'for']) {
+      expect(pairs(`${word} x`, 'jsx')).toEqual([['text', `${word} x`]]);
+    }
+  });
+
+  it('tsx: an arrow-function generic <T,> is code, not a tag', () => {
+    expect(pairs('<T,>(x: T) => x', 'tsx')).toEqual([
+      ['punct', '<'],
+      ['component', 'T'],
+      ['punct', ','],
+      ['punct', '>'],
+      ['punct', '('],
+      ['prop', 'x'],
+      ['punct', ':'],
+      ['text', ' '],
+      ['component', 'T'],
+      ['punct', ')'],
+      ['text', ' '],
+      ['punct', '='],
+      ['punct', '>'],
+      ['text', ' x'],
+    ]);
+  });
+
+  it('tsx: <T extends U>(…) is a generic; extends is a keyword and what follows stays code', () => {
+    const code = 'const pick = <T extends Item>(items: T[]) => items[0];';
+    const tokens = tokenize(code, 'tsx');
+    expect(tokens.some((t) => t.kind === 'tag')).toBe(false);
+    expect(kindOf(code, 'tsx', 'extends')).toBe('keyword');
+    expect(kindOf(code, 'tsx', 'Item')).toBe('component');
+    expect(kindOf(code, 'tsx', 'items')).toBe('prop');
+    expect(kindOf(code, 'tsx', '0')).toBe('number');
+    expect(joined(tokens)).toBe(code);
+  });
+
+  it('tsx: a name that only starts with "extends" is still a tag', () => {
+    expect(kindOf('x = <Textends />', 'tsx', 'Textends')).toBe('component');
+    expect(tokenize('x = <Textends />', 'tsx')).toContainEqual({ kind: 'punct', text: '/>' });
+  });
+
+  it.each(['ts', 'tsx'] as const)('%s: nested type arguments Array<Promise<T>> are punct and components', (language) => {
+    expect(pairs('Array<Promise<T>>', language)).toEqual([
+      ['component', 'Array'],
+      ['punct', '<'],
+      ['component', 'Promise'],
+      ['punct', '<'],
+      ['component', 'T'],
+      ['punct', '>'],
+      ['punct', '>'],
+    ]);
+  });
+
+  it.each(['ts', 'tsx'] as const)('%s: useState<string | null>(null) keeps the code after it as code', (language) => {
+    const code = 'const [a, b] = useState<string | null>(null);';
+    expect(tokenize(code, language).some((t) => t.kind === 'tag')).toBe(false);
+    expect(kindOf(code, language, 'string')).toBe('keyword');
+    expect(kindOf(code, language, 'null')).toBe('keyword');
+  });
+
+  it.each(['ts', 'tsx'] as const)('%s: an interface: keywords, optional and readonly props, type names', (language) => {
+    const code = `interface Props extends Base {\n  readonly size?: 'sm' | 'md';\n  onPick(value: number): void;\n}`;
+    const tokens = tokenize(code, language);
+    for (const word of ['interface', 'extends', 'readonly', 'number', 'void']) expect(kindOf(code, language, word)).toBe('keyword');
+    expect(kindOf(code, language, 'Props')).toBe('component');
+    expect(kindOf(code, language, 'size')).toBe('prop');
+    expect(kindOf(code, language, 'value')).toBe('prop');
+    expect(kindOf(code, language, "'sm'")).toBe('string');
+    expect(tokens).toContainEqual({ kind: 'punct', text: '{' });
+    expect(joined(tokens)).toBe(code);
+  });
+
+  it('tsx: a component with generic props colours both the types and the JSX', () => {
+    const code = [
+      'interface ListProps<T> {',
+      '  items: readonly T[];',
+      '  render?: (item: T) => string;',
+      '}',
+      '',
+      'export function List<T>({ items, render = String }: ListProps<T>) {',
+      '  return <ul className="list">{items.map((item, i) => <li key={i}>{render(item)}</li>)}</ul>;',
+      '}',
+    ].join('\n');
+    const tokens = tokenize(code, 'tsx');
+    expect(joined(tokens)).toBe(code);
+    for (const word of ['interface', 'readonly', 'string', 'export', 'function', 'return']) {
+      expect(kindOf(code, 'tsx', word)).toBe('keyword');
+    }
+    expect(kindOf(code, 'tsx', 'render')).toBe('prop');
+    expect(kindOf(code, 'tsx', 'ListProps')).toBe('component');
+    expect(kindOf(code, 'tsx', 'className')).toBe('attr');
+    expect(kindOf(code, 'tsx', '"list"')).toBe('string');
+    expect(tokens).toContainEqual({ kind: 'tag', text: 'ul' });
+    expect(tokens).toContainEqual({ kind: 'tag', text: 'li' });
+    expect(tokens).toContainEqual({ kind: 'attr', text: 'key' });
+  });
+
+  it('tsx: JSX after return, an arrow, && and ? is still a tag, as in jsx', () => {
+    for (const code of ['return (<div>hi</div>);', 'const A = () => <div>hi</div>;', 'ok && <div>hi</div>', 'ok ? <div>hi</div> : null']) {
+      expect(kindOf(code, 'tsx', 'div')).toBe('tag');
+    }
+  });
+
+  it('ts: no JSX at all, so comparisons are punct, even with no spaces', () => {
+    expect(pairs('a <b && c> d', 'ts')).toEqual([
+      ['text', 'a '],
+      ['punct', '<'],
+      ['text', 'b '],
+      ['punct', '&'],
+      ['punct', '&'],
+      ['text', ' c'],
+      ['punct', '>'],
+      ['text', ' d'],
+    ]);
+    expect(tokenize('const el = <div>hi</div>;', 'ts').some((t) => t.kind === 'tag')).toBe(false);
+    expect(tokenize('if (a < b && c > d) { go(); }', 'ts').some((t) => t.kind === 'tag')).toBe(false);
+  });
+
+  it('ts: braces are punct and a .ts file reads back exactly', () => {
+    const code = `export enum Size { Sm = 'sm', Md = 'md' }\n\nexport async function load<T extends object>(url: string): Promise<T> {\n  try {\n    return (await fetch(url)).json() as Promise<T>; // cast\n  } catch {\n    throw new Error(\`no \${url}\`);\n  }\n}`;
+    const tokens = tokenize(code, 'ts');
+    expect(joined(tokens)).toBe(code);
+    expect(tokens.filter((t) => t.text === '{').every((t) => t.kind === 'punct')).toBe(true);
+    expect(tokens.filter((t) => t.text === '}').every((t) => t.kind === 'punct')).toBe(true);
+    for (const word of ['enum', 'async', 'extends', 'try', 'await', 'catch', 'throw']) expect(kindOf(code, 'ts', word)).toBe('keyword');
+    expect(kindOf(code, 'ts', '// cast')).toBe('comment');
+    expect(kindOf(code, 'ts', '`no ${url}`')).toBe('string');
+  });
+});
+
 describe('tokenize: strings', () => {
   it.each(CODE_LANGUAGES.filter((l) => l !== 'html'))('%s: an escaped quote does not end the string', (language) => {
     expect(kindOf(`x 'it\\'s' y`, language, `'it\\'s'`)).toBe('string');
@@ -339,12 +486,16 @@ describe('tokenize: edges', () => {
   });
 
   it('an unknown language (an untyped caller) is one plain-text token, never a crash', () => {
-    // @ts-expect-error ts is not a supported language
-    expect(tokenize('const a = 1;', 'ts')).toEqual([{ kind: 'text', text: 'const a = 1;' }]);
+    // @ts-expect-error python is not a supported language
+    expect(tokenize('a = 1', 'python')).toEqual([{ kind: 'text', text: 'a = 1' }]);
     // @ts-expect-error a prototype key is not a language either
     expect(tokenize('x', 'constructor')).toEqual([{ kind: 'text', text: 'x' }]);
-    // @ts-expect-error ts is not a supported language
-    expect(tokenize('', 'ts')).toEqual([]);
+    // @ts-expect-error python is not a supported language
+    expect(tokenize('', 'python')).toEqual([]);
+  });
+
+  it('CODE_LANGUAGES lists jsx, then the TypeScript pair, then the rest', () => {
+    expect(CODE_LANGUAGES).toEqual(['jsx', 'tsx', 'ts', 'html', 'css', 'shell']);
   });
 });
 
@@ -397,5 +548,75 @@ describe('tokenize: the invariant (property test)', () => {
       expectWellFormed(a, tokenize(a, language));
       for (const b of PIECES) expectWellFormed(a + b, tokenize(a + b, language));
     }
+  });
+});
+
+/** Inputs that have tripped lexers: unclosed openers, stacked modes, stray closers, generics. */
+const TRICKY = [
+  '{{{', '}}}', '<a', '<a>', '</a>', '<a><b>', '</>', '<>', '<a {b}>', '<a b={<c />}>', '<T,>(x: T) => x',
+  'a<b>c', 'x < y > z', 'Array<Promise<T>>', '`${a}`', "'", '"\\\\"', '/*', '<!--', '@media {', '$(',
+  'a && <b>{c}</b>', 'é<🙂>',
+];
+
+describe('tokenize: the invariant on tricky samples', () => {
+  it.each(CODE_LANGUAGES)('%s: joining the tokens gives back every tricky sample, alone and doubled', (language) => {
+    for (const code of TRICKY) {
+      expectWellFormed(code, tokenize(code, language));
+      expectWellFormed(code + code, tokenize(code + code, language));
+    }
+  });
+});
+
+/** Realistic code per language, repeated to fill a long input. */
+const SAMPLES: Record<CodeLanguage, string> = {
+  jsx: `import { Button } from '@bit-ds/react';\n// note\nconst n = useState<string>("x"); /* c */\nreturn (<Stack gap={16} style={{ a: 1 }}><p>Hi {n} ~</p><Button color="danger" /></Stack>);\n`,
+  tsx: `interface P<T> { items?: readonly T[] }\nconst f = <T,>(x: T) => x;\nexport function L<T extends object>({ items }: P<T>) { return <ul>{items?.map((i) => <li key={1}>{String(i)}</li>)}</ul>; }\n`,
+  ts: `export enum Size { Sm = 'sm' }\nasync function load<T>(url: string): Promise<Array<T>> { return a < b && c > d ? await f(url) : null; } // c\n`,
+  html: `<div class="bit-card"><!-- hi -->Stats a < b <br data-x="" /></div>\n`,
+  css: `.bit-button:hover { height: 40px; border: var(--bit-line) !important; } /* c */ @media x { --a: #FFF "s" }\n`,
+  shell: `pnpm add @bit-ds/react --save-dev # dev\na 3 | b $HOME && c "x" > 5 $ ~\n`,
+};
+
+/** `piece` repeated to exactly `length` characters. */
+const fill = (piece: string, length: number) => piece.repeat(Math.ceil(length / piece.length)).slice(0, length);
+
+/** Tokenizes once, in well under a second, and gets the input back. The bound is loose so CI stays steady. */
+function expectFast(code: string, language: CodeLanguage): void {
+  const start = performance.now();
+  const tokens = tokenize(code, language);
+  expect(performance.now() - start).toBeLessThan(1500);
+  expect(joined(tokens)).toBe(code);
+}
+
+describe('tokenize: long input stays fast', () => {
+  it.each([
+    ['200,000 open braces', '{'.repeat(200_000)],
+    ['30,000 <a> tags', '<a>'.repeat(30_000)],
+    ['open braces up to the cap', '{'.repeat(TOKENIZE_LIMIT)],
+    ['<a> tags up to the cap', fill('<a>', TOKENIZE_LIMIT)],
+    ['nested elements up to the cap', fill('<a><b>{x}', TOKENIZE_LIMIT)],
+  ])('jsx: %s', (_, code) => {
+    expectFast(code, 'jsx');
+  });
+
+  it('shell: a word full of # (none starts a comment) up to the cap', () => {
+    expectFast(`a${'#'.repeat(TOKENIZE_LIMIT - 1)}`, 'shell');
+  });
+
+  it.each(CODE_LANGUAGES)('%s: realistic code up to the cap', (language) => {
+    expectFast(fill(SAMPLES[language], TOKENIZE_LIMIT), language);
+  });
+
+  it.each(CODE_LANGUAGES)('%s: one plain-text run up to the cap', (language) => {
+    expectFast(fill('~', TOKENIZE_LIMIT), language);
+  });
+
+  it.each(CODE_LANGUAGES)('%s: code at the cap is still colored', (language) => {
+    expect(tokenize(fill(SAMPLES[language], TOKENIZE_LIMIT), language).some((t) => t.kind !== 'text')).toBe(true);
+  });
+
+  it.each(CODE_LANGUAGES)('%s: code over the cap is one plain-text token', (language) => {
+    const code = fill(SAMPLES[language], TOKENIZE_LIMIT + 1);
+    expect(tokenize(code, language)).toEqual([{ kind: 'text', text: code }]);
   });
 });

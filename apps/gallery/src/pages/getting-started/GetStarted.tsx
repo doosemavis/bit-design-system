@@ -96,7 +96,7 @@ export function GetStarted() {
           <Text>
             <Code>src/main.tsx</Code> in Vite, <Code>app/layout.tsx</Code> in Next.js.
           </Text>
-          <CodeBlock code={STYLE_IMPORTS} language="jsx" label="Style imports" />
+          <CodeBlock code={STYLE_IMPORTS} language="tsx" label="Style imports" />
         </Stack>
         <Stack gap={8}>
           <Text as="h3" weight="bold" className="gallery-caption">
@@ -131,7 +131,7 @@ export function GetStarted() {
                 <Text as="h3" weight="bold" className="gallery-caption">
                   1. In a component file, such as <Code>src/Toolbar.tsx</Code>:
                 </Text>
-                <CodeBlock code={FIRST_COMPONENT} language="jsx" label="First component" />
+                <CodeBlock code={FIRST_COMPONENT} language="tsx" label="First component" />
               </Stack>
               <Stack gap={8}>
                 <Text as="h3" weight="bold" className="gallery-caption">
@@ -173,7 +173,7 @@ export function GetStarted() {
             <Text as="h3" weight="bold" className="gallery-caption">
               2. Then use your component like any other, for example in <Code>src/App.tsx</Code>:
             </Text>
-            <CodeBlock code={USE_IT} language="jsx" label="Use it in your app" />
+            <CodeBlock code={USE_IT} language="tsx" label="Use it in your app" />
           </Stack>
         </Stack>
       </Step>

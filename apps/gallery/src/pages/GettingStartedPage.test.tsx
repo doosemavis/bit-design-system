@@ -85,6 +85,14 @@ describe('GettingStartedPage', () => {
     }
   });
 
+  it('code for a .tsx file is tsx; the colorMode lines, valid in any file, stay jsx', async () => {
+    await open();
+    const languageOf = (region: string) =>
+      screen.getByRole('region', { name: region }).closest('.bit-code__block')!.getAttribute('data-language');
+    for (const region of ['Style imports', 'First component', 'Use it in your app']) expect(languageOf(region)).toBe('tsx');
+    expect(languageOf('Any file')).toBe('jsx');
+  });
+
   it('Install keeps the version Badge and the package manager switcher', async () => {
     await open();
     expect(screen.getByText(`v${__BIT_VERSION__}`)).toHaveClass('bit-badge');
