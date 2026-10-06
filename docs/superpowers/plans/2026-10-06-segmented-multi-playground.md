@@ -395,7 +395,7 @@ The owner's words: "The import statement code that is at the top of each compone
 
 ---
 
-### Task 8: Scrollbars match their container; the outline is always the CodeBlock border colour (owner follow-up; spec §5a)
+### Task 8: Scrollbars match their container, with a solid thumb in the CodeBlock border colour and no hover change (owner follow-ups; spec §5a and §5b, where §5b wins on the thumb)
 
 **Files:**
 - Modify:
@@ -408,12 +408,17 @@ The owner's words: "The import statement code that is at the top of each compone
 **Interfaces:** none. Runs after Task 4 merges, because both touch the presets and bar area of `gallery.css`.
 
 - [ ] **Step 1: Write failing tests**
-  - Core: in the Table cases of scrollbar.test.ts, the outline and hover tokens become `--bit-color-accent`, and the Firefox fallback becomes `var(--bit-color-accent) var(--bit-color-surface)`. CodeBlock's expectations stay as they are.
+  - Core, CodeBlock and Table cases in scrollbar.test.ts:
+    - the thumb is `background: var(--bit-color-accent)` with `background-clip: padding-box` and `border: 3px solid transparent`;
+    - there is no `box-shadow` ring and no `:hover` rule;
+    - the tracks are unchanged (`--bit-code-bg` and `--bit-color-surface`);
+    - the Table's Firefox fallback is `var(--bit-color-accent) var(--bit-color-surface)`.
+  - Assert explicitly that neither file contains `::-webkit-scrollbar-thumb:hover`.
   - Gallery CSS test: `.gallery-presets` and the sidebar scroll rule get:
     - `::-webkit-scrollbar` rules: height 14px, plus width 14px for the sidebar;
     - a `transparent` track;
-    - a thumb with `background: transparent; background-clip: padding-box; border: 3px solid transparent; border-radius: var(--bit-radius-10px); box-shadow: inset 0 0 0 2px var(--bit-color-accent)`;
-    - hover `background: var(--bit-color-accent)`;
+    - a thumb with `background: var(--bit-color-accent); background-clip: padding-box; border: 3px solid transparent; border-radius: var(--bit-radius-10px)`;
+    - no hover rule;
     - the `@supports selector(::-webkit-scrollbar)` reset to `auto`, inside `@media not (forced-colors: active)`.
   - The exceptions file lists every new paint declaration with a `frame:` reason.
   - e2e: the presets row's computed `scrollbar-color` is `auto`.

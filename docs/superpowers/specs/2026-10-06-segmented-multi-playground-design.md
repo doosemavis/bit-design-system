@@ -108,6 +108,16 @@ The owner's words: "if the background is black like the codeblock the color of t
   - These are paint, so they go on `gallery-css.exceptions.ts` with `frame:` reasons.
 - **Apps using bit:** their own page and panel scrollbars are untouched (`reset.css` is unchanged).
 
+### 5b. Owner's second follow-up (2026-10-06): solid thumb, no hover change
+The owner's words: "fill in those sliders with the same color that the border is. Also, when the cursor hovers over the slider, it should not have a hover change to make the slider appear taller/larger. The clickable area to drag it should be that size, but the slider should stay as the smaller slider."
+
+This replaces §5 and §5a's thumb styling:
+- **Every styled scrollbar:** the thumb is a solid `--bit-color-accent` fill (the CodeBlock border colour: violet in light, yellow in dark), with no outline ring.
+- **Size and grab area:** it keeps `border: 3px solid transparent` with `background-clip: padding-box`. The visible bar stays slim with the even gap, and the whole 14px thumb box, transparent border included, is the drag target.
+- **Hover:** no hover rule. The thumb looks the same when hovered or dragged.
+- **Track:** unchanged. It is the container's background (`--bit-code-bg` for CodeBlock, `--bit-color-surface` for Table, transparent for the gallery's areas).
+- **Firefox fallback:** stays `scrollbar-color: var(--bit-color-accent) <track>` with `scrollbar-width: thin`.
+
 ## 6. Tests
 **React `SegmentedControl.test.tsx`.**
 - Multi: checkboxes with a shared name; toggling on and off; option-order arrays; no mutation; controlled and uncontrolled use; the empty default.
