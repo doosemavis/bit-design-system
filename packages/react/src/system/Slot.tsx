@@ -1,4 +1,4 @@
-import { Children, cloneElement, forwardRef, isValidElement } from 'react';
+import { Children, cloneElement, forwardRef, isValidElement, useMemo } from 'react';
 import type { CSSProperties, HTMLAttributes, ReactElement, ReactNode, Ref, RefObject } from 'react';
 
 export interface SlotProps extends HTMLAttributes<HTMLElement> {
@@ -7,28 +7,37 @@ export interface SlotProps extends HTMLAttributes<HTMLElement> {
 
 type AnyProps = Record<string, unknown>;
 type ChildProps = AnyProps & { className?: string; style?: CSSProperties; ref?: Ref<HTMLElement> };
+/** What a React 19 callback ref may hand back: a function React runs instead of calling the ref with null. */
+type RefCleanup = () => void;
 
 const HANDLER = /^on[A-Z]/;
 
 /** The single element child, or a clear error. A string, a number, nothing, or two children all throw. */
-function onlyElement(children: ReactNode): ReactElement<ChildProps> {
+function onlyElement(children: ReactNode, owner: string): ReactElement<ChildProps> {
   const items = Children.toArray(children);
   const [first] = items;
   if (items.length !== 1 || !isValidElement<ChildProps>(first)) {
-    throw new Error('[bit] Link asChild needs exactly one child element.');
+    throw new Error(`[bit] ${owner} asChild needs exactly one child element.`);
   }
   return first;
 }
 
-function setRef<T>(ref: Ref<T> | undefined, value: T | null): void {
-  if (typeof ref === 'function') ref(value);
-  else if (ref) (ref as RefObject<T | null>).current = value;
+function setRef<T>(ref: Ref<T> | undefined, value: T | null): void | RefCleanup {
+  if (typeof ref === 'function') return ref(value);
+  if (ref) (ref as RefObject<T | null>).current = value;
 }
 
-/** One ref callback that feeds every ref it was given. */
-export function composeRefs<T>(...refs: (Ref<T> | undefined)[]): (node: T | null) => void {
+/**
+ * One ref callback that feeds every ref it was given. If any of them returns a cleanup (React 19), so does
+ * this one: it runs those cleanups and sets the other refs to null, as React would have.
+ */
+export function composeRefs<T>(...refs: (Ref<T> | undefined)[]): (node: T | null) => void | RefCleanup {
   return (node) => {
-    for (const ref of refs) setRef(ref, node);
+    const cleanups = refs.map((ref) => setRef(ref, node));
+    if (!cleanups.some((cleanup) => typeof cleanup === 'function')) return undefined;
+    return () => {
+      cleanups.forEach((cleanup, i) => (typeof cleanup === 'function' ? cleanup() : setRef(refs[i], null)));
+    };
   };
 }
 
@@ -55,13 +64,18 @@ export function mergeProps(slot: AnyProps, child: ChildProps): AnyProps {
 }
 
 /**
- * Renders its only child element with the Slot's props merged in, so a component can lend its classes
- * and behavior to another element (Link asChild around a router link). Internal: not exported.
+ * A Slot renders its only child element with the Slot's props merged in, so a component can lend its classes
+ * and behavior to another element (Link asChild around a router link, Button asChild around an `<a>`).
+ * `owner` names the component in the error a wrong child throws. Internal: not exported from the package.
  */
-export const Slot = forwardRef<HTMLElement, SlotProps>(function Slot({ children, ...slotProps }, forwardedRef) {
-  const child = onlyElement(children);
-  return cloneElement(child, {
-    ...mergeProps(slotProps, child.props),
-    ref: composeRefs(forwardedRef, child.props.ref),
+export function createSlot(owner: string) {
+  const Slot = forwardRef<HTMLElement, SlotProps>(function Slot({ children, ...slotProps }, forwardedRef) {
+    const child = onlyElement(children, owner);
+    const childRef = child.props.ref;
+    // Memoised so a child callback ref is not detached and re-attached on every render.
+    const ref = useMemo(() => composeRefs(forwardedRef, childRef), [forwardedRef, childRef]);
+    return cloneElement(child, { ...mergeProps(slotProps, child.props), ref });
   });
-});
+  Slot.displayName = `${owner}.Slot`;
+  return Slot;
+}

@@ -3,8 +3,9 @@ import { createRef } from 'react';
 import type { MouseEvent } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Slot, composeRefs, mergeProps } from './Slot';
+import { composeRefs, createSlot, mergeProps } from './Slot';
 
+const Slot = createSlot('Link');
 const ERROR = '[bit] Link asChild needs exactly one child element.';
 
 describe('Slot', () => {
@@ -126,6 +127,30 @@ describe('Slot', () => {
     expect(() => render(<Slot>{children}</Slot>)).toThrow(ERROR);
     vi.restoreAllMocks();
   });
+
+  it('names its owner in the error and the display name', () => {
+    const ButtonSlot = createSlot('Button');
+    expect(ButtonSlot.displayName).toBe('Button.Slot');
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => render(<ButtonSlot />)).toThrow('[bit] Button asChild needs exactly one child element.');
+    vi.restoreAllMocks();
+  });
+
+  it('keeps the composed ref stable across re-renders, so a child callback ref fires once', () => {
+    const slotRef = createRef<HTMLElement>();
+    const childRef = vi.fn();
+    const ui = (label: string) => (
+      <Slot ref={slotRef}>
+        <a href="/docs" ref={childRef}>
+          {label}
+        </a>
+      </Slot>
+    );
+    const { rerender } = render(ui('Docs'));
+    rerender(ui('Docs again'));
+    expect(childRef).toHaveBeenCalledTimes(1);
+    expect(slotRef.current).toBe(screen.getByRole('link'));
+  });
 });
 
 describe('mergeProps', () => {
@@ -151,5 +176,22 @@ describe('composeRefs', () => {
     composeRefs<HTMLElement>(object, fn, null, undefined)(node);
     expect(object.current).toBe(node);
     expect(fn).toHaveBeenCalledWith(node);
+  });
+
+  it('returns nothing when no ref hands back a cleanup', () => {
+    expect(composeRefs<HTMLElement>(createRef<HTMLElement>(), () => {})(document.createElement('a'))).toBeUndefined();
+  });
+
+  it('returns a cleanup when a ref does: it runs that cleanup and nulls the other refs (React 19)', () => {
+    const object = createRef<HTMLElement>();
+    const plain = vi.fn();
+    const cleanup = vi.fn();
+    const node = document.createElement('a');
+    const dispose = composeRefs<HTMLElement>(object, plain, () => cleanup)(node);
+    expect(typeof dispose).toBe('function');
+    if (typeof dispose === 'function') dispose();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(object.current).toBeNull();
+    expect(plain).toHaveBeenLastCalledWith(null);
   });
 });

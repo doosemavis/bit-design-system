@@ -1,10 +1,11 @@
 import { forwardRef } from 'react';
 import type { AnchorHTMLAttributes } from 'react';
 import { toClasses } from '../../system/toClasses';
-import { Slot } from '../../system/Slot';
+import { createSlot } from '../../system/Slot';
 
 /** Only these two pass text contrast in both modes, so Link has no full color axis. */
 const colors = ['primary', 'neutral'] as const;
+const Slot = createSlot('Link');
 
 export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'color'> {
   /** `primary` reads the link tokens (and a visited color); `neutral` is body text. Class: `bit-{color}`. */

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
+import type { MouseEvent } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Button } from './Button';
@@ -119,6 +120,34 @@ describe('Button', () => {
       );
       await userEvent.click(screen.getByRole('link'));
       expect(calls).toEqual(['child', 'button']);
+    });
+
+    it('skips its own onClick when the child handler prevents the default (same as Link)', async () => {
+      const onClick = vi.fn();
+      render(
+        <Button asChild onClick={onClick}>
+          <a href="#docs" onClick={(event: MouseEvent) => event.preventDefault()}>
+            Docs
+          </a>
+        </Button>,
+      );
+      await userEvent.click(screen.getByRole('link'));
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('throws a Button error with no child, and with two children', () => {
+      const message = '[bit] Button asChild needs exactly one child element.';
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      expect(() => render(<Button asChild />)).toThrow(message);
+      expect(() =>
+        render(
+          <Button asChild>
+            <a href="/a">A</a>
+            <a href="/b">B</a>
+          </Button>,
+        ),
+      ).toThrow(message);
+      vi.restoreAllMocks();
     });
 
     it('forwards the ref to the child and still feeds the child ref', () => {
