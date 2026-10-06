@@ -74,20 +74,19 @@
   white-space: pre;
 }
 
-/* The scrollbar sits on the panel's own dark: a code-bg track and a thumb outlined in the border's accent.
-   The transparent border insets the outline, leaving an even strip of track between it and the panel edge.
+/* The scrollbar sits on the panel's own dark: a code-bg track and a solid thumb in the border's accent.
+   The transparent border slims the thumb, leaving an even strip of track around it, yet stays part of the
+   grab area. The thumb does not change on hover, so the bar never looks bigger.
    Forced colours draw their own scrollbars, so none of this applies there. */
 @media not (forced-colors: active) {
   .bit-code__pre::-webkit-scrollbar { height: 14px; }
   .bit-code__pre::-webkit-scrollbar-track { background: var(--bit-code-bg); }
   .bit-code__pre::-webkit-scrollbar-thumb {
-    background: var(--bit-code-bg);
+    background: var(--bit-color-accent);
     background-clip: padding-box;
     border: 3px solid transparent;
     border-radius: var(--bit-radius-10px);
-    box-shadow: inset 0 0 0 2px var(--bit-color-accent);
   }
-  .bit-code__pre::-webkit-scrollbar-thumb:hover { background: var(--bit-color-accent); }
   /* reset.css sets the standard scrollbar-color and scrollbar-width, which Chrome 121+ lets override ::-webkit-scrollbar.
      Where the pseudo-elements work, hand the scrollbar back to them. */
   @supports selector(::-webkit-scrollbar) {

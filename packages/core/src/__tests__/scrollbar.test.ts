@@ -16,7 +16,7 @@ function guarded(css: string): string {
 
 const cases = [
   { file: 'components/code-block.css', sel: '.bit-code__pre', track: '--bit-code-bg', ring: '--bit-color-accent' },
-  { file: 'components/table.css', sel: '.bit-table', track: '--bit-color-surface', ring: '--bit-color-line' },
+  { file: 'components/table.css', sel: '.bit-table', track: '--bit-color-surface', ring: '--bit-color-accent' },
 ];
 
 describe.each(cases)('scrollbar in $file', ({ file, sel, track, ring }) => {
@@ -30,18 +30,18 @@ describe.each(cases)('scrollbar in $file', ({ file, sel, track, ring }) => {
     expect(block).toMatch(new RegExp(`${sel}::-webkit-scrollbar-track\\s*\\{\\s*background: var\\(${track}\\);`));
   });
 
-  it('draws an outlined thumb inset by a transparent border', () => {
+  it('draws a solid accent thumb, slimmed by a transparent border that stays part of the grab area', () => {
     const m = new RegExp(`${sel}::-webkit-scrollbar-thumb\\s*\\{([^}]*)\\}`).exec(block);
     expect(m).not.toBeNull();
     const body = m![1]!;
-    expect(body).toContain(`background: var(${track});`);
+    expect(body).toContain(`background: var(${ring});`);
     expect(body).toContain('border: 3px solid transparent;');
     expect(body).toContain('background-clip: padding-box;');
-    expect(body).toContain(`box-shadow: inset 0 0 0 2px var(${ring});`);
+    expect(body).not.toContain('box-shadow');
   });
 
-  it('fills the thumb on hover', () => {
-    expect(block).toMatch(new RegExp(`${sel}::-webkit-scrollbar-thumb:hover\\s*\\{\\s*background: var\\(${ring}\\);`));
+  it('does not change on hover, so the bar never looks bigger', () => {
+    expect(block).not.toContain('::-webkit-scrollbar-thumb:hover');
   });
 
   it('hands the scrollbar back to the pseudo-elements where they work (Chrome 121+ ignores them otherwise)', () => {
