@@ -50,7 +50,7 @@ export type SegmentedControlProps = SegmentedControlBaseProps & (SingleSelect | 
   - `segments` is a virtual select of '2' to '5', default '3'.
   - `deriveProps` returns `options`: the first N of Day, Week, Month, Quarter, Year (values `day` … `year`).
   - It also gets a `multiple` boolean control, a "Multi-select" preset (multiple on, 4 segments), and a `multiple` row in the Props table.
-- **Remount on mode change:** the preview remounts when `multiple` changes, so a stale uncontrolled value never crosses modes in the gallery. Section 1's reset rule already guarantees that for consumers.
+- **No remount on mode change:** Section 1's rule (an uncontrolled value resets when `multiple` changes) already keeps a stale value from crossing modes, so the gallery needs no remount.
 
 ## 3. Gallery layout: B3 one card, on every component page
 **Structure.**
@@ -65,7 +65,34 @@ export type SegmentedControlProps = SegmentedControlBaseProps & (SingleSelect | 
 
 **Rules.** New paint declarations go on the documented `gallery-css.exceptions.ts` list with reasons. Card chrome comes from bit `Card`, not gallery CSS.
 
-## 4. Tests
+## 4. Code examples: long values become a `const` (owner, 2026-10-06; board `designs/codepanel-20261006/board.html`, section D)
+**Which values.** In the React code under every playground:
+- Every array or object prop (from `fixedProps`, `deriveProps` or a control) is hoisted.
+- Any string prop longer than 40 characters is hoisted too: a text control such as CodeBlock `code`, or a long `label`.
+
+**How it prints.**
+- Each hoisted value becomes `const <propName> = <literal>;` above the component. Arrays and objects print one item per line, with two-space indents.
+- The prop prints as `<propName>={<propName>}`.
+- With **Full file** on, the consts sit between the import line and `export function Example()`. With it off, they sit above the element.
+- Children text is never hoisted. A name that isn't a valid JS identifier (such as `aria-label`) gets a camelCased const name.
+
+**HTML tab.** No variables. It serializes the rendered element as today.
+
+## 5. Scrollbar: on-theme horizontal scrollbar (owner's design, 2026-10-06; board `designs/codepanel-20261006/scrollbar.html`, option V1)
+**Where.** Library CSS (packages/core), so it ships in the package: CodeBlock's `.bit-code__pre` and Table's scroll box (`.bit-table` wrapper with `overflow-x: auto`).
+
+**CodeBlock.**
+- Track: `--bit-code-bg`.
+- Thumb: the same `--bit-code-bg` fill, with a 2px outline in `--bit-color-accent` (the CodeBlock's border colour: violet in light, yellow in dark, and custom themes follow). It fills with the accent on hover.
+- The thumb is drawn slightly shorter than the track, leaving an even gap above and below its outline, so a small even strip of the dark track shows between the thumb's bottom edge and the CodeBlock's bottom border.
+- Implementation: `::-webkit-scrollbar` 14px; thumb `border: 3px solid transparent; background-clip: padding-box` plus an inset 2px accent ring (`box-shadow: inset 0 0 0 2px`).
+- Firefox fallback: `scrollbar-color: var(--bit-color-accent) var(--bit-code-bg)` with `scrollbar-width: thin`, applied only where `::-webkit-scrollbar` is unsupported, via `@supports not selector(::-webkit-scrollbar)`.
+
+**Table.** It sits on the page surface, not the dark panel, so its track uses `--bit-color-surface` and its thumb outline `--bit-color-line`, with the same shape and gap.
+
+**Rules.** Reduced motion is not relevant (nothing animates). Forced colours: the system draws scrollbars, so the rules are wrapped in `@media not (forced-colors: active)`.
+
+## 6. Tests
 **React `SegmentedControl.test.tsx`.**
 - Multi: checkboxes with a shared name; toggling on and off; option-order arrays; no mutation; controlled and uncontrolled use; the empty default.
 - Disabled segments; Space toggles; `data-multiple`; switching `multiple` at runtime resets; axe.
@@ -77,6 +104,10 @@ export type SegmentedControlProps = SegmentedControlBaseProps & (SingleSelect | 
 - Manifest: segments 2 to 5 render and print exactly N options; the Multi-select preset.
 - Playground: one Card holds both halves; the bars share a height; the stage stretches; it stacks under 720px.
 - `gallery-css` tests and exceptions; e2e axe on every route.
+
+**Code and scrollbar.**
+- toJsx: hoisting, covering arrays, objects, a long string, the 40-character boundary (exactly 40 stays inline), full-file and snippet placement, and camelCased names; plus the printed code of the SegmentedControl and CodeBlock pages.
+- Core CSS tests for both scrollbar rule sets, their tokens, and the forced-colours guard.
 
 **Visual.** Screenshots of the Button and SegmentedControl pages in light and dark, at 1280px and 390px, before re-tagging.
 
