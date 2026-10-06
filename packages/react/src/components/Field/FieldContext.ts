@@ -11,7 +11,7 @@ export interface FieldContextValue {
 export const FieldContext = createContext<FieldContextValue | null>(null);
 
 /** The props of a control that Field can wire. */
-export interface FieldControlProps {
+interface FieldControlProps {
   id?: string;
   'aria-describedby'?: string;
   'aria-invalid'?: boolean | 'true' | 'false' | 'grammar' | 'spelling';

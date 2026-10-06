@@ -107,4 +107,20 @@ assert.deepEqual(pkg.files, ['dist'], 'files must be exactly ["dist"]');
 assert.equal(pkg.publishConfig?.access, 'public', 'publishConfig.access must be public');
 assert.ok(!('@bit-ds/core' in (pkg.dependencies ?? {})), '@bit-ds/core must not be a runtime dependency');
 
+// 7. Zero runtime dependencies: React is a peer, everything else is bundled or in-repo, so neither build may
+// import anything but React itself.
+assert.deepEqual(Object.keys(pkg.dependencies ?? {}), [], 'package.json must have no runtime dependencies (react and react-dom are peers)');
+const PEER_IMPORTS = new Set(['react', 'react-dom', 'react/jsx-runtime']);
+const IMPORT_PATTERNS = {
+  'index.js': [/^\s*import\b[^;]*?\bfrom\s*["']([^"']+)["']/gm, /^\s*import\s*["']([^"']+)["']/gm, /\bimport\(\s*["']([^"']+)["']\s*\)/g],
+  'index.cjs': [/\brequire\(\s*["']([^"']+)["']\s*\)/g],
+};
+for (const [file, patterns] of Object.entries(IMPORT_PATTERNS)) {
+  const source = readFileSync(resolve(dist, file), 'utf8');
+  const specifiers = new Set(patterns.flatMap((pattern) => [...source.matchAll(pattern)].map((m) => m[1])));
+  assert.ok(specifiers.has('react'), `dist/${file}: found no React import, so the import scan is broken`);
+  const extra = [...specifiers].filter((specifier) => !PEER_IMPORTS.has(specifier));
+  assert.deepEqual(extra, [], `dist/${file} imports something other than react, react-dom or react/jsx-runtime`);
+}
+
 console.log(`dist OK: ${EXPECTED.length} components, styles.css ${css.length} bytes, themes present`);

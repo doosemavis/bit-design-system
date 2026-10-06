@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import type { ButtonHTMLAttributes, ElementType } from 'react';
-import { Slot } from '@radix-ui/react-slot';
+import { createSlot } from '../../system/Slot';
 import { SIZES, COLORS, VARIANTS } from '../../system/axes';
 import type { Size, Color, Variant } from '../../system/axes';
 import { toClasses } from '../../system/toClasses';
@@ -12,6 +12,7 @@ import { toClasses } from '../../system/toClasses';
 const colors = COLORS;
 const variants = VARIANTS;
 const sizes = SIZES;
+const Slot = createSlot('Button', { emptyRendersNothing: true, alwaysChainHandlers: true });
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Color role. Class: `bit-{color}`. */
