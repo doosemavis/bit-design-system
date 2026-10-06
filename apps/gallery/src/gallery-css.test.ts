@@ -106,6 +106,72 @@ describe('gallery.css', () => {
     );
   });
 
+  it('B3: the playground card stretches both halves to one height, and the preview stage takes the spare height', () => {
+    const top = ruleIn(galleryCss, '.gallery-playground__top')!;
+    expect(top).toContain('display: grid;');
+    expect(top).toContain('align-items: stretch;');
+    // The halves meet at the divider: no gap, and no paint of its own (the frame is bit Card's).
+    expect(top).not.toMatch(/(^|\s)gap:/);
+    expect(top).not.toMatch(/background|border|shadow|radius/);
+    const preview = ruleIn(galleryCss, '.gallery-preview')!;
+    expect(preview).toContain('display: flex;');
+    expect(preview).toContain('flex-direction: column;');
+    expect(ruleIn(galleryCss, '.gallery-preview__stage')).toContain('flex: 1;');
+  });
+
+  it('a previewed component never outgrows the stage: the preview half, the stage and its child can all shrink', () => {
+    // A long CodeBlock line or a wide Table scrolls inside itself instead of spilling over the controls.
+    expect(ruleIn(galleryCss, '.gallery-preview')).toContain('min-width: 0;');
+    expect(ruleIn(galleryCss, '.gallery-preview__stage')).toContain('min-width: 0;');
+    const child = ruleIn(galleryCss, '.gallery-preview__stage > *');
+    expect(child).toContain('min-width: 0;');
+    expect(child).toContain('max-width: 100%;');
+  });
+
+  it('B3: a divider on the start edge of the controls, which moves to their top edge under 720px', () => {
+    const line = 'var(--bit-border-width) solid var(--bit-color-line);';
+    expect(ruleIn(galleryCss, '.gallery-controls')).toContain(`border-inline-start: ${line}`);
+    const narrow = ruleIn(mediaBody('(max-width: 720px)'), '.gallery-controls')!;
+    expect(narrow).toContain('border-inline-start: none;');
+    expect(narrow).toContain(`border-top: ${line}`);
+  });
+
+  it('B3: the preview bar and the controls bar are one strip: one height, one paint rule, one title face', () => {
+    const bars = /\.gallery-preview__bar,\s*\.gallery-controls__bar \{([^}]*)\}/.exec(galleryCss)?.[1] ?? '';
+    expect(bars).toContain('min-height: var(--_gallery-bar-height);');
+    expect(bars).toContain('box-sizing: border-box;');
+    expect(bars).toContain('background: var(--bit-color-bg);');
+    expect(bars).toContain('border-bottom: var(--bit-border-width) solid var(--bit-color-line);');
+    // The height is the preview bar's own: a small control, the bar's padding and its bottom border.
+    expect(galleryCss).toMatch(
+      /--_gallery-bar-height: calc\(var\(--bit-control-height-sm\) \+ 2 \* var\(--bit-space-8px\) \+ var\(--bit-border-width\)\);/,
+    );
+    // The controls bar paints only through the shared list: it appears nowhere else, so it has no colours of its own.
+    expect(galleryCss.match(/\.gallery-controls__bar\b/g)).toHaveLength(1);
+    const titles = /\.gallery-preview__title,\s*\.gallery-controls__title \{([^}]*)\}/.exec(galleryCss)?.[1] ?? '';
+    expect(titles).toContain('font-family: var(--bit-font-pixel);');
+    expect(titles).toContain('text-transform: uppercase;');
+  });
+
+  it('the presets row and the sidebar scroll in the accent on their own background, with no hover change', () => {
+    const body = mediaBody('not (forced-colors: active)');
+    expect(ruleIn(body, '.gallery-presets::-webkit-scrollbar')).toContain('height: 14px;');
+    expect(ruleIn(body, '.gallery-sidebar::-webkit-scrollbar')).toContain('width: 14px;');
+    const both = (part: string) => `.gallery-presets::-webkit-scrollbar-${part}, .gallery-sidebar::-webkit-scrollbar-${part}`;
+    expect(ruleIn(body, both('track'))).toContain('background: transparent;');
+    const thumb = ruleIn(body, both('thumb'))!;
+    expect(thumb).toContain('background: var(--bit-color-accent);');
+    expect(thumb).toContain('background-clip: padding-box;');
+    expect(thumb).toContain('border: 3px solid transparent;');
+    expect(thumb).toContain('border-radius: var(--bit-radius-10px);');
+    expect(thumb).not.toContain('box-shadow');
+    expect(galleryCss).not.toContain('::-webkit-scrollbar-thumb:hover');
+    // Chrome 121+ ignores the pseudo-elements while reset.css's standard properties are not auto.
+    const reset = /@supports selector\(::-webkit-scrollbar\) \{\s*\.gallery-presets, \.gallery-sidebar \{([^}]*)\}/.exec(body)![1]!;
+    expect(reset).toContain('scrollbar-color: auto;');
+    expect(reset).toContain('scrollbar-width: auto;');
+  });
+
   it('the presets scroll sideways in one row instead of widening the page', () => {
     const presets = /\.gallery-presets \{([^}]*)\}/.exec(galleryCss)![1]!;
     expect(presets).toContain('overflow-x: auto;');
@@ -129,6 +195,16 @@ describe('gallery.css', () => {
     // Still one row that scrolls sideways, with the focus-ring padding kept (pinned by the tests above).
     expect(presets).not.toContain('flex-wrap');
     expect(presets).not.toMatch(/padding|margin|overflow/);
+  });
+
+  it('the import chip centres its text in the Copy-button-tall box, with layout properties only', () => {
+    const rule = ruleIn(galleryCss, '.gallery-import-code');
+    expect(rule).toContain('display: inline-flex;');
+    expect(rule).toContain('align-items: center;');
+    // Copy is a small Button; when it wraps below the chip on a phone, the chip still matches its height.
+    expect(rule).toContain('min-height: var(--bit-control-height-sm);');
+    expect(rule).not.toMatch(/padding|font|margin/);
+    expect(galleryCss).not.toMatch(/(^|\n)\.bit-code\b/);
   });
 
   it('a union type in the Props table is one unbreakable chip per member', () => {

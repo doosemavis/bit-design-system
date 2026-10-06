@@ -88,7 +88,7 @@ Every one works in light and dark mode, and anything focusable shows the one foc
 - `Heading` takes a required `level` (the tag, h1 to h6) and an optional `size` (the look), so an h2 can look like an h3.
 - `Box` pads and offsets one element on the space scale (`padding`, `paddingX`, `paddingTop`, … and the same for `margin`). When props overlap, the most specific wins: `paddingTop` beats `paddingY`, which beats `padding`. Use `Stack` for space between things.
 - `Switch` carries its own label; don't wrap it in `Field`.
-- `SegmentedControl` is native radios, so the arrow keys move the choice.
+- `SegmentedControl` is native radios (checkboxes with `multiple`), so the arrow keys move the choice. With `multiple`, each segment is a Tab stop and Space toggles it.
 - `Link` takes `color="primary"` or `color="neutral"` only.
 - `CodeBlock` takes an optional `label` (default `` `${language} code` ``). Its code area is a named region, so give each CodeBlock a unique `label` when a page has several in the same language. A failed copy turns the Copy button solid danger red.
 

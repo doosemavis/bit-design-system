@@ -1,5 +1,5 @@
 import { forwardRef, useId, useState } from 'react';
-import type { FieldsetHTMLAttributes, ReactNode } from 'react';
+import type { FieldsetHTMLAttributes, ForwardRefExoticComponent, ReactElement, ReactNode, RefAttributes } from 'react';
 import { COLORS, SIZES } from '../../system/axes';
 import type { Color, Size } from '../../system/axes';
 import { element, toClasses } from '../../system/toClasses';
@@ -13,36 +13,74 @@ export interface SegmentedOption {
   disabled?: boolean;
 }
 
-export interface SegmentedControlProps
+interface SegmentedControlSharedProps
   extends Omit<FieldsetHTMLAttributes<HTMLFieldSetElement>, 'onChange' | 'color' | 'defaultValue'> {
   /** Names the group; read by screen readers even when hidden. */
   legend: ReactNode;
   /** Hide the legend visually. It is still read. */
   legendHidden?: boolean;
   options: readonly SegmentedOption[];
-  /** The radios' shared name. Default: a generated id. */
+  /** The inputs' shared name: the radios, or the checkboxes with `multiple`. Default: a generated id. */
   name?: string;
-  /** The chosen value, when the parent owns it. */
-  value?: string;
-  /** The first chosen value, when the control owns it. Default: the first option. */
-  defaultValue?: string;
-  onValueChange?: (value: string) => void;
   /** Fill of the chosen option. Class: `bit-{color}`. */
   color?: Color;
   /** Segment height. Class: `bit-{size}`. */
   size?: Size;
 }
 
+/** Props for a SegmentedControl that picks one option (radios). */
+export interface SegmentedControlProps extends SegmentedControlSharedProps {
+  /**
+   * Pick one option (radios). Default. A `boolean` variable doesn't type-check here: render two
+   * branches (with `multiple` and without), or cast.
+   */
+  multiple?: false;
+  /** The chosen value, when the parent owns it. */
+  value?: string;
+  /** The first chosen value, when the control owns it. Default: the first option. */
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
+}
+
+/** Props for a SegmentedControl that picks any number of options (checkboxes). */
+export interface SegmentedControlMultipleProps extends SegmentedControlSharedProps {
+  /**
+   * Pick any number of options (checkboxes). A `boolean` variable doesn't type-check here: render
+   * two branches (with `multiple` and without), or cast.
+   */
+  multiple: true;
+  /** The chosen values, when the parent owns them. */
+  value?: readonly string[];
+  /** The first chosen values, when the control owns them. Default: none. */
+  defaultValue?: readonly string[];
+  /** Receives the chosen values in option order. */
+  onValueChange?: (value: string[]) => void;
+}
+
+type SegmentedControlRef = RefAttributes<HTMLFieldSetElement>;
+
 /**
- * Joined segments that pick one option. Native radios underneath, so arrow keys move the choice and
- * Tab enters and leaves the group in one stop, with no custom keyboard code.
+ * One call signature per mode, so `value` and `onValueChange` follow `multiple`. Single-select comes
+ * last because `ComponentProps<typeof SegmentedControl>` reads the last signature, as it did in 0.1.2.
  */
-export const SegmentedControl = forwardRef<HTMLFieldSetElement, SegmentedControlProps>(function SegmentedControl(
+interface SegmentedControlComponent extends ForwardRefExoticComponent<SegmentedControlProps & SegmentedControlRef> {
+  (props: SegmentedControlMultipleProps & SegmentedControlRef): ReactElement | null;
+  (props: SegmentedControlProps & SegmentedControlRef): ReactElement | null;
+}
+
+type OwnValue = { multiple: boolean; value: string | readonly string[] | undefined };
+
+/**
+ * Joined segments that pick one option, or several with `multiple`. Native radios (or checkboxes)
+ * underneath, so arrow keys and Space work and Tab enters and leaves the group, with no custom keyboard code.
+ */
+export const SegmentedControl = forwardRef<HTMLFieldSetElement, SegmentedControlProps | SegmentedControlMultipleProps>(function SegmentedControl(
   {
     legend,
     legendHidden = false,
     options,
     name,
+    multiple,
     value,
     defaultValue,
     onValueChange,
@@ -54,12 +92,25 @@ export const SegmentedControl = forwardRef<HTMLFieldSetElement, SegmentedControl
   ref,
 ) {
   const generatedName = useId();
-  const [ownValue, setOwnValue] = useState(defaultValue ?? options[0]?.value);
-  const chosen = value ?? ownValue;
+  const isMultiple = multiple === true;
+  const initial = (m: boolean): OwnValue['value'] =>
+    m ? (Array.isArray(defaultValue) ? defaultValue : []) : typeof defaultValue === 'string' ? defaultValue : options[0]?.value;
+  const [own, setOwn] = useState<OwnValue>(() => ({ multiple: isMultiple, value: initial(isMultiple) }));
+  if (own.multiple !== isMultiple) setOwn({ multiple: isMultiple, value: initial(isMultiple) });
+  const chosen = value ?? own.value;
+  const chosenList = (Array.isArray(chosen) ? chosen : []) as readonly string[];
 
   function choose(next: string) {
-    if (value === undefined) setOwnValue(next);
-    onValueChange?.(next);
+    if (value === undefined) setOwn({ multiple: false, value: next });
+    (onValueChange as ((v: string) => void) | undefined)?.(next);
+  }
+
+  function toggle(toggled: string) {
+    const next = options
+      .filter((o) => (o.value === toggled ? !chosenList.includes(o.value) : chosenList.includes(o.value)))
+      .map((o) => o.value);
+    if (value === undefined) setOwn({ multiple: true, value: next });
+    (onValueChange as ((v: string[]) => void) | undefined)?.(next);
   }
 
   return (
@@ -73,6 +124,7 @@ export const SegmentedControl = forwardRef<HTMLFieldSetElement, SegmentedControl
         ],
         className,
       )}
+      data-multiple={isMultiple ? '' : undefined}
       {...rest}
     >
       <legend className={element('segmented-control', 'legend')} data-hidden={legendHidden ? '' : undefined}>
@@ -82,13 +134,13 @@ export const SegmentedControl = forwardRef<HTMLFieldSetElement, SegmentedControl
         {options.map((option) => (
           <label key={option.value} className={element('segmented-control', 'option')}>
             <input
-              type="radio"
+              type={isMultiple ? 'checkbox' : 'radio'}
               className={element('segmented-control', 'input')}
               name={name ?? generatedName}
               value={option.value}
-              checked={option.value === chosen}
+              checked={isMultiple ? chosenList.includes(option.value) : option.value === chosen}
               disabled={option.disabled}
-              onChange={() => choose(option.value)}
+              onChange={() => (isMultiple ? toggle(option.value) : choose(option.value))}
             />
             <span className={element('segmented-control', 'label')}>{option.label}</span>
           </label>
@@ -96,4 +148,4 @@ export const SegmentedControl = forwardRef<HTMLFieldSetElement, SegmentedControl
       </div>
     </fieldset>
   );
-});
+}) as SegmentedControlComponent;

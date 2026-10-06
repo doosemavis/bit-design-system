@@ -17,13 +17,40 @@ async function open(path: string, name: string) {
 const region = (name: string) => screen.getByRole('region', { name });
 const main = () => screen.getByRole('main');
 
+describe('SegmentedControl page: segments and multiple', () => {
+  it('the controls offer a segments select (2 to 5) and a multiple switch', async () => {
+    await open('/components/segmentedcontrol', 'SegmentedControl');
+    const controls = region('Controls');
+    const segments = within(controls).getByRole('combobox', { name: 'segments' });
+    expect(within(segments).getAllByRole('option').map((o) => o.textContent)).toEqual(['2', '3', '4', '5']);
+    expect(within(controls).getByRole('switch', { name: 'multiple' })).not.toBeChecked();
+  });
+
+  it('the Multi-select preset renders four checkboxes', async () => {
+    await open('/components/segmentedcontrol', 'SegmentedControl');
+    await userEvent.click(screen.getByRole('button', { name: 'Multi-select' }));
+    const group = within(region('SegmentedControl preview')).getByRole('group', { name: 'Range' });
+    expect(within(group).getAllByRole('checkbox')).toHaveLength(4);
+  });
+
+  it('the Props table documents multiple as a boolean, default false', async () => {
+    await open('/components/segmentedcontrol', 'SegmentedControl');
+    const row = within(main()).getAllByRole('row').find((r) => within(r).queryByText('multiple', { selector: 'code' }));
+    expect(row).toBeDefined();
+    expect(within(row!).getByText('boolean')).toBeInTheDocument();
+    expect(within(row!).getByText('false')).toBeInTheDocument();
+  });
+});
+
 describe('ComponentPage (layout C)', () => {
   it('the header: eyebrow, h1, description, the import chip with Copy, and the badges', async () => {
     await open('/components/card', 'Card');
     expect(within(main()).getByText('Components')).toHaveClass('gallery-eyebrow');
     const chip = screen.getByText("import { Card, CardHeader, CardBody, CardFooter } from '@bit-ds/react';");
-    expect(chip).toHaveClass('bit-code');
+    expect(chip).toHaveClass('bit-code', 'gallery-import-code');
     expect(screen.getByRole('button', { name: 'Copy import line' })).toBeInTheDocument();
+    // The row stretches its children, so the chip's background takes the Copy button's height.
+    expect(chip.parentElement).toHaveAttribute('data-align', 'stretch');
     expect(screen.getByText('Compound')).toHaveClass('bit-badge', 'bit-outline');
   });
 
@@ -37,6 +64,15 @@ describe('ComponentPage (layout C)', () => {
     expect(within(main()).getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(titles);
     const bar = screen.getByRole('navigation', { name: 'On this page' });
     expect(within(bar).getAllByRole('link').map((link) => link.textContent)).toEqual(titles);
+  });
+
+  it('B3: the preview and the controls share one bit Card, and the preview has no card of its own', async () => {
+    await open('/components/button', 'Button');
+    const cards = main().querySelectorAll('.bit-card.gallery-playground__top');
+    expect(cards).toHaveLength(1);
+    expect(cards[0]).toContainElement(region('Button preview'));
+    expect(cards[0]).toContainElement(region('Controls'));
+    expect(region('Button preview').querySelector('.bit-card')).toBeNull();
   });
 
   it('a section-bar link focuses its h2 and leaves the route and the state alone', async () => {

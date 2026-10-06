@@ -28,9 +28,9 @@ describe('component routes (route smoke, D14)', () => {
         expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument();
       }
       expect(reactPanel()).toHaveAttribute('data-language', 'jsx');
-      // Full file is the default: the component import, then an Example component returning it.
+      // Full file is the default: the component import, any hoisted consts, then an Example component returning it.
       expect(reactPanel().querySelector('pre')!.textContent).toMatch(
-        /^import \{ .+ \} from '@bit-ds\/react';\n\nexport function Example\(\) \{\n {2}return \(\n/,
+        /^import \{ .+ \} from '@bit-ds\/react';\n\n(?:const \w+ = [\s\S]*?;\n\n)*export function Example\(\) \{\n {2}return \(\n/,
       );
       // Nothing in the gallery is drawn at the deprecated 11px size.
       expect(container.querySelector('[data-size="11"]')).toBeNull();

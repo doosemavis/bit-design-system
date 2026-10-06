@@ -1,5 +1,6 @@
 /* SegmentedControl: joined segments that pick one option. Real radios underneath, visually hidden,
-   so arrow keys move the choice and Tab enters and leaves in one stop. The chosen segment fills with
+   so arrow keys move the choice and Tab enters and leaves in one stop. With `multiple` they are
+   checkboxes instead: each segment is a Tab stop and Space toggles it. The chosen segment fills with
    the color (.bit-{color}); heights come from the size scale (.bit-{size}). The focus ring is drawn
    inside the segment by system/reset.css. */
 .bit-segmented-control {
