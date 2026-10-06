@@ -44,6 +44,14 @@ describe.each(cases)('scrollbar in $file', ({ file, sel, track, ring }) => {
     expect(block).toMatch(new RegExp(`${sel}::-webkit-scrollbar-thumb:hover\\s*\\{\\s*background: var\\(${ring}\\);`));
   });
 
+  it('hands the scrollbar back to the pseudo-elements where they work (Chrome 121+ ignores them otherwise)', () => {
+    const m = /@supports selector\(::-webkit-scrollbar\)\s*\{([\s\S]*?\})\s*\}/.exec(block);
+    expect(m).not.toBeNull();
+    expect(m![1]).toContain(sel);
+    expect(m![1]).toContain('scrollbar-color: auto;');
+    expect(m![1]).toContain('scrollbar-width: auto;');
+  });
+
   it('falls back to scrollbar-color where webkit bars are unsupported', () => {
     const m = /@supports not selector\(::-webkit-scrollbar\)\s*\{([\s\S]*?\})\s*\}/.exec(block);
     expect(m).not.toBeNull();
