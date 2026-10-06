@@ -106,6 +106,44 @@ describe('gallery.css', () => {
     );
   });
 
+  it('B3: the playground card stretches both halves to one height, and the preview stage takes the spare height', () => {
+    const top = ruleIn(galleryCss, '.gallery-playground__top')!;
+    expect(top).toContain('display: grid;');
+    expect(top).toContain('align-items: stretch;');
+    // The halves meet at the divider: no gap, and no paint of its own (the frame is bit Card's).
+    expect(top).not.toMatch(/(^|\s)gap:/);
+    expect(top).not.toMatch(/background|border|shadow|radius/);
+    const preview = ruleIn(galleryCss, '.gallery-preview')!;
+    expect(preview).toContain('display: flex;');
+    expect(preview).toContain('flex-direction: column;');
+    expect(ruleIn(galleryCss, '.gallery-preview__stage')).toContain('flex: 1;');
+  });
+
+  it('B3: a divider on the start edge of the controls, which moves to their top edge under 720px', () => {
+    const line = 'var(--bit-border-width) solid var(--bit-color-line);';
+    expect(ruleIn(galleryCss, '.gallery-controls')).toContain(`border-inline-start: ${line}`);
+    const narrow = ruleIn(mediaBody('(max-width: 720px)'), '.gallery-controls')!;
+    expect(narrow).toContain('border-inline-start: none;');
+    expect(narrow).toContain(`border-top: ${line}`);
+  });
+
+  it('B3: the preview bar and the controls bar are one strip: one height, one paint rule, one title face', () => {
+    const bars = /\.gallery-preview__bar,\s*\.gallery-controls__bar \{([^}]*)\}/.exec(galleryCss)?.[1] ?? '';
+    expect(bars).toContain('min-height: var(--_gallery-bar-height);');
+    expect(bars).toContain('box-sizing: border-box;');
+    expect(bars).toContain('background: var(--bit-color-bg);');
+    expect(bars).toContain('border-bottom: var(--bit-border-width) solid var(--bit-color-line);');
+    // The height is the preview bar's own: a small control, the bar's padding and its bottom border.
+    expect(galleryCss).toMatch(
+      /--_gallery-bar-height: calc\(var\(--bit-control-height-sm\) \+ 2 \* var\(--bit-space-8px\) \+ var\(--bit-border-width\)\);/,
+    );
+    // The controls bar paints only through the shared list: it appears nowhere else, so it has no colours of its own.
+    expect(galleryCss.match(/\.gallery-controls__bar\b/g)).toHaveLength(1);
+    const titles = /\.gallery-preview__title,\s*\.gallery-controls__title \{([^}]*)\}/.exec(galleryCss)?.[1] ?? '';
+    expect(titles).toContain('font-family: var(--bit-font-pixel);');
+    expect(titles).toContain('text-transform: uppercase;');
+  });
+
   it('the presets scroll sideways in one row instead of widening the page', () => {
     const presets = /\.gallery-presets \{([^}]*)\}/.exec(galleryCss)![1]!;
     expect(presets).toContain('overflow-x: auto;');

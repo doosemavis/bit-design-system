@@ -39,6 +39,15 @@ describe('ComponentPage (layout C)', () => {
     expect(within(bar).getAllByRole('link').map((link) => link.textContent)).toEqual(titles);
   });
 
+  it('B3: the preview and the controls share one bit Card, and the preview has no card of its own', async () => {
+    await open('/components/button', 'Button');
+    const cards = main().querySelectorAll('.bit-card.gallery-playground__top');
+    expect(cards).toHaveLength(1);
+    expect(cards[0]).toContainElement(region('Button preview'));
+    expect(cards[0]).toContainElement(region('Controls'));
+    expect(region('Button preview').querySelector('.bit-card')).toBeNull();
+  });
+
   it('a section-bar link focuses its h2 and leaves the route and the state alone', async () => {
     const { router } = await open('/components/button?color=danger', 'Button');
     await userEvent.click(within(screen.getByRole('navigation', { name: 'On this page' })).getByRole('link', { name: 'Props' }));

@@ -1,4 +1,4 @@
-import { Button, Field, Heading, Input, Select, Switch } from '@bit-ds/react';
+import { Button, Field, Input, Select, Switch, Text } from '@bit-ds/react';
 import type { Control, ControlState, ControlValue, Manifest } from '../manifests/types';
 
 interface ControlsPanelProps {
@@ -81,10 +81,11 @@ export function ControlsPanel({ manifest, state, onChange, onReset }: ControlsPa
   const childrenError = state.children === '' ? manifest.docs.emptyChildrenError : undefined;
   return (
     <section className="gallery-controls" aria-labelledby="controls-heading">
-      <div className="gallery-controls__head">
-        <Heading level={3} id="controls-heading">
+      {/* The same bar as the preview's, so the two read as one header strip across the card. */}
+      <div className="gallery-controls__bar">
+        <Text as="h3" size={13} id="controls-heading" className="gallery-controls__title">
           Controls
-        </Heading>
+        </Text>
         <Button variant="ghost" size="sm" color="neutral" onClick={onReset}>
           Reset
         </Button>
