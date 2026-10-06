@@ -122,31 +122,56 @@ describe('Button', () => {
       expect(calls).toEqual(['child', 'button']);
     });
 
-    it('skips its own onClick when the child handler prevents the default (same as Link)', async () => {
-      const onClick = vi.fn();
+    it('still runs its own onClick after the child handler prevents the default (as Radix Slot did)', async () => {
+      const calls: string[] = [];
       render(
-        <Button asChild onClick={onClick}>
-          <a href="#docs" onClick={(event: MouseEvent) => event.preventDefault()}>
+        <Button asChild onClick={() => calls.push('button')}>
+          <a
+            href="#docs"
+            onClick={(event: MouseEvent) => {
+              event.preventDefault();
+              calls.push('child');
+            }}
+          >
             Docs
           </a>
         </Button>,
       );
       await userEvent.click(screen.getByRole('link'));
-      expect(onClick).not.toHaveBeenCalled();
+      expect(calls).toEqual(['child', 'button']);
     });
 
-    it('throws a Button error with no child, and with two children', () => {
-      const message = '[bit] Button asChild needs exactly one child element.';
+    it.each([
+      ['no children', undefined],
+      ['null', null],
+      ['false', false],
+    ])('renders nothing with %s (as Radix Slot did)', (_name, children) => {
+      const { container } = render(<Button asChild>{children}</Button>);
+      expect(container).toBeEmptyDOMElement();
+    });
+
+    it('can go from no child to a child and back', () => {
+      const ref = createRef<HTMLButtonElement>();
+      const ui = (show: boolean) => (
+        <Button asChild ref={ref}>
+          {show && <a href="/docs">Docs</a>}
+        </Button>
+      );
+      const { container, rerender } = render(ui(false));
+      rerender(ui(true));
+      expect(ref.current).toBe(screen.getByRole('link'));
+      rerender(ui(false));
+      expect(container).toBeEmptyDOMElement();
+      expect(ref.current).toBeNull();
+    });
+
+    it.each([
+      ['two children', [<a key="1" href="/a">A</a>, <a key="2" href="/b">B</a>]],
+      ['a text child', 'Docs'],
+      ['the number 0', 0],
+    ])('throws a Button error with %s', (_name, children) => {
       vi.spyOn(console, 'error').mockImplementation(() => {});
-      expect(() => render(<Button asChild />)).toThrow(message);
-      expect(() =>
-        render(
-          <Button asChild>
-            <a href="/a">A</a>
-            <a href="/b">B</a>
-          </Button>,
-        ),
-      ).toThrow(message);
+      expect(() => render(<Button asChild>{children}</Button>)).toThrow('[bit] Button asChild needs exactly one child element.');
       vi.restoreAllMocks();
     });
 

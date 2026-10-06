@@ -12,7 +12,7 @@ import { toClasses } from '../../system/toClasses';
 const colors = COLORS;
 const variants = VARIANTS;
 const sizes = SIZES;
-const Slot = createSlot('Button');
+const Slot = createSlot('Button', { emptyRendersNothing: true, alwaysChainHandlers: true });
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Color role. Class: `bit-{color}`. */

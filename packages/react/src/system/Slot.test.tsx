@@ -153,6 +153,49 @@ describe('Slot', () => {
   });
 });
 
+describe('createSlot options (the Radix Slot rules Button keeps)', () => {
+  const RadixLike = createSlot('Button', { emptyRendersNothing: true, alwaysChainHandlers: true });
+
+  it.each([
+    ['no child', undefined],
+    ['null', null],
+    ['false', false],
+    ['an empty string', ''],
+  ])('emptyRendersNothing: renders nothing with %s', (_name, children) => {
+    const { container } = render(<RadixLike>{children}</RadixLike>);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it.each([
+    ['two children', [<a key="1" href="/a">A</a>, <a key="2" href="/b">B</a>]],
+    ['a text child', 'Docs'],
+    ['the number 0', 0],
+  ])('emptyRendersNothing: still throws with %s', (_name, children) => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => render(<RadixLike>{children}</RadixLike>)).toThrow('[bit] Button asChild needs exactly one child element.');
+    vi.restoreAllMocks();
+  });
+
+  it('alwaysChainHandlers: runs the Slot handler even after the child prevents the default', async () => {
+    const calls: string[] = [];
+    render(
+      <RadixLike onClick={() => calls.push('slot')}>
+        <a
+          href="#x"
+          onClick={(event: MouseEvent) => {
+            event.preventDefault();
+            calls.push('child');
+          }}
+        >
+          Go
+        </a>
+      </RadixLike>,
+    );
+    await userEvent.click(screen.getByRole('link'));
+    expect(calls).toEqual(['child', 'slot']);
+  });
+});
+
 describe('mergeProps', () => {
   it('leaves className and style off when neither side has them', () => {
     expect(mergeProps({ id: 'a' }, { title: 'b' })).toEqual({ id: 'a', title: 'b', className: undefined });

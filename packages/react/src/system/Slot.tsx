@@ -10,7 +10,20 @@ type ChildProps = AnyProps & { className?: string; style?: CSSProperties; ref?: 
 /** What a React 19 callback ref may hand back: a function React runs instead of calling the ref with null. */
 type RefCleanup = () => void;
 
+/** Radix Slot's rules, for a component (Button) that has to keep them. Both default to false: Link's rules. */
+interface SlotOptions {
+  /** No child (undefined, null, false or '') renders nothing instead of throwing. 0, text and 2+ children still throw. */
+  emptyRendersNothing?: boolean;
+  /** The Slot's handler runs after the child's even when the child called preventDefault(). */
+  alwaysChainHandlers?: boolean;
+}
+
 const HANDLER = /^on[A-Z]/;
+
+/** What Radix Slot renders as nothing: any falsy child except 0. */
+function isEmpty(children: ReactNode): boolean {
+  return !children && children !== 0;
+}
 
 /** The single element child, or a clear error. A string, a number, nothing, or two children all throw. */
 function onlyElement(children: ReactNode, owner: string): ReactElement<ChildProps> {
@@ -41,21 +54,27 @@ export function composeRefs<T>(...refs: (Ref<T> | undefined)[]): (node: T | null
   };
 }
 
-/** The child's handler runs first; the Slot's runs after, unless the child called preventDefault(). */
-function chain(childHandler: unknown, slotHandler: unknown): unknown {
+/**
+ * The child's handler runs first; the Slot's runs after, unless the child called preventDefault().
+ * With `always`, the Slot's runs after regardless (Radix Slot's rule).
+ */
+function chain(childHandler: unknown, slotHandler: unknown, always: boolean): unknown {
   if (typeof childHandler !== 'function') return slotHandler;
   if (typeof slotHandler !== 'function') return childHandler;
   return (event: { defaultPrevented: boolean }, ...more: unknown[]) => {
     childHandler(event, ...more);
-    if (!event.defaultPrevented) slotHandler(event, ...more);
+    if (always || !event.defaultPrevented) slotHandler(event, ...more);
   };
 }
 
-/** Slot props under the child's. className joins (Slot first), style merges (child wins), handlers chain. */
-export function mergeProps(slot: AnyProps, child: ChildProps): AnyProps {
+/**
+ * Slot props under the child's. className joins (Slot first), style merges (child wins), handlers chain
+ * (see `chain`; `alwaysChain` is its `always`).
+ */
+export function mergeProps(slot: AnyProps, child: ChildProps, alwaysChain = false): AnyProps {
   const merged: AnyProps = { ...slot, ...child };
   for (const key of Object.keys(slot)) {
-    if (HANDLER.test(key)) merged[key] = chain(child[key], slot[key]);
+    if (HANDLER.test(key)) merged[key] = chain(child[key], slot[key], alwaysChain);
   }
   const className = [slot.className, child.className].filter(Boolean).join(' ');
   merged.className = className || undefined;
@@ -68,13 +87,15 @@ export function mergeProps(slot: AnyProps, child: ChildProps): AnyProps {
  * and behavior to another element (Link asChild around a router link, Button asChild around an `<a>`).
  * `owner` names the component in the error a wrong child throws. Internal: not exported from the package.
  */
-export function createSlot(owner: string) {
+export function createSlot(owner: string, { emptyRendersNothing = false, alwaysChainHandlers = false }: SlotOptions = {}) {
   const Slot = forwardRef<HTMLElement, SlotProps>(function Slot({ children, ...slotProps }, forwardedRef) {
-    const child = onlyElement(children, owner);
-    const childRef = child.props.ref;
-    // Memoised so a child callback ref is not detached and re-attached on every render.
+    const child = emptyRendersNothing && isEmpty(children) ? null : onlyElement(children, owner);
+    const childRef = child?.props.ref;
+    // Memoised so a child callback ref is not detached and re-attached on every render. Called before the
+    // empty return so the hook order holds when children come and go.
     const ref = useMemo(() => composeRefs(forwardedRef, childRef), [forwardedRef, childRef]);
-    return cloneElement(child, { ...mergeProps(slotProps, child.props), ref });
+    if (!child) return null;
+    return cloneElement(child, { ...mergeProps(slotProps, child.props, alwaysChainHandlers), ref });
   });
   Slot.displayName = `${owner}.Slot`;
   return Slot;
