@@ -1,9 +1,9 @@
-import type { ChildSpec, Control, ControlState, ControlValue, LiteralValue, Manifest } from '../manifests/types';
+import type { ChildSpec, Control, ControlState, ControlValue, LiteralValue, Manifest, ManifestDemo } from '../manifests/types';
 import { defaultState } from '../engine/state';
 import { isOmittedSentinel } from '../manifests/sentinels';
 import { isHtmlElement } from '../manifests/registry';
 import { isVirtual } from '../manifests/virtual';
-import { childSpecs } from '../engine/childSpecs';
+import { activeDemo, childSpecs } from '../engine/childSpecs';
 import { staticProps } from '../engine/staticProps';
 
 const INDENT = '  ';
@@ -178,9 +178,8 @@ function componentNames(children: readonly ChildSpec[]): string[] {
   ]);
 }
 
-function importLine(manifest: Manifest, specs: readonly ChildSpec[] | undefined): string {
+function importLine(manifest: Manifest, specs: readonly ChildSpec[] | undefined, demo: ManifestDemo['code'] | undefined): string {
   const nested = specs ? componentNames(specs) : [];
-  const demo = manifest.demo?.code;
   const unique = [...new Set([manifest.name, ...(manifest.parts ?? []), ...nested, ...(demo?.bitImports ?? [])])].sort();
   const bit = `import { ${unique.join(', ')} } from '@bit-ds/react';`;
   if (!demo || demo.reactImports.length === 0) return bit;
@@ -233,7 +232,7 @@ export function toJsx(manifest: Manifest, state: ControlState, options: ToJsxOpt
     (specs ? flatten(specs) : []).map((child) => [child, Object.entries(child.props ?? {}).map(([name, value]) => printFixed(name, value))] as const),
   );
   const { names, consts } = resolveHoisted([...printed, ...[...printedProps.values()].flat()]);
-  const demo = manifest.demo?.code;
+  const demo = activeDemo(manifest, state)?.code;
   const props = [...(demo?.props ?? []), ...printed.map((p) => attr(p, names))].map((p) => ` ${p}`).join('');
 
   const open = `<${manifest.name}${props}`;
@@ -249,5 +248,5 @@ export function toJsx(manifest: Manifest, state: ControlState, options: ToJsxOpt
   }
   if (demo) element = demo.wrap(element);
   const setup = demo && demo.setup.length > 0 ? [demo.setup.join('\n')] : [];
-  return [importLine(manifest, specs), ...consts, ...setup, element].join('\n\n');
+  return [importLine(manifest, specs, demo), ...consts, ...setup, element].join('\n\n');
 }

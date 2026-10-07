@@ -76,6 +76,16 @@ describe('engine: demo wrapper', () => {
     );
   });
 
+  it('with when, the demo applies only in the states it accepts; otherwise the bare element renders and prints', () => {
+    const sometimes = testManifest({ ...withDemo, demo: { ...withDemo.demo!, when: (state) => state.loud === true } });
+    render(renderManifest(sometimes, defaultState(sometimes)));
+    expect(screen.queryByTestId('demo')).toBeNull();
+    expect(toJsx(sometimes, defaultState(sometimes))).toBe("import { Panel } from '@bit-ds/react';\n\n<Panel>\n  <span>Hello</span>\n</Panel>");
+    render(renderManifest(sometimes, { loud: true }));
+    expect(screen.getByTestId('demo')).toBeInTheDocument();
+    expect(toJsx(sometimes, { loud: true })).toBe(toJsx(withDemo, defaultState(withDemo)));
+  });
+
   it('a module-level const (a hoisted options array) still goes above the component', () => {
     const file = fullFile("import { X } from '@bit-ds/react';\n\nconst options = [\n  'a',\n];\n\n<X options={options} />");
     expect(file.indexOf('const options')).toBeLessThan(file.indexOf('export function Example()'));

@@ -109,6 +109,11 @@ export interface ManifestDocs {
  * The preview renders `render(element)`; the printed code adds the imports and setup lines and wraps the element.
  */
 export interface ManifestDemo {
+  /**
+   * Only in the states this returns true for (a dismissible Alert); every other state renders and prints the
+   * bare element. It gets the full state, defaults merged in. Leave it off for a demo that always applies (Dialog).
+   */
+  when?: (state: ControlState) => boolean;
   render: (element: ReactElement) => ReactElement;
   code: {
     /** Named imports from 'react' (`useState`), printed on their own line above the bit import. */

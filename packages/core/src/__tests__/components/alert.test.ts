@@ -40,6 +40,36 @@ describe('components/alert.css', () => {
     expect(css).toMatch(/\/\* raw:[^*]*\*\/\s*\n\s*box-shadow: 4px 4px 0 var\(--_bit-color-outline-shadow\);/);
   });
 
+  describe('dismissible (data-dismissible and the × button)', () => {
+    it('reserves inline-end room for the ×, so the title and body never run under it', () => {
+      const root = block(css, '.bit-alert[data-dismissible]')!;
+      expect(decl(root, 'position')).toBe('relative');
+      expect(decl(root, 'padding-inline-end')).toBe('calc(var(--bit-space-12px) * 2 + var(--bit-control-height-sm))');
+    });
+
+    it('the × sits in the inline-end corner with logical insets (so it flips in RTL), square like the Dialog ×', () => {
+      const dismiss = block(css, '.bit-alert__dismiss')!;
+      expect(decl(dismiss, 'position')).toBe('absolute');
+      expect(decl(dismiss, 'inset-inline-end')).toBe('var(--bit-space-12px)');
+      expect(decl(dismiss, 'width')).toBe('var(--_bit-size-height)');
+      expect(decl(dismiss, 'padding')).toBe('0');
+      expect(dismiss).not.toMatch(/(?<![-\w])(left|right|top)\s*:/);
+    });
+
+    it("the × is centred on the body's first line, and on the title line when there is a title", () => {
+      expect(decl(block(css, '.bit-alert__dismiss')!, 'inset-block-start')).toBe(
+        'calc(var(--bit-space-16px) + (var(--bit-text-15px) * var(--bit-leading-normal) - var(--_bit-size-height)) / 2)',
+      );
+      expect(decl(block(css, '.bit-alert__title ~ .bit-alert__dismiss')!, 'inset-block-start')).toBe(
+        'calc(var(--bit-space-16px) + (var(--bit-text-18px) * var(--bit-leading-tight) - var(--_bit-size-height)) / 2)',
+      );
+    });
+
+    it('is keyed on the attribute, never a class', () => {
+      expect(css).not.toMatch(/\.bit-alert\.(is-)?dismissible/);
+    });
+  });
+
   it('has no forced-colours rule, like Button: the browser keeps the border in a system colour and drops the shadow', () => {
     expect(styleRules(css).filter((rule) => rule.media?.includes('forced-colors'))).toEqual([]);
     expect(styleRules(button).filter((rule) => rule.media?.includes('forced-colors'))).toEqual([]);

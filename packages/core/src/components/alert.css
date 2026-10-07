@@ -35,3 +35,24 @@
 .bit-alert__body {
   font-size: var(--bit-text-15px);
 }
+
+/* Dismissible: the × (a bit Button, sm, neutral outline) sits in the inline-end corner, and the content keeps
+   clear of it. Logical insets, so it moves to the left in right-to-left pages. */
+.bit-alert[data-dismissible] {
+  position: relative;
+  padding-inline-end: calc(var(--bit-space-12px) * 2 + var(--bit-control-height-sm));
+}
+
+/* Square, as the Dialog ×, and centred on the body's first line (the page's normal leading). */
+.bit-alert__dismiss {
+  position: absolute;
+  inset-block-start: calc(var(--bit-space-16px) + (var(--bit-text-15px) * var(--bit-leading-normal) - var(--_bit-size-height)) / 2);
+  inset-inline-end: var(--bit-space-12px);
+  width: var(--_bit-size-height);
+  padding: 0;
+}
+
+/* With a title, it centres on the title line instead. */
+.bit-alert__title ~ .bit-alert__dismiss {
+  inset-block-start: calc(var(--bit-space-16px) + (var(--bit-text-18px) * var(--bit-leading-tight) - var(--_bit-size-height)) / 2);
+}

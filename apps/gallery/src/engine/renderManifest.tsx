@@ -2,7 +2,7 @@ import { createElement } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import type { ChildSpec, ControlState, Manifest } from '../manifests/types';
 import { COMPONENTS, isHtmlElement } from '../manifests/registry';
-import { childSpecs } from './childSpecs';
+import { activeDemo, childSpecs } from './childSpecs';
 import { buildProps } from './buildProps';
 
 /** One ChildSpec as an element, with its nested parts rendered the same way. */
@@ -21,5 +21,6 @@ function renderChildren(manifest: Manifest, state: ControlState): ReactNode {
 /** The exact element the preview shows and toHtml serializes. */
 export function renderManifest(manifest: Manifest, state: ControlState): ReactElement {
   const element = createElement(manifest.component, buildProps(manifest, state), renderChildren(manifest, state));
-  return manifest.demo ? manifest.demo.render(element) : element;
+  const demo = activeDemo(manifest, state);
+  return demo ? demo.render(element) : element;
 }

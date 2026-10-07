@@ -11,7 +11,7 @@ Package releases only. Docs-site changes don't appear here. One bullet per line.
 - `Tabs`, with `TabList`, `Tab` and `TabPanel`: the WAI-ARIA tabs pattern with cartridge-shaped tabs. Only the chosen tab is in the Tab order; the arrows (swapped in right-to-left pages), Home and End move between tabs and skip disabled ones; `activation="manual"` waits for Enter or Space. The chosen cartridge seats into a slot that lights up under it, in pixel steps (none with reduced motion). Panels stay mounted.
 - Types: `DialogProps`, `DialogHeaderProps`, `DialogPartProps`, `DialogCloseProps`, `TabsProps`, `TabListProps`, `TabProps`, `TabPanelProps`.
 ### Changed
-- Alert: outline Alerts take their colour's border and shadow, like outline Buttons (neutral stays black).
+- Alert: outline Alerts take their colour's border and shadow, like outline Buttons (neutral stays black); new `onDismiss` shows a × close button. The × is an outline neutral `Button` named by `dismissLabel` (default "Dismiss"); the Alert does not hide itself, so remove it in `onDismiss`. A dismissible Alert is marked `data-dismissible`.
 
 ## 0.1.4 — 2026-10-07
 ### Breaking
