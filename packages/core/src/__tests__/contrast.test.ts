@@ -114,8 +114,8 @@ describe('dark mode values (owner-locked 2026-10-03)', () => {
     ['--bit-color-bg', '#15151C'], ['--bit-color-surface', '#20202A'],
     ['--bit-color-text', '#EDEBE4'], ['--bit-color-text-muted', '#A9A9BC'],
     ['--bit-color-line', '#79798F'], ['--bit-color-shadow', '#464658'],
-    ['--bit-color-neutral', '#2B2B37'], ['--bit-color-neutral-contrast', '#EDEBE4'],
-    ['--bit-color-neutral-hover', '#343442'], ['--bit-color-neutral-soft', '#2B2B37'],
+    ['--bit-color-neutral', '#9A9EB0'], ['--bit-color-neutral-contrast', '#151515'],
+    ['--bit-color-neutral-hover', '#ADB1C2'], ['--bit-color-neutral-soft', '#2B2B37'],
     ['--bit-color-primary-soft', '#2E2352'], ['--bit-color-success-soft', '#173A25'],
     ['--bit-color-warning-soft', '#3B3212'], ['--bit-color-danger-soft', '#40191B'],
     ['--bit-code-bg', '#0B0B10'], ['--bit-focus-ring-color', '#FFC800'],
@@ -239,6 +239,65 @@ describe('code-text (Code inside a Table)', () => {
     const text = resolveVar(map, '--bit-color-code-text');
     for (const bg of ['--bit-color-surface', '--bit-color-bg', '--bit-color-stripe']) {
       expect(contrastRatio(text, resolveVar(map, bg))).toBeGreaterThanOrEqual(AA_TEXT);
+    }
+  });
+});
+
+describe('neutral colour (N1 steel, 0.1.4)', () => {
+  const css = readCss('themes/power-up.css');
+  const { light, dark } = themeModes(css);
+  const modes: [string, Map<string, string>, string, string, string][] = [
+    ['light', light, '#5F6372', '#4E5260', '#FFFFFF'],
+    ['dark', new Map([...light, ...dark]), '#9A9EB0', '#ADB1C2', '#151515'],
+  ];
+
+  it.each(modes)('%s fill, hover and contrast resolve to their hexes', (_m, map, fill, hover, text) => {
+    expect(resolveVar(map, '--bit-color-neutral')).toBe(fill);
+    expect(resolveVar(map, '--bit-color-neutral-hover')).toBe(hover);
+    expect(resolveVar(map, '--bit-color-neutral-contrast')).toBe(text);
+  });
+
+  it.each(modes)('%s fill and hover carry their contrast text at 4.5:1', (_m, map) => {
+    const text = resolveVar(map, '--bit-color-neutral-contrast');
+    expect(contrastRatio(text, resolveVar(map, '--bit-color-neutral'))).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrastRatio(text, resolveVar(map, '--bit-color-neutral-hover'))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it.each(modes)('%s fill stands out from the page and the surface at 3:1', (_m, map) => {
+    for (const bg of ['--bit-color-bg', '--bit-color-surface']) {
+      expect(contrastRatio(resolveVar(map, '--bit-color-neutral'), resolveVar(map, bg)), bg).toBeGreaterThanOrEqual(AA_NON_TEXT);
+    }
+  });
+
+  it('neutral-soft is unchanged: stone in light, night-raised in dark', () => {
+    expect(resolveVar(light, '--bit-color-neutral-soft')).toBe('#DCDED6');
+    expect(resolveVar(new Map([...light, ...dark]), '--bit-color-neutral-soft')).toBe('#2B2B37');
+  });
+
+  it('the system-mode dark block carries the same neutral values as [data-mode="dark"]', () => {
+    const sys = css.slice(css.indexOf('prefers-color-scheme'));
+    for (const [name, value] of [['', '#9A9EB0'], ['-hover', '#ADB1C2'], ['-contrast', '#151515']]) {
+      const m = sys.match(new RegExp(`--bit-color-neutral${name}:\\s*var\\((--bit-palette-[a-z-]+)\\)`));
+      expect(m, name).not.toBeNull();
+      expect(resolveVar(new Map([...light, ...dark]), m![1]!).toUpperCase()).toBe(value);
+    }
+  });
+
+  it('the palette carries the four steel entries', () => {
+    expect(resolveVar(light, '--bit-palette-steel')).toBe('#5F6372');
+    expect(resolveVar(light, '--bit-palette-steel-hover')).toBe('#4E5260');
+    expect(resolveVar(light, '--bit-palette-steel-light')).toBe('#9A9EB0');
+    expect(resolveVar(light, '--bit-palette-steel-light-hover')).toBe('#ADB1C2');
+  });
+
+  // Neutral contrast is white in light, so it may only paint on the solid fill. Every contrast read in
+  // the component CSS must sit beside a solid fill rule; the soft, outline and ghost looks use text.
+  it('component CSS only reads the contrast colour on solid fills', () => {
+    for (const file of listCss('components')) {
+      const src = readCss(`components/${file}`);
+      for (const [, selector] of src.matchAll(/([^{}]+)\{[^{}]*color:\s*var\(--_bit-color-contrast\)/g)) {
+        expect(selector ?? '', `${file}: ${(selector ?? '').trim()}`).toMatch(/solid|:checked|\.bit-segmented-control__label/);
+      }
     }
   });
 });
