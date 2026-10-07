@@ -14,12 +14,22 @@ test.describe('Dialog page', () => {
     await expect(dialog).toBeVisible();
     expect(await dialog.evaluate((el) => el.matches(':modal'))).toBe(true);
     await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeFocused();
-    for (let i = 0; i < 4; i += 1) {
+    // A native modal's Tab order ends at the browser's own chrome (activeElement is then <body>) and wraps back in;
+    // it never lands on the page behind.
+    const visited = new Set<string>();
+    for (let i = 0; i < 6; i += 1) {
       await page.keyboard.press('Tab');
-      // A native modal's Tab order ends at the browser's own chrome (activeElement is then <body>) and wraps back in;
-      // it never lands on the page behind.
-      expect(await dialog.evaluate((el) => el.contains(document.activeElement) || document.activeElement === document.body)).toBe(true);
+      const where = await dialog.evaluate((el) => {
+        const a = document.activeElement;
+        if (a === document.body) return 'body';
+        return el.contains(a) ? (a?.textContent ?? '').trim() : 'OUTSIDE';
+      });
+      expect(where).not.toBe('OUTSIDE');
+      visited.add(where);
     }
+    expect([...visited]).toEqual(expect.arrayContaining(['×', 'Cancel', 'Save']));
+    await page.keyboard.press('Shift+Tab');
+    expect(await dialog.evaluate((el) => el.contains(document.activeElement) || document.activeElement === document.body)).toBe(true);
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveAttribute('data-state', 'closing');
     await expect(dialog).toBeHidden();
@@ -30,17 +40,19 @@ test.describe('Dialog page', () => {
     await page.goto('#/components/dialog');
     await page.getByRole('region', { name: 'Dialog preview' }).getByRole('button', { name: 'Open dialog' }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
-    // Playwright's role queries ignore `inert`, so test it by hit-testing: the sidebar's first link is covered while the modal is open.
+    // The HTML spec makes focus() a no-op on content blocked by a modal dialog, so a link that can't take focus is inert.
     const link = page.locator('#gallery-nav a').first();
-    const reachable = () => link.evaluate((el) => {
+    const canFocus = () => link.evaluate((el) => { (el as HTMLElement).focus(); return document.activeElement === el; });
+    expect(await canFocus()).toBe(false);
+    // Occlusion only (not inertness): the dialog covers the link.
+    expect(await link.evaluate((el) => {
       const box = el.getBoundingClientRect();
       const hit = document.elementFromPoint(box.left + 5, box.top + 5);
       return hit !== null && el.contains(hit);
-    });
-    expect(await reachable()).toBe(false);
+    })).toBe(false);
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toBeHidden();
-    expect(await reachable()).toBe(true);
+    expect(await canFocus()).toBe(true);
   });
 
   test('a click on the dimmed page closes it; with Alert it does not', async ({ page }) => {
@@ -65,6 +77,9 @@ test.describe('Dialog page', () => {
     await page.getByRole('region', { name: 'Dialog preview' }).getByRole('button', { name: 'Open dialog' }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe('hidden');
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toBeHidden();
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).not.toBe('hidden');
   });
 
   for (const mode of MODES) {

@@ -29,6 +29,7 @@ test.describe('Tabs page', () => {
     const preview = page.getByRole('region', { name: 'Tabs preview' });
     await preview.getByRole('tab', { name: 'Overview' }).focus();
     await page.keyboard.press('ArrowRight');
+    await expect(preview.getByRole('tab', { name: 'Usage' })).toBeFocused();
     await expect(preview.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('Enter');
     await expect(preview.getByRole('tab', { name: 'Usage' })).toHaveAttribute('aria-selected', 'true');
