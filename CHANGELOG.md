@@ -4,7 +4,7 @@ Package releases only. Docs-site changes don't appear here. One bullet per line.
 
 ## 0.1.5 — 2026-10-07
 ### Added
-- `Select` `multiple`: pick any number of options. Each row shows a checkbox, and clicking a row or pressing Enter or Space toggles it while the list stays open; Escape, Tab or a click outside closes it. The closed box shows the one chosen label, or a purple "3 selected" pill when there are several. `value`/`defaultValue` are `string[]`, and `onValueChange` receives the chosen values in option order.
+- `Select` `multiple`: pick any number of options. Each row shows a checkbox, and clicking a row or pressing Enter or Space toggles it while the list stays open; Escape, Tab or a click outside closes it. The closed box shows the one chosen label, or a "3 selected" pill in the primary colour when there are several. `value`/`defaultValue` are `string[]`, and `onValueChange` receives the chosen values in option order.
 - In a form, a multi-select `Select` submits every chosen value under `name`, as `<select multiple>` does; `required` means at least one, and a form reset puts back `defaultValue`.
 - `SelectMultipleProps` type. `SelectProps` stays the single-select props, unchanged. Pass `multiple` as a literal: a `boolean` variable doesn't type-check, so render the two cases separately.
 

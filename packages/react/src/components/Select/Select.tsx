@@ -58,7 +58,7 @@ export interface SelectMultipleProps extends Omit<SelectProps, 'multiple' | 'val
    * type-check here: render two branches (with `multiple` and without), or cast.
    */
   multiple: true;
-  /** The chosen values, when the parent owns them. Values no option has are ignored. */
+  /** The chosen values, when the parent owns them. Values no option has are not shown and are dropped from the next `onValueChange`. */
   value?: readonly string[];
   /** The first chosen values, when the Select owns them, and what a form reset returns to. Default: none. */
   defaultValue?: readonly string[];

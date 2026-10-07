@@ -228,7 +228,7 @@
   height: 10px;
   margin-top: -6px; /* raw: lifts the turned box so the tick sits centred in the 18px checkbox */
   border: solid var(--bit-color-primary-contrast);
-  border-width: 0 3px 3px 0;
+  border-width: 0 3px 3px 0; /* raw: the tick's stroke, as thick as the 3px checkbox border */
   transform: rotate(45deg);
 }
 

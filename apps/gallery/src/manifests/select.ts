@@ -75,7 +75,7 @@ export const select: Manifest = {
         'Use Select to pick one of five or more options. Put it in a Field for a visible label.',
         'Pass the choices as options, an array of { value, label }, and read the choice with onValueChange.',
         'Use SegmentedControl instead when there are two to four options and all should show.',
-        'Add multiple to let people pick several. Rows show a checkbox, the list stays open while they pick, and the closed box shows how many they chose.',
+        'Add multiple to let people pick several. Rows show a checkbox, the list stays open while they pick, and the closed box shows the chosen option, or how many when there are several.',
       ],
       dont: [
         'Use a Select for yes or no. Use a Switch.',
@@ -101,7 +101,7 @@ export const select: Manifest = {
         name: 'value',
         type: 'string',
         description:
-          'The chosen value, when the parent owns it. Use with onValueChange, or use defaultValue. A value no option has shows the placeholder. With multiple, a string[].',
+          'The chosen value, when the parent owns it. Use with onValueChange, or use defaultValue. A value no option has shows the placeholder. With multiple, a string[]; values no option has are not shown and are dropped from the next onValueChange.',
       },
       {
         name: 'onValueChange',

@@ -110,11 +110,11 @@ describe('Select multiple: toggling keeps the list open', () => {
   });
 
   it('opens with the first chosen enabled option active', async () => {
-    const { user } = setup({ defaultValue: ['quarter', 'month'] });
+    const { user } = setup({ defaultValue: ['quarter', 'year'] });
     trigger().focus();
     await user.keyboard('{ArrowDown}');
     const active = document.getElementById(trigger().getAttribute('aria-activedescendant')!);
-    expect(active).toHaveTextContent('Month');
+    expect(active).toHaveTextContent('Year');
   });
 
   it('with every option disabled, Enter, Space and Tab call nothing', async () => {
