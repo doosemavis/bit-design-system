@@ -120,7 +120,7 @@ test.describe('the Select page playground', () => {
       await page.goto('#/components/select');
       await expect(page.locator('html')).toHaveAttribute('data-mode', mode);
       const trigger = page.getByRole('region', { name: 'Select preview' }).getByRole('combobox', { name: 'Color' });
-      await expect(trigger).toHaveText('Pick a color');
+      await expect(trigger).toHaveText('Pick colors');
       await centre(trigger);
       await trigger.click();
       const list = await listOf(page, trigger);

@@ -218,15 +218,15 @@
   background: var(--bit-color-primary);
 }
 
-/* The tick: two borders of a 5×10 box turned 45°, centred on the checkbox (the row's start padding + 5px). */
+/* The tick: two borders of a 5×10 box turned 45°, centred on the checkbox (the row's start padding + 6.5px; measured, the border-box sizing pulled it 1.5px off). */
 .bit-select__list[aria-multiselectable="true"] .bit-select__option[aria-selected="true"]::after {
   content: "";
   position: absolute;
   top: 50%;
-  inset-inline-start: calc(var(--bit-space-12px) + 5px);
+  inset-inline-start: calc(var(--bit-space-12px) + 6.5px);
   width: 5px;
   height: 10px;
-  margin-top: -7px; /* raw: lifts the turned box so the tick sits centred in the 18px checkbox */
+  margin-top: -6px; /* raw: lifts the turned box so the tick sits centred in the 18px checkbox */
   border: solid var(--bit-color-primary-contrast);
   border-width: 0 3px 3px 0;
   transform: rotate(45deg);
