@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactElement } from 'react';
 
 export type ControlValue = string | boolean;
 /** Everything the visitor can change on a page, keyed by prop name. Numbers are stored as strings. */
@@ -28,6 +28,8 @@ interface BooleanControl {
   prop: string;
   default: boolean;
   label?: string;
+  /** A control that only shapes the page: it shows in the panel and presets, but is never a prop and never printed. */
+  virtual?: boolean;
 }
 interface NumberControl {
   kind: 'number';
@@ -47,6 +49,8 @@ interface TextControl {
   label?: string;
   /** Print the prop in the code even at its default, because the component requires it (Field `label`). */
   alwaysPrint?: boolean;
+  /** A control that only shapes the page (a title shown in a child part): it shows in the panel and presets, but is never a prop and never printed. */
+  virtual?: boolean;
 }
 export type Control = AxisControl | SelectControl | BooleanControl | NumberControl | TextControl;
 
@@ -100,6 +104,26 @@ export interface ManifestDocs {
   emptyChildrenError?: string;
 }
 
+/**
+ * A stateful wrapper for a component that can't show itself alone (a Dialog needs a trigger and open state).
+ * The preview renders `render(element)`; the printed code adds the imports and setup lines and wraps the element.
+ */
+export interface ManifestDemo {
+  render: (element: ReactElement) => ReactElement;
+  code: {
+    /** Named imports from 'react' (`useState`), printed on their own line above the bit import. */
+    reactImports: readonly string[];
+    /** Extra bit components the wrapper uses (`Button`), merged into the bit import. */
+    bitImports: readonly string[];
+    /** Lines at the top of the component body (`const [open, setOpen] = useState(false);`). */
+    setup: readonly string[];
+    /** Attributes printed first on the element (`open={open}`). */
+    props: readonly string[];
+    /** The JSX around the element. */
+    wrap: (elementJsx: string) => string;
+  };
+}
+
 export interface Manifest {
   /** Export name; drives the title and the import line. */
   name: string;
@@ -110,6 +134,7 @@ export interface Manifest {
   component: ComponentType<any>;
   description: string;
   controls: readonly Control[];
+  demo?: ManifestDemo;
   /** A string is editable through a `children` text control; ChildSpec[] renders parts. */
   children?: string | readonly ChildSpec[];
   /**

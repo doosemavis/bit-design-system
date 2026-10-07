@@ -180,8 +180,11 @@ function componentNames(children: readonly ChildSpec[]): string[] {
 
 function importLine(manifest: Manifest, specs: readonly ChildSpec[] | undefined): string {
   const nested = specs ? componentNames(specs) : [];
-  const unique = [...new Set([manifest.name, ...(manifest.parts ?? []), ...nested])].sort();
-  return `import { ${unique.join(', ')} } from '@bit-ds/react';`;
+  const demo = manifest.demo?.code;
+  const unique = [...new Set([manifest.name, ...(manifest.parts ?? []), ...nested, ...(demo?.bitImports ?? [])])].sort();
+  const bit = `import { ${unique.join(', ')} } from '@bit-ds/react';`;
+  if (!demo || demo.reactImports.length === 0) return bit;
+  return `import { ${[...demo.reactImports].sort().join(', ')} } from 'react';\n${bit}`;
 }
 
 interface ToJsxOptions {
@@ -230,7 +233,8 @@ export function toJsx(manifest: Manifest, state: ControlState, options: ToJsxOpt
     (specs ? flatten(specs) : []).map((child) => [child, Object.entries(child.props ?? {}).map(([name, value]) => printFixed(name, value))] as const),
   );
   const { names, consts } = resolveHoisted([...printed, ...[...printedProps.values()].flat()]);
-  const props = printed.map((p) => ` ${attr(p, names)}`).join('');
+  const demo = manifest.demo?.code;
+  const props = [...(demo?.props ?? []), ...printed.map((p) => attr(p, names))].map((p) => ` ${p}`).join('');
 
   const open = `<${manifest.name}${props}`;
   let element: string;
@@ -243,5 +247,7 @@ export function toJsx(manifest: Manifest, state: ControlState, options: ToJsxOpt
   } else {
     element = `${open} />`;
   }
-  return [importLine(manifest, specs), ...consts, element].join('\n\n');
+  if (demo) element = demo.wrap(element);
+  const setup = demo && demo.setup.length > 0 ? [demo.setup.join('\n')] : [];
+  return [importLine(manifest, specs), ...consts, ...setup, element].join('\n\n');
 }

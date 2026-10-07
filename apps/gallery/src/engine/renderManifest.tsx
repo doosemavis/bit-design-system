@@ -20,5 +20,6 @@ function renderChildren(manifest: Manifest, state: ControlState): ReactNode {
 
 /** The exact element the preview shows and toHtml serializes. */
 export function renderManifest(manifest: Manifest, state: ControlState): ReactElement {
-  return createElement(manifest.component, buildProps(manifest, state), renderChildren(manifest, state));
+  const element = createElement(manifest.component, buildProps(manifest, state), renderChildren(manifest, state));
+  return manifest.demo ? manifest.demo.render(element) : element;
 }

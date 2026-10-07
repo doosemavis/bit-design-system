@@ -29,12 +29,19 @@ const BODY_INDENT = '    ';
 
 /**
  * A component file you can paste: the component import and an `Example` returning the element. The style imports
- * are left out: an app adds them once (Getting started), not in every file.
+ * are left out: an app adds them once (Getting started), not in every file. `setup` (hook lines such as
+ * `const [open, setOpen] = useState(false);`) goes inside the component, above the return.
  */
-export function fullFile({ importLine, element }) {
+export function fullFile({ importLine, element, setup = '' }) {
   const body = element
     .split('\n')
     .map((line) => BODY_INDENT + line)
     .join('\n');
-  return `${importLine}\n\nexport function Example() {\n  return (\n${body}\n  );\n}\n`;
+  const setupLines = setup
+    ? `${setup
+        .split('\n')
+        .map((line) => `  ${line}`)
+        .join('\n')}\n\n`
+    : '';
+  return `${importLine}\n\nexport function Example() {\n${setupLines}  return (\n${body}\n  );\n}\n`;
 }
