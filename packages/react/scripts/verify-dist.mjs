@@ -72,7 +72,7 @@ for (const [file, contents] of Object.entries(dtsFiles)) {
   assert.ok(/declare\s+const\s+COLORS\b/.test(contents), `${file} missing local declaration: COLORS`);
   assert.ok(/type\s+Color\b/.test(contents), `${file} missing exported type: Color`);
 }
-for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size', 'FieldProps', 'InputProps', 'SelectProps', 'SelectMultipleProps', 'SelectOption', 'SwitchProps', 'LinkProps', 'CodeProps', 'CodeBlockProps', 'SegmentedControlProps', 'SegmentedControlMultipleProps', 'TableProps', 'TableCellProps', 'HeadingProps', 'HeadingLevel', 'BoxProps', 'BoxElement', 'CopyState']) {
+for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size', 'FieldProps', 'InputProps', 'SelectProps', 'SelectMultipleProps', 'SelectOption', 'SwitchProps', 'LinkProps', 'CodeProps', 'CodeBlockProps', 'SegmentedControlProps', 'SegmentedControlMultipleProps', 'TableProps', 'TableCellProps', 'HeadingProps', 'HeadingLevel', 'BoxProps', 'BoxElement', 'CopyState', 'DialogProps', 'DialogHeaderProps', 'DialogPartProps', 'DialogCloseProps', 'TabsProps', 'TabListProps', 'TabProps', 'TabPanelProps']) {
   assert.ok(dtsFiles['index.d.ts'].includes(name), `index.d.ts missing type: ${name}`);
 }
 

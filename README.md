@@ -87,9 +87,10 @@ Both render identically. Switch and SegmentedControl are native inputs, so their
 - **Forms:** Field, Input, Select, Switch
 - **Content:** Link, Code, CodeBlock, Table (+ TableHead, TableBody, TableRow, TableCell)
 - **Choice:** SegmentedControl, ModeToggle
+- **Overlays and navigation:** Dialog (+ DialogHeader, DialogBody, DialogFooter, DialogClose), Tabs (+ TabList, Tab, TabPanel)
 - **Brand:** BitLogo
 
-Every one works in light and dark mode, and anything focusable shows the one focus ring from `reset.css`. Input, Switch and SegmentedControl sit on the real native element (an `<input>`, a checkbox or radios), so keyboards and screen readers work as browsers intend. Select is a bit-drawn combobox (the WAI-ARIA select-only combobox) with full keyboard support and single or multi-select, so its list looks the same in every browser; hidden native inputs carry its value (one per chosen value with `multiple`), so `name`, `required`, `disabled`, `form` and form reset work as they do on a native `<select>`.
+Every one works in light and dark mode, and anything focusable shows the one focus ring from `reset.css`. Input, Switch and SegmentedControl sit on the real native element (an `<input>`, a checkbox or radios), so keyboards and screen readers work as browsers intend. Select is a bit-drawn combobox (the WAI-ARIA select-only combobox) with full keyboard support and single or multi-select, so its list looks the same in every browser; hidden native inputs carry its value (one per chosen value with `multiple`), so `name`, `required`, `disabled`, `form` and form reset work as they do on a native `<select>`. Dialog is the native modal `<dialog>`: focus moves in, the page behind is inert, Esc closes it, and focus returns to what opened it. Tabs follow the WAI-ARIA tabs pattern, with one Tab stop and arrow keys between tabs.
 
 - `Heading` takes a required `level` (the tag, h1 to h6) and an optional `size` (the look), so an h2 can look like an h3.
 - `Box` pads and offsets one element on the space scale (`padding`, `paddingX`, `paddingTop`, … and the same for `margin`). When props overlap, the most specific wins: `paddingTop` beats `paddingY`, which beats `padding`. Use `Stack` for space between things.
