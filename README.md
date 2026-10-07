@@ -3,6 +3,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@bit-ds/react"><img src="https://img.shields.io/npm/v/@bit-ds/react?label=npm&color=7c3aed" alt="npm version"></a>
   <a href="https://doosemavis.github.io/bit-design-system/"><img src="https://img.shields.io/badge/docs-gallery-7c3aed" alt="Docs and component gallery"></a>
+  <a href="https://github.com/doosemavis/bit-design-system/actions/workflows/ci.yml"><img src="https://github.com/doosemavis/bit-design-system/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
   <a href="https://github.com/doosemavis/bit-design-system/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/@bit-ds/react?color=7c3aed" alt="MIT license"></a>
 </p>
 
@@ -21,6 +22,20 @@ Themes are swappable and named after retro-game eras. The first theme is **power
 Browse every component, with live controls and copyable code, in the docs: https://doosemavis.github.io/bit-design-system/
 
 Versions and release notes: [all versions](https://doosemavis.github.io/bit-design-system/#/versions) and [release notes](https://doosemavis.github.io/bit-design-system/#/release-notes).
+
+## How it's tested
+
+Every pull request runs all of this in CI ([workflow](https://github.com/doosemavis/bit-design-system/blob/main/.github/workflows/ci.yml)). Releases publish only from a tagged commit on `main`, and the release job runs the package checks again before publishing:
+
+- **Unit tests** (Vitest and Testing Library) for every component, with 100% statement, branch, function and line coverage on `@bit-ds/react`.
+- **Accessibility in unit tests:** all 19 components run [axe-core](https://github.com/dequelabs/axe-core) on what they render. Select is checked both closed and open.
+- **Accessibility in a real browser:** Playwright opens every docs page in light and dark mode and fails on any axe violation of the WCAG 2.0, 2.1 and 2.2 A and AA rules.
+- **Keyboard and focus:** Select's keyboard model (arrows, Home and End, Page Up and Page Down, typeahead, Enter, Space, Escape, Tab) is tested key by key, along with where focus goes and how it behaves in a form (`required`, reset, `form="id"`).
+- **Colour contrast, computed:** tests read the theme tokens and compute WCAG contrast ratios in light and dark, so a colour change that drops text below 4.5:1 fails the build.
+- **Forced colours (Windows High Contrast):** Playwright runs pages with `forced-colors: active` and checks that states such as invalid still show without colour.
+- **The published package:** before every release the built package is installed into a fresh TypeScript app, type-checked, and imported through both ESM and CommonJS. A Vite app checks that the CSS and fonts load, all from the package, with nothing from a third party.
+
+There is no screenshot-diff (visual regression) suite yet. Visual changes are reviewed with light and dark screenshots before they merge.
 
 ## Install
 
