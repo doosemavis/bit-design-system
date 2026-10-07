@@ -54,20 +54,12 @@ export const select: Manifest = {
     },
     { kind: 'boolean', prop: 'multiple', default: false },
     { kind: 'text', prop: 'aria-label', default: 'Color', label: 'aria-label' },
-    {
-      kind: 'text',
-      prop: 'placeholder',
-      default: 'Pick colors',
-      alwaysPrint: true,
-    },
+    { kind: 'text', prop: 'placeholder', default: 'Pick colors', alwaysPrint: true },
     { kind: 'boolean', prop: 'invalid', default: false },
     { kind: 'boolean', prop: 'disabled', default: false },
   ],
   deriveProps: (state) => ({
-    options: LABELS.slice(0, optionCount(state.optionCount)).map((label) => ({
-      value: label.toLowerCase(),
-      label,
-    })),
+    options: LABELS.slice(0, optionCount(state.optionCount)).map((label) => ({ value: label.toLowerCase(), label })),
   }),
   presets: [
     { label: 'Long list', state: { optionCount: '12' } },
@@ -123,12 +115,7 @@ export const select: Manifest = {
         description:
           'The first chosen value, when the Select owns it, and what a form reset puts back. Unset, nothing is chosen. With multiple, a string[]; unset, none are chosen.',
       },
-      {
-        name: 'placeholder',
-        type: 'ReactNode',
-        default: "''",
-        description: 'Shown in muted text while nothing is chosen.',
-      },
+      { name: 'placeholder', type: 'ReactNode', default: "''", description: 'Shown in muted text while nothing is chosen.' },
       {
         name: 'name',
         type: 'string',
@@ -147,13 +134,7 @@ export const select: Manifest = {
         type: 'string',
         description: 'The id of the form the value belongs to, when the Select sits outside that form. Its reset resets the Select too.',
       },
-      {
-        name: 'size',
-        className: 'bit-{size}',
-        type: "'sm' | 'md' | 'lg'",
-        default: "'md'",
-        description: 'Control height. The class goes on the wrapper.',
-      },
+      { name: 'size', className: 'bit-{size}', type: "'sm' | 'md' | 'lg'", default: "'md'", description: 'Control height. The class goes on the wrapper.' },
       {
         name: 'aria-label',
         type: 'string',
@@ -171,11 +152,7 @@ export const select: Manifest = {
         default: 'false',
         description: 'Turns the whole control off: it cannot be focused or opened, and submits nothing, as a disabled native select.',
       },
-      {
-        name: 'ref',
-        type: 'Ref<HTMLButtonElement>',
-        description: 'Goes to the trigger button. className goes on the wrapper.',
-      },
+      { name: 'ref', type: 'Ref<HTMLButtonElement>', description: 'Goes to the trigger button. className goes on the wrapper.' },
     ],
     a11y: [
       'A select-only combobox (the WAI-ARIA pattern): a button with role combobox opens a listbox of options, and focus stays on the button the whole time.',
