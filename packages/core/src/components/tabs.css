@@ -1,6 +1,8 @@
 /* Tabs (W3 "Plugged in"): cartridge tabs that seat into a slot on top of the panel. States are attributes:
    aria-selected on the chosen tab, data-boot ("a" or "b", alternating so a new choice restarts it) while
-   the plug-in animation plays. Nothing here ever moves up. */
+   the plug-in animation plays. Nothing here ever moves up.
+   The list overlaps the slot's top border, so the tabs stand on that line: an unchosen tab draws the line under
+   itself, and the chosen tab has no bottom border, so it opens straight into the slot. */
 .bit-tabs {
   display: block;
   color: var(--bit-color-text);
@@ -11,6 +13,9 @@
   align-items: flex-end;
   gap: var(--bit-space-8px);
   padding-inline-start: var(--bit-space-12px);
+  position: relative;
+  z-index: 1;
+  margin-bottom: calc(var(--bit-border-width) * -1);
   overflow-x: auto;
   /* Prevent vertical scrollbar from appearing during the seat animation's translateY(3px). */
   overflow-y: hidden;
@@ -28,10 +33,10 @@
   color: var(--bit-color-text-muted);
   background: var(--bit-color-neutral-soft);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-bottom: 0;
   border-radius: var(--bit-radius-6px) var(--bit-radius-6px) 0 0;
-  /* raw: the cartridge's notch, a 6px dip across the middle of the top edge */
-  clip-path: polygon(0 0, 36% 0, 40% 6px, 60% 6px, 64% 0, 100% 0, 100% 100%, 0 100%);
+  /* raw: the cartridge's notch, a 6px dip across the middle of the top edge. The bottom points sit 1px below
+     the box: a clip edge is drawn unsnapped, and one on the bottom edge leaves a hairline seam into the slot. */
+  clip-path: polygon(0 0, 36% 0, 40% 6px, 60% 6px, 64% 0, 100% 0, 100% calc(100% + 1px), 0 calc(100% + 1px));
   cursor: pointer;
 }
 
@@ -49,18 +54,24 @@
   border-radius: var(--bit-radius-6px);
 }
 
-.bit-tabs__tab:hover:not(:disabled) {
+/* Not on the chosen tab: this rule outranks [aria-selected], and its label must stay primary-contrast. */
+.bit-tabs__tab:hover:not(:disabled):not([aria-selected="true"]) {
   color: var(--bit-color-text);
 }
 
 .bit-tabs__tab[aria-selected="true"] {
   padding-top: var(--bit-space-16px);
+  /* No bottom edge (not a transparent one, whose corners the purple would never fill): the extra padding keeps
+     the height, and the purple layer runs edge to edge down into the slot. */
+  border-bottom-width: 0;
+  padding-bottom: calc(var(--bit-space-8px) + var(--bit-border-width));
   color: var(--bit-color-primary-contrast);
   --_bit-focus-ring: var(--bit-color-primary-contrast);
 }
 
 .bit-tabs__tab[aria-selected="true"]::before {
-  clip-path: inset(0);
+  /* raw: open 1px past every edge, so no unsnapped clip edge leaves a hairline of the tab's neutral fill. */
+  clip-path: inset(-1px);
 }
 
 .bit-tabs__tab:disabled {
@@ -78,6 +89,8 @@
   border: var(--bit-border-width) solid var(--bit-color-line);
   border-bottom: 0;
   border-radius: var(--bit-radius-10px) var(--bit-radius-10px) 0 0;
+  /* The same shadow as the panel, so one shadow runs down the outside from the slot's top, as on a Card. */
+  box-shadow: var(--bit-shadow-md);
 }
 
 .bit-tabs__slot::before {
@@ -88,6 +101,8 @@
 }
 
 .bit-tabs__panel {
+  /* Paints over the slot's downward shadow. */
+  position: relative;
   padding: var(--bit-space-16px);
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
@@ -115,8 +130,9 @@
 @keyframes bit-tabs-unfilled-b { from, to { color: var(--bit-color-text-muted); --_bit-focus-ring: var(--bit-focus-ring-color); } }
 @keyframes bit-tabs-seat-a { 0% { transform: none; } 50% { transform: translateY(3px); } 100% { transform: none; } }
 @keyframes bit-tabs-seat-b { 0% { transform: none; } 50% { transform: translateY(3px); } 100% { transform: none; } }
-@keyframes bit-tabs-pour-a { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
-@keyframes bit-tabs-pour-b { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
+/* raw: the pour ends open 1px past every edge, as the chosen rule (no hairline seam). */
+@keyframes bit-tabs-pour-a { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(-1px); } }
+@keyframes bit-tabs-pour-b { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(-1px); } }
 @keyframes bit-tabs-spread-a { from { clip-path: inset(0 calc(100% - var(--_bit-tabs-x, 50%)) 0 var(--_bit-tabs-x, 50%)); } to { clip-path: inset(0); } }
 @keyframes bit-tabs-spread-b { from { clip-path: inset(0 calc(100% - var(--_bit-tabs-x, 50%)) 0 var(--_bit-tabs-x, 50%)); } to { clip-path: inset(0); } }
 
