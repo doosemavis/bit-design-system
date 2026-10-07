@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { block, readCss, styleRules } from '../css';
+import { OUTLINE_DECLARATION } from '../css';
 
 describe('components/tabs.css', () => {
   const css = readCss('components/tabs.css');
@@ -34,11 +35,8 @@ describe('components/tabs.css', () => {
     expect(css).not.toMatch(/translateY\(\s*-/);
   });
 
-  it('the focus ring is drawn inside, on the label, because the notch clips outlines', () => {
-    expect(block(css, '.bit-tabs__tab:focus-visible')).toContain('outline: none;');
-    expect(block(css, '.bit-tabs__tab:focus-visible > .bit-tabs__label')).toContain(
-      'outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));',
-    );
+  it('the list never shows a vertical scrollbar, even during the seat animation', () => {
+    expect(block(css, '.bit-tabs__list')).toContain('overflow-y: hidden;');
   });
 
   it('the slot is a strip with a purple layer; the panel sits under it with no top border', () => {
@@ -65,6 +63,23 @@ describe('components/tabs.css', () => {
   it('forced colours: CanvasText borders, Highlight fills, HighlightText on the chosen tab', () => {
     expect(inMedia('(forced-colors: active)', '.bit-tabs__tab')).toContain('border-color: CanvasText;');
     expect(inMedia('(forced-colors: active)', '.bit-tabs__tab::before')).toContain('background: Highlight;');
-    expect(inMedia('(forced-colors: active)', '.bit-tabs__tab[aria-selected="true"]')).toContain('color: HighlightText;');
+    const chosen = inMedia('(forced-colors: active)', '.bit-tabs__tab[aria-selected="true"]');
+    expect(chosen).toContain('color: HighlightText;');
+    expect(chosen).toContain('--_bit-focus-ring: HighlightText;');
+  });
+});
+
+describe('system/reset.css (Tabs ring)', () => {
+  it('draws the one ring inside the focused label', () => {
+    const focusVisible = block(readCss('system/reset.css'), '.bit-tabs__tab:focus-visible')!;
+    expect(focusVisible).toContain('outline: none;');
+    const label = block(readCss('system/reset.css'), '.bit-tabs__tab:focus-visible > .bit-tabs__label')!;
+    expect(label).toContain('outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));');
+    expect(label).toContain('outline-offset: var(--bit-space-4px);');
+  });
+
+  it('uses no raw outlines outside reset.css', () => {
+    const css = readCss('components/tabs.css');
+    expect(css).not.toMatch(OUTLINE_DECLARATION);
   });
 });

@@ -12,6 +12,8 @@
   gap: var(--bit-space-8px);
   padding-inline-start: var(--bit-space-12px);
   overflow-x: auto;
+  /* Prevent vertical scrollbar from appearing during the seat animation's translateY(3px). */
+  overflow-y: hidden;
 }
 
 .bit-tabs__tab {
@@ -64,16 +66,6 @@
 .bit-tabs__tab:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* The notch clips anything drawn outside the cartridge, so the focus ring goes on the label, inside. */
-.bit-tabs__tab:focus-visible {
-  outline: none;
-}
-
-.bit-tabs__tab:focus-visible > .bit-tabs__label {
-  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
-  outline-offset: var(--bit-space-4px);
 }
 
 /* The slot: the panel's top strip, which lights up from under the chosen cartridge. */

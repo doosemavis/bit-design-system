@@ -292,12 +292,7 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
   });
 
   it.each(listCss('components'))('%s never sets outline or its longhands, so nothing can override the ring', (file) => {
-    const css = withoutBlocks(readCss(`components/${file}`), [
-      // Tabs require outline on the label (not the tab itself) because the notch clip-path would clip the outline.
-      // The focus ring is moved inside the cartridge to remain visible.
-      ...(file === 'tabs.css' ? ['.bit-tabs__tab:focus-visible', '.bit-tabs__tab:focus-visible > .bit-tabs__label'] : []),
-    ]);
-    expect(css).not.toMatch(OUTLINE_DECLARATION);
+    expect(readCss(`components/${file}`)).not.toMatch(OUTLINE_DECLARATION);
   });
 
   it('the outline guard catches the shorthand and every longhand, and allows outline-offset', () => {
