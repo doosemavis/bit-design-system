@@ -10,6 +10,8 @@ import { box } from './box';
 import { button } from './button';
 import { modeToggle } from './modeToggle';
 import { codeBlock } from './codeBlock';
+import { select } from './select';
+import { staticProps } from '../engine/staticProps';
 import { toJsx } from '../code/toJsx';
 import { isOmittedSentinel } from './sentinels';
 import type { ChildSpec, Control, ControlState, Manifest } from './types';
@@ -147,16 +149,18 @@ describe('manifest contract', () => {
     }
   });
 
-  it('the ChildSpec allowlist is option, span, strong, em and code, and catches a typo or a stray tag', () => {
-    expect(HTML_CHILDREN).toEqual(['option', 'span', 'strong', 'em', 'code']);
+  it('the ChildSpec allowlist is span, strong, em and code, and catches a typo or a stray tag', () => {
+    expect(HTML_CHILDREN).toEqual(['span', 'strong', 'em', 'code']);
     const children: ChildSpec[] = [
-      { component: 'option', children: 'ok' },
-      { component: 'opton', children: 'typo' },
+      { component: 'span', children: 'ok' },
+      { component: 'spn', children: 'typo' },
       { component: 'div', children: 'not allowed' },
+      // Select takes an options prop now; an <option> child is a mistake.
+      { component: 'option', children: 'no longer allowed' },
       { component: 'Badge', children: 'registered' },
       { component: 'Nope', children: 'unregistered' },
     ];
-    expect(unknownChildren(children)).toEqual(['opton', 'div', 'Nope']);
+    expect(unknownChildren(children)).toEqual(['spn', 'div', 'option', 'Nope']);
   });
 
   it('the allowlist check reaches nested parts (Table rows and cells)', () => {
@@ -299,8 +303,34 @@ describe('manifest contract', () => {
     expect(codeBlock.docs.props.find((p) => p.name === 'actions')?.type).toBe('ReactNode');
   });
 
-  it('only ModeToggle and CodeBlock are interactive (no HTML tab): they need React to work', () => {
-    expect(MANIFESTS.filter((m) => m.interactive).map((m) => m.name)).toEqual(['ModeToggle', 'CodeBlock']);
+  it('only ModeToggle, CodeBlock and Select are interactive (no HTML tab): they need React to work', () => {
+    expect(MANIFESTS.filter((m) => m.interactive).map((m) => m.name)).toEqual(['ModeToggle', 'CodeBlock', 'Select']);
+  });
+
+  it('Select passes its choices as an options prop, not <option> children', () => {
+    expect(select.children).toBeUndefined();
+    const options = staticProps(select, defaultState(select)).options as readonly { value: string; label: string }[];
+    expect(options.map((o) => o.value)).toEqual(['primary', 'neutral', 'success', 'warning', 'danger']);
+    expect(new Set(options.map((o) => o.value)).size).toBe(options.length);
+  });
+
+  it('Select documents the new API: options, value, defaultValue, onValueChange, placeholder and name, and no children', () => {
+    const names = select.docs.props.map((p) => p.name);
+    for (const name of ['options', 'value', 'defaultValue', 'onValueChange', 'placeholder', 'name', 'size', 'invalid', 'disabled']) {
+      expect(names, name).toContain(name);
+    }
+    expect(names).not.toContain('children');
+    expect(select.docs.badges.join(' ')).not.toMatch(/Native/);
+  });
+
+  it("Select's accessibility notes cover every key and how screen readers name it", () => {
+    const a11y = select.docs.a11y.join('\n');
+    for (const key of ['Tab', 'Enter', 'Space', 'Home', 'End', 'Page Up', 'Page Down', 'Escape', 'arrow']) {
+      expect(a11y, key).toContain(key);
+    }
+    expect(a11y).toMatch(/typ(e|ing)/);
+    expect(a11y).toMatch(/combobox/);
+    expect(a11y).toMatch(/Field/);
   });
 
   it('groups are the sidebar groups, and only the logo is brand', () => {
@@ -313,7 +343,7 @@ describe('manifest contract', () => {
   });
 
   it('isHtmlElement follows JSX: lowercase is an HTML tag, PascalCase is a component', () => {
-    expect(isHtmlElement('option')).toBe(true);
+    expect(isHtmlElement('span')).toBe(true);
     expect(isHtmlElement('Badge')).toBe(false);
   });
 });

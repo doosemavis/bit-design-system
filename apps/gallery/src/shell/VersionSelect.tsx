@@ -51,21 +51,16 @@ export function VersionSelect() {
     <Field label="Version" className="gallery-version">
       <Select
         size="sm"
+        options={options}
         value={ownPath}
         disabled={disabled}
         title={title}
-        onChange={(event) => {
+        onValueChange={(next) => {
           // Only a path versions.json listed (and isVersionsFile vetted) is ever followed.
-          const entry = file?.lines.find((line) => line.path === event.target.value);
+          const entry = file?.lines.find((line) => line.path === next);
           if (entry) window.location.assign(urlForLine(entry.path, window.location.hash));
         }}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </Select>
+      />
     </Field>
   );
 }

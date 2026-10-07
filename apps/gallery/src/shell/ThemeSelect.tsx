@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react';
 import { DEFAULT_THEME, THEMES } from './themes';
 import type { Theme } from './themes';
 
+/** One option per theme, labelled by its name. */
+const THEME_OPTIONS = THEMES.map((name) => ({ value: name, label: name }));
+
 function isTheme(value: string): value is Theme {
   return (THEMES as readonly string[]).includes(value);
 }
@@ -22,18 +25,12 @@ export function ThemeSelect() {
     <Field label="Theme" className="gallery-theme">
       <Select
         size="sm"
+        options={THEME_OPTIONS}
         value={theme}
-        onChange={(event) => {
-          const next = event.target.value;
+        onValueChange={(next) => {
           if (isTheme(next)) setTheme(next);
         }}
-      >
-        {THEMES.map((name) => (
-          <option key={name} value={name}>
-            {name}
-          </option>
-        ))}
-      </Select>
+      />
     </Field>
   );
 }

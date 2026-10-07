@@ -4,6 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { lineOf } from '../content/versionLines.mjs';
 import { resetVersionsCache } from './useVersions';
 import { urlForLine, VersionSelect } from './VersionSelect';
+import { chooseOption, chosenLabel, optionLabels } from '../test/select';
+
+const picker = () => screen.getByRole('combobox', { name: 'Version' });
 
 const CURRENT = lineOf(__BIT_VERSION__);
 const entry = (line: string, version: string, path: string) => ({ line, version, date: '2026-10-04', path, react: '19.2.0', reactDom: '19.2.0' });
@@ -37,32 +40,50 @@ describe('VersionSelect', () => {
     vi.unstubAllEnvs();
   });
 
-  it('lists one option per entry, valued by path, and selects this copy (the root here)', async () => {
+  it('lists one option per entry, in file order, and chooses this copy (the root here)', async () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
     render(<VersionSelect />);
-    const select = screen.getByLabelText('Version');
-    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(2));
-    expect(screen.getByRole('option', { name: '0.2 (latest) · 0.2.0' })).toHaveValue(ROOT);
-    expect(screen.getByRole('option', { name: '0.1 · 0.1.0' })).toHaveValue(V01);
-    expect(select).toHaveValue(ROOT);
-    expect(select).toBeEnabled();
+    await waitFor(() => expect(optionLabels(picker())).toHaveLength(2));
+    expect(optionLabels(picker())).toEqual(['0.2 (latest) · 0.2.0', '0.1 · 0.1.0']);
+    expect(chosenLabel(picker())).toBe('0.2 (latest) · 0.2.0');
+    expect(picker()).toHaveTextContent('0.2 (latest) · 0.2.0');
+    expect(picker()).toBeEnabled();
   });
 
-  it('selects the archived copy it is served from', async () => {
+  it('chooses the archived copy it is served from', async () => {
     at(`${V01}index.html`);
     vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
     render(<VersionSelect />);
-    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(2));
-    expect(screen.getByLabelText('Version')).toHaveValue(V01);
+    await waitFor(() => expect(optionLabels(picker())).toHaveLength(2));
+    expect(chosenLabel(picker())).toBe('0.1 · 0.1.0');
   });
 
   it('goes to the chosen copy, keeping the hash route', async () => {
     const assign = at(ROOT, '#/release-notes');
     vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
     render(<VersionSelect />);
-    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(2));
-    await userEvent.selectOptions(screen.getByLabelText('Version'), V01);
+    await waitFor(() => expect(picker()).toBeEnabled());
+    await chooseOption(userEvent.setup(), picker(), '0.1 · 0.1.0');
     expect(assign).toHaveBeenCalledWith('/bit-design-system/v0.1/#/release-notes');
+  });
+
+  it('goes to the chosen copy by keyboard: Enter opens, ArrowDown moves, Enter chooses', async () => {
+    const assign = at(ROOT, '#/components/button');
+    vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
+    render(<VersionSelect />);
+    await waitFor(() => expect(picker()).toBeEnabled());
+    picker().focus();
+    await userEvent.setup().keyboard('{Enter}{ArrowDown}{Enter}');
+    expect(assign).toHaveBeenCalledWith('/bit-design-system/v0.1/#/components/button');
+  });
+
+  it('choosing this copy again goes nowhere', async () => {
+    const assign = at(ROOT, '#/');
+    vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
+    render(<VersionSelect />);
+    await waitFor(() => expect(picker()).toBeEnabled());
+    await chooseOption(userEvent.setup(), picker(), '0.2 (latest) · 0.2.0');
+    expect(assign).not.toHaveBeenCalled();
   });
 
   it('tells two entries on one line apart by path (the as-older rehearsal)', async () => {
@@ -70,13 +91,10 @@ describe('VersionSelect', () => {
     const assign = at(ROOT, '#/versions');
     vi.stubGlobal('fetch', vi.fn(() => ok(AS_OLDER)));
     render(<VersionSelect />);
-    const select = screen.getByLabelText('Version');
-    await waitFor(() => expect(select).toBeEnabled());
-    expect(screen.getAllByRole('option').map((o) => [o.textContent, (o as HTMLOptionElement).value])).toEqual([
-      ['0.1 (latest) · 0.1.0', ROOT],
-      ['0.1 · 0.1.0', V01],
-    ]);
-    await userEvent.selectOptions(select, V01);
+    await waitFor(() => expect(picker()).toBeEnabled());
+    expect(optionLabels(picker())).toEqual(['0.1 (latest) · 0.1.0', '0.1 · 0.1.0']);
+    expect(chosenLabel(picker())).toBe('0.1 (latest) · 0.1.0');
+    await chooseOption(userEvent.setup(), picker(), '0.1 · 0.1.0');
     expect(assign).toHaveBeenCalledWith('/bit-design-system/v0.1/#/versions');
     expect(errors).not.toHaveBeenCalled();
     errors.mockRestore();
@@ -85,45 +103,43 @@ describe('VersionSelect', () => {
   it('is disabled with a title when there is one line', async () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(ONE)));
     render(<VersionSelect />);
-    const select = screen.getByLabelText('Version');
-    await waitFor(() => expect(select).toBeDisabled());
-    expect(select).toHaveAttribute('title', 'Only one release line so far');
-    expect(screen.getAllByRole('option')).toHaveLength(1);
+    await waitFor(() => expect(picker()).toBeDisabled());
+    expect(picker()).toHaveAttribute('title', 'Only one release line so far');
+    expect(optionLabels(picker())).toHaveLength(1);
   });
 
   it('shows only the current line, disabled, while loading', () => {
     vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
     render(<VersionSelect />);
-    expect(screen.getByLabelText('Version')).toBeDisabled();
-    expect(screen.getAllByRole('option')).toHaveLength(1);
-    expect(screen.getByRole('option')).toHaveValue(ROOT);
-    expect(screen.getByRole('option')).toHaveTextContent(`${CURRENT} · ${__BIT_VERSION__}`);
+    expect(picker()).toBeDisabled();
+    expect(optionLabels(picker())).toEqual([`${CURRENT} · ${__BIT_VERSION__}`]);
+    expect(chosenLabel(picker())).toBe(`${CURRENT} · ${__BIT_VERSION__}`);
   });
 
   it('shows dev (unreleased) when unavailable in dev', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('404'))));
     render(<VersionSelect />);
-    await waitFor(() => expect(screen.getByRole('option', { name: 'dev (unreleased)' })).toBeInTheDocument());
-    expect(screen.getByLabelText('Version')).toBeDisabled();
+    await waitFor(() => expect(optionLabels(picker())).toEqual(['dev (unreleased)']));
+    expect(picker()).toHaveTextContent('dev (unreleased)');
+    expect(picker()).toBeDisabled();
   });
 
   it('shows the current line, disabled, with a title when unavailable in production', async () => {
     vi.stubEnv('DEV', false);
     vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('404'))));
     render(<VersionSelect />);
-    const select = screen.getByLabelText('Version');
-    await waitFor(() => expect(select).toHaveAttribute('title', 'The version list could not be loaded'));
-    expect(select).toBeDisabled();
-    expect(screen.getByRole('option', { name: `${CURRENT} · ${__BIT_VERSION__}` })).toBeInTheDocument();
+    await waitFor(() => expect(picker()).toHaveAttribute('title', 'The version list could not be loaded'));
+    expect(picker()).toBeDisabled();
+    expect(optionLabels(picker())).toEqual([`${CURRENT} · ${__BIT_VERSION__}`]);
   });
 
-  it('adds this copy when the file does not list its path', async () => {
+  it('adds this copy when the file does not list its path, and chooses it', async () => {
     at('/bit-design-system/v0.0/');
     vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
     render(<VersionSelect />);
-    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(3));
-    expect(screen.getByRole('option', { name: `${CURRENT} · ${__BIT_VERSION__}` })).toHaveValue('/bit-design-system/v0.0/');
-    expect(screen.getByLabelText('Version')).toHaveValue('/bit-design-system/v0.0/');
+    await waitFor(() => expect(optionLabels(picker())).toHaveLength(3));
+    expect(optionLabels(picker())[2]).toBe(`${CURRENT} · ${__BIT_VERSION__}`);
+    expect(chosenLabel(picker())).toBe(`${CURRENT} · ${__BIT_VERSION__}`);
   });
 
   it('marks the document once mounted', () => {

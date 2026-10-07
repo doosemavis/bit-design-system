@@ -27,15 +27,10 @@ function ControlField({ control, value, onChange, error }: ControlFieldProps) {
         <Field label={label}>
           <Select
             size="sm"
+            options={control.values.map((v) => ({ value: v, label: v }))}
             value={String(value ?? control.default)}
-            onChange={(event) => onChange(control.prop, event.target.value)}
-          >
-            {control.values.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
-          </Select>
+            onValueChange={(next) => onChange(control.prop, next)}
+          />
         </Field>
       );
     case 'boolean':

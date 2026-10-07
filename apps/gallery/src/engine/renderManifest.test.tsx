@@ -45,7 +45,7 @@ describe('renderManifest', () => {
     expect(screen.getAllByRole('cell')[0]).toHaveTextContent('color');
   });
 
-  it('renders a lowercase ChildSpec as a plain HTML element (Select needs <option>)', () => {
+  it('renders a lowercase ChildSpec as a plain HTML element', () => {
     const withHtml: Manifest = {
       ...stack,
       children: [

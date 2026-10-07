@@ -60,10 +60,11 @@ export const COMPONENTS: Record<string, ComponentType<any>> = {
 };
 
 /**
- * The plain HTML elements a ChildSpec may name (PR1 checklist). A typo like `opton` would otherwise
- * render an unknown element silently; the manifest contract test fails on anything else.
+ * The plain HTML elements a ChildSpec may name (PR1 checklist). A typo like `spn` would otherwise
+ * render an unknown element silently; the manifest contract test fails on anything else. `option` is
+ * gone: Select takes an options prop, and the gallery bans raw <option>.
  */
-export const HTML_CHILDREN: readonly string[] = ['option', 'span', 'strong', 'em', 'code'];
+export const HTML_CHILDREN: readonly string[] = ['span', 'strong', 'em', 'code'];
 
 /** A lowercase ChildSpec name is a plain HTML element, the same rule JSX uses for tags. */
 export function isHtmlElement(name: string): boolean {

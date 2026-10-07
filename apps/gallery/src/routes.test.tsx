@@ -5,6 +5,7 @@ import { MANIFESTS, routeFor } from './manifests';
 import { renderAt } from './test/renderRoute';
 import { expectNoA11yViolations } from './test/a11y';
 import { PAGE_ROUTES } from './test/smokeRoutes';
+import { chooseOption } from './test/select';
 
 /** The Playground's code panel: the CodeBlock whose code region is "Example code". */
 function reactPanel(): HTMLElement {
@@ -48,7 +49,7 @@ describe('component routes (route smoke, D14)', () => {
   it('a control change updates the preview, the code, and the URL', async () => {
     const { router } = renderAt('/components/button');
     await screen.findByRole('heading', { level: 1, name: 'Button' });
-    await userEvent.selectOptions(screen.getByLabelText('color'), 'danger');
+    await chooseOption(userEvent.setup(), screen.getByRole('combobox', { name: 'color' }), 'danger');
     const preview = screen.getByRole('region', { name: 'Button preview' });
     expect(within(preview).getByRole('button', { name: 'Save' })).toHaveClass('bit-danger');
     expect(reactPanel().querySelector('pre')!.textContent).toContain('<Button color="danger">Save</Button>');
