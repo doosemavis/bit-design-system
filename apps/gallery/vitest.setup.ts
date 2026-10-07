@@ -18,3 +18,17 @@ if (env.jsdom) {
 afterEach(() => {
   cleanup();
 });
+
+// jsdom has no HTMLDialogElement.showModal()/close(). A minimal stand-in for unit tests: showModal sets
+// `open`; close clears it and queues `close` as a task, as the browser does. Top layer, inert and focus return are
+// browser behaviour, checked by the gallery's Playwright e2e.
+if (typeof HTMLDialogElement !== 'undefined' && typeof HTMLDialogElement.prototype.showModal !== 'function') {
+  HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) {
+    this.setAttribute('open', '');
+  };
+  HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
+    if (!this.hasAttribute('open')) return;
+    this.removeAttribute('open');
+    setTimeout(() => this.dispatchEvent(new Event('close')), 0);
+  };
+}

@@ -63,6 +63,10 @@ describe('gallery.css', () => {
     expect(galleryCss).toMatch(/\.gallery-preview__stage > \.bit-box \{\s*outline: 2px dashed var\(--bit-color-accent\);\s*\}/);
   });
 
+  it('a previewed Tabs has a steady width, so centring does not shift it as the panel text changes', () => {
+    expect(galleryCss).toMatch(/\.gallery-preview__stage > \.bit-tabs \{\s*width: min\(100%, 36rem\);\s*\}/);
+  });
+
   it.each(['display', 'body', 'pixel', 'mono'])('a %s face sample reads its own font token', (face) => {
     const rule = new RegExp(`\\.gallery-face\\[data-face="${face}"\\]\\s*\\{[^}]*font-family: var\\(--bit-font-${face}\\);`);
     expect(galleryCss).toMatch(rule);

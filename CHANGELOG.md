@@ -2,6 +2,17 @@
 
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
+## 0.1.5 — 2026-10-07
+### Added
+- `Select` `multiple`: pick any number of options. Each row shows a checkbox, and clicking a row or pressing Enter or Space toggles it while the list stays open; Escape, Tab or a click outside closes it. The closed box shows the one chosen label, or a "3 selected" pill in the primary colour when there are several. `value`/`defaultValue` are `string[]`, and `onValueChange` receives the chosen values in option order.
+- In a form, a multi-select `Select` submits every chosen value under `name`, as `<select multiple>` does; `required` means at least one, and a form reset puts back `defaultValue`.
+- `SelectMultipleProps` type. `SelectProps` stays the single-select props, unchanged. Pass `multiple` as a literal: a `boolean` variable doesn't type-check, so render the two cases separately.
+- `Dialog`, with `DialogHeader`, `DialogBody`, `DialogFooter` and `DialogClose`: a modal on the native `<dialog>` and `showModal()`, in the Retro window style. Focus moves inside (to the element with `data-autofocus`, if any), the page behind is inert and does not scroll, Esc or the × closes it, and focus returns to what opened it. Controlled with `open` and `onOpenChange`; `alert` makes it an alertdialog with a red title bar, which shakes instead of closing when you click the dimmed page (no shake with reduced motion); `size` sets the width. It folds out of its title bar in pixel steps and folds back in when closed (none with reduced motion).
+- `Tabs`, with `TabList`, `Tab` and `TabPanel`: the WAI-ARIA tabs pattern with cartridge-shaped tabs. Only the chosen tab is in the Tab order; the arrows (swapped in right-to-left pages), Home and End move between tabs and skip disabled ones; `activation="manual"` waits for Enter or Space. The chosen cartridge seats into a slot that lights up under it, in pixel steps (none with reduced motion). Panels stay mounted.
+- Types: `DialogProps`, `DialogHeaderProps`, `DialogPartProps`, `DialogCloseProps`, `TabsProps`, `TabListProps`, `TabProps`, `TabPanelProps`.
+### Changed
+- Alert: outline Alerts take their colour's border and shadow, like outline Buttons (neutral stays black); new `onDismiss` shows a × close button. The × is an outline neutral `Button` named by `dismissLabel` (default "Dismiss"); the Alert does not hide itself, so remove it in `onDismiss`. A dismissible Alert is marked `data-dismissible`.
+
 ## 0.1.4 — 2026-10-07
 ### Breaking
 - `Select` draws its own list instead of the browser's, so it looks the same in every browser: themed in light and dark, sliding down from the box (or up, when there's no room below). The list opens in the browser's top layer with the Popover API (Chrome and Edge 114+, Safari 17+, Firefox 125+), so cards, tables and scrolling panels never clip it; older browsers get a fixed-position fallback.

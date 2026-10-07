@@ -15,8 +15,9 @@ export interface NavItem {
 type PageGroup = Exclude<ManifestGroup, 'brand'>;
 const GROUP_LABELS: Record<PageGroup, NavGroup> = { components: 'Components', forms: 'Forms' };
 
-/** Start here (Overview is the home page), Foundations (the guide pages), then one entry per components or forms manifest, then Brand. */
-export const NAV: readonly NavItem[] = [
+const GROUPS: readonly NavGroup[] = ['Start here', 'Foundations', 'Components', 'Forms', 'Brand'];
+
+const UNSORTED_NAV: readonly NavItem[] = [
   { group: 'Start here', label: 'Overview', to: '/' },
   { group: 'Start here', label: 'Getting started', to: '/getting-started' },
   { group: 'Start here', label: 'Versions', to: '/versions' },
@@ -32,7 +33,10 @@ export const NAV: readonly NavItem[] = [
   { group: 'Brand', label: 'Logo', to: '/brand/logo' },
 ];
 
-const GROUPS: readonly NavGroup[] = ['Start here', 'Foundations', 'Components', 'Forms', 'Brand'];
+const byLabel = (a: NavItem, b: NavItem) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' });
+
+/** Items in the order GROUPS lists their sections (Start here, Foundations, Components, Forms, Brand), alphabetical by label inside each section. Sorted copies: MANIFESTS keeps its own order. */
+export const NAV: readonly NavItem[] = GROUPS.flatMap((group) => UNSORTED_NAV.filter((item) => item.group === group).sort(byLabel));
 
 interface SidebarProps {
   items: readonly NavItem[];

@@ -1,5 +1,6 @@
 import type { CodeLanguage } from '@bit-ds/react';
 import type { ControlState, Manifest } from '../manifests/types';
+import { isInteractive } from '../engine/childSpecs';
 import { renderManifest } from '../engine/renderManifest';
 import { toJsx } from './toJsx';
 import { toHtml } from './toHtml';
@@ -16,7 +17,7 @@ interface CodeFormat {
   label: string;
   language: CodeLanguage;
   /** False hides the option for this manifest. */
-  available: (manifest: Manifest) => boolean;
+  available: (manifest: Manifest, state: ControlState) => boolean;
   /** Whether the "Full file" Switch applies to this format. */
   fullFile: boolean;
   code: (manifest: Manifest, state: ControlState) => string;
@@ -45,7 +46,7 @@ export const CODE_FORMATS: readonly CodeFormat[] = [
     label: 'HTML',
     language: 'html',
     // An interactive component's markup alone doesn't work.
-    available: (manifest) => !manifest.interactive,
+    available: (manifest, state) => !isInteractive(manifest, state),
     fullFile: false,
     code: (manifest, state) => toHtml(renderManifest(manifest, state)),
   },

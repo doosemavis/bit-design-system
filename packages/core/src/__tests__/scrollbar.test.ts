@@ -19,17 +19,21 @@ const cases = [
   { file: 'components/table.css', sel: '.bit-table', track: '--bit-color-surface', ring: '--bit-color-accent', size: 'height' },
   // The Select list scrolls down, so its bar is sized by width (spec 2026-10-07 §2: as Table).
   { file: 'components/select.css', sel: '.bit-select__list', track: '--bit-color-surface', ring: '--bit-color-accent', size: 'width' },
+  // The Tabs list scrolls horizontally; the track is transparent since it sits on the page background.
+  { file: 'components/tabs.css', sel: '.bit-tabs__list', track: '--bit-color-accent', ring: '--bit-color-accent', size: 'height', trackValue: 'transparent' },
 ];
 
-describe.each(cases)('scrollbar in $file', ({ file, sel, track, ring, size }) => {
+describe.each(cases)('scrollbar in $file', ({ file, sel, track, ring, size, trackValue }) => {
   const block = guarded(readCss(file));
+  const trackExpectation = trackValue ?? `var(${track})`;
+  const trackRegex = trackExpectation.replace(/[()$^.+?*|[\]]/g, '\\$&');
 
   it('sizes the bar at 14px', () => {
     expect(block).toMatch(new RegExp(`${sel}::-webkit-scrollbar\\s*\\{\\s*${size}: 14px;`));
   });
 
   it('paints the track', () => {
-    expect(block).toMatch(new RegExp(`${sel}::-webkit-scrollbar-track\\s*\\{\\s*background: var\\(${track}\\);`));
+    expect(block).toMatch(new RegExp(`${sel}::-webkit-scrollbar-track\\s*\\{\\s*background: ${trackRegex};`));
   });
 
   it('draws a solid accent thumb, slimmed by a transparent border that stays part of the grab area', () => {
@@ -57,7 +61,7 @@ describe.each(cases)('scrollbar in $file', ({ file, sel, track, ring, size }) =>
   it('falls back to scrollbar-color where webkit bars are unsupported', () => {
     const m = /@supports not selector\(::-webkit-scrollbar\)\s*\{([\s\S]*?\})\s*\}/.exec(block);
     expect(m).not.toBeNull();
-    expect(m![1]).toContain(`scrollbar-color: var(${ring}) var(${track});`);
+    expect(m![1]).toContain(`scrollbar-color: var(${ring}) ${trackExpectation};`);
     expect(m![1]).toContain('scrollbar-width: thin;');
   });
 

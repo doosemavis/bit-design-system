@@ -45,10 +45,9 @@ const SHAPE_COUNT = countPrefix('--bit-radius-', '--bit-shadow-');
 const card = (color: string) => screen.getByRole('group', { name: `${color} tokens` });
 
 describe('TokensPage', () => {
-  it('has the Foundations eyebrow, a section bar, and the five sections in order, with no axe violations', async () => {
+  it('has a section bar, and the five sections in order, with no axe violations', async () => {
     const { container } = await open();
     const main = screen.getByRole('main');
-    expect(within(main).getByText('Foundations')).toHaveClass('gallery-eyebrow');
     const titles = ['Color', 'Type', 'Space', 'Shape', 'All tokens'];
     expect(within(main).getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(titles);
     const bar = screen.getByRole('navigation', { name: 'On this page' });

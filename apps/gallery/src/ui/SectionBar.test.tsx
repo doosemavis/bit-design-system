@@ -15,7 +15,7 @@ const SECTIONS = [
 function Page() {
   return (
     <>
-      <PageHeader eyebrow="Foundations" title="Sample" />
+      <PageHeader title="Sample" />
       <SectionBar sections={SECTIONS} />
       {SECTIONS.map((section) => (
         <PageSection key={section.id} {...section}>
@@ -27,9 +27,10 @@ function Page() {
 }
 
 describe('PageHeader, SectionBar and PageSection', () => {
-  it('the header is an eyebrow in pixel type, then the h1', () => {
-    render(<PageHeader eyebrow="Components" title="Button" />);
-    expect(screen.getByText('Components')).toHaveClass('gallery-eyebrow', 'bit-text', 'bit-neutral');
+  it('the header is just the h1, with no eyebrow above it', () => {
+    const { container } = render(<PageHeader title="Button" />);
+    expect(container.querySelector('.gallery-eyebrow')).toBeNull();
+    expect(container.querySelectorAll('p')).toHaveLength(0);
     expect(screen.getByRole('heading', { level: 1, name: 'Button' })).toBeInTheDocument();
   });
 

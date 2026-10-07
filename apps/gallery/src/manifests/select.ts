@@ -1,46 +1,87 @@
 import { SIZES, Select } from '@bit-ds/react';
-import type { Manifest } from './types';
+import type { ControlValue, Manifest } from './types';
 
-/** The playground's choices; the code prints them as one `const options`. */
-const OPTIONS = [
-  { value: 'primary', label: 'Primary' },
-  { value: 'neutral', label: 'Neutral' },
-  { value: 'success', label: 'Success' },
-  { value: 'warning', label: 'Warning' },
-  { value: 'danger', label: 'Danger' },
-];
+/** The playground's choices: the five colours, then fruit, so a long list still reads well. */
+const LABELS = [
+  'Primary',
+  'Neutral',
+  'Success',
+  'Warning',
+  'Danger',
+  'Apple',
+  'Banana',
+  'Cherry',
+  'Grape',
+  'Lemon',
+  'Mango',
+  'Orange',
+  'Peach',
+  'Pear',
+  'Plum',
+  'Kiwi',
+  'Lime',
+  'Melon',
+  'Berry',
+  'Fig',
+] as const;
+const OPTION_COUNT = { min: 1, max: LABELS.length, default: 5 } as const;
+
+/** How many options to list: the control's value floored and clamped to 1–20, or 5 when it isn't a number (an empty field mid-edit). */
+export function optionCount(raw: ControlValue | undefined): number {
+  const n = Math.floor(Number(raw));
+  if (raw === undefined || String(raw).trim() === '' || !Number.isFinite(n)) return OPTION_COUNT.default;
+  return Math.min(OPTION_COUNT.max, Math.max(OPTION_COUNT.min, n));
+}
 
 export const select: Manifest = {
   name: 'Select',
   slug: 'select',
   group: 'forms',
   component: Select,
-  description: 'Picks one option from a list that bit draws itself, so it slides down in the bit theme and looks the same in every browser.',
+  description:
+    'Picks one option, or several with `multiple`, from a list that bit draws itself, so it slides down in the bit theme and looks the same in every browser.',
   controls: [
     { kind: 'axis', prop: 'size', values: SIZES, default: 'md' },
+    {
+      kind: 'number',
+      prop: 'optionCount',
+      label: 'options',
+      default: OPTION_COUNT.default,
+      min: OPTION_COUNT.min,
+      max: OPTION_COUNT.max,
+      step: 1,
+      virtual: true,
+    },
+    { kind: 'boolean', prop: 'multiple', default: false },
     { kind: 'text', prop: 'aria-label', default: 'Color', label: 'aria-label' },
-    { kind: 'text', prop: 'placeholder', default: 'Pick a color', alwaysPrint: true },
+    { kind: 'text', prop: 'placeholder', default: 'Pick colors', alwaysPrint: true },
     { kind: 'boolean', prop: 'invalid', default: false },
     { kind: 'boolean', prop: 'disabled', default: false },
   ],
-  fixedProps: { options: OPTIONS },
+  deriveProps: (state) => ({
+    options: LABELS.slice(0, optionCount(state.optionCount)).map((label) => ({ value: label.toLowerCase(), label })),
+  }),
   presets: [
+    { label: 'Long list', state: { optionCount: '12' } },
+    { label: 'Multi-select', state: { multiple: true, optionCount: '12' } },
     { label: 'Invalid', state: { invalid: true } },
     { label: 'Small', state: { size: 'sm' } },
     { label: 'Disabled', state: { disabled: true } },
   ],
   docs: {
-    badges: ['Combobox and listbox', 'Full keyboard', 'Themed list'],
+    badges: ['Combobox and listbox', 'Single or multi', 'Full keyboard', 'Themed list'],
     usage: {
       do: [
         'Use Select to pick one of five or more options. Put it in a Field for a visible label.',
         'Pass the choices as options, an array of { value, label }, and read the choice with onValueChange.',
         'Use SegmentedControl instead when there are two to four options and all should show.',
+        'Add multiple to let people pick several. Rows show a checkbox, the list stays open while they pick, and the closed box shows the chosen option, or how many when there are several.',
       ],
       dont: [
         'Use a Select for yes or no. Use a Switch.',
         'Use a Select to navigate to another page.',
         'Pass <option> children. Select takes an options array instead.',
+        'Use multiple for two to four options that should all show. Use SegmentedControl with multiple instead.',
       ],
     },
     props: [
@@ -50,26 +91,36 @@ export const select: Manifest = {
         description: 'Required. The choices, in order. A disabled option shows faded and cannot be chosen.',
       },
       {
+        name: 'multiple',
+        type: 'boolean',
+        default: 'false',
+        description:
+          'Pick any number of options. value and defaultValue become string arrays, onValueChange receives a string[] in option order, and each chosen value submits under name. Its props type is SelectMultipleProps. Pass it as a literal: a boolean variable does not type-check.',
+      },
+      {
         name: 'value',
         type: 'string',
-        description: 'The chosen value, when the parent owns it. Use with onValueChange, or use defaultValue. A value no option has shows the placeholder.',
+        description:
+          'The chosen value, when the parent owns it. Use with onValueChange, or use defaultValue. A value no option has shows the placeholder. With multiple, a string[]; values no option has are not shown and are dropped from the next onValueChange.',
       },
       {
         name: 'onValueChange',
-        type: '(value: string) => void',
-        description: 'Called with the new value when the user chooses a different option. Choosing the option already chosen does not call it.',
+        type: '(value: string) => void, or (value: string[]) => void with multiple',
+        description:
+          'Called with the new value when the user chooses a different option. Choosing the option already chosen does not call it. With multiple, it is called on every toggle with the chosen values in option order.',
       },
       {
         name: 'defaultValue',
         type: 'string',
-        description: 'The first chosen value, when the Select owns it, and what a form reset puts back. Unset, nothing is chosen.',
+        description:
+          'The first chosen value, when the Select owns it, and what a form reset puts back. Unset, nothing is chosen. With multiple, a string[]; unset, none are chosen.',
       },
       { name: 'placeholder', type: 'ReactNode', default: "''", description: 'Shown in muted text while nothing is chosen.' },
       {
         name: 'name',
         type: 'string',
         description:
-          'The form field name. A hidden native input is always there to carry the value; with a name, the chosen value is submitted under it, as a native select does.',
+          'The form field name. A hidden native input is always there to carry the value; with a name, the chosen value is submitted under it, as a native select does. With multiple, every chosen value is submitted under it, as a native <select multiple> does.',
       },
       {
         name: 'required',
@@ -111,7 +162,9 @@ export const select: Manifest = {
       'Screen readers announce the combobox by its name (the Field label, or aria-label), then the chosen option, and read each option as it becomes active. The list takes the same name.',
       "Inside a Field it takes the Field's id, hint and error.",
       "A required Select that is empty blocks the form's submit like a native one: the browser shows its own message at the Select and focus moves to it. Escape closes only the list, not a dialog around it, and the list closes when focus leaves.",
-      'In forced-colors mode (Windows high contrast), the active option is ringed in the system highlight color and the chosen option is filled with it, so the two never look alike. An invalid select shows a thick 10px start edge instead of the red border.',
+      'In forced-colors mode (Windows high contrast), the active option is ringed in the system highlight color and the chosen option is filled with it, so the two never look alike. An invalid select shows a thick 10px start edge instead of the red border. With multiple, the checkbox is drawn in system colors and fills with the highlight color when chosen.',
+      'With multiple, the list is marked aria-multiselectable and each option says whether it is chosen. Enter, Space or a click toggles the active option and the list stays open; Escape, Tab, Alt+ArrowUp or a click outside closes it without changing anything.',
+      'With multiple, the closed box reads its one chosen option, or "3 selected" when there are several, so screen readers hear the count.',
     ],
   },
   interactive: true,

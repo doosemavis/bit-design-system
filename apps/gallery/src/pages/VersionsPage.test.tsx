@@ -112,12 +112,11 @@ describe('VersionsPage route', () => {
     at('/bit-design-system/v0.1/');
   });
   afterEach(() => vi.unstubAllGlobals());
-  it('has the Start here eyebrow and no axe violations', async () => {
+  it('has no axe violations', async () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(FILE)));
     const { container } = renderAt('/versions');
     await screen.findByRole('heading', { level: 1, name: 'Versions' });
     await screen.findByText('Breaking changes in 0.3.0');
-    expect(within(screen.getByRole('main')).getByText('Start here')).toBeInTheDocument();
     await expectNoA11yViolations(container);
   });
 });

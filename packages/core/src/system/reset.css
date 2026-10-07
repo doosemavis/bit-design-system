@@ -57,6 +57,18 @@ body {
   outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);
 }
 
+/* Tabs: the cartridge's notch (clip-path) cuts off any outline outside it, so the ring goes on the label, inside. */
+.bit-tabs__tab:focus-visible {
+  outline: none;
+}
+
+.bit-tabs__tab:focus-visible > .bit-tabs__label {
+  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
+  /* The ring is drawn around the label, inside the cartridge: the tab's padding (12px) puts its top edge
+     (12 - 4 - 2 = 6px) just under the 6px notch, which would clip the usual outside offset. */
+  outline-offset: var(--bit-space-4px);
+}
+
 /* CodeBlock's scrollable pre sits inside a panel with overflow: hidden, which would clip a ring drawn
    outside it. Pull the ring 2px inside the pre instead, onto the code background. */
 .bit-code__pre:focus-visible {

@@ -28,9 +28,8 @@ describe('GettingStartedPage', () => {
     localStorage.clear();
   });
 
-  it('has the Start here eyebrow and an h1, with no axe violations', async () => {
+  it('has an h1, with no axe violations', async () => {
     const { container } = await open();
-    expect(within(main()).getByText('Start here')).toBeInTheDocument();
     await expectNoA11yViolations(container);
   });
 
@@ -316,9 +315,8 @@ describe('Versions and Release notes stubs', () => {
   it.each([
     ['/versions', 'Versions'],
     ['/release-notes', 'Release notes'],
-  ])('%s: eyebrow Start here and an h1', async (path, title) => {
+  ])('%s: an h1', async (path, title) => {
     renderAt(path);
     await screen.findByRole('heading', { level: 1, name: title });
-    expect(within(main()).getByText('Start here')).toBeInTheDocument();
   });
 });

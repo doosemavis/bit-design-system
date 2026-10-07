@@ -44,9 +44,8 @@ describe('SegmentedControl page: segments and multiple', () => {
 });
 
 describe('ComponentPage (layout C)', () => {
-  it('the header: eyebrow, h1, description, the import chip with Copy, and the badges', async () => {
+  it('the header: h1, description, the import chip with Copy, and the badges', async () => {
     await open('/components/card', 'Card');
-    expect(within(main()).getByText('Components')).toHaveClass('gallery-eyebrow');
     const chip = screen.getByText("import { Card, CardHeader, CardBody, CardFooter } from '@bit-ds/react';");
     expect(chip).toHaveClass('bit-code', 'gallery-import-code');
     expect(screen.getByRole('button', { name: 'Copy import line' })).toBeInTheDocument();
@@ -270,7 +269,7 @@ describe('ComponentPage (layout C)', () => {
     const preview = region('Select preview');
     const trigger = within(preview).getByRole('combobox', { name: 'Color' });
     expect(trigger).toHaveClass('bit-select__control');
-    expect(trigger).toHaveTextContent('Pick a color');
+    expect(trigger).toHaveTextContent('Pick colors');
     expect(preview.querySelector('select')).toBeNull();
     expect(optionLabels(trigger)).toEqual(['Primary', 'Neutral', 'Success', 'Warning', 'Danger']);
     await chooseOption(userEvent.setup(), trigger, 'Success');
@@ -278,13 +277,13 @@ describe('ComponentPage (layout C)', () => {
     expect(chosenLabel(trigger)).toBe('Success');
     const code = region('Example code').textContent!;
     expect(code).toContain("const options = [\n  { value: 'primary', label: 'Primary' },");
-    expect(code).toContain('<Select aria-label="Color" placeholder="Pick a color" options={options} />');
+    expect(code).toContain('<Select aria-label="Color" placeholder="Pick colors" options={options} />');
     // Its markup needs React, so there is no HTML tab.
     expect(screen.queryByRole('radio', { name: 'HTML' })).toBeNull();
   });
 
   it('the logo page lives under Brand', async () => {
     await open('/brand/logo', 'BitLogo');
-    expect(within(main()).getByText('Brand')).toHaveClass('gallery-eyebrow');
+    expect(screen.getByRole('heading', { level: 1, name: 'BitLogo' })).toBeInTheDocument();
   });
 });

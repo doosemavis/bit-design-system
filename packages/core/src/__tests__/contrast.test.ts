@@ -66,6 +66,19 @@ describe.each(MODES)('%s contrast', (_name, map) => {
     expect(under).toEqual(isDark ? ['primary'] : ['warning']);
   });
 
+  // Owner pick O2 (2026-10-07): an outline Alert takes the same colour edge as an outline Button. It sits on the
+  // page, not a surface, so its edge is checked against the page. In light, warning (1.34:1) and success (2.84:1
+  // on paper, 3.28:1 on white) are under 3:1; each is backed by its 4px shadow in the same colour. Dark has none.
+  it('outline Alert: the colours whose edge is under 3:1 on the page are exactly the accepted ones', () => {
+    const isDark = resolveColor('--bit-color-surface').toLowerCase() !== '#ffffff';
+    const page = resolveColor('--bit-color-bg');
+    const under = COLORS.filter((color) => {
+      const edge = color === 'neutral' ? '--bit-color-line' : `--bit-color-${color}`;
+      return contrastRatio(resolveColor(edge), page) < AA_NON_TEXT;
+    });
+    expect(under).toEqual(isDark ? [] : ['success', 'warning']);
+  });
+
   it.each(CODE_KINDS)('code %s is at least 5.6:1 on the code background (Ink night)', (kind) => {
     expect(contrastRatio(resolveColor(`--bit-code-${kind}`), resolveColor('--bit-code-bg'))).toBeGreaterThanOrEqual(CODE_MIN);
   });

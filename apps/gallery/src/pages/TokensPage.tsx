@@ -22,7 +22,7 @@ export function TokensPage() {
   return (
     <Stack gap={32}>
       <Stack gap={16}>
-        <PageHeader eyebrow="Foundations" title="Tokens">
+        <PageHeader title="Tokens">
           <Text size={18}>
             Every value a theme sets, read live from this page, so they follow the light and dark switch.
           </Text>

@@ -1,7 +1,9 @@
-import type { ChildSpec, Control, ControlState, ControlValue, LiteralValue, Manifest } from '../manifests/types';
+import type { ChildSpec, Control, ControlState, ControlValue, LiteralValue, Manifest, ManifestDemo } from '../manifests/types';
 import { defaultState } from '../engine/state';
 import { isOmittedSentinel } from '../manifests/sentinels';
 import { isHtmlElement } from '../manifests/registry';
+import { isVirtual } from '../manifests/virtual';
+import { activeDemo, childSpecs } from '../engine/childSpecs';
 import { staticProps } from '../engine/staticProps';
 
 const INDENT = '  ';
@@ -106,15 +108,19 @@ function uniqueNames(props: readonly string[]): string[] {
   }, []);
 }
 
-/** The attributes in order, each hoisted one as `prop={name}`, and the const declarations they name. */
-function resolveHoisted(printed: readonly PrintedProp[]): { attrs: string[]; consts: string[] } {
+/** One unique const name per hoisted value, in order, and the const declarations they name. */
+function resolveHoisted(printed: readonly PrintedProp[]): { names: ReadonlyMap<Hoisted, string>; consts: string[] } {
   const hoisted = printed.filter((p): p is Hoisted => typeof p !== 'string');
-  const names = uniqueNames(hoisted.map((h) => h.prop));
-  const nameOf = new Map(hoisted.map((h, index) => [h, names[index]!]));
+  const unique = uniqueNames(hoisted.map((h) => h.prop));
   return {
-    attrs: printed.map((p) => (typeof p === 'string' ? p : `${p.prop}={${nameOf.get(p)!}}`)),
-    consts: hoisted.map((h, index) => `const ${names[index]!} = ${hoistedLiteral(h.value)};`),
+    names: new Map(hoisted.map((h, index) => [h, unique[index]!])),
+    consts: hoisted.map((h, index) => `const ${unique[index]!} = ${hoistedLiteral(h.value)};`),
   };
+}
+
+/** A printed prop as an attribute: as is, or `prop={name}` for a hoisted one. */
+function attr(p: PrintedProp, names: ReadonlyMap<Hoisted, string>): string {
+  return typeof p === 'string' ? p : `${p.prop}={${names.get(p)!}}`;
 }
 
 function isRequiredAria(control: Control): boolean {
@@ -144,15 +150,23 @@ function printProp(control: Control, value: ControlValue, defaultValue: ControlV
   }
 }
 
-function printChildSpec(child: ChildSpec, depth: number): string {
-  const props = Object.entries(child.props ?? {})
-    .map(([k, v]) => ` ${k}="${escapeAttr(v)}"`)
-    .join('');
+/** Every ChildSpec in a tree, each parent before its parts, in document order. */
+function flatten(children: readonly ChildSpec[]): ChildSpec[] {
+  return children.flatMap((child) => [child, ...(typeof child.children === 'object' ? flatten(child.children) : [])]);
+}
+
+function printChildSpec(
+  child: ChildSpec,
+  depth: number,
+  printedProps: ReadonlyMap<ChildSpec, readonly PrintedProp[]>,
+  names: ReadonlyMap<Hoisted, string>,
+): string {
+  const props = printedProps.get(child)!.map((p) => ` ${attr(p, names)}`).join('');
   const indent = INDENT.repeat(depth);
   const open = `${indent}<${child.component}${props}`;
   if (child.children === undefined) return `${open} />`;
   if (typeof child.children === 'string') return `${open}>${printChildren(child.children)}</${child.component}>`;
-  const inner = child.children.map((part) => printChildSpec(part, depth + 1)).join('\n');
+  const inner = child.children.map((part) => printChildSpec(part, depth + 1, printedProps, names)).join('\n');
   return `${open}>\n${inner}\n${indent}</${child.component}>`;
 }
 
@@ -164,10 +178,12 @@ function componentNames(children: readonly ChildSpec[]): string[] {
   ]);
 }
 
-function importLine(manifest: Manifest): string {
-  const nested = typeof manifest.children === 'object' ? componentNames(manifest.children) : [];
-  const unique = [...new Set([manifest.name, ...(manifest.parts ?? []), ...nested])].sort();
-  return `import { ${unique.join(', ')} } from '@bit-ds/react';`;
+function importLine(manifest: Manifest, specs: readonly ChildSpec[] | undefined, demo: ManifestDemo['code'] | undefined): string {
+  const nested = specs ? componentNames(specs) : [];
+  const unique = [...new Set([manifest.name, ...(manifest.parts ?? []), ...nested, ...(demo?.bitImports ?? [])])].sort();
+  const bit = `import { ${unique.join(', ')} } from '@bit-ds/react';`;
+  if (!demo || demo.reactImports.length === 0) return bit;
+  return `import { ${[...demo.reactImports].sort().join(', ')} } from 'react';\n${bit}`;
 }
 
 interface ToJsxOptions {
@@ -204,25 +220,33 @@ export function toJsx(manifest: Manifest, state: ControlState, options: ToJsxOpt
   const classAt = asClasses ? manifest.controls.findIndex((control) => axisChanged(control, state, defaults)) : -1;
   const printed = manifest.controls
     .map((control, index): PrintedProp | null => {
-      if (control.kind === 'select' && control.virtual) return null;
+      if (isVirtual(control)) return null;
       if (asClasses && control.kind === 'axis') return index === classAt ? decoratorClassName(manifest, state, defaults) : null;
       return printProp(control, state[control.prop] ?? defaults[control.prop]!, defaults[control.prop]!);
     })
     .filter((p): p is PrintedProp => p !== null)
     .concat(fixed);
-  const { attrs, consts } = resolveHoisted(printed);
-  const props = attrs.map((p) => ` ${p}`).join('');
+  const specs = childSpecs(manifest, state);
+  // Child props print by the same rules as fixed props; their consts follow the element's, names unique across both.
+  const printedProps = new Map(
+    (specs ? flatten(specs) : []).map((child) => [child, Object.entries(child.props ?? {}).map(([name, value]) => printFixed(name, value))] as const),
+  );
+  const { names, consts } = resolveHoisted([...printed, ...[...printedProps.values()].flat()]);
+  const demo = activeDemo(manifest, state)?.code;
+  const props = [...(demo?.props ?? []), ...printed.map((p) => attr(p, names))].map((p) => ` ${p}`).join('');
 
   const open = `<${manifest.name}${props}`;
   let element: string;
   if (typeof manifest.children === 'string') {
     const children = String(state.children ?? manifest.children);
     element = children === '' ? `${open} />` : `${open}>${printChildren(children)}</${manifest.name}>`;
-  } else if (manifest.children && manifest.children.length > 0) {
-    const inner = manifest.children.map((child) => printChildSpec(child, 1)).join('\n');
+  } else if (specs && specs.length > 0) {
+    const inner = specs.map((child) => printChildSpec(child, 1, printedProps, names)).join('\n');
     element = `${open}>\n${inner}\n</${manifest.name}>`;
   } else {
     element = `${open} />`;
   }
-  return [importLine(manifest), ...consts, element].join('\n\n');
+  if (demo) element = demo.wrap(element);
+  const setup = demo && demo.setup.length > 0 ? [demo.setup.join('\n')] : [];
+  return [importLine(manifest, specs, demo), ...consts, ...setup, element].join('\n\n');
 }

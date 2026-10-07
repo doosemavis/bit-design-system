@@ -31,9 +31,8 @@ describe('ReleaseNotesPage', () => {
     return utils;
   }
 
-  it('has the Start here eyebrow and no axe violations', async () => {
+  it('has no axe violations', async () => {
     const { container } = await open();
-    expect(within(screen.getByRole('main')).getByText('Start here')).toBeInTheDocument();
     await expectNoA11yViolations(container);
   });
 

@@ -335,8 +335,8 @@ assert.ok(existsSync(join(dist, 'themes', 'power-up.css')), 'themes/power-up.css
   );
   writeFileSync(
     join(app, 'check.tsx'),
-    `import { Button, COLORS, SegmentedControl, Select } from '@bit-ds/react';
-import type { Color, SegmentedControlProps, SelectOption, SelectProps } from '@bit-ds/react';
+    `import { Button, COLORS, Dialog, DialogBody, DialogClose, DialogFooter, DialogHeader, SegmentedControl, Select, Tab, TabList, TabPanel, Tabs } from '@bit-ds/react';
+import type { Color, DialogProps, SegmentedControlProps, SelectMultipleProps, SelectOption, SelectProps, TabsProps } from '@bit-ds/react';
 
 const c: Color = COLORS[0];
 
@@ -348,6 +348,12 @@ export const onPick: SegmentedControlProps['onValueChange'] = (v) => void v.toUp
 // Select (0.1.4): options in, a string value out; no <option> children, no native onChange.
 const ranges: readonly SelectOption[] = [{ value: 'day', label: 'Day' }, { value: 'week', label: 'Week', disabled: true }];
 export const onRange: SelectProps['onValueChange'] = (v) => void v.toUpperCase();
+// Select multiple (0.1.5): string[] in, string[] out.
+export const onRanges: SelectMultipleProps['onValueChange'] = (v) => void v.join();
+
+// Dialog and Tabs (0.1.5): controlled open state; tabs by value.
+export const onOpen: DialogProps['onOpenChange'] = (open) => void (open === true);
+export const onTab: TabsProps['onValueChange'] = (v) => void v.toUpperCase();
 
 export function App() {
   return (
@@ -355,6 +361,22 @@ export function App() {
       <Button color={c}>ok</Button>
       <SegmentedControl multiple legend="x" options={[]} value={['a']} onValueChange={(v) => void v.join()} />
       <Select aria-label="Range" options={ranges} name="range" placeholder="Pick one" onValueChange={onRange} />
+      <Select multiple aria-label="Ranges" options={ranges} name="ranges" defaultValue={['day']} onValueChange={onRanges} />
+        <Dialog open={false} onOpenChange={onOpen} alert size="sm">
+          <DialogHeader closeLabel="Close">Title</DialogHeader>
+          <DialogBody>Body</DialogBody>
+          <DialogFooter>
+            <DialogClose data-autofocus>Cancel</DialogClose>
+          </DialogFooter>
+        </Dialog>
+        <Tabs defaultValue="a" activation="manual" onValueChange={onTab}>
+          <TabList aria-label="Demo">
+            <Tab value="a">A</Tab>
+            <Tab value="b" disabled>B</Tab>
+          </TabList>
+          <TabPanel value="a">Panel A</TabPanel>
+          <TabPanel value="b">Panel B</TabPanel>
+        </Tabs>
     </>
   );
 }

@@ -28,9 +28,10 @@ Versions and release notes: [all versions](https://doosemavis.github.io/bit-desi
 Every pull request runs all of this in CI ([workflow](https://github.com/doosemavis/bit-design-system/blob/main/.github/workflows/ci.yml)). Releases publish only from a tagged commit on `main`, and the release job runs the package checks again before publishing:
 
 - **Unit tests** (Vitest and Testing Library) for every component, with 100% statement, branch, function and line coverage on `@bit-ds/react`.
-- **Accessibility in unit tests:** all 19 components run [axe-core](https://github.com/dequelabs/axe-core) on what they render. Select is checked both closed and open.
+- **Accessibility in unit tests:** all 21 components run [axe-core](https://github.com/dequelabs/axe-core) on what they render. Select is checked both closed and open.
 - **Accessibility in a real browser:** Playwright opens every docs page in light and dark mode and fails on any axe violation of the WCAG 2.0, 2.1 and 2.2 A and AA rules.
 - **Keyboard and focus:** Select's keyboard model (arrows, Home and End, Page Up and Page Down, typeahead, Enter, Space, Escape, Tab) is tested key by key, along with where focus goes and how it behaves in a form (`required`, reset, `form="id"`).
+- **Dialog and Tabs:** Dialog is tested for focus moving in (to `data-autofocus`), Esc and the × closing it, focus returning to the opener, and an `alert` dialog ignoring clicks on the dimmed page; in a real browser, Playwright checks the page behind is inert and won't take focus. Tabs are tested for the one Tab stop, arrows (swapped right-to-left), Home and End, skipping disabled tabs, and manual activation.
 - **Colour contrast, computed:** tests read the theme tokens and compute WCAG contrast ratios in light and dark, so a colour change that drops text below 4.5:1 fails the build.
 - **Forced colours (Windows High Contrast):** Playwright runs pages with `forced-colors: active` and checks that states such as invalid still show without colour.
 - **The published package:** before every release the built package is installed into a fresh TypeScript app, type-checked, and imported through both ESM and CommonJS. A Vite app checks that the CSS and fonts load, all from the package, with nothing from a third party.
@@ -102,9 +103,10 @@ Both render identically. Switch and SegmentedControl are native inputs, so their
 - **Forms:** Field, Input, Select, Switch
 - **Content:** Link, Code, CodeBlock, Table (+ TableHead, TableBody, TableRow, TableCell)
 - **Choice:** SegmentedControl, ModeToggle
+- **Overlays and navigation:** Dialog (+ DialogHeader, DialogBody, DialogFooter, DialogClose), Tabs (+ TabList, Tab, TabPanel)
 - **Brand:** BitLogo
 
-Every one works in light and dark mode, and anything focusable shows the one focus ring from `reset.css`. Input, Switch and SegmentedControl sit on the real native element (an `<input>`, a checkbox or radios), so keyboards and screen readers work as browsers intend. Select is a bit-drawn combobox (the WAI-ARIA select-only combobox) with full keyboard support, so its list looks the same in every browser; a hidden native input carries its value, so `name`, `required`, `disabled`, `form` and form reset work as they do on a native `<select>`.
+Every one works in light and dark mode, and anything focusable shows the one focus ring from `reset.css`. Input, Switch and SegmentedControl sit on the real native element (an `<input>`, a checkbox or radios), so keyboards and screen readers work as browsers intend. Select is a bit-drawn combobox (the WAI-ARIA select-only combobox) with full keyboard support and single or multi-select, so its list looks the same in every browser; hidden native inputs carry its value (one per chosen value with `multiple`), so `name`, `required`, `disabled`, `form` and form reset work as they do on a native `<select>`. Dialog is the native modal `<dialog>`: focus moves in, the page behind is inert, Esc closes it, and focus returns to what opened it. Tabs follow the WAI-ARIA tabs pattern, with one Tab stop and arrow keys between tabs.
 
 - `Heading` takes a required `level` (the tag, h1 to h6) and an optional `size` (the look), so an h2 can look like an h3.
 - `Box` pads and offsets one element on the space scale (`padding`, `paddingX`, `paddingTop`, … and the same for `margin`). When props overlap, the most specific wins: `paddingTop` beats `paddingY`, which beats `padding`. Use `Stack` for space between things.

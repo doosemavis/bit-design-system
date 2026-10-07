@@ -114,7 +114,7 @@ describe('toJsx', () => {
       "Select's options are a fixed prop: hoisted into a const and passed as options={options}",
       select,
       { size: 'sm' },
-      `import { Select } from '@bit-ds/react';\n\n${SELECT_OPTIONS_CONST}\n\n<Select size="sm" aria-label="Color" placeholder="Pick a color" options={options} />`,
+      `import { Select } from '@bit-ds/react';\n\n${SELECT_OPTIONS_CONST}\n\n<Select size="sm" aria-label="Color" placeholder="Pick colors" options={options} />`,
     ],
     [
       'an alwaysPrint select prints at its default; a true-default boolean turned off prints ={false}',

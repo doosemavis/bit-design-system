@@ -19,7 +19,7 @@ export function VersionsPage() {
 
   return (
     <Stack gap={24}>
-      <PageHeader eyebrow="Start here" title="Versions">
+      <PageHeader title="Versions">
         <Text>Every release line of bit, and the React it needs.</Text>
       </PageHeader>
       <VersionsTable rows={rows} />

@@ -13,6 +13,10 @@ export type { AlertProps } from './components/Alert/Alert';
 
 export { Card, CardHeader, CardBody, CardFooter } from './components/Card/Card';
 export type { CardProps, CardPartProps } from './components/Card/Card';
+export { Dialog } from './components/Dialog/Dialog';
+export type { DialogProps } from './components/Dialog/Dialog';
+export { DialogHeader, DialogBody, DialogFooter, DialogClose } from './components/Dialog/DialogParts';
+export type { DialogHeaderProps, DialogPartProps, DialogCloseProps } from './components/Dialog/DialogParts';
 
 export { Stack } from './components/Stack/Stack';
 export type { StackProps } from './components/Stack/Stack';
@@ -39,7 +43,7 @@ export { Input } from './components/Input/Input';
 export type { InputProps } from './components/Input/Input';
 
 export { Select } from './components/Select/Select';
-export type { SelectProps, SelectOption } from './components/Select/Select';
+export type { SelectProps, SelectMultipleProps, SelectOption } from './components/Select/Select';
 
 export { Switch } from './components/Switch/Switch';
 export type { SwitchProps } from './components/Switch/Switch';
@@ -58,6 +62,10 @@ export type { SegmentedControlProps, SegmentedControlMultipleProps, SegmentedOpt
 
 export { Table, TableHead, TableBody, TableRow, TableCell } from './components/Table/Table';
 export type { TableProps, TableSectionProps, TableRowProps, TableCellProps } from './components/Table/Table';
+export { Tabs } from './components/Tabs/Tabs';
+export type { TabsProps } from './components/Tabs/Tabs';
+export { TabList, Tab, TabPanel } from './components/Tabs/TabParts';
+export type { TabListProps, TabProps, TabPanelProps } from './components/Tabs/TabParts';
 
 export { BitLogo } from './logo/BitLogo';
 export type { BitLogoProps } from './logo/BitLogo';

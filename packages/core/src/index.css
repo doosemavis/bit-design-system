@@ -8,6 +8,7 @@
 @import "./components/badge.css";
 @import "./components/alert.css";
 @import "./components/card.css";
+@import "./components/dialog.css";
 @import "./components/stack.css";
 @import "./components/box.css";
 @import "./components/text.css";
@@ -24,3 +25,4 @@
 @import "./components/code-block.css";
 @import "./components/segmented-control.css";
 @import "./components/table.css";
+@import "./components/tabs.css";
