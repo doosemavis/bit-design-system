@@ -1,5 +1,11 @@
 <p align="center"><img src="https://raw.githubusercontent.com/doosemavis/bit-design-system/main/assets/bit-logo.svg" width="353" alt="bit Design System"></p>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/@bit-ds/react"><img src="https://img.shields.io/npm/v/@bit-ds/react?label=npm&color=7c3aed" alt="npm version"></a>
+  <a href="https://doosemavis.github.io/bit-design-system/"><img src="https://img.shields.io/badge/docs-gallery-7c3aed" alt="Docs and component gallery"></a>
+  <a href="https://github.com/doosemavis/bit-design-system/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/@bit-ds/react?color=7c3aed" alt="MIT license"></a>
+</p>
+
 # bit
 
 React components and design tokens for the bit design system.
