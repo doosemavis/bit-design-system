@@ -140,9 +140,19 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
       if (triggerRef.current!.contains(target) || listRef.current!.contains(target)) return;
       setOpen(false);
       pressedOutside.current = true;
-      // Once this press's click (and any label activation it causes) is done, forget it.
-      const forget = () => setTimeout(() => (pressedOutside.current = false), 0);
-      document.addEventListener('click', forget, { capture: true, once: true });
+      // Forget the press once its click (and any label activation it causes) is done, or at once if
+      // it never becomes a click (pointercancel: a touch that turned into a scroll).
+      const forget = () => {
+        document.removeEventListener('click', afterClick, true);
+        document.removeEventListener('pointercancel', forget, true);
+        pressedOutside.current = false;
+      };
+      const afterClick = () => {
+        document.removeEventListener('click', afterClick, true);
+        setTimeout(forget, 0);
+      };
+      document.addEventListener('click', afterClick, true);
+      document.addEventListener('pointercancel', forget, true);
     }
     document.addEventListener('pointerdown', onDocumentPointerDown, true);
     window.addEventListener('blur', close);
@@ -330,11 +340,10 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
         onChange={ignoreChange}
         required={required}
         disabled={disabled}
-        onInvalid={(event) => {
-          // The input is hidden, so the trigger takes the focus a blocked submit gives it.
-          event.preventDefault();
-          triggerRef.current!.focus();
-        }}
+        // A blocked submit focuses the first invalid control and shows the browser's message over it;
+        // this input lies over the trigger, so the message appears at the Select, and the focus goes on
+        // to the trigger. `invalid` is never cancelled, so checkValidity() moves no focus.
+        onFocus={() => triggerRef.current!.focus()}
       />
     </span>
   );

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { VISUALLY_HIDDEN, block, decl, readCss, styleRules } from '../css';
+import { block, decl, readCss, styleRules } from '../css';
 
 describe('components/select.css', () => {
   const css = readCss('components/select.css');
@@ -180,10 +180,22 @@ describe('components/select.css', () => {
       expect(forced.indexOf('.bit-select__option[aria-selected="true"] {')).toBeGreaterThan(forced.indexOf('.bit-select__option[data-active] {'));
     });
 
-    it('the native form input is visually hidden but still there for the browser’s form handling', () => {
+    it('the native form input lies invisibly over the trigger, so the browser’s validation message points at the Select', () => {
       const input = block(css, '.bit-select__input')!;
-      for (const line of VISUALLY_HIDDEN) expect(input).toContain(line);
-      expect(decl(input, 'pointer-events')).toBe('none');
+      for (const [prop, value] of [
+        ['position', 'absolute'],
+        ['inset', '0'],
+        ['width', '100%'],
+        ['height', '100%'],
+        ['margin', '0'],
+        ['padding', '0'],
+        ['border', '0'],
+        ['opacity', '0'],
+        ['pointer-events', 'none'],
+      ]) {
+        expect(decl(input, prop!), prop).toBe(value);
+      }
+      expect(input).not.toContain('clip-path');
     });
 
     it('states are attributes: the only classes are the block and its elements', () => {

@@ -110,6 +110,23 @@ describe('Select and label clicks', () => {
     expect(isOpen()).toBe(true);
   });
 
+  it('a press outside that turns into a touch scroll (pointercancel, no click) does not swallow the next activation', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Select aria-label="Range" options={OPTIONS} />
+        <p>outside</p>
+      </>,
+    );
+    await user.click(trigger());
+    const outside = screen.getByText('outside');
+    fireEvent.pointerDown(outside);
+    expect(isOpen()).toBe(false);
+    fireEvent.pointerCancel(outside);
+    fireEvent.click(trigger());
+    expect(isOpen()).toBe(true);
+  });
+
   describe('inside an implicit <label>', () => {
     function renderWrapped() {
       const onValueChange = vi.fn();

@@ -17,8 +17,21 @@ function submitSpy() {
   return vi.fn((event: { preventDefault: () => void }) => event.preventDefault());
 }
 
+/**
+ * What a browser does when a submit is blocked (HTML "interactively validate the constraints"): fire
+ * `invalid` at every invalid control, then focus the first one, in document order, whose event wasn't
+ * cancelled. jsdom's reportValidity() stops after the events, so the tests run this step themselves.
+ */
+function reportLikeABrowser(form: HTMLFormElement) {
+  const controls = [...form.elements].filter(
+    (el): el is HTMLInputElement => el instanceof HTMLInputElement && el.willValidate && !el.validity.valid,
+  );
+  const unhandled = controls.filter((el) => el.dispatchEvent(new Event('invalid', { cancelable: true })));
+  act(() => unhandled[0]?.focus());
+}
+
 describe('Select in a form: required', () => {
-  it('an empty required Select blocks submit and focuses its trigger, which says aria-required', () => {
+  it('an empty required Select blocks submit and says aria-required; its invalid event is left to the browser', () => {
     const onSubmit = submitSpy();
     const { container } = render(
       <form onSubmit={onSubmit}>
@@ -30,7 +43,54 @@ describe('Select in a form: required', () => {
     expect(trigger()).not.toHaveAttribute('required');
     act(() => container.querySelector('form')!.requestSubmit());
     expect(onSubmit).not.toHaveBeenCalled();
+    const input = container.querySelector('input')!;
+    expect(input.dispatchEvent(new Event('invalid', { cancelable: true }))).toBe(true);
+  });
+
+  it('when the browser focuses the blocked Select’s input to show its message, focus goes on to the trigger', () => {
+    const { container } = render(
+      <form>
+        <Select aria-label="Range" options={OPTIONS} name="range" required />
+      </form>,
+    );
+    reportLikeABrowser(container.querySelector('form')!);
     expect(trigger()).toHaveFocus();
+  });
+
+  it('checkValidity() (say, on every keystroke) reports the Select invalid but moves no focus', () => {
+    const { container } = render(
+      <form>
+        <input aria-label="Notes" />
+        <Select aria-label="Range" options={OPTIONS} name="range" required />
+      </form>,
+    );
+    const notes = screen.getByRole('textbox', { name: 'Notes' });
+    act(() => notes.focus());
+    expect(container.querySelector('form')!.checkValidity()).toBe(false);
+    expect(container.querySelector<HTMLInputElement>('.bit-select__input')!.checkValidity()).toBe(false);
+    expect(notes).toHaveFocus();
+  });
+
+  it('the first invalid control in document order takes focus: an earlier Select beats a later input', () => {
+    const { container } = render(
+      <form>
+        <Select aria-label="Range" options={OPTIONS} name="range" required />
+        <input aria-label="Notes" required />
+      </form>,
+    );
+    reportLikeABrowser(container.querySelector('form')!);
+    expect(trigger()).toHaveFocus();
+  });
+
+  it('…and an earlier invalid input beats a later Select, which does not steal focus', () => {
+    const { container } = render(
+      <form>
+        <input aria-label="Notes" required />
+        <Select aria-label="Range" options={OPTIONS} name="range" required />
+      </form>,
+    );
+    reportLikeABrowser(container.querySelector('form')!);
+    expect(screen.getByRole('textbox', { name: 'Notes' })).toHaveFocus();
   });
 
   it('once something is chosen, the required Select lets the form submit', async () => {
@@ -58,6 +118,7 @@ describe('Select in a form: required', () => {
     );
     act(() => container.querySelector('form')!.requestSubmit());
     expect(onSubmit).not.toHaveBeenCalled();
+    reportLikeABrowser(container.querySelector('form')!);
     expect(trigger()).toHaveFocus();
   });
 });
