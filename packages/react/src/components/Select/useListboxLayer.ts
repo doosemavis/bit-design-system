@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 import { listboxWidths, placeListbox } from './position';
 
@@ -43,7 +43,8 @@ export function useListboxLayer(
   triggerRef: RefObject<HTMLElement | null>,
   listRef: RefObject<HTMLElement | null>,
   onLeave: () => void,
-  contents: unknown,
+  /** A string that changes when the options do (values, disabled flags, count). */
+  contents: string,
 ): void {
   useLayoutEffect(() => {
     if (!open) return undefined;
@@ -61,8 +62,10 @@ export function useListboxLayer(
     };
     // The list's own scrolling (wheel, scrollbar, a row scrolled into view) must not re-place it:
     // measuring lifts the room cap for a moment, and the browser would clamp its scrollTop.
+    // A scroll dispatched on window (lazy-load libraries do this) has a target that isn't a Node.
     const onScroll = (event: Event) => {
-      if (!list.contains(event.target as Node)) follow();
+      const target = event.target;
+      if (!(target instanceof Node) || !list.contains(target)) follow();
     };
     follow();
     // Commit the placed, not-yet-entered style first: it is where the slide starts.
@@ -80,7 +83,11 @@ export function useListboxLayer(
   }, [open, triggerRef, listRef, onLeave]);
 
   // New options change the list's size: place it again (a list above the trigger grows upward).
+  // Only when `contents` really changed: not on opening (placed above) nor on an equal re-render.
+  const placedContents = useRef(contents);
   useLayoutEffect(() => {
-    if (open && !place(triggerRef.current!, listRef.current!)) onLeave();
+    const changed = placedContents.current !== contents;
+    placedContents.current = contents;
+    if (open && changed && !place(triggerRef.current!, listRef.current!)) onLeave();
   }, [contents, open, triggerRef, listRef, onLeave]);
 }
