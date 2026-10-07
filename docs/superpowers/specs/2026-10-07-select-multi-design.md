@@ -41,7 +41,7 @@ export interface SelectMultipleProps extends Omit<SelectProps, 'multiple' | 'val
 | 1 | that option's label, plain text, as single-select |
 | 2 or more | a pill `<span class="bit-select__count">N selected</span>` where the text sits |
 
-- **Pill look:** `--bit-color-primary` background, `--bit-color-primary-contrast` text, bold, `--bit-radius-full`, and the same text size and padding as Badge `sm`. It stays inside the `bit-select__value` box, so a long trigger still truncates.
+- **Pill look:** `--bit-color-primary` background, `--bit-color-primary-contrast` text, bold, `--bit-radius-full`, `--bit-text-13px` body text, a 20px line height and `0 var(--bit-space-8px)` padding, as on the board. Badge `sm` is not used, because it's the 7px pixel font. It stays inside the `bit-select__value` box, so a long trigger still truncates.
 - **Forced colours:** the pill gets a 1px `CanvasText` border, so it stays visible when the browser removes its background.
 
 ### Open list (B1)
@@ -90,14 +90,15 @@ export interface SelectMultipleProps extends Omit<SelectProps, 'multiple' | 'val
 
 ## 3. Gallery: Field page demo
 - **`control` choice:** a virtual select control `control`, labelled **control**, with values `Input` and `Select`, default `Input`.
-- **`deriveChildren`:** a new optional `deriveChildren?: (state: ControlState) => readonly ChildSpec[]` on `Manifest`. When present it replaces `children` for rendering and printing. `renderManifest` and `toJsx` use it, and it's typed so that a manifest can't have both a string `children` and `deriveChildren`.
+- **`deriveChildren`:** a new optional `deriveChildren?: (state: ControlState) => readonly ChildSpec[]` on `Manifest`. When present it replaces `children` for rendering and printing. `renderManifest` and `toJsx` use it (through one `childSpecs(manifest, state)` helper). A manifests test rejects a manifest that has both `children` and `deriveChildren`.
   - Input: `{ component: 'Input', props: { type: 'email', placeholder: 'you@example.com' } }`, as today.
-  - Select: `{ component: 'Select', props: { placeholder: 'Pick a colour', options: FIELD_OPTIONS } }`, using the 5 colour options.
+  - Select: `{ component: 'Select', props: { placeholder: 'Pick a color', options: FIELD_OPTIONS } }`, using the 5 colour options.
 - **`ChildSpec.props`:** widens from `Record<string, string>` to `Record<string, LiteralValue>`.
   - `printChildSpec` prints them with the same rules as top-level props: strings as attributes, other literals braced, and arrays, objects and strings over 40 characters hoisted to a `const`.
   - Hoisted child consts join the element's consts, so names stay unique (`options`, `options2`). Full-file and snippet placement are unchanged.
-- **Label:** when `control` is Select, the default Field label stays `Email` unless edited. That's acceptable, but the Select preset sets `label: 'Favourite colour'` and `hint: 'We use it for your avatar.'`.
+- **Label:** when `control` is Select, the default Field label stays `Email` unless edited. That's acceptable, but the Select preset sets `label: 'Favorite color'` and `hint: 'We use it for your avatar.'`.
 - **Presets:** add a "Select" preset (`control: 'Select'`, plus the label and hint above).
+- **HTML tab** (amendment, 2026-10-07): a Select's markup alone doesn't work, so the Field page hides its HTML tab while `control` is Select. `Manifest.interactive` may be a function of the state (`(state) => state.control === 'Select'`), and `CodeFormat.available` takes `(manifest, state)`. CodePanel already falls back to Props when the chosen tab disappears.
 
 ## 4. Tests
 **React.**
@@ -123,7 +124,7 @@ export interface SelectMultipleProps extends Omit<SelectProps, 'multiple' | 'val
 **Visual.** Headed Chromium screenshots of the Select page in light and dark: closed with the pill, open with checkbox rows, and the 12-option scrolling list. Also the Field page with Select.
 
 ## 5. Release
-- `@bit-ds/react` goes to **0.1.5**, with a CHANGELOG `0.1.5` "Added" section (multi-select and `SelectMultipleProps`) and a "Gallery" note. The README Select line mentions multi-select.
+- `@bit-ds/react` goes to **0.1.5**, with a CHANGELOG `0.1.5` "Added" section (multi-select and `SelectMultipleProps`). The CHANGELOG lists package releases only, so the gallery changes get no entry. The README Select line mentions multi-select.
 - The release follows the usual flow: PR, merge, tag `v0.1.5`, and the owner approves `publish`.
 
 ## Out of scope
