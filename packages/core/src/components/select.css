@@ -176,6 +176,67 @@
   cursor: not-allowed;
 }
 
+/* Two or more chosen (multi-select): the count, in a pill where the text sits. */
+.bit-select__count {
+  display: inline-block;
+  padding: 0 var(--bit-space-8px);
+  font-size: var(--bit-text-13px);
+  font-weight: var(--bit-weight-bold);
+  line-height: 20px; /* raw: the pill's height inside every control size; there is no 20px leading token */
+  color: var(--bit-color-primary-contrast);
+  background: var(--bit-color-primary);
+  border-radius: var(--bit-radius-full);
+}
+
+/* Multi-select (the listbox is aria-multiselectable): every row leads with a checkbox, and the checkbox,
+   not a fill, shows what is chosen. Decoration only: aria-selected tells screen readers. */
+.bit-select__list[aria-multiselectable="true"] .bit-select__option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-8px);
+}
+
+.bit-select__list[aria-multiselectable="true"] .bit-select__option::before {
+  content: "";
+  flex: none;
+  box-sizing: border-box;
+  width: 18px; /* raw: the checkbox, sized to the row's text */
+  height: 18px;
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-6px);
+  background: var(--bit-color-surface);
+}
+
+.bit-select__list[aria-multiselectable="true"] .bit-select__option[aria-selected="true"] {
+  background: transparent;
+  color: var(--bit-color-text);
+  font-weight: var(--bit-weight-normal);
+}
+
+.bit-select__list[aria-multiselectable="true"] .bit-select__option[aria-selected="true"]::before {
+  background: var(--bit-color-primary);
+}
+
+/* The tick: two borders of a 5×10 box turned 45°, centred on the checkbox (the row's start padding + 5px). */
+.bit-select__list[aria-multiselectable="true"] .bit-select__option[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  inset-inline-start: calc(var(--bit-space-12px) + 5px);
+  width: 5px;
+  height: 10px;
+  margin-top: -7px; /* raw: lifts the turned box so the tick sits centred in the 18px checkbox */
+  border: solid var(--bit-color-primary-contrast);
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+
+/* Comes after the chosen override, so an active chosen row still shows the hover fill. */
+.bit-select__list[aria-multiselectable="true"] .bit-select__option[data-active] {
+  background: var(--bit-color-primary-soft);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bit-select::after,
   .bit-select__list[data-entered] {
@@ -218,5 +279,36 @@
 
   .bit-select__option[data-active][aria-selected="true"] {
     box-shadow: inset 0 0 0 2px HighlightText;
+  }
+
+  /* The pill's fill is removed in forced colours; a ring keeps it visible. */
+  .bit-select__count {
+    border: 1px solid CanvasText;
+  }
+
+  /* Multi-select: the checkbox, not a row fill, shows the choice. */
+  .bit-select__list[aria-multiselectable="true"] .bit-select__option::before {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background: Canvas;
+  }
+
+  .bit-select__list[aria-multiselectable="true"] .bit-select__option[aria-selected="true"] {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .bit-select__list[aria-multiselectable="true"] .bit-select__option[aria-selected="true"]::before {
+    background: Highlight;
+    border-color: Highlight;
+  }
+
+  .bit-select__list[aria-multiselectable="true"] .bit-select__option[aria-selected="true"]::after {
+    forced-color-adjust: none;
+    border-color: HighlightText;
+  }
+
+  .bit-select__list[aria-multiselectable="true"] .bit-select__option[data-active] {
+    box-shadow: inset 0 0 0 2px Highlight;
   }
 }
