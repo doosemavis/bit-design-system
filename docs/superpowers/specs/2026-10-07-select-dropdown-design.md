@@ -19,10 +19,12 @@ export interface SelectProps
   defaultValue?: string;          // uncontrolled; default: none chosen
   onValueChange?: (value: string) => void;
   placeholder?: ReactNode;        // shown while nothing is chosen; default ''
-  name?: string;                  // a hidden <input type="hidden"> carries name and value for form submits
+  name?: string;                  // the form field name; the always-present hidden native input submits under it
+  required?: boolean;             // empty blocks the form's submit, as a native select; also aria-required (a Field's required does the same)
+  form?: string;                  // id of the owning form, when the Select sits outside it (goes to the hidden input)
   size?: Size;                    // class bit-{size} on the wrapper, as today
   invalid?: boolean;              // aria-invalid="true" and the danger border, as today; a Field error does the same
-  disabled?: boolean;
+  disabled?: boolean;             // can't open, and submits nothing, as a native select
 }
 ```
 - `forwardRef<HTMLButtonElement>`: the ref goes to the trigger button. `className` goes on the wrapper, as today.
@@ -38,7 +40,7 @@ export interface SelectProps
 - Option rows have 8px/12px padding and a 6px radius. Hovered or keyboard-active rows get `--bit-color-primary-soft`. The chosen row is `--bit-color-primary` with `--bit-color-primary-contrast` text in bold. A disabled row is at 0.5 opacity and can't be chosen.
 - **Motion:** it slides down 8px and fades in over 150ms (`--bit-duration-*` tokens where they fit) as it opens, and the chevron rotates 180°. When the list opens above, it slides up instead. Reduced motion makes it instant.
 - **Long lists:** max-height of about 16rem, then the list scrolls with the themed scrollbar (a surface track and an accent thumb, as Table).
-- Forced colours use system colours: Highlight/HighlightText for active and chosen rows, CanvasText for the border.
+- Forced colours use system colours: the active row is a Highlight ring on Canvas, the chosen row a Highlight fill with HighlightText (a HighlightText ring when it is also active), and CanvasText for the border and the chevron.
 
 ## 3. Behaviour (WAI-ARIA APG "select-only combobox")
 **Trigger.** A `<button type="button" role="combobox" aria-haspopup="listbox" aria-expanded aria-controls={listId}>`, with `aria-activedescendant` set while the list is open.
@@ -70,7 +72,15 @@ export interface SelectProps
 - If there isn't room below for the list (or 8rem, whichever is smaller) and there is more room above, it opens above.
 - It repositions on scroll (capture) and resize while open, and closes if the trigger leaves the viewport.
 
-**Forms and SSR.** Nothing touches `window` or `document` during render, and the ids come from `useId`. The hidden input is rendered only when `name` is set.
+**Forms (final review, 0.1.4).** A native `<input type="text" class="bit-select__input">` is always rendered and carries the form value, so the Select behaves like a native select in a form:
+- It lies invisibly over the trigger (absolute, inset 0, opacity 0, pointer-events none), with `aria-hidden="true"`, `tabIndex=-1` and `autoComplete="off"`. It is controlled; a direct change (autofill) is dropped.
+- `name` submits the chosen value (`''` when nothing or an unknown value is chosen); without a name it submits nothing.
+- `required` (or a Field's) makes an empty Select invalid. `invalid` is never cancelled, so the browser runs its own interactive validation: on a blocked submit it focuses the first invalid control in document order and shows its message there. This input sits over the trigger, so the message appears at the Select, and the input's `onFocus` passes focus on to the trigger (the message stays up in Chromium). `checkValidity()` moves no focus. `aria-required` stays on the trigger.
+- `disabled` disables the input too, so a disabled Select submits nothing and never blocks.
+- `form="id"` goes to the input, not the button.
+- The owning form's `reset` (found through `input.form`) puts an uncontrolled Select back to `defaultValue`, or to none; a controlled Select ignores it. `onValueChange` is not called.
+
+**SSR.** Nothing touches `window` or `document` during render, and the ids come from `useId`.
 
 ## 4. Gallery
 Every Select the gallery uses moves to the new API:
@@ -88,7 +98,7 @@ The gallery's own tests and e2e specs that used native `<select>` APIs (`selectO
 - Opening and closing by click, keys and outside click.
 - Every key in section 3, typeahead included.
 - Controlled and uncontrolled use; `onValueChange` only on a change; placeholder; an unknown value; disabled options and a disabled control.
-- `name` and the hidden input; Field wiring (label, describedby, invalid); the ref on the trigger.
+- The always-present hidden input: `name`, `required` (blocks submit; `checkValidity()` moves no focus; document order wins), `disabled`, `form`, and reset. Field wiring (label, describedby, invalid, required); the ref on the trigger.
 - Popover and positioning logic with mocked rects (opens below; flips above).
 - axe while closed and open. Coverage stays at 100%.
 

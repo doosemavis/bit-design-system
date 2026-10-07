@@ -59,12 +59,29 @@ export const select: Manifest = {
         type: '(value: string) => void',
         description: 'Called with the new value when the user chooses a different option. Choosing the option already chosen does not call it.',
       },
-      { name: 'defaultValue', type: 'string', description: 'The first chosen value, when the Select owns it. Unset, nothing is chosen.' },
+      {
+        name: 'defaultValue',
+        type: 'string',
+        description: 'The first chosen value, when the Select owns it, and what a form reset puts back. Unset, nothing is chosen.',
+      },
       { name: 'placeholder', type: 'ReactNode', default: "''", description: 'Shown in muted text while nothing is chosen.' },
       {
         name: 'name',
         type: 'string',
-        description: 'With a name, a hidden input carries the chosen value into form submits.',
+        description:
+          'The form field name. A hidden native input is always there to carry the value; with a name, the chosen value is submitted under it, as a native select does.',
+      },
+      {
+        name: 'required',
+        type: 'boolean',
+        default: 'false',
+        description:
+          "An empty Select blocks the form's submit: the browser shows its own message at the Select and focus moves to it. Sets aria-required too. A Field's required does the same.",
+      },
+      {
+        name: 'form',
+        type: 'string',
+        description: 'The id of the form the value belongs to, when the Select sits outside that form. Its reset resets the Select too.',
       },
       { name: 'size', className: 'bit-{size}', type: "'sm' | 'md' | 'lg'", default: "'md'", description: 'Control height. The class goes on the wrapper.' },
       {
@@ -78,7 +95,12 @@ export const select: Manifest = {
         default: 'false',
         description: 'Marks the choice wrong: aria-invalid="true" (a flag that tells screen readers the choice is wrong) and a danger border.',
       },
-      { name: 'disabled', type: 'boolean', default: 'false', description: 'Turns the whole control off: it cannot be focused or opened.' },
+      {
+        name: 'disabled',
+        type: 'boolean',
+        default: 'false',
+        description: 'Turns the whole control off: it cannot be focused or opened, and submits nothing, as a disabled native select.',
+      },
       { name: 'ref', type: 'Ref<HTMLButtonElement>', description: 'Goes to the trigger button. className goes on the wrapper.' },
     ],
     a11y: [
@@ -88,7 +110,8 @@ export const select: Manifest = {
       'Enter or Space chooses the active option and closes the list; Alt+ArrowUp chooses the active option and closes it too. Escape closes it without choosing. Tab chooses the active option, closes the list and moves on.',
       'Screen readers announce the combobox by its name (the Field label, or aria-label), then the chosen option, and read each option as it becomes active. The list takes the same name.',
       "Inside a Field it takes the Field's id, hint and error.",
-      'In forced-colors mode (Windows high contrast), the active and chosen options use the system highlight colors, and an invalid select shows a thick 10px start edge instead of the red border.',
+      "A required Select that is empty blocks the form's submit like a native one: the browser shows its own message at the Select and focus moves to it. Escape closes only the list, not a dialog around it, and the list closes when focus leaves.",
+      'In forced-colors mode (Windows high contrast), the active option is ringed in the system highlight color and the chosen option is filled with it, so the two never look alike. An invalid select shows a thick 10px start edge instead of the red border.',
     ],
   },
   interactive: true,
