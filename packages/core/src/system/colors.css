@@ -1,7 +1,8 @@
 /* Color decorators. Written once; every component reads the private variables.
    Adding a color = four tokens (color, contrast, hover, soft) in each theme + one rule here.
    The edge and outline shadow color an outline Button or Badge's border and hard shadow. The edge is the
-   solid color itself (neutral uses the line color, since its solid is white or night). */
+   solid color itself, except neutral: its outline keeps the line color and the hard shadow, so a neutral
+   outline reads like the page's own borders rather than a steel-grey one. */
 .bit-primary {
   --_bit-color: var(--bit-color-primary);
   --_bit-color-contrast: var(--bit-color-primary-contrast);

@@ -2,9 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { readCss, resolveVar, themeModes } from './css';
 
 /**
- * Dark mode must not change the light theme, except for three owner-approved changes (plus the 0.1.4 neutral recolour, N1 steel, picked by the owner): the violet
- * 2px focus ring with a 2px gap, no gloss, and no yellow band. Frozen 2026-10-03 from power-up
- * after PR1. Never edit a row to make a test pass; a failing row means light really changed.
+ * Dark mode must not change the light theme. Frozen 2026-10-03 from power-up after PR1, with the
+ * owner-approved changes since:
+ * - PR1: the violet 2px focus ring with a 2px gap, no gloss, and no yellow band.
+ * - 0.1.4: the neutral recolour (N1 steel), picked by the owner: neutral #5F6372, hover #4E5260,
+ *   contrast white. Its rows below carry the new values.
+ * Never edit a row to make a test pass; a failing row means light really changed.
  */
 const FROZEN_LIGHT: readonly (readonly [token: string, value: string])[] = [
   ['--bit-color-bg', '#EEEFE9'],
@@ -25,7 +28,7 @@ const FROZEN_LIGHT: readonly (readonly [token: string, value: string])[] = [
 
 const { light } = themeModes(readCss('themes/power-up.css'));
 
-describe('light theme is frozen apart from the approved focus and gloss changes', () => {
+describe('light theme is frozen apart from the approved focus, gloss and 0.1.4 neutral changes', () => {
   it.each(FROZEN_LIGHT)('%s is still %s', (token, value) => {
     expect(resolveVar(light, token)).toBe(value);
   });

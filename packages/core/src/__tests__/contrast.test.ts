@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CODE_KINDS, COLORS } from '../tokens';
-import { contrastRatio, listCss, luminance, readCss, resolveVar, themeModes } from './css';
+import { block, contrastRatio, decl, listCss, luminance, readCss, resolveVar, styleRules, themeModes } from './css';
 
 const AA_TEXT = 4.5;
 const AA_NON_TEXT = 3;
@@ -239,6 +239,64 @@ describe('code-text (Code inside a Table)', () => {
     const text = resolveVar(map, '--bit-color-code-text');
     for (const bg of ['--bit-color-surface', '--bit-color-bg', '--bit-color-stripe']) {
       expect(contrastRatio(text, resolveVar(map, bg))).toBeGreaterThanOrEqual(AA_TEXT);
+    }
+  });
+});
+
+describe('Spinner arc against its ring (0.1.4 final review)', () => {
+  const spinner = readCss('components/spinner.css');
+  const { light, dark } = themeModes(readCss('themes/power-up.css'));
+  const darkMap = new Map([...light, ...dark]);
+  const VAR = /var\((--[\w-]+)\)/;
+  const base = block(spinner, '.bit-spinner')!;
+  const darkRule = block(spinner, '[data-mode="dark"] .bit-spinner');
+  type Mode = 'light' | 'dark';
+
+  /** The token a declaration reads: from the dark rule in dark mode when it sets `prop`, else from `fallback` in the base rule. */
+  function reads(mode: Mode, prop: string, fallback = prop): string {
+    const own = mode === 'dark' && darkRule !== null ? decl(darkRule, prop) : null;
+    return VAR.exec(own ?? decl(base, fallback)!)![1]!;
+  }
+
+  const ringToken = (mode: Mode) => reads(mode, 'border-color', 'border');
+  /** The arc reads the colour decorator's private variable; resolve it to the theme token for `color`. */
+  const arcToken = (color: string, mode: Mode) => reads(mode, 'border-top-color').replace('--_bit-color', `--bit-color-${color}`);
+  const arcRatio = (color: string, mode: Mode) => {
+    const map = mode === 'light' ? light : darkMap;
+    return contrastRatio(resolveVar(map, arcToken(color, mode)), resolveVar(map, ringToken(mode)));
+  };
+
+  const cases = COLORS.flatMap((color) => [
+    [color, 'light'],
+    [color, 'dark'],
+  ]) as [string, Mode][];
+
+  it.each(cases)('the %s arc stands out from its ring in %s at 3:1', (color, mode) => {
+    expect(arcRatio(color, mode)).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  it('light is unchanged: a line-coloured ring and an arc in the colour', () => {
+    expect(ringToken('light')).toBe('--bit-color-line');
+    expect(arcToken('primary', 'light')).toBe('--bit-color-primary');
+  });
+
+  it('dark (board S1): the ring is the page’s darkest colour, night #15151C, and every arc keeps its own colour', () => {
+    expect(ringToken('dark')).toBe('--bit-color-bg');
+    expect(resolveVar(darkMap, '--bit-color-bg')).toBe('#15151C');
+    for (const color of COLORS) expect(arcToken(color, 'dark')).toBe(`--bit-color-${color}`);
+    expect(spinner).not.toMatch(/\.bit-spinner\.bit-/);
+  });
+
+  it('every dark arc override is repeated for system mode on a dark OS', () => {
+    const rules = styleRules(spinner);
+    const darkRules = rules.filter((rule) => rule.media === null && rule.selector.startsWith('[data-mode="dark"]'));
+    expect(darkRules.length).toBeGreaterThan(0);
+    for (const rule of darkRules) {
+      const system = rules.find(
+        (r) => r.media === '(prefers-color-scheme: dark)' && r.selector === rule.selector.replace('[data-mode="dark"]', '[data-mode="system"]'),
+      );
+      const flat = (body: string | undefined) => body?.replace(/\s+/g, ' ');
+      expect(flat(system?.body), rule.selector).toBe(flat(rule.body));
     }
   });
 });

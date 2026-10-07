@@ -73,6 +73,22 @@
   opacity: 0.5;
 }
 
+/* The native input that carries the value into forms (name, required, disabled, form, reset). It lies
+   invisibly over the trigger, so a blocked submit's browser message points at the Select; clicks pass
+   through to the trigger, and aria-hidden and tabindex="-1" keep it from screen readers and Tab. */
+.bit-select__input {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* The list: a Card-like panel in the top layer (Popover API), placed by script with top, left and
    min-width, and capped to the room on its side by --_bit-select-room. No display here, so the hidden
    attribute and the popover's own rule can hide it. It starts 8px up (or down, opened above) and
@@ -173,14 +189,34 @@
     border-inline-start-width: 10px;
   }
 
+  /* Forced colours paint the chevron's transparent sides too, turning the triangle into a bar. */
+  .bit-select::after {
+    forced-color-adjust: none;
+    border-top-color: CanvasText;
+    border-left-color: transparent;
+    border-right-color: transparent;
+  }
+
   .bit-select__list {
     border-color: CanvasText;
   }
 
-  .bit-select__option[data-active],
+  /* Active and chosen must differ: active is a Highlight ring on Canvas, chosen a Highlight fill
+     (after active, so it wins), and the chosen row while active gets a HighlightText ring inside its fill. */
+  .bit-select__option[data-active] {
+    forced-color-adjust: none;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: inset 0 0 0 2px Highlight;
+  }
+
   .bit-select__option[aria-selected="true"] {
     forced-color-adjust: none;
     background: Highlight;
     color: HighlightText;
+  }
+
+  .bit-select__option[data-active][aria-selected="true"] {
+    box-shadow: inset 0 0 0 2px HighlightText;
   }
 }

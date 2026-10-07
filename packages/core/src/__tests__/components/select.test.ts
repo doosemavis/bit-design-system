@@ -149,19 +149,58 @@ describe('components/select.css', () => {
       );
     });
 
-    it('forced colours: a CanvasText border on the list, Highlight on active and chosen rows', () => {
+    it('forced colours: the chevron stays a CanvasText triangle (its transparent sides would otherwise be painted)', () => {
+      const chevron = inMedia('(forced-colors: active)', '.bit-select::after')!;
+      expect(chevron).toContain('forced-color-adjust: none;');
+      expect(chevron).toContain('border-top-color: CanvasText;');
+      expect(chevron).toContain('border-left-color: transparent;');
+      expect(chevron).toContain('border-right-color: transparent;');
+    });
+
+    it('forced colours: a CanvasText border on the list', () => {
       expect(inMedia('(forced-colors: active)', '.bit-select__list')).toContain('border-color: CanvasText;');
-      for (const selector of ['.bit-select__option[data-active]', '.bit-select__option[aria-selected="true"]']) {
-        const body = inMedia('(forced-colors: active)', selector)!;
-        expect(body).toContain('background: Highlight;');
-        expect(body).toContain('color: HighlightText;');
-        expect(body).toContain('forced-color-adjust: none;');
+    });
+
+    it('forced colours: the active row is ringed in Highlight on Canvas; the chosen row is filled Highlight', () => {
+      const activeRow = inMedia('(forced-colors: active)', '.bit-select__option[data-active]')!;
+      expect(activeRow).toContain('forced-color-adjust: none;');
+      expect(activeRow).toContain('background: Canvas;');
+      expect(activeRow).toContain('color: CanvasText;');
+      expect(activeRow).toContain('box-shadow: inset 0 0 0 2px Highlight;');
+      const chosenRow = inMedia('(forced-colors: active)', '.bit-select__option[aria-selected="true"]')!;
+      expect(chosenRow).toContain('forced-color-adjust: none;');
+      expect(chosenRow).toContain('background: Highlight;');
+      expect(chosenRow).toContain('color: HighlightText;');
+    });
+
+    it('forced colours: the chosen row while active keeps its fill and gets a HighlightText ring inside it', () => {
+      const both = inMedia('(forced-colors: active)', '.bit-select__option[data-active][aria-selected="true"]')!;
+      expect(both).toContain('box-shadow: inset 0 0 0 2px HighlightText;');
+      const forced = css.slice(css.indexOf('@media (forced-colors: active)'));
+      expect(forced.indexOf('.bit-select__option[aria-selected="true"] {')).toBeGreaterThan(forced.indexOf('.bit-select__option[data-active] {'));
+    });
+
+    it('the native form input lies invisibly over the trigger, so the browser’s validation message points at the Select', () => {
+      const input = block(css, '.bit-select__input')!;
+      for (const [prop, value] of [
+        ['position', 'absolute'],
+        ['inset', '0'],
+        ['width', '100%'],
+        ['height', '100%'],
+        ['margin', '0'],
+        ['padding', '0'],
+        ['border', '0'],
+        ['opacity', '0'],
+        ['pointer-events', 'none'],
+      ]) {
+        expect(decl(input, prop!), prop).toBe(value);
       }
+      expect(input).not.toContain('clip-path');
     });
 
     it('states are attributes: the only classes are the block and its elements', () => {
       const classes = new Set([...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.([a-zA-Z][\w-]*)/g)].map((m) => m[1]!));
-      for (const name of classes) expect(name).toMatch(/^bit-select(__(control|value|list|option))?$/);
+      for (const name of classes) expect(name).toMatch(/^bit-select(__(control|value|list|option|input))?$/);
     });
 
     it('uses no raw colours', () => {

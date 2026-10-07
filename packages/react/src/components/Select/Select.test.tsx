@@ -330,12 +330,28 @@ describe('Select: controlled and uncontrolled', () => {
 });
 
 describe('Select: forms', () => {
-  it('renders no hidden input without a name', () => {
+  it('always renders one native form input: visually hidden, hidden from assistive tech, out of the tab order', () => {
     const { container } = render(<Select aria-label="Range" options={OPTIONS} defaultValue="day" />);
-    expect(container.querySelector('input')).toBeNull();
+    const input = container.querySelector('input')!;
+    expect(input.className).toBe('bit-select__input');
+    expect(input).toHaveAttribute('type', 'text');
+    expect(input).toHaveAttribute('aria-hidden', 'true');
+    expect(input).toHaveAttribute('tabindex', '-1');
+    expect(input).toHaveAttribute('autocomplete', 'off');
+    expect(input).not.toHaveAttribute('name');
+    expect(input).toHaveValue('day');
   });
 
-  it('with a name, a hidden input carries the chosen value into the form data', async () => {
+  it('without a name it submits nothing', () => {
+    const { container } = render(
+      <form>
+        <Select aria-label="Range" options={OPTIONS} defaultValue="day" />
+      </form>,
+    );
+    expect([...new FormData(container.querySelector('form')!).keys()]).toEqual([]);
+  });
+
+  it('with a name, the input carries the chosen value into the form data', async () => {
     const user = userEvent.setup();
     const { container } = render(
       <form>
@@ -343,8 +359,6 @@ describe('Select: forms', () => {
       </form>,
     );
     const form = container.querySelector('form')!;
-    const input = container.querySelector('input')!;
-    expect(input).toHaveAttribute('type', 'hidden');
     expect(new FormData(form).get('range')).toBe('week');
     await user.click(trigger());
     await user.click(screen.getByRole('option', { name: 'Year' }));

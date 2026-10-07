@@ -6,6 +6,7 @@ import { element, toClasses } from '../../system/toClasses';
 import { dropLegacyColor } from '../../system/dropLegacyColor';
 import { composeRefs } from '../../system/Slot';
 import { useFieldControl, useFieldLabelId } from '../Field/FieldContext';
+import { labelText, listboxName } from './naming';
 import { firstEnabled, lastEnabled, page, step } from './navigation';
 import { EMPTY_BUFFER, TYPEAHEAD_MS, matchTypeahead, nextBuffer } from './typeahead';
 import { useListboxLayer } from './useListboxLayer';
@@ -23,18 +24,23 @@ export interface SelectProps
   options: readonly SelectOption[];
   /** The chosen value, when the parent owns it. A value no option has shows the placeholder. */
   value?: string;
-  /** The first chosen value, when the Select owns it. Default: none chosen. */
+  /** The first chosen value, when the Select owns it, and what a form reset returns to. Default: none chosen. */
   defaultValue?: string;
   /** Called with the new value when the user chooses a different option. */
   onValueChange?: (value: string) => void;
   /** Shown, in muted text, while nothing is chosen. Default: ''. */
   placeholder?: ReactNode;
-  /** With a name, a hidden input carries the chosen value into form submits. */
+  /** The form field name: the chosen value is submitted under it, as a native select's is. */
   name?: string;
+  /** Like a native select's: an empty Select blocks the form's submit and takes focus. A Field's `required` does the same. */
+  required?: boolean;
+  /** The id of the form the value belongs to, when the Select sits outside it. */
+  form?: string;
   /** Control height. Class: `bit-{size}` on the wrapper. */
   size?: Size;
   /** Marks the choice wrong: `aria-invalid="true"` and a danger border. A surrounding Field's error does the same. */
   invalid?: boolean;
+  /** Can't be opened, and submits nothing, like a disabled native select. */
   disabled?: boolean;
 }
 
@@ -52,42 +58,18 @@ const MOVES = new Map<string, (options: Options, from: number) => number>([
   ['PageUp', (options, from) => page(options, from, -1)],
 ]);
 
-/** The text of every <label> that points at the trigger, joined. */
-function labelText(trigger: HTMLButtonElement): string {
-  return [...trigger.labels]
-    .map((label) => label.textContent!.trim())
-    .join(' ')
-    .trim();
-}
-
-interface NameSources {
-  ownLabelledBy: string | undefined;
-  ownLabel: string | undefined;
-  fieldLabelId: string | undefined;
-  /** The text of a <label for> outside a Field; '' when there is none (or the list is closed). */
-  outsideLabel: string;
-  triggerId: string | undefined;
-}
-
-/**
- * The listbox's name, so it is never unnamed while open: the Select's own aria-labelledby, else its
- * aria-label, else the Field label, else the text of a <label for> elsewhere, else the trigger.
- */
-function listboxName(sources: NameSources): { 'aria-label'?: string; 'aria-labelledby'?: string } {
-  if (sources.ownLabelledBy !== undefined) return { 'aria-labelledby': sources.ownLabelledBy };
-  if (sources.ownLabel !== undefined) return { 'aria-label': sources.ownLabel };
-  if (sources.fieldLabelId !== undefined) return { 'aria-labelledby': sources.fieldLabelId };
-  if (sources.outsideLabel) return { 'aria-label': sources.outsideLabel };
-  return { 'aria-labelledby': sources.triggerId };
-}
-
 /** A key that types a character: one character, with no Ctrl, Meta or Alt. */
 const printable = (event: KeyboardEvent) => event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
+
+/** The form input is controlled by the Select; typing can't reach it, and autofill changes are dropped. */
+const ignoreChange = () => {};
 
 /**
  * A select-only combobox (WAI-ARIA APG) that draws its own list, so it looks the same in every
  * browser. A button shows the chosen option and opens a listbox in the top layer; focus stays on the
- * button throughout. The wrapper takes `className`; the button takes the ref and every other prop.
+ * button throughout. A visually hidden native input carries the value into forms, so name, required,
+ * disabled, form and reset behave as a native select's do. The wrapper takes `className`; the button
+ * takes the ref and every other prop.
  */
 export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select(
   {
@@ -97,6 +79,8 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
     onValueChange,
     placeholder = '',
     name,
+    required: requiredProp,
+    form,
     size = 'md',
     invalid,
     disabled,
@@ -104,22 +88,29 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
     onClick,
     onKeyDown,
     onKeyUp,
+    onBlur,
+    onPointerDown,
     ...rest
   },
   ref,
 ) {
   const listId = useId();
   const optionId = (index: number) => `${listId}-option-${index}`;
-  const { required, ...wired } = useFieldControl(rest, invalid);
+  const { required, ...wired } = useFieldControl({ ...rest, required: requiredProp }, invalid);
   const fieldLabelId = useFieldLabelId();
   const [own, setOwn] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
-  // The text of any <label for> outside a Field, read when the list opens, to name the listbox.
+  // The text of any <label> outside a Field, read when the list opens, to name the listbox.
   const [outsideLabel, setOutsideLabel] = useState('');
   const typed = useRef(EMPTY_BUFFER);
+  // True from a press outside that closed the list until that click is over: a label's click then
+  // reaches the trigger, and must not reopen the list.
+  const pressedOutside = useRef(false);
+  const wrapperRef = useRef<HTMLSpanElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLSpanElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const setTriggerRef = useMemo(() => composeRefs(ref, triggerRef), [ref]);
   const close = useCallback(() => setOpen(false), []);
 
@@ -144,14 +135,41 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 
   useEffect(() => {
     if (!open) return undefined;
-    function onPointerDown(event: PointerEvent) {
+    function onDocumentPointerDown(event: PointerEvent) {
       const target = event.target as Node;
       if (triggerRef.current!.contains(target) || listRef.current!.contains(target)) return;
       setOpen(false);
+      pressedOutside.current = true;
+      // Forget the press once its click (and any label activation it causes) is done, or at once if
+      // it never becomes a click (pointercancel: a touch that turned into a scroll).
+      const forget = () => {
+        document.removeEventListener('click', afterClick, true);
+        document.removeEventListener('pointercancel', forget, true);
+        pressedOutside.current = false;
+      };
+      const afterClick = () => {
+        document.removeEventListener('click', afterClick, true);
+        setTimeout(forget, 0);
+      };
+      document.addEventListener('click', afterClick, true);
+      document.addEventListener('pointercancel', forget, true);
     }
-    document.addEventListener('pointerdown', onPointerDown, true);
-    return () => document.removeEventListener('pointerdown', onPointerDown, true);
-  }, [open]);
+    document.addEventListener('pointerdown', onDocumentPointerDown, true);
+    window.addEventListener('blur', close);
+    return () => {
+      document.removeEventListener('pointerdown', onDocumentPointerDown, true);
+      window.removeEventListener('blur', close);
+    };
+  }, [open, close]);
+
+  // A form reset puts an uncontrolled Select back to its defaultValue, as it does a native select.
+  useEffect(() => {
+    const owner = inputRef.current!.form;
+    if (owner === null || value !== undefined) return undefined;
+    const onReset = () => setOwn(defaultValue);
+    owner.addEventListener('reset', onReset);
+    return () => owner.removeEventListener('reset', onReset);
+  }, [form, value, defaultValue]);
 
   useEffect(() => {
     // activeIndex is always a row that exists (or -1), so the lookup is in bounds.
@@ -163,7 +181,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
   function openAt(index: number) {
     setActive(index);
     setOpen(true);
-    setOutsideLabel(labelText(triggerRef.current!));
+    setOutsideLabel(labelText(triggerRef.current!, wrapperRef.current!));
   }
 
   /** Choose the option at `index` and close. A disabled option is refused and the list stays open. */
@@ -204,7 +222,9 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
       // Not prevented: focus moves on as usual.
       choose(activeIndex);
     } else if (key === 'Escape') {
+      // Stopped too, so a surrounding dialog's Escape handler doesn't close it as well.
       event.preventDefault();
+      event.stopPropagation();
       setOpen(false);
     } else if (key === 'Enter' || (key === 'ArrowUp' && event.altKey) || (key === ' ' && !typing)) {
       event.preventDefault();
@@ -228,6 +248,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 
   return (
     <span
+      ref={wrapperRef}
       className={toClasses('select', [{ name: 'size', allowed: sizes, value: size }], className)}
       data-open={open ? '' : undefined}
     >
@@ -244,9 +265,16 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
         disabled={disabled}
         {...dropLegacyColor(rest)}
         {...wired}
+        onPointerDown={(event) => {
+          onPointerDown?.(event);
+          pressedOutside.current = false;
+        }}
         onClick={(event) => {
           onClick?.(event);
-          if (open) setOpen(false);
+          if (pressedOutside.current) {
+            // A label's click that followed the press which closed the list: leave it closed.
+            pressedOutside.current = false;
+          } else if (open) setOpen(false);
           else openAt(startIndex());
         }}
         onKeyDown={(event) => {
@@ -259,6 +287,10 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
           onKeyUp?.(event);
           // Space clicks a button on key up; the keydown already did the work.
           if (event.key === ' ') event.preventDefault();
+        }}
+        onBlur={(event) => {
+          onBlur?.(event);
+          if (open && !listRef.current!.contains(event.relatedTarget)) setOpen(false);
         }}
       >
         <span className={element('select', 'value')} data-placeholder={chosenOption ? undefined : ''}>
@@ -274,6 +306,8 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
         {...listName}
         // Pressing a row must not move focus off the trigger.
         onMouseDown={(event) => event.preventDefault()}
+        // Nor may its click activate a <label> around the Select, which would reopen the list.
+        onClick={(event) => event.preventDefault()}
       >
         {options.map((option, index) => (
           <span
@@ -293,7 +327,24 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
           </span>
         ))}
       </span>
-      {name === undefined ? null : <input type="hidden" name={name} value={chosenOption?.value ?? ''} />}
+      <input
+        ref={inputRef}
+        className={element('select', 'input')}
+        type="text"
+        tabIndex={-1}
+        aria-hidden="true"
+        autoComplete="off"
+        name={name}
+        form={form}
+        value={chosenOption?.value ?? ''}
+        onChange={ignoreChange}
+        required={required}
+        disabled={disabled}
+        // A blocked submit focuses the first invalid control and shows the browser's message over it;
+        // this input lies over the trigger, so the message appears at the Select, and the focus goes on
+        // to the trigger. `invalid` is never cancelled, so checkValidity() moves no focus.
+        onFocus={() => triggerRef.current!.focus()}
+      />
     </span>
   );
 });
