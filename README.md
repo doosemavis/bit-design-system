@@ -89,7 +89,7 @@ Both render identically. Switch and SegmentedControl are native inputs, so their
 - **Choice:** SegmentedControl, ModeToggle
 - **Brand:** BitLogo
 
-Every one works in light and dark mode, and anything focusable shows the one focus ring from `reset.css`. Input, Switch and SegmentedControl sit on the real native element (an `<input>`, a checkbox or radios), so keyboards and screen readers work as browsers intend. Select is a bit-drawn combobox (the WAI-ARIA select-only combobox) with full keyboard support, so its list looks the same in every browser; a hidden native input carries its value, so `name`, `required`, `disabled`, `form` and form reset work as they do on a native `<select>`.
+Every one works in light and dark mode, and anything focusable shows the one focus ring from `reset.css`. Input, Switch and SegmentedControl sit on the real native element (an `<input>`, a checkbox or radios), so keyboards and screen readers work as browsers intend. Select is a bit-drawn combobox (the WAI-ARIA select-only combobox) with full keyboard support and single or multi-select, so its list looks the same in every browser; a hidden native input carries its value, so `name`, `required`, `disabled`, `form` and form reset work as they do on a native `<select>`.
 
 - `Heading` takes a required `level` (the tag, h1 to h6) and an optional `size` (the look), so an h2 can look like an h3.
 - `Box` pads and offsets one element on the space scale (`padding`, `paddingX`, `paddingTop`, … and the same for `margin`). When props overlap, the most specific wins: `paddingTop` beats `paddingY`, which beats `padding`. Use `Stack` for space between things.
