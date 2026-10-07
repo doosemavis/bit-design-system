@@ -149,6 +149,14 @@ describe('components/select.css', () => {
       );
     });
 
+    it('forced colours: the chevron stays a CanvasText triangle (its transparent sides would otherwise be painted)', () => {
+      const chevron = inMedia('(forced-colors: active)', '.bit-select::after')!;
+      expect(chevron).toContain('forced-color-adjust: none;');
+      expect(chevron).toContain('border-top-color: CanvasText;');
+      expect(chevron).toContain('border-left-color: transparent;');
+      expect(chevron).toContain('border-right-color: transparent;');
+    });
+
     it('forced colours: a CanvasText border on the list', () => {
       expect(inMedia('(forced-colors: active)', '.bit-select__list')).toContain('border-color: CanvasText;');
     });

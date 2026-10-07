@@ -188,6 +188,14 @@
     border-inline-start-width: 10px;
   }
 
+  /* Forced colours paint the chevron's transparent sides too, turning the triangle into a bar. */
+  .bit-select::after {
+    forced-color-adjust: none;
+    border-top-color: CanvasText;
+    border-left-color: transparent;
+    border-right-color: transparent;
+  }
+
   .bit-select__list {
     border-color: CanvasText;
   }
