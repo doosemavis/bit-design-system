@@ -10,6 +10,7 @@ import { labelText, listboxName } from './naming';
 import { firstEnabled, lastEnabled, page, step } from './navigation';
 import { EMPTY_BUFFER, TYPEAHEAD_MS, matchTypeahead, nextBuffer } from './typeahead';
 import { useListboxLayer } from './useListboxLayer';
+import { useSelectValue } from './useSelectValue';
 
 const sizes = SIZES;
 
@@ -98,7 +99,6 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
   const optionId = (index: number) => `${listId}-option-${index}`;
   const { required, ...wired } = useFieldControl({ ...rest, required: requiredProp }, invalid);
   const fieldLabelId = useFieldLabelId();
-  const [own, setOwn] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   // The text of any <label> outside a Field, read when the list opens, to name the listbox.
@@ -117,12 +117,14 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
   // A Select disabled while open closes, so it doesn't reappear open when enabled again.
   if (disabled && open) setOpen(false);
 
-  const current = value ?? own;
-  const chosen = options.findIndex((option) => option.value === current);
-  const chosenOption = options[chosen];
+  const { chosen, pickOne } = useSelectValue({ options, multiple: false, value, defaultValue, onValueChange, inputRef, form });
+  const chosenOption = chosen.length === 1 ? options[chosen[0]!] : undefined;
 
   /** Where the list opens: the chosen option, or the first enabled one (-1 when none is enabled). */
-  const startIndex = () => (chosenOption && !chosenOption.disabled ? chosen : firstEnabled(options));
+  const startIndex = () => {
+    const firstChosen = chosen.find((index) => !options[index]!.disabled);
+    return firstChosen ?? firstEnabled(options);
+  };
   // The options can change while the list is open: an active row that is gone or now disabled
   // falls back to where the list would open, so aria-activedescendant and the keys stay valid.
   const activeIndex = active >= 0 && active < options.length && !options[active]!.disabled ? active : startIndex();
@@ -162,15 +164,6 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
     };
   }, [open, close]);
 
-  // A form reset puts an uncontrolled Select back to its defaultValue, as it does a native select.
-  useEffect(() => {
-    const owner = inputRef.current!.form;
-    if (owner === null || value !== undefined) return undefined;
-    const onReset = () => setOwn(defaultValue);
-    owner.addEventListener('reset', onReset);
-    return () => owner.removeEventListener('reset', onReset);
-  }, [form, value, defaultValue]);
-
   useEffect(() => {
     // activeIndex is always a row that exists (or -1), so the lookup is in bounds.
     if (!open || activeIndex < 0) return;
@@ -186,13 +179,10 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 
   /** Choose the option at `index` and close. A disabled option is refused and the list stays open. */
   function choose(index: number) {
-    const option = options[index];
-    if (option?.disabled) return;
+    if (options[index]?.disabled) return;
     setOpen(false);
     triggerRef.current!.focus();
-    if (!option || option.value === current) return;
-    if (value === undefined) setOwn(option.value);
-    onValueChange?.(option.value);
+    pickOne(index);
   }
 
   /** Add `char` to the typeahead search and return the matching option, or `from` when none matches. */
@@ -315,7 +305,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
             id={optionId(index)}
             role="option"
             className={element('select', 'option')}
-            aria-selected={index === chosen}
+            aria-selected={chosen.includes(index)}
             aria-disabled={option.disabled ? true : undefined}
             data-active={open && index === activeIndex ? '' : undefined}
             onClick={() => choose(index)}
