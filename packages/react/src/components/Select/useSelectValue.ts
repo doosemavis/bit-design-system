@@ -62,6 +62,7 @@ export function useSelectValue({ options, multiple, value, defaultValue, onValue
     const onReset = () => setOwn({ multiple, value: initial(multiple, defaultValue) });
     owner.addEventListener('reset', onReset);
     return () => owner.removeEventListener('reset', onReset);
+  // `form` is deliberate: when the attribute changes, the effect re-finds the owning form.
   }, [inputRef, form, value, defaultValue, multiple]);
 
   const current = value ?? own.value;

@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import type { ButtonHTMLAttributes, KeyboardEvent, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ForwardRefExoticComponent, KeyboardEvent, ReactElement, ReactNode, RefAttributes } from 'react';
 import { SIZES } from '../../system/axes';
 import type { Size } from '../../system/axes';
 import { element, toClasses } from '../../system/toClasses';
@@ -10,6 +10,7 @@ import { labelText, listboxName } from './naming';
 import { firstEnabled, lastEnabled, page, step } from './navigation';
 import { EMPTY_BUFFER, TYPEAHEAD_MS, matchTypeahead, nextBuffer } from './typeahead';
 import { useListboxLayer } from './useListboxLayer';
+import { SelectFormInputs } from './SelectFormInputs';
 import { useSelectValue } from './useSelectValue';
 
 const sizes = SIZES;
@@ -22,6 +23,11 @@ export interface SelectOption {
 
 export interface SelectProps
   extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'value' | 'defaultValue' | 'onChange' | 'color' | 'type' | 'children'> {
+  /**
+   * Pick one option. Default. A `boolean` variable doesn't type-check here: render two branches (with
+   * `multiple` and without), or cast.
+   */
+  multiple?: false;
   options: readonly SelectOption[];
   /** The chosen value, when the parent owns it. A value no option has shows the placeholder. */
   value?: string;
@@ -45,6 +51,32 @@ export interface SelectProps
   disabled?: boolean;
 }
 
+/** Props for a Select that picks any number of options. */
+export interface SelectMultipleProps extends Omit<SelectProps, 'multiple' | 'value' | 'defaultValue' | 'onValueChange'> {
+  /**
+   * Pick any number of options: rows toggle and the list stays open. A `boolean` variable doesn't
+   * type-check here: render two branches (with `multiple` and without), or cast.
+   */
+  multiple: true;
+  /** The chosen values, when the parent owns them. Values no option has are ignored. */
+  value?: readonly string[];
+  /** The first chosen values, when the Select owns them, and what a form reset returns to. Default: none. */
+  defaultValue?: readonly string[];
+  /** Receives the chosen values in option order, on every toggle. */
+  onValueChange?: (value: string[]) => void;
+}
+
+type SelectRef = RefAttributes<HTMLButtonElement>;
+
+/**
+ * One call signature per mode, so `value` and `onValueChange` follow `multiple`. Single-select comes last
+ * because `ComponentProps<typeof Select>` reads the last signature, as it did in 0.1.4.
+ */
+interface SelectComponent extends ForwardRefExoticComponent<SelectProps & SelectRef> {
+  (props: SelectMultipleProps & SelectRef): ReactElement | null;
+  (props: SelectProps & SelectRef): ReactElement | null;
+}
+
 /** Keys that open a closed list on the chosen option. */
 const OPEN_KEYS = new Set(['Enter', ' ', 'ArrowDown', 'ArrowUp']);
 
@@ -62,19 +94,18 @@ const MOVES = new Map<string, (options: Options, from: number) => number>([
 /** A key that types a character: one character, with no Ctrl, Meta or Alt. */
 const printable = (event: KeyboardEvent) => event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
 
-/** The form input is controlled by the Select; typing can't reach it, and autofill changes are dropped. */
-const ignoreChange = () => {};
-
 /**
  * A select-only combobox (WAI-ARIA APG) that draws its own list, so it looks the same in every
  * browser. A button shows the chosen option and opens a listbox in the top layer; focus stays on the
  * button throughout. A visually hidden native input carries the value into forms, so name, required,
  * disabled, form and reset behave as a native select's do. The wrapper takes `className`; the button
- * takes the ref and every other prop.
+ * takes the ref and every other prop. With `multiple`, rows toggle with a checkbox look and the list stays
+ * open; the trigger shows the one chosen label or an "N selected" pill, and each value submits under `name`.
  */
-export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select(
+export const Select = forwardRef<HTMLButtonElement, SelectProps | SelectMultipleProps>(function Select(
   {
     options,
+    multiple,
     value,
     defaultValue,
     onValueChange,
@@ -117,8 +148,8 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
   // A Select disabled while open closes, so it doesn't reappear open when enabled again.
   if (disabled && open) setOpen(false);
 
-  const { chosen, pickOne } = useSelectValue({ options, multiple: false, value, defaultValue, onValueChange, inputRef, form });
-  const chosenOption = chosen.length === 1 ? options[chosen[0]!] : undefined;
+  const isMultiple = multiple === true;
+  const { chosen, pickOne, toggle } = useSelectValue({ options, multiple: isMultiple, value, defaultValue, onValueChange, inputRef, form });
 
   /** Where the list opens: the chosen option, or the first enabled one (-1 when none is enabled). */
   const startIndex = () => {
@@ -177,12 +208,25 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
     setOutsideLabel(labelText(triggerRef.current!, wrapperRef.current!));
   }
 
-  /** Choose the option at `index` and close. A disabled option is refused and the list stays open. */
-  function choose(index: number) {
+  /**
+   * The active row's action. Single: choose the option at `index` and close. Multi: toggle it and stay
+   * open. A disabled option is refused, and the list stays open.
+   */
+  function activate(index: number) {
     if (options[index]?.disabled) return;
+    if (isMultiple) {
+      toggle(index);
+      return;
+    }
     setOpen(false);
     triggerRef.current!.focus();
     pickOne(index);
+  }
+
+  /** Tab and Alt+ArrowUp: single-select chooses the active option and closes; multi-select only closes. */
+  function finish() {
+    if (isMultiple) setOpen(false);
+    else activate(activeIndex);
   }
 
   /** Add `char` to the typeahead search and return the matching option, or `from` when none matches. */
@@ -210,15 +254,18 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
     const move = MOVES.get(key);
     if (key === 'Tab') {
       // Not prevented: focus moves on as usual.
-      choose(activeIndex);
+      finish();
     } else if (key === 'Escape') {
       // Stopped too, so a surrounding dialog's Escape handler doesn't close it as well.
       event.preventDefault();
       event.stopPropagation();
       setOpen(false);
-    } else if (key === 'Enter' || (key === 'ArrowUp' && event.altKey) || (key === ' ' && !typing)) {
+    } else if (key === 'ArrowUp' && event.altKey) {
       event.preventDefault();
-      choose(activeIndex);
+      finish();
+    } else if (key === 'Enter' || (key === ' ' && !typing)) {
+      event.preventDefault();
+      activate(activeIndex);
     } else if (move) {
       event.preventDefault();
       setActive(move(options, activeIndex));
@@ -235,6 +282,13 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
     outsideLabel: open ? outsideLabel : '',
     triggerId: wired.id,
   });
+
+  /** None: the placeholder. One: its label. Two or more (multi only): the "N selected" pill. */
+  function triggerText(): ReactNode {
+    if (chosen.length === 0) return placeholder;
+    if (chosen.length === 1) return options[chosen[0]!]!.label;
+    return <span className={element('select', 'count')}>{chosen.length} selected</span>;
+  }
 
   return (
     <span
@@ -283,14 +337,15 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
           if (open && !listRef.current!.contains(event.relatedTarget)) setOpen(false);
         }}
       >
-        <span className={element('select', 'value')} data-placeholder={chosenOption ? undefined : ''}>
-          {chosenOption ? chosenOption.label : placeholder}
+        <span className={element('select', 'value')} data-placeholder={chosen.length === 0 ? '' : undefined}>
+          {triggerText()}
         </span>
       </button>
       <span
         ref={listRef}
         id={listId}
         role="listbox"
+        aria-multiselectable={isMultiple || undefined}
         className={element('select', 'list')}
         hidden={!open}
         {...listName}
@@ -308,7 +363,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
             aria-selected={chosen.includes(index)}
             aria-disabled={option.disabled ? true : undefined}
             data-active={open && index === activeIndex ? '' : undefined}
-            onClick={() => choose(index)}
+            onClick={() => activate(index)}
             onPointerMove={() => {
               if (!option.disabled) setActive(index);
             }}
@@ -317,24 +372,16 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
           </span>
         ))}
       </span>
-      <input
-        ref={inputRef}
-        className={element('select', 'input')}
-        type="text"
-        tabIndex={-1}
-        aria-hidden="true"
-        autoComplete="off"
+      <SelectFormInputs
+        inputRef={inputRef}
+        multiple={isMultiple}
+        values={chosen.map((index) => options[index]!.value)}
         name={name}
         form={form}
-        value={chosenOption?.value ?? ''}
-        onChange={ignoreChange}
         required={required}
         disabled={disabled}
-        // A blocked submit focuses the first invalid control and shows the browser's message over it;
-        // this input lies over the trigger, so the message appears at the Select, and the focus goes on
-        // to the trigger. `invalid` is never cancelled, so checkValidity() moves no focus.
         onFocus={() => triggerRef.current!.focus()}
       />
     </span>
   );
-});
+}) as SelectComponent;
