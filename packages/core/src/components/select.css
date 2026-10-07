@@ -1,12 +1,13 @@
-/* Select: the native select with Input's recessed look. The wrapper draws the chevron, so the
-   option list stays the browser's own. Size from .bit-{size} on the wrapper. */
+/* Select: a button with Input's recessed look that opens a list bit draws itself (look L1, "chunky"),
+   so the list looks the same in every browser. The wrapper draws the chevron. Size from .bit-{size}
+   on the wrapper; the list inherits it. */
 .bit-select {
   position: relative;
   display: block;
   width: 100%;
 }
 
-/* A CSS border triangle, 12px wide and 7px tall, centred on the right padding. */
+/* A CSS border triangle, 12px wide and 7px tall, centred on the right padding. It turns over while open. */
 .bit-select::after {
   content: "";
   position: absolute;
@@ -19,10 +20,18 @@
   border-right: 6px solid transparent;
   border-top: 7px solid var(--bit-color-text);
   pointer-events: none;
+  transition: transform var(--bit-duration-normal) ease-out;
+}
+
+/* states are attributes, never classes */
+.bit-select[data-open]::after {
+  transform: rotate(180deg);
 }
 
 .bit-select__control {
   appearance: none;
+  display: flex;
+  align-items: center;
   width: 100%;
   height: var(--_bit-size-height);
   /* room on the right for the 12px chevron and a padding either side of it */
@@ -30,6 +39,7 @@
   font-family: var(--bit-font-body);
   font-size: var(--_bit-size-text);
   font-weight: var(--bit-weight-normal);
+  text-align: start;
   color: var(--bit-color-text);
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
@@ -38,7 +48,18 @@
   cursor: pointer;
 }
 
-/* states are attributes, never classes */
+.bit-select__value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bit-select__value[data-placeholder] {
+  color: var(--bit-color-text-muted);
+}
+
 .bit-select__control[aria-invalid="true"] {
   border-color: var(--bit-color-danger);
 }
@@ -52,9 +73,114 @@
   opacity: 0.5;
 }
 
+/* The list: a Card-like panel in the top layer (Popover API), placed by script with top, left and
+   min-width, and capped to the room on its side by --_bit-select-room. No display here, so the hidden
+   attribute and the popover's own rule can hide it. It starts 8px up (or down, opened above) and
+   transparent; data-entered, set once it is placed, slides it in. */
+.bit-select__list {
+  position: fixed;
+  inset: auto;
+  z-index: 10; /* raw: there is no z-index token; only browsers without the Popover API (no top layer) use it */
+  box-sizing: border-box;
+  width: max-content;
+  max-height: min(16rem, var(--_bit-select-room, 16rem));
+  margin: 0;
+  padding: var(--bit-space-4px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-normal);
+  line-height: var(--bit-leading-normal);
+  color: var(--bit-color-text);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+  box-shadow: var(--bit-shadow-md);
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.bit-select__list[data-placement="top"] {
+  transform: translateY(8px);
+}
+
+.bit-select__list[data-entered] {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--bit-duration-normal) ease-out, transform var(--bit-duration-normal) ease-out;
+}
+
+/* The scrollbar matches Table's: a surface track and a solid accent thumb, slimmed by a transparent
+   border that stays part of the grab area. Forced colours draw their own scrollbars. */
+@media not (forced-colors: active) {
+  .bit-select__list::-webkit-scrollbar { width: 14px; }
+  .bit-select__list::-webkit-scrollbar-track { background: var(--bit-color-surface); }
+  .bit-select__list::-webkit-scrollbar-thumb {
+    background: var(--bit-color-accent);
+    background-clip: padding-box;
+    border: 3px solid transparent;
+    border-radius: var(--bit-radius-10px);
+  }
+  /* reset.css sets the standard scrollbar-color and scrollbar-width, which Chrome 121+ lets override ::-webkit-scrollbar.
+     Where the pseudo-elements work, hand the scrollbar back to them. */
+  @supports selector(::-webkit-scrollbar) {
+    .bit-select__list { scrollbar-color: auto; scrollbar-width: auto; }
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    .bit-select__list { scrollbar-color: var(--bit-color-accent) var(--bit-color-surface); scrollbar-width: thin; }
+  }
+}
+
+.bit-select__option {
+  display: block;
+  padding: var(--bit-space-8px) var(--bit-space-12px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: var(--bit-radius-6px);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Hovered or keyboard-active. */
+.bit-select__option[data-active] {
+  background: var(--bit-color-primary-soft);
+}
+
+/* Chosen: comes after active, so the chosen row stays solid while active. */
+.bit-select__option[aria-selected="true"] {
+  background: var(--bit-color-primary);
+  color: var(--bit-color-primary-contrast);
+  font-weight: var(--bit-weight-bold);
+}
+
+.bit-select__option[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bit-select::after,
+  .bit-select__list[data-entered] {
+    transition: none;
+  }
+}
+
 /* Forced colours replace the danger border with the system text colour, so invalid needs a shape. */
 @media (forced-colors: active) {
   .bit-select__control[aria-invalid="true"] {
     border-inline-start-width: 10px;
+  }
+
+  .bit-select__list {
+    border-color: CanvasText;
+  }
+
+  .bit-select__option[data-active],
+  .bit-select__option[aria-selected="true"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
   }
 }

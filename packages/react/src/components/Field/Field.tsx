@@ -34,18 +34,19 @@ export const Field = forwardRef<HTMLDivElement, FieldProps>(function Field(
 ) {
   const generated = useId();
   const id = ownId(children) ?? generated;
+  const labelId = `${generated}-label`;
   const hintId = `${generated}-hint`;
   const errorId = `${generated}-error`;
   const describedBy = [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(' ') || undefined;
   const invalid = Boolean(error);
   const context = useMemo<FieldContextValue>(
-    () => ({ id, describedBy, invalid, required }),
-    [id, describedBy, invalid, required],
+    () => ({ id, labelId, describedBy, invalid, required }),
+    [id, labelId, describedBy, invalid, required],
   );
 
   return (
     <div ref={ref} className={toClasses('field', [], className)} {...dropLegacyColor(rest)}>
-      <label className={element('field', 'label')} htmlFor={id}>
+      <label className={element('field', 'label')} id={labelId} htmlFor={id}>
         {label}
         {required ? (
           <span className={element('field', 'required')} aria-hidden="true">

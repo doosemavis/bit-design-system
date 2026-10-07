@@ -39,6 +39,7 @@ const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
   Heading: { level: 2 },
   CodeBlock: { code: 'x', language: 'shell', children: undefined },
   SegmentedControl: { legend: 'x', options: [{ value: 'x', label: 'x' }], children: undefined },
+  Select: { options: [{ value: 'x', label: 'x' }], children: undefined },
   Table: { children: <tbody><tr><td>x</td></tr></tbody> },
   TableHead: { children: <tr><th>x</th></tr> },
   TableBody: { children: <tr><td>x</td></tr> },
