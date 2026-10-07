@@ -78,7 +78,7 @@ for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size', 'FieldProp
 
 // 4. CSS bundle: system layer + every component, no unresolved local imports
 const css = readFileSync(resolve(dist, 'styles.css'), 'utf8');
-for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '.bit-logo__caption', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo', '.bit-mode-toggle', '.bit-field__error', '.bit-input', '.bit-select__control', '.bit-switch__track', '.bit-link', '.bit-code', '.bit-code__token', '.bit-code__copy', '.bit-segmented-control__label', '.bit-table__cell', '.bit-heading[data-level="6"]', '.bit-box[data-ml="64"]']) {
+for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '.bit-logo__caption', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo', '.bit-mode-toggle', '.bit-field__error', '.bit-input', '.bit-select__control', '.bit-select__list', '.bit-select__option', '.bit-select__input', '.bit-switch__track', '.bit-link', '.bit-code', '.bit-code__token', '.bit-code__copy', '.bit-segmented-control__label', '.bit-table__cell', '.bit-heading[data-level="6"]', '.bit-box[data-ml="64"]']) {
   assert.ok(css.includes(needle), `styles.css missing: ${needle}`);
 }
 assert.ok(!/@import\s+"\.\//.test(css), 'styles.css still contains a relative @import (bundling failed)');
