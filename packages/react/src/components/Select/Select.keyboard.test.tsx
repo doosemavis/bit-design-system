@@ -286,6 +286,24 @@ describe('Select keyboard: options changing while open', () => {
     expect(onValueChange).toHaveBeenCalledExactlyOnceWith('apple');
   });
 
+  it('after the list shrinks and grows back, the highlight stays on the fallback row', async () => {
+    const { user, onValueChange, rerender } = setup();
+    await user.keyboard('{Enter}{End}');
+    rerender(<Select aria-label="Fruit" options={FRUIT.slice(0, 3)} onValueChange={onValueChange} />);
+    expect(activeLabel()).toBe('Apple');
+    rerender(<Select aria-label="Fruit" options={FRUIT} onValueChange={onValueChange} />);
+    expect(activeLabel()).toBe('Apple');
+  });
+
+  it('after the active option is disabled and enabled again, the highlight stays on the fallback row', async () => {
+    const { user, onValueChange, rerender } = setup();
+    await user.keyboard('{Enter}{ArrowDown}');
+    const disabled = FRUIT.map((o) => (o.value === 'banana' ? { ...o, disabled: true } : o));
+    rerender(<Select aria-label="Fruit" options={disabled} onValueChange={onValueChange} />);
+    rerender(<Select aria-label="Fruit" options={FRUIT} onValueChange={onValueChange} />);
+    expect(activeLabel()).toBe('Apple');
+  });
+
   it('when every option becomes disabled while open, there is no active option and Enter just closes', async () => {
     const { user, onValueChange, rerender } = setup();
     await user.keyboard('{Enter}');

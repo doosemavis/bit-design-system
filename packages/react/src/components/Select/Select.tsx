@@ -135,8 +135,12 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
   // The options can change while the list is open: an active row that is gone or now disabled
   // falls back to where the list would open, so aria-activedescendant and the keys stay valid.
   const activeIndex = active >= 0 && active < options.length && !options[active]!.disabled ? active : startIndex();
+  // Keep the state on the fallback too, so the highlight doesn't jump back when the old row returns.
+  if (open && active !== activeIndex) setActive(activeIndex);
 
-  useListboxLayer(open, triggerRef, listRef, close, options);
+  // What the list's size depends on, as a string, so an equal inline options array doesn't re-place it.
+  const optionsKey = JSON.stringify(options.map((option) => [option.value, Boolean(option.disabled)]));
+  useListboxLayer(open, triggerRef, listRef, close, optionsKey);
 
   useEffect(() => {
     if (!open) return undefined;
