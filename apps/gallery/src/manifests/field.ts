@@ -48,7 +48,7 @@ export const field: Manifest = {
       { name: 'children', type: 'ReactElement', description: 'Exactly one Input or Select.' },
     ],
     a11y: [
-      'The label points at the control, so clicking it focuses the control and screen readers read it.',
+      'The label points at the control, so clicking it focuses the control and screen readers read it. For a Select, clicking the label also opens the list.',
       "hint and error are linked with aria-describedby, which is how a screen reader finds a control's help text.",
       'error also sets aria-invalid on the control: a flag that tells screen readers the value is wrong.',
       "The ids come from useId, React's unique-id helper, so two Fields on one page never clash.",

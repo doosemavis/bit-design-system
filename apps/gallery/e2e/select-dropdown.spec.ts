@@ -88,6 +88,7 @@ test.describe('a ControlsPanel Select inside the one-card playground', () => {
     await page.keyboard.press('Escape');
     await expect(list).toBeHidden();
     await expect(trigger).toHaveText('lg');
+    await expect(trigger).toBeFocused();
   });
 
   test('the URL, presets, Back and a reload round-trip through the Select controls', async ({ page }) => {

@@ -11,6 +11,7 @@ import { button } from './button';
 import { modeToggle } from './modeToggle';
 import { codeBlock } from './codeBlock';
 import { select } from './select';
+import { field } from './field';
 import { staticProps } from '../engine/staticProps';
 import { toJsx } from '../code/toJsx';
 import { isOmittedSentinel } from './sentinels';
@@ -331,6 +332,18 @@ describe('manifest contract', () => {
     expect(a11y).toMatch(/typ(e|ing)/);
     expect(a11y).toMatch(/combobox/);
     expect(a11y).toMatch(/Field/);
+    expect(a11y).toMatch(/Alt\+ArrowDown opens the list without moving/);
+    expect(a11y).toMatch(/Alt\+ArrowUp chooses the active option and closes/);
+  });
+
+  it("Select's options row names the exported SelectOption type, spelled out once", () => {
+    const type = select.docs.props.find((p) => p.name === 'options')!.type;
+    expect(type).toMatch(/^readonly SelectOption\[\]/);
+    expect(type.match(/value: string; label: ReactNode; disabled\?: boolean/g)).toHaveLength(1);
+  });
+
+  it("Field's a11y notes say a Select's label also opens its list", () => {
+    expect(field.docs.a11y.join('\n')).toMatch(/for a Select, clicking the label also opens the list/i);
   });
 
   it('groups are the sidebar groups, and only the logo is brand', () => {

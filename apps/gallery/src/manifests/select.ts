@@ -46,7 +46,7 @@ export const select: Manifest = {
     props: [
       {
         name: 'options',
-        type: 'readonly { value: string; label: ReactNode; disabled?: boolean }[]',
+        type: 'readonly SelectOption[], where SelectOption = { value: string; label: ReactNode; disabled?: boolean }',
         description: 'Required. The choices, in order. A disabled option shows faded and cannot be chosen.',
       },
       {
@@ -83,9 +83,9 @@ export const select: Manifest = {
     ],
     a11y: [
       'A select-only combobox (the WAI-ARIA pattern): a button with role combobox opens a listbox of options, and focus stays on the button the whole time.',
-      'Tab moves focus to it. Enter, Space or an arrow key opens the list on the chosen option; typing a letter opens it on the first option that starts with it.',
+      'Tab moves focus to it. Enter, Space or an arrow key opens the list on the chosen option; typing a letter opens it on the first option that starts with it. Alt+ArrowDown opens the list without moving.',
       'While open, the arrow keys move one option, Home and End go to the first and last, and Page Up and Page Down jump several. Typing jumps to a matching option; typing the same letter again cycles through them.',
-      'Enter or Space chooses the active option and closes the list. Escape closes it without choosing. Tab chooses the active option, closes the list and moves on.',
+      'Enter or Space chooses the active option and closes the list; Alt+ArrowUp chooses the active option and closes it too. Escape closes it without choosing. Tab chooses the active option, closes the list and moves on.',
       'Screen readers announce the combobox by its name (the Field label, or aria-label), then the chosen option, and read each option as it becomes active. The list takes the same name.',
       "Inside a Field it takes the Field's id, hint and error.",
       'In forced-colors mode (Windows high contrast), the active and chosen options use the system highlight colors, and an invalid select shows a thick 10px start edge instead of the red border.',
