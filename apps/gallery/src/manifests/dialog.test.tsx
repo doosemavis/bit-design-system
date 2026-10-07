@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { dialog } from './dialog';
 import { defaultState } from '../engine/state';
@@ -29,7 +29,7 @@ describe('Dialog page', () => {
           '    <DialogBody>Your edits will be saved to the project.</DialogBody>',
           '    <DialogFooter>',
           '      <DialogClose data-autofocus={true}>Cancel</DialogClose>',
-          '      <Button>Save</Button>',
+          '      <DialogClose variant="solid" color="primary">Save</DialogClose>',
           '    </DialogFooter>',
           '  </Dialog>',
           '</>',
@@ -43,7 +43,7 @@ describe('Dialog page', () => {
     const code = toJsx(dialog, alert);
     expect(code).toContain('<Dialog open={open} onOpenChange={setOpen} alert>');
     expect(code).toContain('<DialogHeader>Delete report?</DialogHeader>');
-    expect(code).toContain('<Button color="danger">Delete</Button>');
+    expect(code).toContain('<DialogClose variant="solid" color="danger">Delete</DialogClose>');
   });
 
   it('the full file declares the state inside Example', () => {
@@ -59,5 +59,13 @@ describe('Dialog page', () => {
     render(renderManifest(dialog, defaultState(dialog)));
     await user.click(screen.getByRole('button', { name: 'Open dialog' }));
     expect(document.querySelector('dialog')!.hasAttribute('open')).toBe(true);
+  });
+
+  it('Save closes the previewed Dialog', async () => {
+    const user = userEvent.setup();
+    render(renderManifest(dialog, defaultState(dialog)));
+    await user.click(screen.getByRole('button', { name: 'Open dialog' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(document.querySelector('dialog')!.hasAttribute('open')).toBe(false));
   });
 });

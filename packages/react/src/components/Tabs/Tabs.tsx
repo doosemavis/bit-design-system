@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { HTMLAttributes, ReactNode } from 'react';
 import { toClasses } from '../../system/toClasses';
 import { TabsContext } from './TabsContext';
@@ -32,8 +32,9 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
   const current = value ?? own;
 
   // Every change after the first chosen value plays the plug-in animation, controlled or not.
+  // A layout effect: a value changed from a timer must paint the first animation frame, not the end state.
   const previous = useRef(current);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const before = previous.current;
     previous.current = current;
     if (before !== undefined && before !== current) setBoot((b) => (b === 'a' ? 'b' : 'a'));

@@ -18,7 +18,9 @@ function parts(state: ControlState): readonly ChildSpec[] {
       component: 'DialogFooter',
       children: [
         { component: 'DialogClose', props: { 'data-autofocus': true }, children: 'Cancel' },
-        alert ? { component: 'Button', props: { color: 'danger' }, children: 'Delete' } : { component: 'Button', children: 'Save' },
+        alert
+          ? { component: 'DialogClose', props: { variant: 'solid', color: 'danger' }, children: 'Delete' }
+          : { component: 'DialogClose', props: { variant: 'solid', color: 'primary' }, children: 'Save' },
       ],
     },
   ];

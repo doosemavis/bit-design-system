@@ -37,12 +37,12 @@ export const TabList = forwardRef<HTMLDivElement, TabListProps>(function TabList
 
   const enabledTabs = () => [...listRef.current!.querySelectorAll<HTMLButtonElement>('[role="tab"]:not(:disabled)')];
 
-  // Before paint: with nothing chosen yet, take the first enabled tab; with no chosen tab (an unknown value),
-  // the first enabled tab is the Tab stop.
+  // Before paint: with nothing chosen yet, take the first enabled tab; with no enabled chosen tab (an unknown
+  // value, or a disabled one), the first enabled tab is the Tab stop.
   useLayoutEffect(() => {
     const first = enabledTabs()[0]?.dataset.value;
     if (tabs.value === undefined && first !== undefined) tabs.adopt(first);
-    const chosen = listRef.current!.querySelector('[role="tab"][aria-selected="true"]');
+    const chosen = listRef.current!.querySelector('[role="tab"][aria-selected="true"]:not(:disabled)');
     tabs.setStop(chosen ? undefined : first);
   });
 

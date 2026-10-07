@@ -30,6 +30,7 @@ describe('components/dialog.css', () => {
   it('the backdrop dims the page with ink at 55%, and the page does not scroll behind a modal', () => {
     expect(block(css, '.bit-dialog::backdrop')).toContain('background: color-mix(in srgb, var(--bit-color-ink) 55%, transparent);');
     expect(block(css, 'html:has(.bit-dialog:modal)')).toContain('overflow: hidden;');
+    expect(block(css, 'html:has(.bit-dialog:modal)')).toContain('scrollbar-gutter: stable;');
   });
 
   it('the header is the purple title bar; the title is the pixel font, uppercase', () => {

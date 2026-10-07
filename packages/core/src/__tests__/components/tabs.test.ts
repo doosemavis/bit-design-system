@@ -49,11 +49,20 @@ describe('components/tabs.css', () => {
 
   it('the plug-in animation: seat, pour, spread, under alternating a and b names', () => {
     for (const name of ['a', 'b']) {
-      expect(block(css, `.bit-tabs__tab[data-boot="${name}"]`)).toContain(`animation: bit-tabs-seat-${name} 120ms steps(2) both;`);
+      expect(block(css, `.bit-tabs__tab[data-boot="${name}"]`)).toContain(`animation: bit-tabs-seat-${name} 120ms steps(2) both, bit-tabs-unfilled-${name} 300ms steps(1, end) none;`);
       expect(block(css, `.bit-tabs__tab[data-boot="${name}"]::before`)).toContain(`animation: bit-tabs-pour-${name} 180ms steps(4) 120ms both;`);
       expect(block(css, `.bit-tabs__slot[data-boot="${name}"]::before`)).toContain(`animation: bit-tabs-spread-${name} 240ms steps(6) 300ms both;`);
     }
     expect(css).toContain('var(--_bit-tabs-x, 50%)');
+  });
+
+  it('until the purple has poured (300ms) the chosen tab keeps its unfilled colours, with no forwards fill', () => {
+    for (const name of ['a', 'b']) {
+      expect(block(css, `.bit-tabs__tab[data-boot="${name}"]`)).toMatch(new RegExp(`bit-tabs-unfilled-${name} 300ms steps\\(1, end\\) none;`));
+      const keyframes = css.match(new RegExp(`@keyframes bit-tabs-unfilled-${name} \\{([^}]*)\\}`))?.[1] ?? '';
+      expect(keyframes).toContain('color: var(--bit-color-text-muted);');
+      expect(keyframes).toContain('--_bit-focus-ring: var(--bit-focus-ring-color);');
+    }
   });
 
   it('reduced motion: no animation', () => {

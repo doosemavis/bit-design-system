@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useLayoutEffect } from 'react';
 
 export type DialogPart = 'header' | 'body';
 
@@ -24,5 +24,7 @@ export function useDialog(partName: string): DialogContextValue {
 /** Register a part with its Dialog for as long as it is mounted. */
 export function useRegisterPart(dialog: DialogContextValue, part: DialogPart): void {
   const { register } = dialog;
-  useEffect(() => register(part), [register, part]);
+  // Before paint, and before the Dialog's own layout effect calls showModal(): a Dialog mounted open
+  // then has its name and description when focus lands in it.
+  useLayoutEffect(() => register(part), [register, part]);
 }

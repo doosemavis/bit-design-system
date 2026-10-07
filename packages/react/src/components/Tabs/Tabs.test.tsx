@@ -80,6 +80,13 @@ describe('Tabs: structure and ARIA', () => {
     expect(tab('Overview')).toHaveAttribute('tabindex', '0');
   });
 
+  it('a disabled chosen tab does not take the only Tab stop: the first enabled tab does', () => {
+    render(<Demo value="props" />);
+    expect(tab('Props')).toHaveAttribute('aria-selected', 'true');
+    expect(tab('Overview')).toHaveAttribute('tabindex', '0');
+    expect(tab('Usage')).toHaveAttribute('tabindex', '-1');
+  });
+
   it('the label is wrapped in a span (for the inside focus ring); the slot is hidden from screen readers', () => {
     const { container } = render(<Demo />);
     expect(tab('Overview').firstElementChild).toHaveClass('bit-tabs__label');

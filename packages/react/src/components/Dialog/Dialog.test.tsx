@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createRef, useState } from 'react';
+import { StrictMode, createRef, useState } from 'react';
 import { Dialog } from './Dialog';
 import { DialogBody, DialogClose, DialogFooter, DialogHeader } from './DialogParts';
 import { Button } from '../Button/Button';
@@ -17,6 +17,11 @@ afterEach(() => {
 });
 
 const dialog = () => document.querySelector('dialog')!;
+/** Let the tasks the browser queues (a native `close` event) run. */
+const settle = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
 /** Fire an animationend (AnimationEvent comes from vitest.polyfills.ts, as jsdom has none). */
 function endAnimation(target: Element, animationName: string) {
   act(() => {
@@ -429,7 +434,7 @@ describe('Dialog: edges', () => {
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 
-  it('unmount closes without the later close event being read as the person closing', () => {
+  it('unmount closes without the later close event being read as the person closing', async () => {
     const onOpenChange = vi.fn();
     const { unmount } = render(
       <Dialog open onOpenChange={onOpenChange}>
@@ -437,7 +442,37 @@ describe('Dialog: edges', () => {
       </Dialog>,
     );
     unmount();
+    await settle();
     expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('a Dialog that starts open under StrictMode still notices the browser closing it later', async () => {
+    const onOpenChange = vi.fn();
+    render(
+      <StrictMode>
+        <Dialog open onOpenChange={onOpenChange}>
+          <DialogHeader>T</DialogHeader>
+        </Dialog>
+      </StrictMode>,
+    );
+    // StrictMode's mount, unmount, mount closed and reopened it: that close event is queued and stale.
+    await settle();
+    expect(dialog().open).toBe(true);
+    expect(onOpenChange).not.toHaveBeenCalled();
+    act(() => dialog().close());
+    await settle();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('a Dialog rendered open has aria-labelledby and aria-describedby as soon as it renders', () => {
+    render(
+      <Dialog open onOpenChange={() => {}}>
+        <DialogHeader>T</DialogHeader>
+        <DialogBody>B</DialogBody>
+      </Dialog>,
+    );
+    expect(dialog()).toHaveAttribute('aria-labelledby');
+    expect(dialog()).toHaveAttribute('aria-describedby');
   });
 
   it('data-autofocus="false" does not take focus', () => {

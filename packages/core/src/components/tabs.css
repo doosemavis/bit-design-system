@@ -102,13 +102,17 @@
 
 /* C6 plug-in: seat (0–120ms), pour (120–300ms), spread (300–540ms), in hard steps.
    raw: these durations have no tokens; the 3px seat is the press depth. */
-.bit-tabs__tab[data-boot="a"] { animation: bit-tabs-seat-a 120ms steps(2) both; }
-.bit-tabs__tab[data-boot="b"] { animation: bit-tabs-seat-b 120ms steps(2) both; }
+.bit-tabs__tab[data-boot="a"] { animation: bit-tabs-seat-a 120ms steps(2) both, bit-tabs-unfilled-a 300ms steps(1, end) none; }
+.bit-tabs__tab[data-boot="b"] { animation: bit-tabs-seat-b 120ms steps(2) both, bit-tabs-unfilled-b 300ms steps(1, end) none; }
 .bit-tabs__tab[data-boot="a"]::before { animation: bit-tabs-pour-a 180ms steps(4) 120ms both; }
 .bit-tabs__tab[data-boot="b"]::before { animation: bit-tabs-pour-b 180ms steps(4) 120ms both; }
 .bit-tabs__slot[data-boot="a"]::before { animation: bit-tabs-spread-a 240ms steps(6) 300ms both; }
 .bit-tabs__slot[data-boot="b"]::before { animation: bit-tabs-spread-b 240ms steps(6) 300ms both; }
 
+/* Until the purple has poured (0-300ms) the chosen tab still sits on neutral-soft, so its label and ring keep
+   the unchosen colours. No forwards fill: after 300ms the chosen rule's primary-contrast takes over. */
+@keyframes bit-tabs-unfilled-a { from, to { color: var(--bit-color-text-muted); --_bit-focus-ring: var(--bit-focus-ring-color); } }
+@keyframes bit-tabs-unfilled-b { from, to { color: var(--bit-color-text-muted); --_bit-focus-ring: var(--bit-focus-ring-color); } }
 @keyframes bit-tabs-seat-a { 0% { transform: none; } 50% { transform: translateY(3px); } 100% { transform: none; } }
 @keyframes bit-tabs-seat-b { 0% { transform: none; } 50% { transform: translateY(3px); } 100% { transform: none; } }
 @keyframes bit-tabs-pour-a { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }

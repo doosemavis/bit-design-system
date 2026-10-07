@@ -87,6 +87,8 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog
       clearTimeout(fallback.current);
       if (!dialog.open) {
         returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        // A close() then reopen before the browser's queued `close` task ran leaves the flag set: clear it.
+        expectedClose.current = false;
         dialog.showModal();
         const header = dialog.querySelector<HTMLElement>(`.${element('dialog', 'header')}`);
         if (header) dialog.style.setProperty('--_bit-dialog-bar', `${header.offsetHeight}px`);

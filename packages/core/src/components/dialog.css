@@ -30,9 +30,11 @@
   background: color-mix(in srgb, var(--bit-color-ink) 55%, transparent);
 }
 
-/* The page behind a modal dialog does not scroll. */
+/* The page behind a modal dialog does not scroll. Its scrollbar gutter stays, so the page does not shift
+   sideways when overflow: hidden removes the scrollbar. */
 html:has(.bit-dialog:modal) {
   overflow: hidden;
+  scrollbar-gutter: stable;
 }
 
 .bit-dialog__header {
