@@ -15,10 +15,14 @@
   box-shadow: var(--bit-shadow-md);
 }
 
+/* outline (O2): the soft tint, edged and shadowed in the colour, as vivid as an outline Button.
+   Neutral's edge and shadow are the line and shadow colours, so it stays black. */
 .bit-alert.bit-outline {
   background: var(--_bit-color-soft);
   color: var(--bit-color-text);
-  box-shadow: var(--bit-shadow-sm);
+  border-color: var(--_bit-color-edge);
+  /* raw: 4px is --bit-shadow-md's offset, in the colour's outline shadow, as button.css */
+  box-shadow: 4px 4px 0 var(--_bit-color-outline-shadow);
 }
 
 .bit-alert__title {

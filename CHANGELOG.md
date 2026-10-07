@@ -10,6 +10,8 @@ Package releases only. Docs-site changes don't appear here. One bullet per line.
 - `Dialog`, with `DialogHeader`, `DialogBody`, `DialogFooter` and `DialogClose`: a modal on the native `<dialog>` and `showModal()`, in the Retro window style. Focus moves inside (to the element with `data-autofocus`, if any), the page behind is inert and does not scroll, Esc or the × closes it, and focus returns to what opened it. Controlled with `open` and `onOpenChange`; `alert` makes it an alertdialog with a red title bar, which shakes instead of closing when you click the dimmed page (no shake with reduced motion); `size` sets the width. It folds out of its title bar in pixel steps and folds back in when closed (none with reduced motion).
 - `Tabs`, with `TabList`, `Tab` and `TabPanel`: the WAI-ARIA tabs pattern with cartridge-shaped tabs. Only the chosen tab is in the Tab order; the arrows (swapped in right-to-left pages), Home and End move between tabs and skip disabled ones; `activation="manual"` waits for Enter or Space. The chosen cartridge seats into a slot that lights up under it, in pixel steps (none with reduced motion). Panels stay mounted.
 - Types: `DialogProps`, `DialogHeaderProps`, `DialogPartProps`, `DialogCloseProps`, `TabsProps`, `TabListProps`, `TabProps`, `TabPanelProps`.
+### Changed
+- Alert: outline Alerts take their colour's border and shadow, like outline Buttons (neutral stays black).
 
 ## 0.1.4 — 2026-10-07
 ### Breaking
