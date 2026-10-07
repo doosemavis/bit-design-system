@@ -63,10 +63,27 @@
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
+  transition:
+    transform var(--bit-duration-fast) ease-out,
+    box-shadow var(--bit-duration-fast) ease-out;
 }
 
 .bit-segmented-control__input:not(:checked):not(:disabled) + .bit-segmented-control__label:hover {
   background: var(--bit-color-neutral-soft);
+}
+
+/* Button's press feel, but only the label sinks: the bar and its shadow stay put, and the sink is a
+   straight drop (translateY) inside the rounded frame, with an inset shade of the same depth standing
+   in for the shadow Button shrinks (the shadow colour, since ink is reserved for owner-chosen lines).
+   1 offset on hover, 2 while pressed; disabled segments never move. */
+.bit-segmented-control__input:not(:disabled) + .bit-segmented-control__label:hover {
+  transform: translateY(var(--bit-press-offset));
+  box-shadow: inset 0 var(--bit-press-offset) 0 color-mix(in srgb, var(--bit-color-shadow) 35%, transparent);
+}
+
+.bit-segmented-control__input:not(:disabled) + .bit-segmented-control__label:active {
+  transform: translateY(calc(var(--bit-press-offset) * 2));
+  box-shadow: inset 0 calc(var(--bit-press-offset) * 2) 0 color-mix(in srgb, var(--bit-color-shadow) 35%, transparent);
 }
 
 /* states are attributes, never classes */
@@ -88,5 +105,12 @@
     forced-color-adjust: none;
     background: Highlight;
     color: HighlightText;
+  }
+}
+
+/* Instant press for reduced motion (system/motion.css also clamps every transition globally). */
+@media (prefers-reduced-motion: reduce) {
+  .bit-segmented-control__label {
+    transition: none;
   }
 }

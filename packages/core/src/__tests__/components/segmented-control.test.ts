@@ -58,6 +58,42 @@ describe('components/segmented-control.css', () => {
     }
   });
 
+  describe('press feel: only the segment label moves, never the joined bar', () => {
+    const label = '.bit-segmented-control__label';
+    const enabled = '.bit-segmented-control__input:not(:disabled) + .bit-segmented-control__label';
+    const shade = 'color-mix(in srgb, var(--bit-color-shadow) 35%, transparent)';
+
+    it('hover sinks the label one press-offset with an inset shade of the same depth, enabled only', () => {
+      const hover = block(css, `${enabled}:hover`)!;
+      expect(hover).toContain('transform: translateY(var(--bit-press-offset));');
+      expect(hover).toContain(`box-shadow: inset 0 var(--bit-press-offset) 0 ${shade};`);
+    });
+
+    it(':active sinks the full two offsets with a two-offset inset shade, enabled only', () => {
+      const active = block(css, `${enabled}:active`)!;
+      expect(active).toContain('transform: translateY(calc(var(--bit-press-offset) * 2));');
+      expect(active).toContain(`box-shadow: inset 0 calc(var(--bit-press-offset) * 2) 0 ${shade};`);
+    });
+
+    it('never moves the bar or a disabled segment', () => {
+      expect(css).not.toMatch(/\.bit-segmented-control__options[^{]*:(hover|active)/);
+      expect(css).not.toMatch(/:disabled\s*\+[^{]*:(hover|active)/);
+    });
+
+    it('eases the label with the fast duration, and reduced motion removes it', () => {
+      const base = block(css, label)!;
+      expect(base).toContain('transform var(--bit-duration-fast) ease-out');
+      expect(base).toContain('box-shadow var(--bit-duration-fast) ease-out');
+      const reduced = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'));
+      expect(reduced).toContain(`${label} {`);
+      expect(reduced).toContain('transition: none;');
+    });
+
+    it('uses no raw colours', () => {
+      expect(css).not.toMatch(/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/);
+    });
+  });
+
   it('a disabled option is half opacity with a not-allowed cursor', () => {
     const disabled = block(css, '.bit-segmented-control__input:disabled + .bit-segmented-control__label')!;
     expect(disabled).toContain('opacity: 0.5;');
