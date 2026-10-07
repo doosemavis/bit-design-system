@@ -62,6 +62,10 @@ export type { SegmentedControlProps, SegmentedControlMultipleProps, SegmentedOpt
 
 export { Table, TableHead, TableBody, TableRow, TableCell } from './components/Table/Table';
 export type { TableProps, TableSectionProps, TableRowProps, TableCellProps } from './components/Table/Table';
+export { Tabs } from './components/Tabs/Tabs';
+export type { TabsProps } from './components/Tabs/Tabs';
+export { TabList, Tab, TabPanel } from './components/Tabs/TabParts';
+export type { TabListProps, TabProps, TabPanelProps } from './components/Tabs/TabParts';
 
 export { BitLogo } from './logo/BitLogo';
 export type { BitLogoProps } from './logo/BitLogo';

@@ -45,6 +45,8 @@ const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
   TableHead: { children: <tr><th>x</th></tr> },
   TableBody: { children: <tr><td>x</td></tr> },
   TableRow: { children: <td>x</td> },
+  Tab: { value: 'x' },
+  TabPanel: { value: 'x' },
 };
 
 /** Table parts only render inside their table parents. The root is then the part's own element. */
@@ -56,6 +58,21 @@ const PARENTS: Record<string, { wrap: (part: ReactElement) => ReactElement; root
   DialogHeader: { wrap: (part) => <Dialog open={false} onOpenChange={() => {}}>{part}</Dialog>, root: '.bit-dialog__header' },
   DialogBody: { wrap: (part) => <Dialog open={false} onOpenChange={() => {}}>{part}</Dialog>, root: '.bit-dialog__body' },
   DialogFooter: { wrap: (part) => <Dialog open={false} onOpenChange={() => {}}>{part}</Dialog>, root: '.bit-dialog__footer' },
+  TabList: { wrap: (part) => <lib.Tabs>{part}</lib.Tabs>, root: '[role="tablist"]' },
+  Tab: { wrap: (part) => <lib.Tabs><lib.TabList aria-label="x">{part}</lib.TabList></lib.Tabs>, root: '[role="tab"]' },
+  TabPanel: { wrap: (part) => <lib.Tabs>{part}</lib.Tabs>, root: '[role="tabpanel"]' },
+};
+
+/**
+ * Names the prefix rule gets wrong because one component's name starts another's ("Tab" starts "Table" and
+ * "Tabs"). The Tabs family is one component, so its parts are elements of bit-tabs.
+ */
+const ROOT_CLASS_OVERRIDES: Record<string, string> = {
+  Table: 'bit-table',
+  Tabs: 'bit-tabs',
+  TabList: 'bit-tabs__list',
+  Tab: 'bit-tabs__tab',
+  TabPanel: 'bit-tabs__panel',
 };
 
 /** Components that are a plain Button under another name: their root class is `bit-button`, not `bit-{name}`. */
@@ -63,6 +80,7 @@ const BUTTON_ALIASES = ['DialogClose'];
 
 /** The naming rule from the spec, as code. */
 function expectedRootClass(name: string): string {
+  if (ROOT_CLASS_OVERRIDES[name]) return ROOT_CLASS_OVERRIDES[name];
   const parent = componentNames
     .filter((candidate) => candidate !== name && name.startsWith(candidate))
     .sort((a, b) => b.length - a.length)[0];
@@ -77,6 +95,7 @@ describe('public index', () => {
         'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
         'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
         'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
+        'Tabs', 'TabList', 'Tab', 'TabPanel',
         'Heading', 'Box',
         'Dialog', 'DialogHeader', 'DialogBody', 'DialogFooter', 'DialogClose',
       ].sort(),
