@@ -16,6 +16,8 @@ const INK_EXCEPTIONS: Readonly<Record<string, readonly string[]>> = {
   'code-block.css': ['.bit-code__copy'],
   // Selected Code text is ink on the highlight, like the page's own ::selection in system/reset.css.
   'code.css': ['.bit-code::selection'],
+  // The dimmed page behind a modal Dialog is ink at 55%, in both modes (owner pick D2, board dialog-tabs).
+  'dialog.css': ['.bit-dialog::backdrop'],
 };
 
 describe('system/colors.css', () => {

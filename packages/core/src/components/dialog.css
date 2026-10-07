@@ -1,0 +1,143 @@
+/* Dialog (D2 "Retro window") on a native modal <dialog>. data-state is "opening", "open" or "closing"
+   (absent when closed). Opening and closing play the same frames in opposite directions, under two names,
+   because a browser won't restart an animation whose name didn't change. */
+.bit-dialog {
+  box-sizing: border-box;
+  max-width: calc(100vw - var(--bit-space-32px));
+  max-height: calc(100dvh - var(--bit-space-32px));
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--bit-font-body);
+  color: var(--bit-color-text);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+  box-shadow: var(--bit-shadow-lg);
+}
+
+/* raw: dialog widths have no token */
+.bit-dialog.bit-sm { width: 320px; }
+.bit-dialog.bit-md { width: 420px; }
+.bit-dialog.bit-lg { width: 560px; }
+
+/* Only while open, so a closed dialog stays display: none. */
+.bit-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.bit-dialog::backdrop {
+  background: color-mix(in srgb, var(--bit-color-ink) 55%, transparent);
+}
+
+/* The page behind a modal dialog does not scroll. */
+html:has(.bit-dialog:modal) {
+  overflow: hidden;
+}
+
+.bit-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bit-space-12px);
+  padding: var(--bit-space-8px) var(--bit-space-8px) var(--bit-space-8px) var(--bit-space-16px);
+  color: var(--bit-color-primary-contrast);
+  background: var(--bit-color-primary);
+  border-bottom: var(--bit-border-width) solid var(--bit-color-line);
+}
+
+.bit-dialog__title {
+  margin: 0;
+  font-family: var(--bit-font-pixel);
+  font-size: 11px; /* raw: the pixel font's sub-scale size, as Badge */
+  font-weight: var(--bit-weight-normal);
+  line-height: var(--bit-leading-normal);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* The × is a bit Button (sm, outline): square, so it reads as an icon. */
+.bit-dialog__close {
+  flex: none;
+  width: var(--_bit-size-height);
+  padding: 0;
+}
+
+.bit-dialog__body {
+  padding: var(--bit-space-16px);
+  overflow: auto;
+  line-height: var(--bit-leading-normal);
+}
+
+.bit-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--bit-space-8px);
+  padding: 0 var(--bit-space-16px) var(--bit-space-16px);
+}
+
+/* O2 "Bar, then pour": the title bar opens out from the centre in pixel blocks, then the window pours down.
+   Closing is the same frames backwards. raw: 440ms (no motion token is this long). */
+.bit-dialog[data-state="opening"] {
+  animation: bit-dialog-open 440ms steps(1, end) both;
+}
+
+.bit-dialog[data-state="closing"] {
+  animation: bit-dialog-close 440ms steps(1, end) both;
+}
+
+.bit-dialog[data-state="opening"]::backdrop {
+  animation: bit-dialog-dim var(--bit-duration-normal) steps(2) both;
+}
+
+/* The page undims at the end of the fold-in. raw: 280ms = 440ms - the dim's own duration. */
+.bit-dialog[data-state="closing"]::backdrop {
+  animation: bit-dialog-dim var(--bit-duration-normal) steps(2) 280ms reverse both;
+}
+
+@keyframes bit-dialog-open {
+  0% { clip-path: inset(0 50% calc(100% - var(--_bit-dialog-bar, 46px)) 50%); }
+  10% { clip-path: inset(0 38% calc(100% - var(--_bit-dialog-bar, 46px)) 38%); }
+  20% { clip-path: inset(0 25% calc(100% - var(--_bit-dialog-bar, 46px)) 25%); }
+  30% { clip-path: inset(0 12% calc(100% - var(--_bit-dialog-bar, 46px)) 12%); }
+  40% { clip-path: inset(0 0 calc(100% - var(--_bit-dialog-bar, 46px)) 0); }
+  55% { clip-path: inset(0 0 60% 0); }
+  70% { clip-path: inset(0 0 35% 0); }
+  85% { clip-path: inset(0 0 12% 0); }
+  100% { clip-path: inset(0); }
+}
+
+@keyframes bit-dialog-close {
+  0% { clip-path: inset(0); }
+  15% { clip-path: inset(0 0 12% 0); }
+  30% { clip-path: inset(0 0 35% 0); }
+  45% { clip-path: inset(0 0 60% 0); }
+  60% { clip-path: inset(0 0 calc(100% - var(--_bit-dialog-bar, 46px)) 0); }
+  70% { clip-path: inset(0 12% calc(100% - var(--_bit-dialog-bar, 46px)) 12%); }
+  80% { clip-path: inset(0 25% calc(100% - var(--_bit-dialog-bar, 46px)) 25%); }
+  90% { clip-path: inset(0 38% calc(100% - var(--_bit-dialog-bar, 46px)) 38%); }
+  100% { clip-path: inset(0 50% calc(100% - var(--_bit-dialog-bar, 46px)) 50%); }
+}
+
+@keyframes bit-dialog-dim {
+  from { background: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bit-dialog[data-state],
+  .bit-dialog[data-state]::backdrop {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .bit-dialog {
+    border-color: CanvasText;
+  }
+
+  .bit-dialog__header {
+    background: Canvas;
+    color: CanvasText;
+    border-bottom-color: CanvasText;
+  }
+}

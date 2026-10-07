@@ -18,6 +18,7 @@ const EXEMPT: Readonly<Record<string, { sizes: readonly string[]; why: string }>
     sizes: ['max(0.9em, var(--bit-text-13px))'],
     why: 'Inline Code is 0.9em of the text around it, but max() holds it at 13px or more inside 13px text.',
   },
+  'dialog.css': { sizes: ['11px'], why: 'The Retro window title is the pixel font, which reads large; 11px is its sub-scale, as Badge (owner pick D2).' },
   'text.css': { sizes: ['var(--bit-text-11px)'], why: 'Text keeps its public size={11} step; nothing in bit uses it.' },
 };
 
