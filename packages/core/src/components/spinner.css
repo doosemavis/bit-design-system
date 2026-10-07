@@ -9,3 +9,15 @@
   border-radius: var(--bit-radius-full);
   animation: bit-spin 0.8s linear infinite;
 }
+
+/* Dark: the neutral arc (light steel) nearly matches the line-coloured ring, so it takes the text
+   colour. System mode on a dark OS does the same. Both are (0,3,0), above the base rule. */
+[data-mode="dark"] .bit-spinner.bit-neutral {
+  border-top-color: var(--bit-color-text);
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-mode="system"] .bit-spinner.bit-neutral {
+    border-top-color: var(--bit-color-text);
+  }
+}

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CODE_KINDS, COLORS } from '../tokens';
-import { contrastRatio, listCss, luminance, readCss, resolveVar, themeModes } from './css';
+import { block, contrastRatio, listCss, luminance, readCss, resolveVar, styleRules, themeModes } from './css';
 
 const AA_TEXT = 4.5;
 const AA_NON_TEXT = 3;
@@ -239,6 +239,58 @@ describe('code-text (Code inside a Table)', () => {
     const text = resolveVar(map, '--bit-color-code-text');
     for (const bg of ['--bit-color-surface', '--bit-color-bg', '--bit-color-stripe']) {
       expect(contrastRatio(text, resolveVar(map, bg))).toBeGreaterThanOrEqual(AA_TEXT);
+    }
+  });
+});
+
+describe('Spinner arc against its ring (0.1.4 final review)', () => {
+  const spinner = readCss('components/spinner.css');
+  const { light, dark } = themeModes(readCss('themes/power-up.css'));
+  const darkMap = new Map([...light, ...dark]);
+  const ARC = /border-top-color:\s*var\((--bit-[a-z-]+)\)/;
+
+  /** The token the arc reads for `color` in `mode`, following spinner.css's own dark overrides. */
+  function arcToken(color: string, mode: 'light' | 'dark'): string {
+    const override = mode === 'dark' ? block(spinner, `[data-mode="dark"] .bit-spinner.bit-${color}`) : null;
+    const match = override === null ? null : ARC.exec(override);
+    return match ? match[1]! : `--bit-color-${color}`;
+  }
+
+  const arcRatio = (color: string, mode: 'light' | 'dark') => {
+    const map = mode === 'light' ? light : darkMap;
+    return contrastRatio(resolveVar(map, arcToken(color, mode)), resolveVar(map, '--bit-color-line'));
+  };
+
+  /**
+   * Dark arcs under 3:1 on the #79798F ring, found by this check in the 0.1.4 final review and NOT yet
+   * decided by the owner (only neutral was ruled on: its arc reads text). Listed so any change, a fix or
+   * a new failure, is a deliberate edit here. Ratios at the time: primary 1.34, success 1.29, warning
+   * 2.73, danger 1.20.
+   */
+  const DARK_ARCS_AWAITING_OWNER: readonly string[] = ['primary', 'success', 'warning', 'danger'];
+
+  it.each(COLORS)('the %s arc stands out from the line-coloured ring in light at 3:1', (color) => {
+    expect(arcRatio(color, 'light')).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  it('the neutral arc stands out from the ring in dark at 3:1 (it reads the text colour there)', () => {
+    expect(arcToken('neutral', 'dark')).toBe('--bit-color-text');
+    expect(arcRatio('neutral', 'dark')).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  it('dark: the colours whose arc is under 3:1 on the ring are exactly the ones awaiting an owner decision', () => {
+    expect(COLORS.filter((color) => arcRatio(color, 'dark') < AA_NON_TEXT)).toEqual(DARK_ARCS_AWAITING_OWNER);
+  });
+
+  it('every dark arc override is repeated for system mode on a dark OS', () => {
+    const rules = styleRules(spinner);
+    const darkRules = rules.filter((rule) => rule.media === null && rule.selector.startsWith('[data-mode="dark"]'));
+    expect(darkRules.length).toBeGreaterThan(0);
+    for (const rule of darkRules) {
+      const system = rules.find(
+        (r) => r.media === '(prefers-color-scheme: dark)' && r.selector === rule.selector.replace('[data-mode="dark"]', '[data-mode="system"]'),
+      );
+      expect(system?.body, rule.selector).toBe(rule.body);
     }
   });
 });
