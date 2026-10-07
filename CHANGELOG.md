@@ -2,6 +2,19 @@
 
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
+## 0.1.4 — 2026-10-07
+### Breaking
+- `Select` draws its own list instead of the browser's, so it looks the same in every browser: themed in light and dark, sliding down from the box (or up, when there's no room below). The list renders above everything, so cards, tables and scrolling panels never clip it.
+- `Select` takes `options={[{ value, label, disabled? }]}` and `value` / `defaultValue` / `onValueChange={(value: string) => …}`, plus `placeholder` and `name`. `<option>` children, the native `onChange` event and the `<select>` element are gone; the ref is now the trigger `<button>`. A `name` adds a hidden input, so form submits still carry the value.
+### Added
+- `SelectOption` type.
+- Select works without a mouse: Enter, Space or the arrows open it; the arrows, Home, End, Page Up and Page Down move; typing jumps to an option; Enter or Space chooses; Escape closes; Tab chooses and moves on. Screen readers hear a combo box with its label and value, and each option as you move.
+### Changed
+- The neutral colour is a visible slate: `#5F6372` with white text in light, `#9A9EB0` with ink text in dark (it was white on white, and barely different from the dark surface). `--bit-color-neutral-soft` is unchanged.
+- SegmentedControl segments press like a Button: the segment under the pointer sinks one step, sinks fully while pressed, and springs back on release. The bar itself never moves.
+### Fixed
+- Field's label now names a Select's list as well as its box, and a Field's `required` reaches a Select as `aria-required`.
+
 ## 0.1.3 — 2026-10-06
 ### Added
 - `useCopyToClipboard(text)` and the `CopyState` type: run a Copy button of your own the same way CodeBlock does. `copy()` resolves `true` when the text reached the clipboard and never rejects.
