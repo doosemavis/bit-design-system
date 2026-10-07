@@ -39,7 +39,7 @@ export { Input } from './components/Input/Input';
 export type { InputProps } from './components/Input/Input';
 
 export { Select } from './components/Select/Select';
-export type { SelectProps } from './components/Select/Select';
+export type { SelectProps, SelectOption } from './components/Select/Select';
 
 export { Switch } from './components/Switch/Switch';
 export type { SwitchProps } from './components/Switch/Switch';
