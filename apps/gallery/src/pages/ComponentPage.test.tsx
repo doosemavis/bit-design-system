@@ -2,6 +2,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect } from 'vitest';
 import { renderAt } from '../test/renderRoute';
+import { chooseOption, chosenLabel, optionLabels } from '../test/select';
 import { button } from '../manifests/button';
 import { modeToggle } from '../manifests/modeToggle';
 import { switchManifest } from '../manifests/switch';
@@ -22,7 +23,7 @@ describe('SegmentedControl page: segments and multiple', () => {
     await open('/components/segmentedcontrol', 'SegmentedControl');
     const controls = region('Controls');
     const segments = within(controls).getByRole('combobox', { name: 'segments' });
-    expect(within(segments).getAllByRole('option').map((o) => o.textContent)).toEqual(['2', '3', '4', '5']);
+    expect(optionLabels(segments)).toEqual(['2', '3', '4', '5']);
     expect(within(controls).getByRole('switch', { name: 'multiple' })).not.toBeChecked();
   });
 
@@ -95,6 +96,26 @@ describe('ComponentPage (layout C)', () => {
     expect(within(presets).getByRole('button', { name: 'Ghost small' })).toHaveAttribute('aria-pressed', 'true');
     await userEvent.click(within(presets).getByRole('button', { name: 'Loading' }));
     expect(within(presets).getByRole('button', { name: 'Loading' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('presets and the URL round-trip through the Select controls', async () => {
+    const { router } = await open('/components/button?variant=ghost&size=sm', 'Button');
+    const controls = region('Controls');
+    const select = (name: string) => within(controls).getByRole('combobox', { name });
+    // The URL sets the controls.
+    expect(chosenLabel(select('variant'))).toBe('ghost');
+    expect(chosenLabel(select('size'))).toBe('sm');
+    // A preset sets them, and the URL follows.
+    const presets = within(region('Button preview')).getByRole('group', { name: 'Presets' });
+    await userEvent.click(within(presets).getByRole('button', { name: 'Danger outline' }));
+    expect(chosenLabel(select('color'))).toBe('danger');
+    expect(chosenLabel(select('variant'))).toBe('outline');
+    expect(select('variant')).toHaveTextContent('outline');
+    expect(new URLSearchParams(router.state.location.search).get('variant')).toBe('outline');
+    // A Select choice moves the URL and releases the preset's press.
+    await chooseOption(userEvent.setup(), select('variant'), 'ghost');
+    expect(new URLSearchParams(router.state.location.search).get('variant')).toBe('ghost');
+    expect(within(presets).getByRole('button', { name: 'Danger outline' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('the Variants table has one cell per color × variant', async () => {
@@ -242,6 +263,24 @@ describe('ComponentPage (layout C)', () => {
     expect(screen.queryByRole('group', { name: 'Code format' })).toBeNull();
     expect(screen.queryByRole('radio', { name: 'HTML' })).toBeNull();
     expect(screen.getByRole('switch', { name: 'Full file' })).toBeInTheDocument();
+  });
+
+  it('the Select page plays the bit-drawn Select: choosing updates the preview, and the code hoists options', async () => {
+    await open('/components/select', 'Select');
+    const preview = region('Select preview');
+    const trigger = within(preview).getByRole('combobox', { name: 'Color' });
+    expect(trigger).toHaveClass('bit-select__control');
+    expect(trigger).toHaveTextContent('Pick a color');
+    expect(preview.querySelector('select')).toBeNull();
+    expect(optionLabels(trigger)).toEqual(['Primary', 'Neutral', 'Success', 'Warning', 'Danger']);
+    await chooseOption(userEvent.setup(), trigger, 'Success');
+    expect(trigger).toHaveTextContent('Success');
+    expect(chosenLabel(trigger)).toBe('Success');
+    const code = region('Example code').textContent!;
+    expect(code).toContain("const options = [\n  { value: 'primary', label: 'Primary' },");
+    expect(code).toContain('<Select aria-label="Color" placeholder="Pick a color" options={options} />');
+    // Its markup needs React, so there is no HTML tab.
+    expect(screen.queryByRole('radio', { name: 'HTML' })).toBeNull();
   });
 
   it('the logo page lives under Brand', async () => {

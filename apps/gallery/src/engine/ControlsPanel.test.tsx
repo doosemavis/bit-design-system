@@ -9,6 +9,7 @@ import { button } from '../manifests/button';
 import { spinner } from '../manifests/spinner';
 import { badge as badgeManifest } from '../manifests/badge';
 import { expectNoA11yViolations } from '../test/a11y';
+import { chooseOption, chosenLabel, optionLabels } from '../test/select';
 
 interface HarnessProps {
   manifest: Manifest;
@@ -41,11 +42,12 @@ describe('ControlsPanel', () => {
     const { container } = render(
       <ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={() => {}} />,
     );
-    const color = screen.getByLabelText('color') as HTMLSelectElement;
-    expect([...color.options].map((o) => o.value)).toEqual(['primary', 'neutral', 'success', 'warning', 'danger']);
-    expect(color.value).toBe('primary');
-    expect(screen.getByLabelText('variant')).toBeInTheDocument();
-    expect(screen.getByLabelText('size')).toBeInTheDocument();
+    const color = screen.getByRole('combobox', { name: 'color' });
+    expect(optionLabels(color)).toEqual(['primary', 'neutral', 'success', 'warning', 'danger']);
+    expect(chosenLabel(color)).toBe('primary');
+    expect(color).toHaveTextContent('primary');
+    expect(screen.getByRole('combobox', { name: 'variant' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'size' })).toBeInTheDocument();
     expect(screen.getByRole('switch', { name: 'loading' })).not.toBeChecked();
     expect(screen.getByRole('switch', { name: 'disabled' })).toBeInTheDocument();
     expect(screen.getByLabelText('children')).toHaveValue('Save');
@@ -55,13 +57,40 @@ describe('ControlsPanel', () => {
   it('calls onChange with the prop name and the new value', async () => {
     const onChange = vi.fn();
     render(<Harness manifest={button} onChange={onChange} />);
-    await userEvent.selectOptions(screen.getByLabelText('color'), 'danger');
+    await chooseOption(userEvent.setup(), screen.getByRole('combobox', { name: 'color' }), 'danger');
     expect(onChange).toHaveBeenLastCalledWith('color', 'danger');
+    expect(screen.getByRole('combobox', { name: 'color' })).toHaveTextContent('danger');
     await userEvent.click(screen.getByRole('switch', { name: 'loading' }));
     expect(onChange).toHaveBeenLastCalledWith('loading', true);
     await userEvent.clear(screen.getByLabelText('children'));
     await userEvent.type(screen.getByLabelText('children'), 'Go');
     expect(onChange).toHaveBeenLastCalledWith('children', 'Go');
+  });
+
+  it('a select control chooses by keyboard: Enter opens, End moves, Enter chooses; Escape closes without choosing', async () => {
+    const onChange = vi.fn();
+    render(<Harness manifest={button} onChange={onChange} />);
+    const color = screen.getByRole('combobox', { name: 'color' });
+    const user = userEvent.setup();
+    color.focus();
+    await user.keyboard('{Enter}');
+    expect(color).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard('{End}{Enter}');
+    expect(onChange).toHaveBeenLastCalledWith('color', 'danger');
+    expect(color).toHaveAttribute('aria-expanded', 'false');
+    expect(document.activeElement).toBe(color);
+    await user.keyboard('{ArrowDown}{Home}{Escape}');
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(color).toHaveTextContent('danger');
+  });
+
+  it('a select control shows the state it is given (a preset or the URL), not its own', () => {
+    const { rerender } = render(
+      <ControlsPanel manifest={button} state={{ ...defaultState(button), variant: 'outline' }} onChange={() => {}} onReset={() => {}} />,
+    );
+    expect(chosenLabel(screen.getByRole('combobox', { name: 'variant' }))).toBe('outline');
+    rerender(<ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={() => {}} />);
+    expect(chosenLabel(screen.getByRole('combobox', { name: 'variant' }))).toBe(String(defaultState(button).variant));
   });
 
   it('renders number and text controls and labels aria-label by its prop name', async () => {
@@ -115,7 +144,8 @@ describe('ControlsPanel', () => {
     const { container } = render(
       <ControlsPanel manifest={numbered} state={defaultState(numbered)} onChange={() => {}} onReset={() => {}} />,
     );
-    expect(container.querySelector('select.bit-select__control')).not.toBeNull();
+    expect(container.querySelector('button.bit-select__control[role="combobox"]')).not.toBeNull();
+    expect(container.querySelector('select')).toBeNull();
     expect(container.querySelector('input.bit-input')).not.toBeNull();
     expect(container.querySelector('input.bit-switch__input[role="switch"]')).not.toBeNull();
     expect(container.querySelectorAll('.bit-field').length).toBeGreaterThan(0);

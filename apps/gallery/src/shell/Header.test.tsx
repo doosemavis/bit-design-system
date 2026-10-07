@@ -79,14 +79,14 @@ describe('Header at phone width', () => {
     restore = stubMatchMedia(NARROW_QUERY);
     renderAt('/');
     const header = await screen.findByRole('banner');
-    expect(within(header).queryByLabelText('Version')).toBeNull();
-    expect(within(screen.getByRole('navigation', { name: 'Gallery' })).getByLabelText('Version')).toBeInTheDocument();
+    expect(within(header).queryByRole('combobox', { name: 'Version' })).toBeNull();
+    expect(within(screen.getByRole('navigation', { name: 'Gallery' })).getByRole('combobox', { name: 'Version' })).toBeInTheDocument();
   });
 
   it('on a wide screen the version picker is in the header, left of the mode toggle', async () => {
     renderAt('/');
     const header = await screen.findByRole('banner');
-    const picker = within(header).getByLabelText('Version');
+    const picker = within(header).getByRole('combobox', { name: 'Version' });
     const toggle = within(header).getByRole('group', { name: 'Color mode' });
     expect(picker.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

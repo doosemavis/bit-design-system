@@ -27,6 +27,17 @@ const OPTIONS_CONST = [
   '];',
 ].join('\n');
 
+/** Select's options as the code prints them: the same one-const shape as SegmentedControl's. */
+const SELECT_OPTIONS_CONST = [
+  'const options = [',
+  "  { value: 'primary', label: 'Primary' },",
+  "  { value: 'neutral', label: 'Neutral' },",
+  "  { value: 'success', label: 'Success' },",
+  "  { value: 'warning', label: 'Warning' },",
+  "  { value: 'danger', label: 'Danger' },",
+  '];',
+].join('\n');
+
 /** The JS literal a `const <name> = <literal>;` line holds, or undefined when the snippet has no such const. */
 const constLiteral = (code: string, name: string) => new RegExp(`^const ${name} = (.*);$`, 'm').exec(code)?.[1];
 
@@ -100,10 +111,10 @@ describe('toJsx', () => {
       `import { Input } from '@bit-ds/react';\n\n<Input aria-label="Email" placeholder="you@example.com" invalid />`,
     ],
     [
-      'HTML option children print as JSX and stay out of the import line',
+      "Select's options are a fixed prop: hoisted into a const and passed as options={options}",
       select,
       { size: 'sm' },
-      `import { Select } from '@bit-ds/react';\n\n<Select size="sm" aria-label="Color">\n  <option value="primary">primary</option>\n  <option value="success">success</option>\n  <option value="danger">danger</option>\n</Select>`,
+      `import { Select } from '@bit-ds/react';\n\n${SELECT_OPTIONS_CONST}\n\n<Select size="sm" aria-label="Color" placeholder="Pick a color" options={options} />`,
     ],
     [
       'an alwaysPrint select prints at its default; a true-default boolean turned off prints ={false}',

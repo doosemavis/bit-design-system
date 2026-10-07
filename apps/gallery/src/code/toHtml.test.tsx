@@ -8,6 +8,8 @@ import { field } from '../manifests/field';
 import { input } from '../manifests/input';
 import { segmentedControl } from '../manifests/segmentedControl';
 import { select } from '../manifests/select';
+import { stack } from '../manifests/stack';
+import type { Manifest } from '../manifests/types';
 
 describe('prettyHtml', () => {
   it('puts one element per line with two-space indents and keeps text-only elements on one line', () => {
@@ -52,15 +54,23 @@ describe('toHtml', () => {
     );
   });
 
-  it('prints plain HTML children (Select options) and void elements (Input)', () => {
-    expect(toHtml(renderManifest(select, defaultState(select)))).toContain('  <option value="success">success</option>');
+  it('prints plain HTML children and void elements (Input)', () => {
+    const withSpan: Manifest = { ...stack, children: [{ component: 'span', props: { className: 'note' }, children: 'plain' }] };
+    expect(toHtml(renderManifest(withSpan, defaultState(withSpan)))).toContain('  <span class="note">plain</span>');
     expect(toHtml(renderManifest(input, defaultState(input)))).toMatch(/^<input class="bit-input bit-md"[^>]*\/>$/);
+  });
+
+  it("Select's markup is a combobox button and its listbox, with no native <select> or <option>", () => {
+    const html = toHtml(renderManifest(select, defaultState(select)));
+    expect(html).toMatch(/<button [^>]*role="combobox"/);
+    expect(html).toContain('role="listbox"');
+    expect(html).not.toMatch(/<select|<option/);
   });
 
   it("Field's label still points at its input, by a readable id rather than React's", () => {
     const html = toHtml(renderManifest(field, defaultState(field)));
     expect(html).not.toMatch(/_R_/);
-    expect(html).toContain('<label class="bit-field__label" for="example-1">Email</label>');
+    expect(html).toContain('<label class="bit-field__label" id="example-1-label" for="example-1">Email</label>');
     expect(html).toMatch(/<input [^>]*id="example-1"\/>/);
   });
 

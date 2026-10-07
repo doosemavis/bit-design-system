@@ -21,6 +21,17 @@ describe('Field', () => {
     expect(input.id).not.toBe('');
   });
 
+  it('gives the label its own id, distinct from the control’s, so a Select’s listbox can be named by it', () => {
+    const { container } = render(
+      <Field label="Email">
+        <Input />
+      </Field>,
+    );
+    const label = container.querySelector('label.bit-field__label')!;
+    expect(label.id).toMatch(/-label$/);
+    expect(label.id).not.toBe(screen.getByRole('textbox').id);
+  });
+
   it('puts the ref, className and rest props on the root div', () => {
     const ref = createRef<HTMLDivElement>();
     const { container } = render(

@@ -15,15 +15,17 @@ function guarded(css: string): string {
 }
 
 const cases = [
-  { file: 'components/code-block.css', sel: '.bit-code__pre', track: '--bit-code-bg', ring: '--bit-color-accent' },
-  { file: 'components/table.css', sel: '.bit-table', track: '--bit-color-surface', ring: '--bit-color-accent' },
+  { file: 'components/code-block.css', sel: '.bit-code__pre', track: '--bit-code-bg', ring: '--bit-color-accent', size: 'height' },
+  { file: 'components/table.css', sel: '.bit-table', track: '--bit-color-surface', ring: '--bit-color-accent', size: 'height' },
+  // The Select list scrolls down, so its bar is sized by width (spec 2026-10-07 §2: as Table).
+  { file: 'components/select.css', sel: '.bit-select__list', track: '--bit-color-surface', ring: '--bit-color-accent', size: 'width' },
 ];
 
-describe.each(cases)('scrollbar in $file', ({ file, sel, track, ring }) => {
+describe.each(cases)('scrollbar in $file', ({ file, sel, track, ring, size }) => {
   const block = guarded(readCss(file));
 
   it('sizes the bar at 14px', () => {
-    expect(block).toMatch(new RegExp(`${sel}::-webkit-scrollbar\\s*\\{\\s*height: 14px;`));
+    expect(block).toMatch(new RegExp(`${sel}::-webkit-scrollbar\\s*\\{\\s*${size}: 14px;`));
   });
 
   it('paints the track', () => {
