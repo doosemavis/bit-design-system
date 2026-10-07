@@ -85,6 +85,10 @@ describe('components/select.css', () => {
       }
     });
 
+    it('the fallback z-index says why it is a raw number: there is no z-index token', () => {
+      expect(css).toMatch(/z-index: 10;\s*\/\*[^*]*no z-index token[^*]*\*\//);
+    });
+
     it('never sets display on the list, so the hidden attribute and the popover UA rule can hide it', () => {
       expect(decl(block(css, '.bit-select__list')!, 'display')).toBeNull();
     });

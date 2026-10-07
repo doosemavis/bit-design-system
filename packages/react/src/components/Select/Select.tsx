@@ -52,6 +52,35 @@ const MOVES = new Map<string, (options: Options, from: number) => number>([
   ['PageUp', (options, from) => page(options, from, -1)],
 ]);
 
+/** The text of every <label> that points at the trigger, joined. */
+function labelText(trigger: HTMLButtonElement): string {
+  return [...trigger.labels]
+    .map((label) => label.textContent!.trim())
+    .join(' ')
+    .trim();
+}
+
+interface NameSources {
+  ownLabelledBy: string | undefined;
+  ownLabel: string | undefined;
+  fieldLabelId: string | undefined;
+  /** The text of a <label for> outside a Field; '' when there is none (or the list is closed). */
+  outsideLabel: string;
+  triggerId: string | undefined;
+}
+
+/**
+ * The listbox's name, so it is never unnamed while open: the Select's own aria-labelledby, else its
+ * aria-label, else the Field label, else the text of a <label for> elsewhere, else the trigger.
+ */
+function listboxName(sources: NameSources): { 'aria-label'?: string; 'aria-labelledby'?: string } {
+  if (sources.ownLabelledBy !== undefined) return { 'aria-labelledby': sources.ownLabelledBy };
+  if (sources.ownLabel !== undefined) return { 'aria-label': sources.ownLabel };
+  if (sources.fieldLabelId !== undefined) return { 'aria-labelledby': sources.fieldLabelId };
+  if (sources.outsideLabel) return { 'aria-label': sources.outsideLabel };
+  return { 'aria-labelledby': sources.triggerId };
+}
+
 /** A key that types a character: one character, with no Ctrl, Meta or Alt. */
 const printable = (event: KeyboardEvent) => event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
 
@@ -86,6 +115,8 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
   const [own, setOwn] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  // The text of any <label for> outside a Field, read when the list opens, to name the listbox.
+  const [outsideLabel, setOutsideLabel] = useState('');
   const typed = useRef(EMPTY_BUFFER);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLSpanElement>(null);
@@ -99,7 +130,13 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
   const chosen = options.findIndex((option) => option.value === current);
   const chosenOption = options[chosen];
 
-  useListboxLayer(open, triggerRef, listRef, close);
+  /** Where the list opens: the chosen option, or the first enabled one (-1 when none is enabled). */
+  const startIndex = () => (chosenOption && !chosenOption.disabled ? chosen : firstEnabled(options));
+  // The options can change while the list is open: an active row that is gone or now disabled
+  // falls back to where the list would open, so aria-activedescendant and the keys stay valid.
+  const activeIndex = active >= 0 && active < options.length && !options[active]!.disabled ? active : startIndex();
+
+  useListboxLayer(open, triggerRef, listRef, close, options);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -113,23 +150,24 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
   }, [open]);
 
   useEffect(() => {
-    if (!open || active < 0) return;
-    const row = listRef.current!.children[active] as HTMLElement;
+    // activeIndex is always a row that exists (or -1), so the lookup is in bounds.
+    if (!open || activeIndex < 0) return;
+    const row = listRef.current!.children[activeIndex] as HTMLElement;
     if (typeof row.scrollIntoView === 'function') row.scrollIntoView({ block: 'nearest' });
-  }, [open, active]);
-
-  /** Where the list opens: the chosen option, or the first enabled one. */
-  const startIndex = () => (chosenOption && !chosenOption.disabled ? chosen : firstEnabled(options));
+  }, [open, activeIndex]);
 
   function openAt(index: number) {
     setActive(index);
     setOpen(true);
+    setOutsideLabel(labelText(triggerRef.current!));
   }
 
+  /** Choose the option at `index` and close. A disabled option is refused and the list stays open. */
   function choose(index: number) {
+    const option = options[index];
+    if (option?.disabled) return;
     setOpen(false);
     triggerRef.current!.focus();
-    const option = options[index];
     if (!option || option.value === current) return;
     if (value === undefined) setOwn(option.value);
     onValueChange?.(option.value);
@@ -160,24 +198,29 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
     const move = MOVES.get(key);
     if (key === 'Tab') {
       // Not prevented: focus moves on as usual.
-      choose(active);
+      choose(activeIndex);
     } else if (key === 'Escape') {
       event.preventDefault();
       setOpen(false);
     } else if (key === 'Enter' || (key === 'ArrowUp' && event.altKey) || (key === ' ' && !typing)) {
       event.preventDefault();
-      choose(active);
+      choose(activeIndex);
     } else if (move) {
       event.preventDefault();
-      setActive(move(options, active));
+      setActive(move(options, activeIndex));
     } else if (printable(event)) {
       event.preventDefault();
-      setActive(search(key, active));
+      setActive(search(key, activeIndex));
     }
   }
 
-  const ariaLabel = rest['aria-label'];
-  const listLabelledBy = rest['aria-labelledby'] ?? (ariaLabel === undefined ? fieldLabelId : undefined);
+  const listName = listboxName({
+    ownLabelledBy: rest['aria-labelledby'],
+    ownLabel: rest['aria-label'],
+    fieldLabelId,
+    outsideLabel: open ? outsideLabel : '',
+    triggerId: wired.id,
+  });
 
   return (
     <span
@@ -192,7 +235,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        aria-activedescendant={open && active >= 0 ? optionId(active) : undefined}
+        aria-activedescendant={open && activeIndex >= 0 ? optionId(activeIndex) : undefined}
         aria-required={required || undefined}
         disabled={disabled}
         {...dropLegacyColor(rest)}
@@ -224,8 +267,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
         role="listbox"
         className={element('select', 'list')}
         hidden={!open}
-        aria-label={ariaLabel}
-        aria-labelledby={listLabelledBy}
+        {...listName}
         // Pressing a row must not move focus off the trigger.
         onMouseDown={(event) => event.preventDefault()}
       >
@@ -237,10 +279,8 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
             className={element('select', 'option')}
             aria-selected={index === chosen}
             aria-disabled={option.disabled ? true : undefined}
-            data-active={open && index === active ? '' : undefined}
-            onClick={() => {
-              if (!option.disabled) choose(index);
-            }}
+            data-active={open && index === activeIndex ? '' : undefined}
+            onClick={() => choose(index)}
             onPointerMove={() => {
               if (!option.disabled) setActive(index);
             }}

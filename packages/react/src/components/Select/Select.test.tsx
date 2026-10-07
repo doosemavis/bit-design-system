@@ -242,6 +242,69 @@ describe('Select: pointer', () => {
   });
 });
 
+describe('Select: two on a page', () => {
+  it('pressing B’s trigger while A is open closes A and opens B in one click; their option ids differ', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <>
+        <Select aria-label="A" options={OPTIONS} />
+        <Select aria-label="B" options={OPTIONS} />
+      </>,
+    );
+    const a = screen.getByRole('combobox', { name: 'A' });
+    const b = screen.getByRole('combobox', { name: 'B' });
+    await user.click(a);
+    expect(a).toHaveAttribute('aria-expanded', 'true');
+    await user.click(b);
+    expect(a).toHaveAttribute('aria-expanded', 'false');
+    expect(b).toHaveAttribute('aria-expanded', 'true');
+    expect(a.getAttribute('aria-controls')).not.toBe(b.getAttribute('aria-controls'));
+    const ids = rows(container).map((row) => row.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe('Select: naming the listbox without a Field', () => {
+  it('an external <label for> names the open listbox, and axe is clean', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <>
+        <label htmlFor="range">Time range</label>
+        <Select id="range" options={OPTIONS} />
+      </>,
+    );
+    await user.click(screen.getByRole('combobox', { name: 'Time range' }));
+    expect(list(container)).toHaveAttribute('aria-label', 'Time range');
+    await expectNoA11yViolations(container);
+    await user.click(trigger());
+    expect(list(container)).toHaveAttribute('hidden');
+    expect(list(container)).not.toHaveAttribute('aria-label');
+  });
+
+  it('with only aria-label, the open listbox has that name and axe is clean', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Select aria-label="Range" options={OPTIONS} />);
+    await user.click(trigger());
+    expect(list(container)).toHaveAttribute('aria-label', 'Range');
+    await expectNoA11yViolations(container);
+  });
+
+  it('with no label at all but an id, the listbox falls back to the trigger', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Select id="bare" options={OPTIONS} />);
+    await user.click(trigger());
+    expect(list(container)).toHaveAttribute('aria-labelledby', 'bare');
+  });
+
+  it('with no label and no id, the listbox gets no name attributes', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Select options={OPTIONS} />);
+    await user.click(trigger());
+    expect(list(container)).not.toHaveAttribute('aria-label');
+    expect(list(container)).not.toHaveAttribute('aria-labelledby');
+  });
+});
+
 describe('Select: controlled and uncontrolled', () => {
   it('controlled: shows value, reports a choice, and changes only when the parent passes the new value', async () => {
     const user = userEvent.setup();

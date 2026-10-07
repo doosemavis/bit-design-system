@@ -98,6 +98,54 @@ describe('Select position', () => {
   });
 });
 
+describe('Select position: scrolling and changing options', () => {
+  it('scrolling the list itself (or a row in it) does not re-place it', async () => {
+    triggerBox = { ...triggerBox, top: 700 };
+    await open();
+    const before = list().style.cssText;
+    measure.mockClear();
+    fireEvent.scroll(list());
+    fireEvent.scroll(list().firstElementChild!);
+    expect(measure).not.toHaveBeenCalled();
+    expect(list().style.cssText).toBe(before);
+  });
+
+  it('re-places the list when the options change while open, so a list above grows upward', async () => {
+    triggerBox = { ...triggerBox, top: 700 };
+    const user = userEvent.setup();
+    const { rerender } = render(<Select aria-label="Range" options={OPTIONS} />);
+    await user.click(trigger());
+    expect(list().style.top).toBe('494px');
+    listBox = { ...listBox, height: 300 };
+    rerender(<Select aria-label="Range" options={[...OPTIONS, { value: 'month', label: 'Month' }]} />);
+    expect(list().style.top).toBe('394px');
+  });
+
+  it('placing again keeps the list’s scroll position, even if measuring clamped it', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<Select aria-label="Range" options={OPTIONS} />);
+    await user.click(trigger());
+    let scrollTop = 120;
+    Object.defineProperty(list(), 'scrollTop', { configurable: true, get: () => scrollTop, set: (v: number) => (scrollTop = v) });
+    // Measuring lifts the room cap; a browser would clamp scrollTop to the taller list's range.
+    measure.mockImplementation(function (this: HTMLElement) {
+      if (this.getAttribute('role') === 'listbox') scrollTop = Math.min(scrollTop, 50);
+      return rect(this.getAttribute('role') === 'listbox' ? listBox : triggerBox);
+    });
+    rerender(<Select aria-label="Range" options={[...OPTIONS]} />);
+    expect(scrollTop).toBe(120);
+  });
+
+  it('closes if the options change while the trigger is out of view', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<Select aria-label="Range" options={OPTIONS} />);
+    await user.click(trigger());
+    triggerBox = { ...triggerBox, top: -500 };
+    rerender(<Select aria-label="Range" options={[...OPTIONS]} />);
+    expect(isOpen()).toBe(false);
+  });
+});
+
 describe('Select popover', () => {
   let showPopover: ReturnType<typeof vi.fn>;
   let hidePopover: ReturnType<typeof vi.fn>;

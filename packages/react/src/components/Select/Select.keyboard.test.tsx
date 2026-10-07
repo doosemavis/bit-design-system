@@ -251,6 +251,52 @@ describe('Select keyboard: typeahead', () => {
   });
 });
 
+describe('Select keyboard: options changing while open', () => {
+  it('when the list shrinks under the active option, the active option moves to a real one and keys still work', async () => {
+    const { user, onValueChange, rerender } = setup();
+    await user.keyboard('{Enter}{End}');
+    expect(activeLabel()).toBe('Ice tea');
+    rerender(<Select aria-label="Fruit" options={FRUIT.slice(0, 3)} onValueChange={onValueChange} />);
+    expect(activeLabel()).toBe('Apple');
+    await user.keyboard('{ArrowDown}');
+    expect(activeLabel()).toBe('Banana');
+    await user.keyboard('{ArrowUp}{Enter}');
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith('apple');
+  });
+
+  it('when the active option becomes disabled, Enter does not choose it', async () => {
+    const { user, onValueChange, rerender } = setup();
+    await user.keyboard('{Enter}{ArrowDown}');
+    expect(activeLabel()).toBe('Banana');
+    const disabled = FRUIT.map((o) => (o.value === 'banana' ? { ...o, disabled: true } : o));
+    rerender(<Select aria-label="Fruit" options={disabled} onValueChange={onValueChange} />);
+    expect(activeLabel()).toBe('Apple');
+    await user.keyboard('{Enter}');
+    expect(onValueChange).not.toHaveBeenCalledWith('banana');
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith('apple');
+  });
+
+  it('when the controlled value’s option is removed while open, the active option falls back to the first enabled one', async () => {
+    const { user, onValueChange, rerender } = setup({ value: 'icetea' });
+    await user.keyboard('{Enter}');
+    expect(activeLabel()).toBe('Ice tea');
+    rerender(<Select aria-label="Fruit" options={FRUIT.slice(0, 4)} value="icetea" onValueChange={onValueChange} />);
+    expect(activeLabel()).toBe('Apple');
+    await user.keyboard('{Enter}');
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith('apple');
+  });
+
+  it('when every option becomes disabled while open, there is no active option and Enter just closes', async () => {
+    const { user, onValueChange, rerender } = setup();
+    await user.keyboard('{Enter}');
+    rerender(<Select aria-label="Fruit" options={FRUIT.map((o) => ({ ...o, disabled: true }))} onValueChange={onValueChange} />);
+    expect(trigger()).not.toHaveAttribute('aria-activedescendant');
+    await user.keyboard('{Enter}');
+    expect(isOpen()).toBe(false);
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+});
+
 describe('Select keyboard: scrolling the active row into view', () => {
   it('scrolls the active row into view with block "nearest" where the browser can', async () => {
     const scrollIntoView = vi.fn();

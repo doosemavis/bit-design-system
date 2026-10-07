@@ -80,7 +80,7 @@
 .bit-select__list {
   position: fixed;
   inset: auto;
-  z-index: 10;
+  z-index: 10; /* raw: there is no z-index token; only browsers without the Popover API (no top layer) use it */
   box-sizing: border-box;
   width: max-content;
   max-height: min(16rem, var(--_bit-select-room, 16rem));
