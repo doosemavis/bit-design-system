@@ -55,7 +55,7 @@ test.describe('Dialog page', () => {
     expect(await canFocus()).toBe(true);
   });
 
-  test('a click on the dimmed page closes it; with Alert it does not', async ({ page }) => {
+  test('a click on the dimmed page closes it; with Alert it shakes instead, under a red title bar', async ({ page }) => {
     await page.goto('#/components/dialog');
     const trigger = page.getByRole('region', { name: 'Dialog preview' }).getByRole('button', { name: 'Open dialog' });
     await trigger.click();
@@ -66,8 +66,29 @@ test.describe('Dialog page', () => {
     await trigger.click();
     const alert = page.getByRole('alertdialog', { name: 'Delete report?' });
     await expect(alert).toHaveAttribute('data-state', 'open');
+    // The shake lasts 300ms, so note data-shake from the moment it appears rather than polling for it.
+    await alert.evaluate((el) => {
+      const seen = el as HTMLElement;
+      new MutationObserver(() => {
+        if (seen.hasAttribute('data-shake')) seen.dataset.shook = 'yes';
+      }).observe(seen, { attributes: true, attributeFilter: ['data-shake'] });
+    });
     await page.mouse.click(10, 10);
+    await expect(alert).toHaveAttribute('data-shook', 'yes');
     await expect(alert).toBeVisible();
+    // It clears on its animationend, so the next click can shake again.
+    await expect(alert).not.toHaveAttribute('data-shake');
+    // The red title bar: the header's background is the danger colour.
+    const colours = await alert.evaluate((el) => {
+      const probe = document.createElement('div');
+      probe.style.background = 'var(--bit-color-danger)';
+      el.append(probe);
+      const danger = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return { danger, header: getComputedStyle(el.querySelector('.bit-dialog__header')!).backgroundColor };
+    });
+    expect(colours.header).toBe(colours.danger);
+    expect(colours.danger).not.toBe('rgba(0, 0, 0, 0)');
     await alert.getByRole('button', { name: 'Close' }).click();
     await expect(alert).toBeHidden();
   });

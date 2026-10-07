@@ -1,6 +1,7 @@
 /* Dialog (D2 "Retro window") on a native modal <dialog>. data-state is "opening", "open" or "closing"
    (absent when closed). Opening and closing play the same frames in opposite directions, under two names,
-   because a browser won't restart an animation whose name didn't change. */
+   because a browser won't restart an animation whose name didn't change. data-alert marks an alertdialog
+   (a red title bar); data-shake is set while it shakes off a click on the dimmed page. */
 .bit-dialog {
   box-sizing: border-box;
   max-width: calc(100vw - var(--bit-space-32px));
@@ -46,6 +47,12 @@ html:has(.bit-dialog:modal) {
   color: var(--bit-color-primary-contrast);
   background: var(--bit-color-primary);
   border-bottom: var(--bit-border-width) solid var(--bit-color-line);
+}
+
+/* alert: the title bar turns red. The × keeps its own look. */
+.bit-dialog[data-alert] .bit-dialog__header {
+  color: var(--bit-color-danger-contrast);
+  background: var(--bit-color-danger);
 }
 
 .bit-dialog__title {
@@ -97,6 +104,13 @@ html:has(.bit-dialog:modal) {
   animation: bit-dialog-dim var(--bit-duration-normal) steps(2) 280ms reverse both;
 }
 
+/* A3 shake: an alert pressed on the dimmed page shakes instead of closing. Only while open, so it never meets
+   the fold animations, and with translate (not transform), so it can't fight their clip-path. The component
+   removes data-shake on animationend, so the next click shakes again. raw: 300ms has no motion token. */
+.bit-dialog[data-state="open"][data-shake] {
+  animation: bit-dialog-shake 300ms steps(1, end);
+}
+
 @keyframes bit-dialog-open {
   0% { clip-path: inset(0 50% calc(100% - var(--_bit-dialog-bar, 46px)) 50%); }
   10% { clip-path: inset(0 38% calc(100% - var(--_bit-dialog-bar, 46px)) 38%); }
@@ -121,13 +135,25 @@ html:has(.bit-dialog:modal) {
   100% { clip-path: inset(0 50% calc(100% - var(--_bit-dialog-bar, 46px)) 50%); }
 }
 
+/* raw: hard swings of 8px, 6px and 3px, each back the other way, then home. */
+@keyframes bit-dialog-shake {
+  0% { translate: 0; }
+  16% { translate: -8px 0; }
+  33% { translate: 8px 0; }
+  50% { translate: -6px 0; }
+  66% { translate: 6px 0; }
+  83% { translate: -3px 0; }
+  100% { translate: 0; }
+}
+
 @keyframes bit-dialog-dim {
   from { background: transparent; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .bit-dialog[data-state],
-  .bit-dialog[data-state]::backdrop {
+  .bit-dialog[data-state]::backdrop,
+  .bit-dialog[data-state="open"][data-shake] {
     animation: none;
   }
 }
@@ -137,7 +163,8 @@ html:has(.bit-dialog:modal) {
     border-color: CanvasText;
   }
 
-  .bit-dialog__header {
+  .bit-dialog__header,
+  .bit-dialog[data-alert] .bit-dialog__header {
     background: Canvas;
     color: CanvasText;
     border-bottom-color: CanvasText;

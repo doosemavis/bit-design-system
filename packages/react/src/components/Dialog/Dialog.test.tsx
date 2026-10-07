@@ -230,6 +230,96 @@ describe('Dialog: closing', () => {
   });
 });
 
+describe('Dialog: alert look and shake', () => {
+  /** Press and release on the dimmed page, outside the box. */
+  function clickBackdrop() {
+    fireEvent.pointerDown(dialog(), { clientX: -5, clientY: -5 });
+    fireEvent.click(dialog(), { clientX: -5, clientY: -5 });
+  }
+
+  it('data-alert is on the <dialog> only with alert (the red title bar)', () => {
+    const { unmount } = render(<Harness alert />);
+    expect(dialog()).toHaveAttribute('data-alert', '');
+    unmount();
+    render(<Harness />);
+    expect(dialog()).not.toHaveAttribute('data-alert');
+  });
+
+  it('alert: a backdrop press and release shakes it (data-shake) and does not ask to close', async () => {
+    allowMotion();
+    const { onOpenChange } = await openIt({ alert: true });
+    endAnimation(dialog(), 'bit-dialog-open');
+    onOpenChange.mockClear();
+    clickBackdrop();
+    expect(dialog()).toHaveAttribute('data-shake', '');
+    expect(onOpenChange).not.toHaveBeenCalled();
+    expect(dialog().open).toBe(true);
+  });
+
+  it('the shake clears on its own animationend, not on another animation or a child\'s, and a second click shakes again', async () => {
+    allowMotion();
+    await openIt({ alert: true });
+    endAnimation(dialog(), 'bit-dialog-open');
+    clickBackdrop();
+    endAnimation(dialog(), 'something-else');
+    endAnimation(screen.getByText("It can't be undone."), 'bit-dialog-shake');
+    expect(dialog()).toHaveAttribute('data-shake');
+    endAnimation(dialog(), 'bit-dialog-shake');
+    expect(dialog()).not.toHaveAttribute('data-shake');
+    clickBackdrop();
+    expect(dialog()).toHaveAttribute('data-shake');
+  });
+
+  it('a non-alert dialog never shakes: a backdrop click closes it', async () => {
+    allowMotion();
+    const { onOpenChange } = await openIt();
+    endAnimation(dialog(), 'bit-dialog-open');
+    clickBackdrop();
+    expect(dialog()).not.toHaveAttribute('data-shake');
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('alert: no shake mid-fold (only when data-state is open), on content, or from a drag that starts inside', async () => {
+    allowMotion();
+    await openIt({ alert: true });
+    expect(dialog()).toHaveAttribute('data-state', 'opening');
+    clickBackdrop();
+    expect(dialog()).not.toHaveAttribute('data-shake');
+    endAnimation(dialog(), 'bit-dialog-open');
+    fireEvent.pointerDown(screen.getByText("It can't be undone."), { clientX: 5, clientY: 5 });
+    fireEvent.click(dialog(), { clientX: -5, clientY: -5 });
+    fireEvent.pointerDown(dialog(), { clientX: -5, clientY: -5 });
+    fireEvent.click(screen.getByText("It can't be undone."));
+    expect(dialog()).not.toHaveAttribute('data-shake');
+  });
+
+  it('alert with reduced motion: no shake, and it still does not close', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: true, media: query }));
+    const { onOpenChange } = await openIt({ alert: true });
+    expect(dialog()).toHaveAttribute('data-state', 'open');
+    onOpenChange.mockClear();
+    clickBackdrop();
+    expect(dialog()).not.toHaveAttribute('data-shake');
+    expect(onOpenChange).not.toHaveBeenCalled();
+    expect(dialog().open).toBe(true);
+  });
+
+  it('a shake cut short by closing does not come back when the dialog opens again', async () => {
+    allowMotion();
+    const { user } = await openIt({ alert: true });
+    endAnimation(dialog(), 'bit-dialog-open');
+    clickBackdrop();
+    expect(dialog()).toHaveAttribute('data-shake');
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(dialog()).not.toHaveAttribute('data-shake');
+    endAnimation(dialog(), 'bit-dialog-close');
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    endAnimation(dialog(), 'bit-dialog-open');
+    expect(dialog()).toHaveAttribute('data-state', 'open');
+    expect(dialog()).not.toHaveAttribute('data-shake');
+  });
+});
+
 describe('Dialog: motion', () => {
   it('opening plays (data-state opening) until bit-dialog-open ends on the dialog itself', async () => {
     allowMotion();

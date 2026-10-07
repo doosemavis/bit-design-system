@@ -43,6 +43,35 @@ describe('components/dialog.css', () => {
     expect(title).toContain('text-transform: uppercase;');
   });
 
+  it('alert: the title bar is red (danger, with danger-contrast text), keyed on the data-alert attribute', () => {
+    const header = block(css, '.bit-dialog[data-alert] .bit-dialog__header')!;
+    expect(header).toContain('background: var(--bit-color-danger);');
+    expect(header).toContain('color: var(--bit-color-danger-contrast);');
+  });
+
+  it('alert: data-shake plays a 300ms hard-step shake, only while open', () => {
+    expect(block(css, '.bit-dialog[data-state="open"][data-shake]')).toContain('animation: bit-dialog-shake 300ms steps(1, end);');
+    expect(block(css, '.bit-dialog[data-shake]')).toBeNull();
+  });
+
+  it('the shake keyframes swing left and right, smaller each time, with translate only (never transform or clip-path)', () => {
+    const keyframes = css.match(/@keyframes bit-dialog-shake \{([\s\S]*?)\n\}/)?.[1] ?? '';
+    for (const frame of [
+      '0% { translate: 0; }',
+      '16% { translate: -8px 0; }',
+      '33% { translate: 8px 0; }',
+      '50% { translate: -6px 0; }',
+      '66% { translate: 6px 0; }',
+      '83% { translate: -3px 0; }',
+      '100% { translate: 0; }',
+    ]) {
+      expect(keyframes).toContain(frame);
+    }
+    expect(keyframes).not.toContain('transform');
+    expect(keyframes).not.toContain('clip-path');
+    expect(css).not.toMatch(/(?<![-\w])transform\s*:/);
+  });
+
   it('opening and closing play the two fold animations, 440ms in hard steps', () => {
     expect(block(css, '.bit-dialog[data-state="opening"]')).toContain('animation: bit-dialog-open 440ms steps(1, end) both;');
     expect(block(css, '.bit-dialog[data-state="closing"]')).toContain('animation: bit-dialog-close 440ms steps(1, end) both;');
@@ -51,8 +80,9 @@ describe('components/dialog.css', () => {
     expect(css).toContain('var(--_bit-dialog-bar, 46px)');
   });
 
-  it('reduced motion: no animation', () => {
+  it('reduced motion: no animation, and no shake', () => {
     expect(inMedia('(prefers-reduced-motion: reduce)', '.bit-dialog[data-state]')).toContain('animation: none;');
+    expect(inMedia('(prefers-reduced-motion: reduce)', '.bit-dialog[data-state="open"][data-shake]')).toContain('animation: none;');
   });
 
   it('forced colours: system colours for the border and title bar', () => {
@@ -60,5 +90,9 @@ describe('components/dialog.css', () => {
     const header = inMedia('(forced-colors: active)', '.bit-dialog__header')!;
     expect(header).toContain('background: Canvas;');
     expect(header).toContain('color: CanvasText;');
+    // The red alert bar outranks the plain header rule, so it is listed too.
+    const alertHeader = inMedia('(forced-colors: active)', '.bit-dialog[data-alert] .bit-dialog__header')!;
+    expect(alertHeader).toContain('background: Canvas;');
+    expect(alertHeader).toContain('color: CanvasText;');
   });
 });
