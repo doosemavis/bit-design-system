@@ -110,6 +110,25 @@ describe('Select position: scrolling and changing options', () => {
     expect(list().style.cssText).toBe(before);
   });
 
+  it('a scroll event dispatched on window still makes the list follow, without throwing', async () => {
+    await open();
+    triggerBox = { ...triggerBox, top: 200 };
+    expect(() => window.dispatchEvent(new Event('scroll'))).not.toThrow();
+    expect(list().style.top).toBe('246px');
+  });
+
+  it('measures the list once when it opens, and not again for an equal inline options array', async () => {
+    const measuredList = () => measure.mock.contexts.filter((el: unknown) => (el as HTMLElement).getAttribute('role') === 'listbox').length;
+    const user = userEvent.setup();
+    const { rerender } = render(<Select aria-label="Range" options={[...OPTIONS]} />);
+    await user.click(trigger());
+    expect(measuredList()).toBe(1);
+    rerender(<Select aria-label="Range" options={OPTIONS.map((o) => ({ ...o }))} />);
+    expect(measuredList()).toBe(1);
+    rerender(<Select aria-label="Range" options={OPTIONS.map((o, i) => ({ ...o, disabled: i === 0 }))} />);
+    expect(measuredList()).toBe(2);
+  });
+
   it('re-places the list when the options change while open, so a list above grows upward', async () => {
     triggerBox = { ...triggerBox, top: 700 };
     const user = userEvent.setup();
@@ -132,7 +151,7 @@ describe('Select position: scrolling and changing options', () => {
       if (this.getAttribute('role') === 'listbox') scrollTop = Math.min(scrollTop, 50);
       return rect(this.getAttribute('role') === 'listbox' ? listBox : triggerBox);
     });
-    rerender(<Select aria-label="Range" options={[...OPTIONS]} />);
+    rerender(<Select aria-label="Range" options={[...OPTIONS, { value: 'month', label: 'Month' }]} />);
     expect(scrollTop).toBe(120);
   });
 
@@ -141,7 +160,7 @@ describe('Select position: scrolling and changing options', () => {
     const { rerender } = render(<Select aria-label="Range" options={OPTIONS} />);
     await user.click(trigger());
     triggerBox = { ...triggerBox, top: -500 };
-    rerender(<Select aria-label="Range" options={[...OPTIONS]} />);
+    rerender(<Select aria-label="Range" options={[...OPTIONS, { value: 'month', label: 'Month' }]} />);
     expect(isOpen()).toBe(false);
   });
 });
