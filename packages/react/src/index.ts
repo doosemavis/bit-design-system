@@ -13,6 +13,10 @@ export type { AlertProps } from './components/Alert/Alert';
 
 export { Card, CardHeader, CardBody, CardFooter } from './components/Card/Card';
 export type { CardProps, CardPartProps } from './components/Card/Card';
+export { Dialog } from './components/Dialog/Dialog';
+export type { DialogProps } from './components/Dialog/Dialog';
+export { DialogHeader, DialogBody, DialogFooter, DialogClose } from './components/Dialog/DialogParts';
+export type { DialogHeaderProps, DialogPartProps, DialogCloseProps } from './components/Dialog/DialogParts';
 
 export { Stack } from './components/Stack/Stack';
 export type { StackProps } from './components/Stack/Stack';

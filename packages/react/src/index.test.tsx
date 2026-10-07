@@ -6,6 +6,7 @@ import { render } from '@testing-library/react';
 import { createElement } from 'react';
 import type { ComponentType, ReactElement } from 'react';
 import * as lib from './index';
+import { Dialog } from './components/Dialog/Dialog';
 
 const srcDir = dirname(fileURLToPath(import.meta.url));
 
@@ -52,7 +53,13 @@ const PARENTS: Record<string, { wrap: (part: ReactElement) => ReactElement; root
   TableBody: { wrap: (part) => <table>{part}</table>, root: 'tbody' },
   TableRow: { wrap: (part) => <table><tbody>{part}</tbody></table>, root: 'tr' },
   TableCell: { wrap: (part) => <table><tbody><tr>{part}</tr></tbody></table>, root: 'td' },
+  DialogHeader: { wrap: (part) => <Dialog open={false} onOpenChange={() => {}}>{part}</Dialog>, root: '.bit-dialog__header' },
+  DialogBody: { wrap: (part) => <Dialog open={false} onOpenChange={() => {}}>{part}</Dialog>, root: '.bit-dialog__body' },
+  DialogFooter: { wrap: (part) => <Dialog open={false} onOpenChange={() => {}}>{part}</Dialog>, root: '.bit-dialog__footer' },
 };
+
+/** Components that are a plain Button under another name: their root class is `bit-button`, not `bit-{name}`. */
+const BUTTON_ALIASES = ['DialogClose'];
 
 /** The naming rule from the spec, as code. */
 function expectedRootClass(name: string): string {
@@ -71,6 +78,7 @@ describe('public index', () => {
         'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
         'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
         'Heading', 'Box',
+        'Dialog', 'DialogHeader', 'DialogBody', 'DialogFooter', 'DialogClose',
       ].sort(),
     );
   });
@@ -91,7 +99,7 @@ describe('public index', () => {
     expect(lib.SEMANTIC_TOKENS.every((name) => name.startsWith('--bit-'))).toBe(true);
   });
 
-  it.each(componentNames)('%s renders the root class the naming rule predicts', (name) => {
+  it.each(componentNames.filter((name) => !BUTTON_ALIASES.includes(name)))('%s renders the root class the naming rule predicts', (name) => {
     const Component = (lib as Record<string, unknown>)[name] as ComponentType<Record<string, unknown>>;
     const sample = createElement(Component, { 'aria-label': 'x', children: 'x', ...SAMPLE_PROPS[name] });
     const parent = PARENTS[name];
