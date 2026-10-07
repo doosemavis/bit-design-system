@@ -52,9 +52,11 @@ function classNameElement(manifest: Manifest, state: ControlState): ReactElement
   return createElement(manifest.component, { ...props, className: printedClassName(manifest, state) }, children);
 }
 
-const rootClasses = (element: ReactElement) => {
+/** The component's own root: the first child, or, for a manifest with a demo wrapper (Dialog's trigger Button), the element with the component's class. */
+const rootClasses = (element: ReactElement, manifest: Manifest) => {
   const { container, unmount } = render(element);
-  const classes = [...container.firstElementChild!.classList].sort();
+  const root = manifest.demo ? container.querySelector(`.bit-${manifest.name.toLowerCase()}`)! : container.firstElementChild!;
+  const classes = [...root.classList].sort();
   unmount();
   return classes;
 };
@@ -71,6 +73,6 @@ describe('className mode round trip', () => {
   it.each(AXIS_CASES)('%s %s="%s": the className snippet renders the same root classes as the props snippet', (_n, prop, value, manifest) => {
     const state = { ...defaultState(manifest), [prop]: value };
     expect(printedClassName(manifest, state)).toBe(`bit-${value}`);
-    expect(rootClasses(classNameElement(manifest, state))).toEqual(rootClasses(renderManifest(manifest, state)));
+    expect(rootClasses(classNameElement(manifest, state), manifest)).toEqual(rootClasses(renderManifest(manifest, state), manifest));
   });
 });
