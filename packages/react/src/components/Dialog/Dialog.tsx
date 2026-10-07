@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { AnimationEvent, DialogHTMLAttributes, MouseEvent, PointerEvent, ReactNode, SyntheticEvent } from 'react';
 import { SIZES } from '../../system/axes';
 import type { Size } from '../../system/axes';
@@ -80,7 +80,8 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog
     restoreFocus();
   }, [restoreFocus]);
 
-  useEffect(() => {
+  // A layout effect: showModal() and data-state must land in the same frame, or a fully open dialog flashes.
+  useLayoutEffect(() => {
     const dialog = dialogRef.current!;
     if (open) {
       clearTimeout(fallback.current);
@@ -89,7 +90,7 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog
         dialog.showModal();
         const header = dialog.querySelector<HTMLElement>(`.${element('dialog', 'header')}`);
         if (header) dialog.style.setProperty('--_bit-dialog-bar', `${header.offsetHeight}px`);
-        dialog.querySelector<HTMLElement>('[data-autofocus]')?.focus();
+        dialog.querySelector<HTMLElement>('[data-autofocus]:not([data-autofocus="false"])')?.focus();
       }
       setPhase(reducedMotion() ? 'open' : 'opening');
       return;
@@ -109,7 +110,11 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog
     const timers = fallback;
     return () => {
       clearTimeout(timers.current);
-      if (dialog?.open) dialog.close();
+      if (dialog?.open) {
+        // The browser queues `close` as a task; it must not be read as a close by the person later.
+        expectedClose.current = true;
+        dialog.close();
+      }
     };
   }, []);
 
@@ -126,7 +131,9 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog
     requestClose();
   }
 
-  function handleClose() {
+  function handleClose(event: SyntheticEvent<HTMLDialogElement>) {
+    // A `close` for a dialog that is open again is stale (a queued task from an earlier close).
+    if (event.currentTarget.open) return;
     if (expectedClose.current) {
       expectedClose.current = false;
       return;
@@ -154,7 +161,7 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog
   function handleAnimationEnd(event: AnimationEvent<HTMLDialogElement>) {
     onAnimationEnd?.(event);
     if (event.target !== event.currentTarget) return;
-    if (phase === 'closing' && event.animationName === CLOSE_ANIMATION) finishClose();
+    if (phase === 'closing' && !open && event.animationName === CLOSE_ANIMATION) finishClose();
     else if (phase === 'opening' && event.animationName === OPEN_ANIMATION) setPhase('open');
   }
 

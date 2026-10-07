@@ -17,10 +17,10 @@ afterEach(() => {
 });
 
 const dialog = () => document.querySelector('dialog')!;
-/** jsdom may lack AnimationEvent: build an animationend React reads `animationName` from. */
+/** Fire an animationend (AnimationEvent comes from vitest.polyfills.ts, as jsdom has none). */
 function endAnimation(target: Element, animationName: string) {
   act(() => {
-    target.dispatchEvent(Object.assign(new Event('animationend', { bubbles: true }), { animationName }));
+    target.dispatchEvent(new AnimationEvent('animationend', { bubbles: true, animationName }));
   });
 }
 
@@ -317,7 +317,7 @@ describe('Dialog: edges', () => {
     expect(dialog().open).toBe(false);
   });
 
-  it('opens without a header, and when the opener is not an HTMLElement focus is simply not restored', () => {
+  it('opens without a header; an opener that is not an HTMLElement gets no focus back, and focus is left alone', () => {
     function Svg() {
       const [open, setOpen] = useState(false);
       return (
@@ -337,6 +337,7 @@ describe('Dialog: edges', () => {
       dialog().dispatchEvent(new Event('cancel', { cancelable: true }));
     });
     expect(dialog().open).toBe(false);
+    expect(screen.getByTestId('svg')).toHaveFocus();
   });
 
   it('the header height is kept as --_bit-dialog-bar', async () => {
@@ -387,5 +388,67 @@ describe('Dialog: edges', () => {
     });
     expect(onOpenChange).not.toHaveBeenCalled();
     expect(dialog()).not.toHaveAttribute('data-state');
+  });
+
+  it('reopening during the fold-in ignores a late bit-dialog-close animationend', () => {
+    allowMotion();
+    const onOpenChange = vi.fn();
+    function Toggle() {
+      const [open, setOpen] = useState(true);
+      return (
+        <>
+          <Button onClick={() => setOpen((o) => !o)}>Toggle</Button>
+          <Dialog
+            open={open}
+            onOpenChange={(next) => {
+              onOpenChange(next);
+              setOpen(next);
+            }}
+          >
+            <DialogHeader>T</DialogHeader>
+          </Dialog>
+        </>
+      );
+    }
+    render(<Toggle />);
+    act(() => screen.getByRole('button', { name: 'Toggle', hidden: true }).click());
+    act(() => screen.getByRole('button', { name: 'Toggle', hidden: true }).click());
+    endAnimation(dialog(), 'bit-dialog-close');
+    expect(dialog().open).toBe(true);
+    expect(dialog()).toHaveAttribute('data-state', 'opening');
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('a stale close event while the dialog is open again changes nothing', async () => {
+    const { onOpenChange } = await openIt();
+    onOpenChange.mockClear();
+    act(() => {
+      dialog().dispatchEvent(new Event('close'));
+    });
+    expect(dialog().open).toBe(true);
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('unmount closes without the later close event being read as the person closing', () => {
+    const onOpenChange = vi.fn();
+    const { unmount } = render(
+      <Dialog open onOpenChange={onOpenChange}>
+        <DialogHeader>T</DialogHeader>
+      </Dialog>,
+    );
+    unmount();
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('data-autofocus="false" does not take focus', () => {
+    render(
+      <Dialog open onOpenChange={() => {}}>
+        <DialogHeader>T</DialogHeader>
+        <DialogBody>
+          <button data-autofocus="false">no</button>
+        </DialogBody>
+      </Dialog>,
+    );
+    expect(screen.getByRole('button', { name: 'no' })).not.toHaveFocus();
   });
 });
