@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readCss, resolveVar, themeModes } from './css';
 
 /**
- * Dark mode must not change the light theme, except for three owner-approved changes: the violet
+ * Dark mode must not change the light theme, except for three owner-approved changes (plus the 0.1.4 neutral recolour, N1 steel, picked by the owner): the violet
  * 2px focus ring with a 2px gap, no gloss, and no yellow band. Frozen 2026-10-03 from power-up
  * after PR1. Never edit a row to make a test pass; a failing row means light really changed.
  */
@@ -16,7 +16,7 @@ const FROZEN_LIGHT: readonly (readonly [token: string, value: string])[] = [
   ['--bit-color-line', '#151515'],
   ['--bit-color-shadow', '#151515'],
   ['--bit-color-primary', '#7C3AED'], ['--bit-color-primary-contrast', '#FFFFFF'], ['--bit-color-primary-hover', '#6527D4'], ['--bit-color-primary-soft', '#EBE1FD'],
-  ['--bit-color-neutral', '#FFFFFF'], ['--bit-color-neutral-contrast', '#151515'], ['--bit-color-neutral-hover', '#E5E7E0'], ['--bit-color-neutral-soft', '#DCDED6'],
+  ['--bit-color-neutral', '#5F6372'], ['--bit-color-neutral-contrast', '#FFFFFF'], ['--bit-color-neutral-hover', '#4E5260'], ['--bit-color-neutral-soft', '#DCDED6'],
   ['--bit-color-success', '#1FA34A'], ['--bit-color-success-contrast', '#151515'], ['--bit-color-success-hover', '#19943F'], ['--bit-color-success-soft', '#D3F1DD'],
   ['--bit-color-warning', '#FFC800'], ['--bit-color-warning-contrast', '#151515'], ['--bit-color-warning-hover', '#F0B400'], ['--bit-color-warning-soft', '#FFF1B8'],
   ['--bit-color-danger', '#D91A1A'], ['--bit-color-danger-contrast', '#FFFFFF'], ['--bit-color-danger-hover', '#B81414'], ['--bit-color-danger-soft', '#FBD5D5'],
