@@ -315,6 +315,7 @@ describe('manifest contract', () => {
 
   it('only ModeToggle, CodeBlock and Select are interactive (no HTML tab): they need React to work', () => {
     expect(MANIFESTS.filter((m) => isInteractive(m, defaultState(m))).map((m) => m.name)).toEqual(['ModeToggle', 'CodeBlock', 'Select']);
+    expect(isInteractive(field, { control: 'Select' })).toBe(true);
   });
 
   it('Select passes its choices as an options prop, not <option> children', () => {

@@ -270,7 +270,7 @@ describe('ComponentPage (layout C)', () => {
     const preview = region('Select preview');
     const trigger = within(preview).getByRole('combobox', { name: 'Color' });
     expect(trigger).toHaveClass('bit-select__control');
-    expect(trigger).toHaveTextContent('Pick a color');
+    expect(trigger).toHaveTextContent('Pick colors');
     expect(preview.querySelector('select')).toBeNull();
     expect(optionLabels(trigger)).toEqual(['Primary', 'Neutral', 'Success', 'Warning', 'Danger']);
     await chooseOption(userEvent.setup(), trigger, 'Success');
@@ -278,7 +278,7 @@ describe('ComponentPage (layout C)', () => {
     expect(chosenLabel(trigger)).toBe('Success');
     const code = region('Example code').textContent!;
     expect(code).toContain("const options = [\n  { value: 'primary', label: 'Primary' },");
-    expect(code).toContain('<Select aria-label="Color" placeholder="Pick a color" options={options} />');
+    expect(code).toContain('<Select aria-label="Color" placeholder="Pick colors" options={options} />');
     // Its markup needs React, so there is no HTML tab.
     expect(screen.queryByRole('radio', { name: 'HTML' })).toBeNull();
   });
