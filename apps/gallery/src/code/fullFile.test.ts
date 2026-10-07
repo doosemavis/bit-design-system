@@ -105,7 +105,7 @@ describe('fullFile', () => {
       ]),
     ];
     for (const [name, manifest, state] of cases) {
-      for (const format of CODE_FORMATS.filter((f) => f.fullFile && f.available(manifest))) {
+      for (const format of CODE_FORMATS.filter((f) => f.fullFile && f.available(manifest, defaultState(manifest)))) {
         const { diagnostics } = ts.transpileModule(codeFor(format, manifest, state, true), {
           fileName: 'App.jsx',
           reportDiagnostics: true,

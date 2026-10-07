@@ -37,6 +37,8 @@ interface NumberControl {
   max: number;
   step: number;
   label?: string;
+  /** A control that only shapes the page (how many options a Select lists): it shows in the panel and presets, but is never a prop and never printed. */
+  virtual?: boolean;
 }
 interface TextControl {
   kind: 'text';
@@ -53,10 +55,11 @@ export type Control = AxisControl | SelectControl | BooleanControl | NumberContr
  * `component` is a registered bit component; a lowercase one is a plain HTML element
  * (a `span`), following JSX's own rule. `children` is text, nested parts (Table's
  * head, rows and cells), or nothing for a self-closing element (Field's Input).
+ * A string prop prints as an attribute; arrays, objects and strings over 40 characters print as a `const`, as top-level props do.
  */
 export interface ChildSpec {
   component: string;
-  props?: Record<string, string>;
+  props?: Readonly<Record<string, LiteralValue>>;
   children?: string | readonly ChildSpec[];
 }
 
@@ -109,6 +112,11 @@ export interface Manifest {
   controls: readonly Control[];
   /** A string is editable through a `children` text control; ChildSpec[] renders parts. */
   children?: string | readonly ChildSpec[];
+  /**
+   * Child parts worked out from the full control state (defaults merged in), in place of `children`, for a page
+   * whose child depends on a control (Field's Input or Select). A manifest has `children` or this, never both.
+   */
+  deriveChildren?: (state: ControlState) => readonly ChildSpec[];
   /** Props every render gets that the page doesn't let you change. They print after the controls' props. */
   fixedProps?: Readonly<Record<string, LiteralValue>>;
   /** Props worked out from the full control state (defaults merged in), joining `fixedProps` for the render and the code. */
@@ -121,6 +129,7 @@ export interface Manifest {
   /**
    * The component needs React to work (state, storage, the clipboard), so its page offers React code only.
    * Every other component's markup works as plain HTML with bit's CSS, and its page offers an HTML tab.
+   * True, or true for some states: the HTML tab is hidden then.
    */
-  interactive?: boolean;
+  interactive?: boolean | ((state: ControlState) => boolean);
 }

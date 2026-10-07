@@ -1,5 +1,6 @@
 import type { ControlState, Manifest } from '../manifests/types';
 import { isOmittedSentinel } from '../manifests/sentinels';
+import { isVirtual } from '../manifests/virtual';
 import { staticProps } from './staticProps';
 
 /**
@@ -9,7 +10,7 @@ import { staticProps } from './staticProps';
 export function buildProps(manifest: Manifest, state: ControlState): Record<string, unknown> {
   const props: Record<string, unknown> = { ...staticProps(manifest, state) };
   for (const control of manifest.controls) {
-    if (control.kind === 'select' && control.virtual) continue;
+    if (isVirtual(control)) continue;
     const value = state[control.prop];
     if (value === undefined) continue;
     if (isOmittedSentinel(control, value)) continue;

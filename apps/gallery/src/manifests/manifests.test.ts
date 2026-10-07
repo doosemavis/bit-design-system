@@ -12,6 +12,8 @@ import { modeToggle } from './modeToggle';
 import { codeBlock } from './codeBlock';
 import { select } from './select';
 import { field } from './field';
+import { isVirtual } from './virtual';
+import { childSpecs, isInteractive } from '../engine/childSpecs';
 import { staticProps } from '../engine/staticProps';
 import { toJsx } from '../code/toJsx';
 import { isOmittedSentinel } from './sentinels';
@@ -144,10 +146,17 @@ describe('manifest contract', () => {
     }
   });
 
-  it('every child spec names a registered component or an allowed HTML element', () => {
+  it('every child spec names a registered component or an allowed HTML element, derived ones included', () => {
     for (const m of MANIFESTS) {
-      if (Array.isArray(m.children)) expect(unknownChildren(m.children), m.name).toEqual([]);
+      const states = [defaultState(m), ...(m.presets ?? []).map((p) => ({ ...defaultState(m), ...p.state }) as ControlState)];
+      for (const state of states) {
+        expect(unknownChildren(childSpecs(m, state) ?? []), m.name).toEqual([]);
+      }
     }
+  });
+
+  it('a manifest has children or deriveChildren, never both', () => {
+    expect(MANIFESTS.filter((m) => m.children !== undefined && m.deriveChildren !== undefined).map((m) => m.name)).toEqual([]);
   });
 
   it('the ChildSpec allowlist is span, strong, em and code, and catches a typo or a stray tag', () => {
@@ -242,7 +251,7 @@ describe('manifest contract', () => {
     const documented = m.docs.props.map((p) => p.name);
     expect(new Set(documented).size, 'duplicate prop rows').toBe(documented.length);
     // A virtual control shapes the page and is not a prop, so it has no row.
-    const props = m.controls.filter((c) => !(c.kind === 'select' && c.virtual)).map((c) => c.prop);
+    const props = m.controls.filter((c) => !isVirtual(c)).map((c) => c.prop);
     expect(props.filter((prop) => !documented.includes(prop))).toEqual([]);
   });
 
@@ -305,7 +314,7 @@ describe('manifest contract', () => {
   });
 
   it('only ModeToggle, CodeBlock and Select are interactive (no HTML tab): they need React to work', () => {
-    expect(MANIFESTS.filter((m) => m.interactive).map((m) => m.name)).toEqual(['ModeToggle', 'CodeBlock', 'Select']);
+    expect(MANIFESTS.filter((m) => isInteractive(m, defaultState(m))).map((m) => m.name)).toEqual(['ModeToggle', 'CodeBlock', 'Select']);
   });
 
   it('Select passes its choices as an options prop, not <option> children', () => {

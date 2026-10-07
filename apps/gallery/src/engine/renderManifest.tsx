@@ -2,6 +2,7 @@ import { createElement } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import type { ChildSpec, ControlState, Manifest } from '../manifests/types';
 import { COMPONENTS, isHtmlElement } from '../manifests/registry';
+import { childSpecs } from './childSpecs';
 import { buildProps } from './buildProps';
 
 /** One ChildSpec as an element, with its nested parts rendered the same way. */
@@ -14,8 +15,7 @@ function renderChild(child: ChildSpec, index: number): ReactElement {
 
 function renderChildren(manifest: Manifest, state: ControlState): ReactNode {
   if (typeof manifest.children === 'string') return state.children ?? manifest.children;
-  if (!manifest.children) return undefined;
-  return manifest.children.map(renderChild);
+  return childSpecs(manifest, state)?.map(renderChild);
 }
 
 /** The exact element the preview shows and toHtml serializes. */

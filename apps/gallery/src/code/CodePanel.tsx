@@ -15,7 +15,7 @@ interface CodePanelProps {
  * the code with Copy. The full file leaves out the style imports, so a note under it points to Getting started. The choice is local to the page; an unavailable one falls back to Props.
  */
 export function CodePanel({ manifest, state }: CodePanelProps) {
-  const formats = CODE_FORMATS.filter((format) => format.available(manifest));
+  const formats = CODE_FORMATS.filter((format) => format.available(manifest, state));
   const [formatId, setFormatId] = useState(formats[0]!.id);
   // On by default: a bare JSX line isn't a runnable React file, so lead with the whole file.
   const [wholeFile, setWholeFile] = useState(true);
