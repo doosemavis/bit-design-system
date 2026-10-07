@@ -44,9 +44,8 @@ describe('SegmentedControl page: segments and multiple', () => {
 });
 
 describe('ComponentPage (layout C)', () => {
-  it('the header: eyebrow, h1, description, the import chip with Copy, and the badges', async () => {
+  it('the header: h1, description, the import chip with Copy, and the badges', async () => {
     await open('/components/card', 'Card');
-    expect(within(main()).getByText('Components')).toHaveClass('gallery-eyebrow');
     const chip = screen.getByText("import { Card, CardHeader, CardBody, CardFooter } from '@bit-ds/react';");
     expect(chip).toHaveClass('bit-code', 'gallery-import-code');
     expect(screen.getByRole('button', { name: 'Copy import line' })).toBeInTheDocument();
@@ -285,6 +284,6 @@ describe('ComponentPage (layout C)', () => {
 
   it('the logo page lives under Brand', async () => {
     await open('/brand/logo', 'BitLogo');
-    expect(within(main()).getByText('Brand')).toHaveClass('gallery-eyebrow');
+    expect(screen.getByRole('heading', { level: 1, name: 'BitLogo' })).toBeInTheDocument();
   });
 });

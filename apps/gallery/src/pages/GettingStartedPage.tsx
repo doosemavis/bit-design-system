@@ -31,7 +31,7 @@ const NEXT_STEPS = [
 export function GettingStartedPage() {
   return (
     <Stack gap={32}>
-      <PageHeader eyebrow="Start here" title="Getting started">
+      <PageHeader title="Getting started">
         <Text size={18}>Install the package, add the styles once, and use your first component.</Text>
       </PageHeader>
       <Stack gap={24}>

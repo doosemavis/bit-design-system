@@ -187,13 +187,6 @@ html {
   gap: var(--bit-space-12px) var(--bit-space-16px);
 }
 
-/* A page's eyebrow: the sidebar group above the h1, in the sidebar titles' pixel caps. */
-.gallery-eyebrow {
-  font-family: var(--bit-font-pixel);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
 /* The in-page links under a page header. */
 .gallery-section-bar {
   padding-block: var(--bit-space-8px);

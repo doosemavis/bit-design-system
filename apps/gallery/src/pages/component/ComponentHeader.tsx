@@ -1,20 +1,18 @@
 import { Badge, Code, Stack, Text } from '@bit-ds/react';
-import type { Manifest, ManifestGroup } from '../../manifests/types';
+import type { Manifest } from '../../manifests/types';
 import { PageHeader } from '../../ui/PageHeader';
 import { CopyButton } from '../../ui/CopyButton';
-
-const GROUP_LABELS: Record<ManifestGroup, string> = { components: 'Components', forms: 'Forms', brand: 'Brand' };
 
 /** `import { Name, ...parts } from '@bit-ds/react';`: the component first, then its parts in page order. */
 export function importChip(manifest: Manifest): string {
   return `import { ${[manifest.name, ...(manifest.parts ?? [])].join(', ')} } from '@bit-ds/react';`;
 }
 
-/** Eyebrow, h1, description, the import chip with Copy, and the manifest's badges. */
+/** The h1, description, the import chip with Copy, and the manifest's badges. */
 export function ComponentHeader({ manifest }: { manifest: Manifest }) {
   const line = importChip(manifest);
   return (
-    <PageHeader eyebrow={GROUP_LABELS[manifest.group]} title={manifest.name}>
+    <PageHeader title={manifest.name}>
       <Text size={18}>{manifest.description}</Text>
       <Stack direction="row" gap={8} align="stretch" wrap>
         <Code className="gallery-import-code">{line}</Code>

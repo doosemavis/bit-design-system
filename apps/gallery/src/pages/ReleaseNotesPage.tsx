@@ -17,7 +17,7 @@ const KIND_BADGE: Record<ChangeKind, Pick<BadgeProps, 'color' | 'variant'>> = {
 export function ReleaseNotesPage() {
   return (
     <Stack gap={32}>
-      <PageHeader eyebrow="Start here" title="Release notes">
+      <PageHeader title="Release notes">
         <Text>What changed in each release.</Text>
       </PageHeader>
       {RELEASES.map((release) => (
