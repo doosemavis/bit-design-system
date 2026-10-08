@@ -331,6 +331,40 @@ jobs:
         env:
           EXPECTED_INTEGRITY: ${{ needs.publish.outputs.integrity }}
 
+  # Creates the GitHub Release for the tag, with that version's CHANGELOG section as its notes. It waits
+  # for verify-install, so a release page appears only after npm really serves the version. The only
+  # permission is contents: write, for the release; no install, no third-party action, no secret.
+  # A re-run is safe: it skips a release that already exists.
+  github-release:
+    needs: verify-install
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      # release-notes.mjs uses only Node built-ins, so this job needs no install.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          # setup-node v5+ caches the packageManager's store on its own; this job stays cache-free.
+          package-manager-cache: false
+      - name: Create the GitHub Release
+        run: |
+          VERSION="${TAG#v}"
+          if gh release view "v$VERSION" > /dev/null 2>&1; then
+            echo "::notice::Release v$VERSION already exists; nothing to do."
+            exit 0
+          fi
+          node scripts/release-notes.mjs "$VERSION" > "$RUNNER_TEMP/notes.md"
+          gh release create "v$VERSION" --title "v$VERSION" --notes-file "$RUNNER_TEMP/notes.md" --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          GH_REPO: ${{ github.repository }}
+
   # Builds the tag's Pages site with no Pages permission. It runs alongside build and publish;
   # deploy uses its artifact only after verify-install passes.
   site-build:
