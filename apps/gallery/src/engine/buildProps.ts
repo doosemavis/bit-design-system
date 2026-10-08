@@ -2,6 +2,7 @@ import type { ControlState, Manifest } from '../manifests/types';
 import { isOmittedSentinel } from '../manifests/sentinels';
 import { isVirtual } from '../manifests/virtual';
 import { staticProps } from './staticProps';
+import { importedProps } from './importedProps';
 
 /**
  * Turn control state into the props object the component receives, on top of the manifest's static
@@ -20,5 +21,6 @@ export function buildProps(manifest: Manifest, state: ControlState): Record<stri
     }
     props[control.prop] = value;
   }
+  for (const imported of importedProps(manifest, state)) props[imported.prop] = imported.value;
   return props;
 }

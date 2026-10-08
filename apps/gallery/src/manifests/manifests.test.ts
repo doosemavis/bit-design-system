@@ -65,6 +65,8 @@ function claimedDefault(c: Control): string | undefined {
       return c.alwaysPrint || isOmittedSentinel(c, c.default) ? undefined : c.default;
     case 'text':
       return c.alwaysPrint || c.prop.includes('-') || c.default === '' ? undefined : c.default;
+    case 'axis':
+      return isOmittedSentinel(c, c.default) ? undefined : c.default;
     default:
       return String(c.default);
   }
@@ -130,8 +132,9 @@ describe('manifest contract', () => {
     for (const m of MANIFESTS) {
       for (const c of m.controls) {
         if (c.kind !== 'axis') continue;
-        if (c.prop === 'color') expect([...c.values].every((v) => (lib.COLORS as readonly string[]).includes(v))).toBe(true);
-        if (c.prop === 'size') expect([...c.values].every((v) => (lib.SIZES as readonly string[]).includes(v))).toBe(true);
+        const real = c.values.filter((v) => !isOmittedSentinel(c, v));
+        if (c.prop === 'color') expect(real.every((v) => (lib.COLORS as readonly string[]).includes(v))).toBe(true);
+        if (c.prop === 'size') expect(real.every((v) => (lib.SIZES as readonly string[]).includes(v))).toBe(true);
         expect(c.values).toContain(c.default);
       }
     }
