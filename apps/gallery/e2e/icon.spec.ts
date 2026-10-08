@@ -38,3 +38,23 @@ test('All icons: keyboard focus shows the tooltip and Escape hides it without lo
   await expect(tooltip).toBeHidden();
   await expect(tile).toBeFocused();
 });
+
+test('All icons: toolbar controls line up with the search box and groups are spaced apart', async ({ page }) => {
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await page.goto('#/components/icon');
+  const section = page.getByRole('region', { name: 'All icons' });
+  const input = (await section.getByLabel('Search icons').boundingBox())!;
+  const rows = section.locator('.bit-segmented-control__options');
+  await expect(rows).toHaveCount(2);
+  for (let i = 0; i < 2; i += 1) {
+    const box = (await rows.nth(i).boundingBox())!;
+    expect(Math.abs(box.y - input.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(box.y + box.height - (input.y + input.height))).toBeLessThanOrEqual(1);
+  }
+  const headings = section.getByRole('heading', { level: 3 });
+  const h1 = (await headings.nth(0).boundingBox())!;
+  const h2 = (await headings.nth(1).boundingBox())!;
+  const g1 = (await section.locator('.gallery-icon-grid').nth(0).boundingBox())!;
+  expect(Math.abs(g1.y - (h1.y + h1.height) - 16)).toBeLessThanOrEqual(2);
+  expect(Math.abs(h2.y - (g1.y + g1.height) - 48)).toBeLessThanOrEqual(2);
+});

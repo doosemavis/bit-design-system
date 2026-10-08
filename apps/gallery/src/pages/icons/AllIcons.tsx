@@ -43,21 +43,23 @@ export function AllIcons() {
         <Field label="Search icons" className="gallery-icon-search">
           <Input type="search" value={query} placeholder="e.g. arrow, mail, play" onChange={(e) => setQuery(e.target.value)} />
         </Field>
-        <SegmentedControl legend="Copy as" size="sm" color="neutral" options={FORMATS} value={format} onValueChange={(v) => setFormat(v as CopyFormat)} />
-        <SegmentedControl legend="Style" size="sm" color="neutral" options={STYLES} value={style} onValueChange={(v) => setStyle(v as IconStyle)} />
+        <SegmentedControl legend="Copy as" size="md" color="neutral" options={FORMATS} value={format} onValueChange={(v) => setFormat(v as CopyFormat)} />
+        <SegmentedControl legend="Style" size="md" color="neutral" options={STYLES} value={style} onValueChange={(v) => setStyle(v as IconStyle)} />
       </Stack>
       <CopyGives format={format} style={style} />
       {groups.length === 0 ? <Text>No icons match. Try another word.</Text> : null}
-      {groups.map((group) => (
-        <Stack key={group.label} gap={8}>
-          <Heading level={3}>{group.label}</Heading>
-          <div className="gallery-icon-grid">
-            {group.icons.map((icon) => (
-              <IconTile key={icon.name} icon={icon} filled={style === 'fill'} format={format} />
-            ))}
-          </div>
-        </Stack>
-      ))}
+      <Stack gap={48}>
+        {groups.map((group) => (
+          <Stack key={group.label} gap={16}>
+            <Heading level={3}>{group.label}</Heading>
+            <div className="gallery-icon-grid">
+              {group.icons.map((icon) => (
+                <IconTile key={icon.name} icon={icon} filled={style === 'fill'} format={format} />
+              ))}
+            </div>
+          </Stack>
+        ))}
+      </Stack>
     </Stack>
   );
 }
