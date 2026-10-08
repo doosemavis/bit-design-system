@@ -3,7 +3,7 @@
   "version": "0.1.6",
   "type": "module",
   "description": "bit design system: React components.",
-  "license": "MIT",
+  "license": "MIT AND Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/doosemavis/bit-design-system.git",

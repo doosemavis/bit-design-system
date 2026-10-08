@@ -8,7 +8,7 @@ export const EXPECTED = [
   'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
   'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
   'Dialog', 'DialogHeader', 'DialogBody', 'DialogFooter', 'DialogClose', 'Tabs', 'TabList', 'Tab', 'TabPanel',
-  'Heading', 'Box', 'Icon', 'announce', 'useCopyToClipboard', 'colorMode', 'ColorModeService',
+  'Heading', 'Box', 'Icon', 'IconButton', 'Tooltip', 'announce', 'useCopyToClipboard', 'colorMode', 'ColorModeService',
 ];
 
 // Every icon export: one per name in icons.json, worked out from the list so it never needs retyping.

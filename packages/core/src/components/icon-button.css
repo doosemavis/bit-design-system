@@ -1,0 +1,8 @@
+/* IconButton: a square Button (it also carries .bit-button) holding one Icon. Imported right after
+   button.css, so this padding wins over Button's. */
+.bit-iconButton {
+  width: var(--_bit-size-height);
+  flex: none;
+  gap: 0;
+  padding: 0;
+}
