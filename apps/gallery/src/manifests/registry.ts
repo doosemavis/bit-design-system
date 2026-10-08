@@ -19,6 +19,7 @@ import {
   Field,
   Heading,
   Icon,
+  IconButton,
   Input,
   Link,
   SegmentedControl,
@@ -36,6 +37,7 @@ import {
   TableRow,
   Tabs,
   Text,
+  Tooltip,
 } from '@bit-ds/react';
 
 /** Export name → component, so ChildSpec.component (a string) can be rendered. */
@@ -60,6 +62,7 @@ export const COMPONENTS: Record<string, ComponentType<any>> = {
   Field,
   Heading,
   Icon,
+  IconButton,
   Input,
   Link,
   SegmentedControl,
@@ -77,6 +80,7 @@ export const COMPONENTS: Record<string, ComponentType<any>> = {
   TableRow,
   Tabs,
   Text,
+  Tooltip,
 };
 
 /**

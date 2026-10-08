@@ -316,8 +316,8 @@ describe('manifest contract', () => {
     expect(codeBlock.docs.props.find((p) => p.name === 'actions')?.type).toBe('ReactNode');
   });
 
-  it('only ModeToggle, CodeBlock, Dialog, Tabs and Select are interactive (no HTML tab): they need React to work', () => {
-    expect(MANIFESTS.filter((m) => isInteractive(m, defaultState(m))).map((m) => m.name)).toEqual(['ModeToggle', 'CodeBlock', 'Dialog', 'Tabs', 'Select']);
+  it('only ModeToggle, CodeBlock, Dialog, Tabs, Tooltip and Select are interactive (no HTML tab): they need React to work', () => {
+    expect(MANIFESTS.filter((m) => isInteractive(m, defaultState(m))).map((m) => m.name)).toEqual(['ModeToggle', 'CodeBlock', 'Dialog', 'Tabs', 'Tooltip', 'Select']);
     expect(isInteractive(field, { control: 'Select' })).toBe(true);
   });
 
