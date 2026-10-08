@@ -30,7 +30,7 @@ export const tooltip: Manifest = {
     props: [
       { name: 'content', type: 'ReactNode', description: 'What the tooltip says. Required.' },
       { name: 'children', type: 'ReactElement', description: 'Exactly one element: the trigger. It must be focusable.' },
-      { name: 'open', type: 'boolean', description: 'Controlled: true shows it, false keeps it shut. Leave it off for hover and focus.' },
+      { name: 'open', type: 'boolean', description: 'Controlled: true shows it, false keeps it shut. Leave it off for hover and focus. While controlled, Esc does nothing.' },
       {
         name: 'describe',
         type: 'boolean',
@@ -41,7 +41,7 @@ export const tooltip: Manifest = {
     a11y: [
       'The tooltip has role="tooltip", and the trigger points to it with aria-describedby.',
       'It opens on keyboard focus as well as hover.',
-      'Esc closes it without moving focus.',
+      'Esc closes it without moving focus (not while `open` is controlled).',
       'It stays open while the pointer is over it, so people can read it with a magnifier (WCAG 1.4.13).',
     ],
   },

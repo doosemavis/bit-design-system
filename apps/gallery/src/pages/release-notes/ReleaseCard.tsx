@@ -38,7 +38,7 @@ export function ReleaseCard({ version, date, sections, latest, open, only, onTog
           {kinds.map((kind) => (
             <Badge key={kind} {...KIND_BADGE[kind]}>{`${kind} ${sections[kind]!.length}`}</Badge>
           ))}
-          <Button variant="ghost" aria-expanded={open} aria-controls={bodyId} onClick={onToggle}>
+          <Button variant="ghost" aria-label={`${open ? 'Hide' : 'Show'} changes in v${version}`} aria-expanded={open} aria-controls={bodyId} onClick={onToggle}>
             {open ? 'Hide changes' : 'Show changes'}
           </Button>
         </Stack>

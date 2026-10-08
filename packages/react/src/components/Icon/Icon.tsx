@@ -26,12 +26,13 @@ export const Icon = forwardRef<SVGSVGElement, IconProps>(function Icon(
   ref,
 ) {
   const filledByClass = className?.split(/\s+/).includes(FILLED) ?? false;
-  const name = (label ?? rest['aria-label'])?.trim();
-  const labelled = Boolean(name) || Boolean(rest['aria-labelledby']);
+  const name = label?.trim() || rest['aria-label']?.trim();
+  const labelledBy = rest['aria-labelledby']?.trim();
+  const labelled = Boolean(name) || Boolean(labelledBy);
   // Spread after rest, so a named icon is never hidden and an unnamed one never carries an empty name.
   const a11y = labelled
-    ? { role: 'img', 'aria-label': name || undefined, 'aria-hidden': undefined }
-    : { role: undefined, 'aria-label': undefined, 'aria-hidden': true as const };
+    ? { role: 'img', 'aria-label': name || undefined, 'aria-labelledby': labelledBy || undefined, 'aria-hidden': undefined }
+    : { role: undefined, 'aria-label': undefined, 'aria-labelledby': undefined, 'aria-hidden': true as const };
   const extra = [`bit-icon-${icon.name}`, iconFilled && !filledByClass ? FILLED : undefined, className].filter(Boolean).join(' ');
   return (
     <svg

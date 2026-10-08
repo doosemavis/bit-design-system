@@ -16,7 +16,7 @@ const STYLES = [
   { value: 'fill', label: 'Fill' },
 ];
 
-/** What Copy gives, shown once under the toolbar with favorite (or favorite-fill) as the example. */
+/** What Copy gives, shown once under the toolbar with iconFavorite as the example, drawn filled when Fill is chosen. */
 function CopyGives({ format, style }: { format: CopyFormat; style: IconStyle }) {
   return (
     <Text data-testid="copy-gives">
@@ -38,7 +38,7 @@ export function AllIcons() {
   const groups = filterGroups(ICON_GROUPS, query);
   return (
     <Stack gap={16}>
-      <Text>300 icons, each with a fill version. Every one works as a React component or as plain HTML classes.</Text>
+      <Text>300 icons, each drawable filled with iconFilled. Every one works as a React component or as plain HTML classes.</Text>
       <Stack direction="row" gap={16} align="end" wrap>
         <Field label="Search icons" className="gallery-icon-search">
           <Input type="search" value={query} placeholder="e.g. arrow, mail, play" onChange={(e) => setQuery(e.target.value)} />

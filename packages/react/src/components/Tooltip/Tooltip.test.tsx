@@ -1,6 +1,6 @@
 import { createRef } from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Tooltip } from './Tooltip';
 import { Button } from '../Button/Button';
 
@@ -81,5 +81,53 @@ describe('Tooltip', () => {
   it('marks the open bubble with its placement', () => {
     render(<Tooltip content="x" open><Button>Share</Button></Tooltip>);
     expect(bubble()).toHaveAttribute('data-placement');
+  });
+  it.each(['', undefined, null, false] as const)('content=%s renders no bubble and no aria-describedby, and hover shows nothing', (content) => {
+    render(<Tooltip content={content}><Button>Share</Button></Tooltip>);
+    const button = screen.getByRole('button');
+    fireEvent.pointerEnter(button);
+    fireEvent.focus(button);
+    expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull();
+    expect(button).not.toHaveAttribute('aria-describedby');
+  });
+  it('keeps an existing aria-describedby when content is empty', () => {
+    render(<Tooltip content=""><Button aria-describedby="hint">Share</Button></Tooltip>);
+    expect(screen.getByRole('button')).toHaveAttribute('aria-describedby', 'hint');
+  });
+
+  describe('top layer', () => {
+    const show = vi.fn();
+    const hide = vi.fn();
+    beforeEach(() => {
+      show.mockClear();
+      hide.mockClear();
+      Object.defineProperty(HTMLElement.prototype, 'showPopover', { configurable: true, writable: true, value: show });
+      Object.defineProperty(HTMLElement.prototype, 'hidePopover', { configurable: true, writable: true, value: hide });
+    });
+    afterEach(() => {
+      cleanup(); // unmount while the stubs still exist: an open tooltip calls hidePopover on the way out
+      Reflect.deleteProperty(HTMLElement.prototype, 'showPopover');
+      Reflect.deleteProperty(HTMLElement.prototype, 'hidePopover');
+    });
+
+    it('opening sets popover="manual" and calls showPopover; closing calls hidePopover', () => {
+      render(<Tooltip content="x"><Button>Share</Button></Tooltip>);
+      expect(show).not.toHaveBeenCalled();
+      fireEvent.focus(screen.getByRole('button'));
+      expect(show).toHaveBeenCalledTimes(1);
+      expect(bubble()).toHaveAttribute('popover', 'manual');
+      expect(hide).not.toHaveBeenCalled();
+      fireEvent.blur(screen.getByRole('button'));
+      expect(hide).toHaveBeenCalledTimes(1);
+    });
+    it('a string content change while open places it again', () => {
+      const { rerender } = render(<Tooltip content="short" open><Button>Share</Button></Tooltip>);
+      expect(show).toHaveBeenCalledTimes(1);
+      rerender(<Tooltip content="a much longer hint" open><Button>Share</Button></Tooltip>);
+      expect(show).toHaveBeenCalledTimes(2);
+      expect(hide).toHaveBeenCalledTimes(1);
+      expect(bubble()).toHaveAttribute('data-placement');
+      expect(bubble()).toHaveTextContent('a much longer hint');
+    });
   });
 });

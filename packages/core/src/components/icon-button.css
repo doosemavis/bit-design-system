@@ -6,3 +6,17 @@
   gap: 0;
   padding: 0;
 }
+
+/* The icon follows the button's size class, whether it came from the size prop or className="bit-lg".
+   Same specificity, so the later rule wins when both are present, as for Button's height. */
+.bit-iconButton.bit-sm > .bit-icon {
+  --_bit-icon-size: 16px;
+}
+
+.bit-iconButton.bit-md > .bit-icon {
+  --_bit-icon-size: 20px;
+}
+
+.bit-iconButton.bit-lg > .bit-icon {
+  --_bit-icon-size: 24px;
+}

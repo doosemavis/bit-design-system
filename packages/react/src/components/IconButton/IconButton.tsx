@@ -29,29 +29,27 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
   { icon, label, iconFilled = false, color = 'neutral', variant = 'outline', size = 'md', tooltip, className, type = 'button', ...rest },
   ref,
 ) {
-  const button = (
-    <button
-      ref={ref}
-      type={type}
-      aria-label={label}
-      className={toClasses(
-        'iconButton',
-        [
-          { name: 'color', allowed: COLORS, value: color },
-          { name: 'variant', allowed: VARIANTS, value: variant },
-          { name: 'size', allowed: SIZES, value: size },
-        ],
-        className ? `bit-button ${className}` : 'bit-button',
-      )}
-      {...rest}
-    >
-      <Icon icon={icon} size={size} iconFilled={iconFilled} />
-    </button>
-  );
-  if (tooltip === undefined || tooltip === null || tooltip === false || tooltip === '') return button;
+  // Always through Tooltip, so the <button> keeps its place (and focus) when `tooltip` comes and goes.
   return (
     <Tooltip content={tooltip} describe={false}>
-      {button}
+      <button
+        ref={ref}
+        type={type}
+        aria-label={label}
+        className={toClasses(
+          'iconButton',
+          [
+            { name: 'color', allowed: COLORS, value: color },
+            { name: 'variant', allowed: VARIANTS, value: variant },
+            { name: 'size', allowed: SIZES, value: size },
+          ],
+          className ? `bit-button ${className}` : 'bit-button',
+        )}
+        {...rest}
+      >
+        {/* No size here: icon-button.css sizes the icon from the button's size class, prop or className. */}
+        <Icon icon={icon} iconFilled={iconFilled} />
+      </button>
     </Tooltip>
   );
 });

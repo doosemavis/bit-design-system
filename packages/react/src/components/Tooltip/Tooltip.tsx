@@ -11,7 +11,10 @@ export interface TooltipProps {
   content: ReactNode;
   /** The trigger: one element that takes focus and pointer events (a Button, a Link). It keeps its own props, handlers and ref. */
   children: ReactElement;
-  /** Show or hide the bubble from the parent, which then owns it: hover and focus no longer open it. Default: the Tooltip owns it. */
+  /**
+   * Show or hide the bubble from the parent, which then owns it: hover and focus no longer open it, and
+   * Esc does nothing (the parent closes it). Default: the Tooltip owns it.
+   */
   open?: boolean;
   /**
    * Point the trigger's `aria-describedby` at the bubble, joined to any it already has. Turn it off when
@@ -30,7 +33,9 @@ export function Tooltip({ content, children, open: openProp, describe = true }: 
 
   const id = useId();
   const [own, setOwn] = useState(false);
-  const open = openProp ?? own;
+  // Empty content means no bubble at all (but the trigger keeps its place in the tree, so it keeps focus).
+  const empty = content === undefined || content === null || content === false || content === '';
+  const open = (openProp ?? own) && !empty;
   const triggerRef = useRef<HTMLElement | null>(null);
   const bubbleRef = useRef<HTMLSpanElement | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -71,7 +76,7 @@ export function Tooltip({ content, children, open: openProp, describe = true }: 
   const childProps = trigger.props;
   const childRef = childProps.ref as Ref<HTMLElement> | undefined;
   const ref = useMemo(() => composeRefs<HTMLElement>(triggerRef, childRef), [childRef]);
-  const described = [childProps['aria-describedby'], describe ? id : undefined].filter(Boolean).join(' ');
+  const described = [childProps['aria-describedby'], describe && !empty ? id : undefined].filter(Boolean).join(' ');
   const merged = mergeProps(
     { onPointerEnter: show, onFocus: show, onPointerLeave: hideSoon, onBlur: hide },
     childProps,
@@ -80,9 +85,11 @@ export function Tooltip({ content, children, open: openProp, describe = true }: 
   return (
     <>
       {cloneElement(trigger, { ...merged, ref, 'aria-describedby': described || undefined })}
-      <span ref={bubbleRef} id={id} role="tooltip" className="bit-tooltip" hidden={!open} onPointerEnter={show} onPointerLeave={hideSoon}>
-        {content}
-      </span>
+      {empty ? null : (
+        <span ref={bubbleRef} id={id} role="tooltip" className="bit-tooltip" hidden={!open} onPointerEnter={show} onPointerLeave={hideSoon}>
+          {content}
+        </span>
+      )}
     </>
   );
 }

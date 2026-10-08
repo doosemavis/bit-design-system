@@ -101,7 +101,7 @@ Both render identically. Switch and SegmentedControl are native inputs, so their
 300 Material Symbols icons (Sharp, weight 700), each with a fill version. Browse them and copy any one from the Icon page of the docs.
 
 ```tsx
-import { Icon, iconDelete } from '@bit-ds/react';
+import { Icon, iconDelete, iconFavorite } from '@bit-ds/react';
 
 <Icon icon={iconDelete} color="danger" label="Delete" />
 <Icon icon={iconFavorite} iconFilled />

@@ -76,6 +76,18 @@ describe('Icon', () => {
     expect(svg(container)).not.toHaveAttribute('aria-label');
   });
 
+  it('an empty label falls back to a real aria-label', () => {
+    const { getByRole } = render(<Icon icon={iconDelete} label="" aria-label="Delete" />);
+    expect(getByRole('img', { name: 'Delete' })).not.toHaveAttribute('aria-hidden');
+  });
+
+  it('a whitespace-only aria-labelledby stays decorative', () => {
+    const { container } = render(<Icon icon={iconDelete} aria-labelledby="  " />);
+    expect(svg(container)).toHaveAttribute('aria-hidden', 'true');
+    expect(svg(container)).not.toHaveAttribute('role');
+    expect(svg(container)).not.toHaveAttribute('aria-labelledby');
+  });
+
   it('forwards the ref, merges className last, and passes other svg props through', () => {
     const ref = createRef<SVGSVGElement>();
     const { container } = render(<Icon ref={ref} icon={iconFavorite} className="extra" data-testid="i" />);

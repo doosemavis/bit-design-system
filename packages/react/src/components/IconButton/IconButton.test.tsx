@@ -12,13 +12,19 @@ describe('IconButton', () => {
     expect(button).toHaveAttribute('type', 'button');
     expect(button).toHaveClass('bit-iconButton', 'bit-button', 'bit-neutral', 'bit-outline', 'bit-md');
     const svg = button.querySelector('svg')!;
-    expect(svg).toHaveClass('bit-icon', 'bit-icon-delete', 'bit-md');
+    expect(svg).toHaveClass('bit-icon', 'bit-icon-delete');
     expect(svg).toHaveAttribute('aria-hidden', 'true');
   });
-  it.each(SIZES)('size %s sizes the button and its icon', (size) => {
+  it.each(SIZES)('size %s puts the size class on the button; icon-button.css sizes the icon from it', (size) => {
     render(<IconButton icon={iconDelete} label="Delete" size={size} />);
     expect(screen.getByRole('button')).toHaveClass(`bit-${size}`);
-    expect(screen.getByRole('button').querySelector('svg')).toHaveClass(`bit-${size}`);
+    expect(screen.getByRole('button').querySelector('svg')).toBeInTheDocument();
+  });
+  it('className="bit-lg" puts bit-lg on the button, the condition of the lg icon rule', () => {
+    render(<IconButton icon={iconDelete} label="Delete" className="bit-lg" />);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('bit-iconButton', 'bit-lg');
+    expect(button.querySelector(':scope > .bit-icon')).not.toBeNull();
   });
   it.each(COLORS)('color %s', (color) => {
     render(<IconButton icon={iconDelete} label="Delete" color={color} />);
@@ -43,6 +49,20 @@ describe('IconButton', () => {
     fireEvent.pointerEnter(screen.getByRole('button'));
     expect(screen.getByRole('tooltip')).toHaveTextContent('Delete');
     expect(screen.getByRole('button')).not.toHaveAttribute('aria-describedby');
+  });
+  it('keeps the same focused button when tooltip toggles between unset and set', () => {
+    const { rerender } = render(<IconButton icon={iconDelete} label="Copy" />);
+    const button = screen.getByRole('button');
+    button.focus();
+    expect(document.activeElement).toBe(button);
+    rerender(<IconButton icon={iconDelete} label="Copy" tooltip="Copied" />);
+    expect(screen.getByRole('button')).toBe(button);
+    expect(document.activeElement).toBe(button);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Copied');
+    rerender(<IconButton icon={iconDelete} label="Copy" />);
+    expect(screen.getByRole('button')).toBe(button);
+    expect(document.activeElement).toBe(button);
+    expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull();
   });
   it('forwards the ref and passes button props through', () => {
     const ref = createRef<HTMLButtonElement>();

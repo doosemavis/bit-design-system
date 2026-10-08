@@ -58,7 +58,7 @@ describe('ReleaseNotesPage', () => {
   it('opens the newest card and keeps older ones closed until their toggle is pressed', async () => {
     const user = userEvent.setup();
     await open();
-    const toggles = screen.getAllByRole('button', { name: /changes$/ });
+    const toggles = screen.getAllByRole('button', { name: /changes in v/ });
     expect(toggles[0]).toHaveAttribute('aria-expanded', 'true');
     expect(toggles[0]).toHaveTextContent('Hide changes');
     expect(toggles[1]).toHaveAttribute('aria-expanded', 'false');
@@ -122,20 +122,20 @@ describe('ReleaseNotesPage', () => {
       const main = within(screen.getByRole('main'));
       expect(main.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(matching.map((r) => `v${r.version}`));
       expect(main.getAllByRole('link').map((a) => a.textContent)).toEqual(matching.map((r) => `v${r.version}`));
-      main.getAllByRole('button', { name: /changes$/ }).forEach((b) => expect(b).toHaveAttribute('aria-expanded', 'true'));
+      main.getAllByRole('button', { name: /changes in v/ }).forEach((b) => expect(b).toHaveAttribute('aria-expanded', 'true'));
       main.getAllByRole('list').forEach((l) => expect(l.getAttribute('aria-label')).toMatch(new RegExp(`^${kind} in`)));
       await expectNoA11yViolations(screen.getByRole('main'));
       await user.click(screen.getByRole('radio', { name: 'All' }));
       expect(main.getAllByRole('heading', { level: 2 })).toHaveLength(RELEASES.length);
     });
 
-    const states = () => screen.getAllByRole('button', { name: /changes$/ }).map((b) => b.getAttribute('aria-expanded'));
+    const states = () => screen.getAllByRole('button', { name: /changes in v/ }).map((b) => b.getAttribute('aria-expanded'));
 
     it('keeps toggles enabled under a filter so a card can be closed and re-opened', async () => {
       const user = userEvent.setup();
       await open();
       await user.click(screen.getByRole('radio', { name: /^Added \(/ }));
-      const toggle = screen.getAllByRole('button', { name: /changes$/ })[0]!;
+      const toggle = screen.getAllByRole('button', { name: /changes in v/ })[0]!;
       expect(toggle).toBeEnabled();
       await user.click(toggle);
       expect(toggle).toHaveAttribute('aria-expanded', 'false');
@@ -148,7 +148,7 @@ describe('ReleaseNotesPage', () => {
       await open();
       const before = states();
       await user.click(screen.getByRole('radio', { name: /^Added \(/ }));
-      const toggles = screen.getAllByRole('button', { name: /changes$/ });
+      const toggles = screen.getAllByRole('button', { name: /changes in v/ });
       await user.click(toggles[0]!);
       await user.click(toggles[toggles.length - 1]!);
       const rail = within(screen.getByRole('navigation', { name: 'Versions' }));
