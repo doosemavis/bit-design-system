@@ -5,7 +5,7 @@ export const KIND_BADGE: Record<ChangeKind, Pick<BadgeProps, 'color' | 'variant'
   Breaking: { color: 'danger', variant: 'solid' },
   Added: { color: 'success', variant: 'solid' },
   Changed: { color: 'primary', variant: 'outline' },
-  Fixed: { color: 'primary', variant: 'outline' },
+  Fixed: { color: 'warning', variant: 'outline' },
   Removed: { color: 'neutral', variant: 'outline' },
 };
 
