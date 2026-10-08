@@ -7,7 +7,10 @@ export const card: Manifest = {
   group: 'components',
   component: Card,
   description: 'A surface with header, body, and footer parts. The parts are their own exports.',
-  controls: [{ kind: 'axis', prop: 'variant', values: ['solid', 'outline'], default: 'solid' }],
+  controls: [
+    { kind: 'axis', prop: 'variant', values: ['solid', 'outline'], default: 'solid' },
+    { kind: 'boolean', prop: 'flat', default: false },
+  ],
   children: [
     { component: 'CardHeader', children: 'Stats' },
     { component: 'CardBody', children: '3 coins collected' },
@@ -35,6 +38,7 @@ export const card: Manifest = {
         default: "'solid'",
         description: 'solid is a filled surface with a hard shadow; outline is a border only.',
       },
+      { name: 'flat', type: 'boolean', default: 'false', description: 'Drops the hard shadow for a flat look. Class: bit-flat, so className="bit-flat" does the same.' },
       {
         name: 'children',
         type: 'ReactNode',

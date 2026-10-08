@@ -17,6 +17,9 @@ const GROUP_LABELS: Record<PageGroup, NavGroup> = { components: 'Components', fo
 
 const GROUPS: readonly NavGroup[] = ['Start here', 'Foundations', 'Components', 'Forms', 'Brand'];
 
+/** Sections listed in their written order, not alphabetically (owner ruling 2026-10-08). */
+const UNSORTED_GROUPS: ReadonlySet<NavGroup> = new Set(['Start here']);
+
 const UNSORTED_NAV: readonly NavItem[] = [
   { group: 'Start here', label: 'Overview', to: '/' },
   { group: 'Start here', label: 'Getting started', to: '/getting-started' },
@@ -35,8 +38,11 @@ const UNSORTED_NAV: readonly NavItem[] = [
 
 const byLabel = (a: NavItem, b: NavItem) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' });
 
-/** Items in the order GROUPS lists their sections (Start here, Foundations, Components, Forms, Brand), alphabetical by label inside each section. Sorted copies: MANIFESTS keeps its own order. */
-export const NAV: readonly NavItem[] = GROUPS.flatMap((group) => UNSORTED_NAV.filter((item) => item.group === group).sort(byLabel));
+/** Items in the order GROUPS lists their sections (Start here, Foundations, Components, Forms, Brand), alphabetical by label inside each section except Start here. Start here is listed in written order (owner ruling 2026-10-08). MANIFESTS keeps its own order. */
+export const NAV: readonly NavItem[] = GROUPS.flatMap((group) => {
+  const items = UNSORTED_NAV.filter((item) => item.group === group);
+  return UNSORTED_GROUPS.has(group) ? items : [...items].sort(byLabel);
+});
 
 interface SidebarProps {
   items: readonly NavItem[];

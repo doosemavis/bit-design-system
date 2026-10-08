@@ -1,5 +1,6 @@
 // Bundles @bit-ds/core's CSS into dist/styles.css and copies theme files into dist/themes/.
 // Consumers then import '@bit-ds/react/themes/power-up.css' and then '@bit-ds/react/styles.css'.
+// The icon classes ship as dist/icons.css (opt-in), with the Material Symbols licence in dist/icons/.
 // Each theme's fonts are self-hosted: every url("./fonts/<file>.woff2") a theme names is copied from its
 // @fontsource devDependency into dist/themes/fonts/, with that family's SIL OFL 1.1 license as OFL-<id>.txt.
 import { build } from 'esbuild';
@@ -23,6 +24,13 @@ await build({
 mkdirSync(resolve(dist, 'themes'), { recursive: true });
 cpSync(resolve(coreSrc, 'themes'), resolve(dist, 'themes'), { recursive: true });
 console.log('copied themes to dist/themes');
+
+// Icons: the opt-in class form ships as its own stylesheet, never inside styles.css. The artwork's
+// Apache 2.0 licence travels with it, as the fonts' OFL does.
+copyFileSync(resolve(coreSrc, 'icons/icons.generated.css'), resolve(dist, 'icons.css'));
+mkdirSync(resolve(dist, 'icons'), { recursive: true });
+copyFileSync(require.resolve('@material-symbols/svg-700/LICENSE'), resolve(dist, 'icons/LICENSE-material-symbols.txt'));
+console.log('copied icons.css and the Material Symbols licence');
 
 // The @fontsource packages (exact versions, in package.json devDependencies) the theme fonts come from.
 const pkg = JSON.parse(readFileSync(resolve(here, '../package.json'), 'utf8'));

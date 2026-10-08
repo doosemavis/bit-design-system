@@ -10,11 +10,12 @@ export const SECTIONS = {
   accessibility: { id: 'section-accessibility', title: 'Accessibility' },
 } as const satisfies Record<string, SectionLink>;
 
-/** The page's sections in order. Variants only when the component has an axis to draw. */
+/** The page's sections in order. Variants only when the component has an axis to draw; then the page's own extra section, if any. */
 export function componentSections(manifest: Manifest): SectionLink[] {
   return [
     SECTIONS.playground,
     ...(variantAxes(manifest) ? [SECTIONS.variants] : []),
+    ...(manifest.extraSection ? [{ id: manifest.extraSection.id, title: manifest.extraSection.title }] : []),
     SECTIONS.usage,
     SECTIONS.props,
     SECTIONS.accessibility,

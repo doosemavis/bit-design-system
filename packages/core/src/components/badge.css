@@ -1,5 +1,6 @@
 /* Exempt from --_bit-size-* and --bit-border-width: the pixel font needs sub-scale sizes and a
-   thinner border than the control size scale provides. */
+   thinner border than the control size scale provides. lg is exempt from the pixel font too: it uses the
+   body font so the label stays readable. */
 /* Badge: micro-label in the pixel font. */
 .bit-badge {
   display: inline-flex;
@@ -25,6 +26,16 @@
   padding: 6px 10px;
 }
 
+.bit-badge.bit-lg {
+  font-family: var(--bit-font-body);
+  font-size: var(--bit-text-15px);
+  font-weight: var(--bit-weight-bold);
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1;
+  padding: 6px 12px;
+}
+
 .bit-badge.bit-solid {
   background: var(--_bit-color);
   color: var(--_bit-color-contrast);
@@ -39,4 +50,11 @@
 
 .bit-badge[data-shape="square"] {
   border-radius: var(--bit-radius-6px);
+}
+
+/* flat: no hard shadow. Listed with the variant combos so it wins over .bit-outline's shadow. */
+.bit-badge.bit-flat,
+.bit-badge.bit-flat.bit-solid,
+.bit-badge.bit-flat.bit-outline {
+  box-shadow: none;
 }

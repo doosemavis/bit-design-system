@@ -1,0 +1,71 @@
+/* Exempt from --bit-border-width: a 1px border that is transparent unless forced colours show it. */
+/* Tooltip: an inverse ink bubble above (or below) its trigger, in the top layer. Placed by Tooltip.tsx,
+   which sets top, left, data-placement and --_bit-tooltip-arrow (the pointer's x). */
+.bit-tooltip {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  z-index: 1000;
+  max-width: min(20rem, calc(100vw - 16px));
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--bit-radius-6px);
+  background: var(--bit-color-text);
+  color: var(--bit-color-bg);
+  font-family: var(--bit-font-body);
+  font-size: var(--bit-text-13px);
+  font-weight: var(--bit-weight-bold);
+  line-height: 1.2;
+  overflow: visible;
+  opacity: 0;
+  translate: 0 2px;
+  transition:
+    opacity 80ms steps(2),
+    translate 80ms steps(2);
+}
+
+.bit-tooltip[data-placement="bottom"] {
+  translate: 0 -2px;
+}
+
+.bit-tooltip[data-entered] {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* The 14×8px pointer, aimed at the trigger's centre. An absolute child is placed from the padding box,
+   so +1px reaches the bubble's outer edge and -1px turns the arrow x (from the border edge) into its left. */
+.bit-tooltip::after {
+  content: "";
+  position: absolute;
+  top: calc(100% + 1px);
+  left: calc(var(--_bit-tooltip-arrow, calc(50% + 1px)) - 1px);
+  width: 14px;
+  height: 8px;
+  translate: -50% 0;
+  background: var(--bit-color-text);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.bit-tooltip[data-placement="bottom"]::after {
+  top: auto;
+  bottom: calc(100% + 1px);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bit-tooltip {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .bit-tooltip {
+    border-color: CanvasText;
+  }
+
+  .bit-tooltip::after {
+    background: CanvasText;
+    forced-color-adjust: none;
+  }
+}

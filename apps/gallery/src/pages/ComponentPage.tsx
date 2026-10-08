@@ -13,7 +13,7 @@ interface ComponentPageProps {
   manifest: Manifest;
 }
 
-/** Layout C: header, section bar, then Playground, Variants, Usage, Props and Accessibility. State lives in the URL. */
+/** Layout C: header, section bar, then Playground, Variants, the page's extra section, Usage, Props and Accessibility. State lives in the URL. */
 export function ComponentPage({ manifest }: ComponentPageProps) {
   const controls = useControlState(manifest);
   const axes = variantAxes(manifest);
@@ -30,6 +30,11 @@ export function ComponentPage({ manifest }: ComponentPageProps) {
       {axes ? (
         <PageSection {...SECTIONS.variants}>
           <VariantsTable manifest={manifest} axes={axes} state={controls.state} />
+        </PageSection>
+      ) : null}
+      {manifest.extraSection ? (
+        <PageSection id={manifest.extraSection.id} title={manifest.extraSection.title}>
+          <manifest.extraSection.Component />
         </PageSection>
       ) : null}
       <PageSection {...SECTIONS.usage}>

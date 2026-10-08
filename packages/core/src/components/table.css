@@ -9,6 +9,10 @@
   box-shadow: var(--bit-shadow-md);
 }
 
+.bit-table.bit-flat {
+  box-shadow: none;
+}
+
 /* The scrollbar sits on the page surface: a surface track and a solid thumb in the accent.
    The transparent border slims the thumb, leaving an even strip of track around it, yet stays part of the
    grab area. The thumb does not change on hover, so the bar never looks bigger.

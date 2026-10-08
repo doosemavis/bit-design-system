@@ -5,6 +5,7 @@
 @import "./system/sizes.css";
 @import "./system/motion.css";
 @import "./components/button.css";
+@import "./components/icon-button.css";
 @import "./components/badge.css";
 @import "./components/alert.css";
 @import "./components/card.css";
@@ -26,3 +27,5 @@
 @import "./components/segmented-control.css";
 @import "./components/table.css";
 @import "./components/tabs.css";
+@import "./components/icon.css";
+@import "./components/tooltip.css";

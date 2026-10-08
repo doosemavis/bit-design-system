@@ -21,6 +21,7 @@ export const table: Manifest = {
   description: 'A native table in a card frame. Head cells are th, body cells td. Wide tables scroll sideways, from the keyboard too.',
   controls: [
     { kind: 'boolean', prop: 'striped', default: false },
+    { kind: 'boolean', prop: 'flat', default: false },
     { kind: 'text', prop: 'aria-label', default: 'Button props', label: 'aria-label' },
   ],
   children: [
@@ -62,6 +63,7 @@ export const table: Manifest = {
     },
     props: [
       { name: 'striped', type: 'boolean', default: 'false', description: 'Shades every other body row. Rendered as data-striped.' },
+      { name: 'flat', type: 'boolean', default: 'false', description: 'Drops the hard shadow for a flat look. Class: bit-flat, so className="bit-flat" does the same.' },
       {
         name: 'aria-label',
         type: 'string',

@@ -1,9 +1,9 @@
 {
   "name": "@bit-ds/react",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "type": "module",
   "description": "bit design system: React components.",
-  "license": "MIT",
+  "license": "MIT AND Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/doosemavis/bit-design-system.git",
@@ -46,6 +46,7 @@
     },
     "./package.json": "./package.json",
     "./styles.css": "./dist/styles.css",
+    "./icons.css": "./dist/icons.css",
     "./themes/*": "./dist/themes/*"
   },
   "scripts": {
@@ -67,6 +68,7 @@
     "@fontsource/lilita-one": "5.3.0",
     "@fontsource/nunito": "5.3.0",
     "@fontsource/press-start-2p": "5.3.0",
+    "@material-symbols/svg-700": "0.47.6",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",

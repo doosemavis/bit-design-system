@@ -350,6 +350,52 @@ describe('components/badge.css', () => {
   });
 });
 
+describe('components/badge.css lg', () => {
+  const css = readCss('components/badge.css');
+  const body = block(css, '.bit-badge.bit-lg') ?? '';
+  it('lg reads in the body font at 15px bold, not uppercase', () => {
+    expect(decl(body, 'font-family')).toBe('var(--bit-font-body)');
+    expect(decl(body, 'font-size')).toBe('var(--bit-text-15px)');
+    expect(decl(body, 'font-weight')).toBe('var(--bit-weight-bold)');
+    expect(decl(body, 'text-transform')).toBe('none');
+    expect(decl(body, 'letter-spacing')).toBe('0');
+    expect(decl(body, 'padding')).toBe('6px 12px');
+  });
+});
+
+/** Body of the first rule whose comma-separated selector list includes `selector`. */
+function ruleWith(css: string, selector: string): string {
+  const bare = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const m of bare.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+    if (m[1]!.split(',').some((part) => part.trim() === selector)) return m[2]!;
+  }
+  return '';
+}
+
+describe('bit-flat drops the hard shadow and beats every shadow rule of its component', () => {
+  const cases: Array<[string, string, string[]]> = [
+    ['components/badge.css', '.bit-badge', ['.bit-badge.bit-flat', '.bit-badge.bit-flat.bit-outline', '.bit-badge.bit-flat.bit-solid']],
+    ['components/card.css', '.bit-card', ['.bit-card.bit-flat', '.bit-card.bit-flat.bit-solid']],
+    ['components/table.css', '.bit-table', ['.bit-table.bit-flat']],
+  ];
+  for (const [file, root, selectors] of cases) {
+    it(`${file}: every flat selector sets box-shadow: none`, () => {
+      const css = readCss(file);
+      for (const selector of selectors) {
+        expect(decl(ruleWith(css, selector), 'box-shadow'), selector).toBe('none');
+      }
+      // The class alone is covered too, and it is more specific than the bare root rule.
+      expect(css).toContain(`${root}.bit-flat`);
+    });
+  }
+  it('flat comes after the shadow rules it overrides (same or higher specificity)', () => {
+    const badge = readCss('components/badge.css');
+    expect(badge.indexOf('.bit-badge.bit-flat.bit-outline')).toBeGreaterThan(badge.indexOf('.bit-badge.bit-outline {'));
+    const card = readCss('components/card.css');
+    expect(card.indexOf('.bit-card.bit-flat.bit-solid')).toBeGreaterThan(card.indexOf('.bit-card.bit-solid {'));
+  });
+});
+
 describe('components/mode-toggle.css', () => {
   const css = readCss('components/mode-toggle.css');
   it('the pressed option takes the warning fill and its contrast text', () => {

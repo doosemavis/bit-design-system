@@ -129,6 +129,22 @@ export interface ManifestDemo {
   };
 }
 
+/** A prop passed as a named export of @bit-ds/react rather than a literal: Icon's `icon={iconFavorite}`. */
+export interface ImportedProp {
+  prop: string;
+  /** The export the code imports and passes, `iconFavorite`. */
+  name: string;
+  /** What the preview passes: that export's value. */
+  value: unknown;
+}
+
+/** A page section of its own, after Variants: Icon's "All icons". */
+export interface ExtraSection {
+  id: string;
+  title: string;
+  Component: ComponentType;
+}
+
 export interface Manifest {
   /** Export name; drives the title and the import line. */
   name: string;
@@ -151,6 +167,12 @@ export interface Manifest {
   fixedProps?: Readonly<Record<string, LiteralValue>>;
   /** Props worked out from the full control state (defaults merged in), joining `fixedProps` for the render and the code. */
   deriveProps?: (state: ControlState) => Readonly<Record<string, LiteralValue>>;
+  /** Props passed by name from @bit-ds/react, worked out from the full state (defaults merged in). Printed first as `prop={name}` and added to the import line. */
+  importedProps?: (state: ControlState) => readonly ImportedProp[];
+  /** The HTML tab's code, in place of the preview's markup: Icon prints its short class form, not the inline svg. Gets the full state. */
+  html?: (state: ControlState) => string;
+  /** A section only this page has, placed after Variants. */
+  extraSection?: ExtraSection;
   presets?: readonly Preset[];
   /** Compound parts documented on this page; the import line lists them. */
   parts?: readonly string[];

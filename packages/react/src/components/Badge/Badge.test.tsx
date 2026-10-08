@@ -18,6 +18,20 @@ describe('Badge', () => {
     expect(screen.getByText('1-Up').className).toBe('bit-badge bit-success bit-outline bit-sm');
   });
 
+  it('size="lg" is the readable badge, class bit-lg', () => {
+    render(<Badge size="lg">Big</Badge>);
+    expect(screen.getByText('Big').className).toBe('bit-badge bit-neutral bit-solid bit-lg');
+  });
+
+  it('flat adds bit-flat once, even when className already has it; off by default', () => {
+    render(<Badge flat data-testid="a">A</Badge>);
+    render(<Badge flat className="bit-flat" data-testid="b">B</Badge>);
+    render(<Badge data-testid="c">C</Badge>);
+    expect(screen.getByTestId('a').className).toBe('bit-badge bit-neutral bit-solid bit-md bit-flat');
+    expect(screen.getByTestId('b').className.split(' ').filter((c) => c === 'bit-flat')).toHaveLength(1);
+    expect(screen.getByTestId('c').className).not.toContain('bit-flat');
+  });
+
   it('appends className last, forwards ref, spreads props', () => {
     const ref = createRef<HTMLSpanElement>();
     render(<Badge ref={ref} className="extra" data-testid="b">X</Badge>);

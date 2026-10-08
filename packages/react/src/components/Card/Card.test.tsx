@@ -15,6 +15,13 @@ describe('Card', () => {
     expect(screen.getByTestId('card').className).toBe('bit-card bit-outline extra');
   });
 
+  it('flat adds bit-flat once, even when className already has it; off by default', () => {
+    render(<Card flat data-testid="a">x</Card>);
+    render(<Card flat className="bit-flat" data-testid="b">x</Card>);
+    expect(screen.getByTestId('a').className).toBe('bit-card bit-solid bit-flat');
+    expect(screen.getByTestId('b').className.split(' ').filter((c) => c === 'bit-flat')).toHaveLength(1);
+  });
+
   it('renders header, body, and footer as BEM elements that accept className and ref', () => {
     const ref = createRef<HTMLDivElement>();
     render(

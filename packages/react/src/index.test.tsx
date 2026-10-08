@@ -37,6 +37,9 @@ const componentNames = Object.keys(lib).filter(
  */
 const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
   Input: { children: undefined },
+  Icon: { icon: lib.iconFavorite, children: undefined },
+  IconButton: { icon: lib.iconDelete, label: 'x', children: undefined },
+  Tooltip: { content: 'x', children: <button type="button">x</button> },
   Heading: { level: 2 },
   CodeBlock: { code: 'x', language: 'shell', children: undefined },
   SegmentedControl: { legend: 'x', options: [{ value: 'x', label: 'x' }], children: undefined },
@@ -51,6 +54,8 @@ const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
 
 /** Table parts only render inside their table parents. The root is then the part's own element. */
 const PARENTS: Record<string, { wrap: (part: ReactElement) => ReactElement; root: string }> = {
+  // Tooltip's root is the bubble after its trigger.
+  Tooltip: { wrap: (part) => part, root: '.bit-tooltip' },
   TableHead: { wrap: (part) => <table>{part}</table>, root: 'thead' },
   TableBody: { wrap: (part) => <table>{part}</table>, root: 'tbody' },
   TableRow: { wrap: (part) => <table><tbody>{part}</tbody></table>, root: 'tr' },
@@ -69,6 +74,7 @@ const PARENTS: Record<string, { wrap: (part: ReactElement) => ReactElement; root
  */
 const ROOT_CLASS_OVERRIDES: Record<string, string> = {
   Table: 'bit-table',
+  IconButton: 'bit-iconButton',
   Tabs: 'bit-tabs',
   TabList: 'bit-tabs__list',
   Tab: 'bit-tabs__tab',
@@ -96,10 +102,23 @@ describe('public index', () => {
         'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
         'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
         'Tabs', 'TabList', 'Tab', 'TabPanel',
-        'Heading', 'Box',
+        'Heading', 'Box', 'Icon', 'IconButton', 'Tooltip',
         'Dialog', 'DialogHeader', 'DialogBody', 'DialogFooter', 'DialogClose',
       ].sort(),
     );
+  });
+
+  it('exports the 300 icons and their groups, each with a regular and a fill path', () => {
+    const icons = Object.keys(lib).filter((name) => /^icon[A-Z]/.test(name));
+    expect(icons).toHaveLength(300);
+    expect(lib.ICON_GROUPS).toHaveLength(8);
+    const all = lib.ICON_GROUPS.flatMap((g) => g.icons);
+    expect(all).toHaveLength(300);
+    for (const icon of all) {
+      expect(typeof icon.path).toBe('string');
+      expect(typeof icon.fillPath).toBe('string');
+    }
+    expect(lib.iconFavorite).toEqual({ name: 'favorite', path: expect.stringMatching(/^[Mm]/), fillPath: expect.stringMatching(/^[Mm]/) });
   });
 
   it('exports the prefix and axes', () => {

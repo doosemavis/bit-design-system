@@ -268,6 +268,8 @@ try {
   }
   const files = run(`tar -tzf "${tarballPath}"`, work).split('\n');
   for (const f of ['package/README.md', 'package/LICENSE']) assert.ok(files.includes(f), `tarball is missing ${f}`);
+  // The icon stylesheet and the Material Symbols licence (Apache-2.0) must travel with the icons.
+  for (const f of ['package/dist/icons.css', 'package/dist/icons/LICENSE-material-symbols.txt']) assert.ok(files.includes(f), `tarball is missing ${f}`);
 
   // 2. A fresh consumer project installed with npm; the react/react-dom peers, plus
   // typescript and the React type packages needed to typecheck the dist declarations,
@@ -308,6 +310,7 @@ for (const n of expected) assert.ok(cjs[n], 'CJS missing ' + n);
 const dist = join(dirname(require.resolve('@bit-ds/react/package.json')), 'dist');
 assert.ok(existsSync(join(dist, 'styles.css')), 'styles.css missing');
 assert.ok(existsSync(join(dist, 'themes', 'power-up.css')), 'themes/power-up.css missing');
+assert.ok(existsSync(require.resolve('@bit-ds/react/icons.css')), 'icons.css does not resolve from the consumer');
 `,
   );
   runLoudly('node check.mjs', app, 'consumer runtime checks failed (node check.mjs)');

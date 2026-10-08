@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
-import { EXPECTED } from './expected-exports.mjs';
+import { EXPECTED, ICON_EXPORTS } from './expected-exports.mjs';
 import { FONT_FILES } from './expected-fonts.mjs';
 import { cssRefs, isRemote, remoteImports, thirdPartyFontHosts, unresolvedRefs } from './css-refs.mjs';
 
@@ -72,13 +72,13 @@ for (const [file, contents] of Object.entries(dtsFiles)) {
   assert.ok(/declare\s+const\s+COLORS\b/.test(contents), `${file} missing local declaration: COLORS`);
   assert.ok(/type\s+Color\b/.test(contents), `${file} missing exported type: Color`);
 }
-for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size', 'FieldProps', 'InputProps', 'SelectProps', 'SelectMultipleProps', 'SelectOption', 'SwitchProps', 'LinkProps', 'CodeProps', 'CodeBlockProps', 'SegmentedControlProps', 'SegmentedControlMultipleProps', 'TableProps', 'TableCellProps', 'HeadingProps', 'HeadingLevel', 'BoxProps', 'BoxElement', 'CopyState', 'DialogProps', 'DialogHeaderProps', 'DialogPartProps', 'DialogCloseProps', 'TabsProps', 'TabListProps', 'TabProps', 'TabPanelProps']) {
+for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size', 'FieldProps', 'InputProps', 'SelectProps', 'SelectMultipleProps', 'SelectOption', 'SwitchProps', 'LinkProps', 'CodeProps', 'CodeBlockProps', 'SegmentedControlProps', 'SegmentedControlMultipleProps', 'TableProps', 'TableCellProps', 'HeadingProps', 'HeadingLevel', 'BoxProps', 'BoxElement', 'CopyState', 'DialogProps', 'DialogHeaderProps', 'DialogPartProps', 'DialogCloseProps', 'TabsProps', 'TabListProps', 'TabProps', 'TabPanelProps', 'IconProps', 'IconData', 'IconGroup', 'TooltipProps', 'IconButtonProps']) {
   assert.ok(dtsFiles['index.d.ts'].includes(name), `index.d.ts missing type: ${name}`);
 }
 
 // 4. CSS bundle: system layer + every component, no unresolved local imports
 const css = readFileSync(resolve(dist, 'styles.css'), 'utf8');
-for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '.bit-logo__caption', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo', '.bit-mode-toggle', '.bit-field__error', '.bit-input', '.bit-select__control', '.bit-select__list', '.bit-select__option', '.bit-select__input', '.bit-switch__track', '.bit-link', '.bit-code', '.bit-code__token', '.bit-code__copy', '.bit-segmented-control__label', '.bit-table__cell', '.bit-heading[data-level="6"]', '.bit-box[data-ml="64"]']) {
+for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '.bit-logo__caption', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo', '.bit-mode-toggle', '.bit-field__error', '.bit-input', '.bit-select__control', '.bit-select__list', '.bit-select__option', '.bit-select__input', '.bit-switch__track', '.bit-link', '.bit-code', '.bit-code__token', '.bit-code__copy', '.bit-segmented-control__label', '.bit-table__cell', '.bit-heading[data-level="6"]', '.bit-box[data-ml="64"]', '.bit-icon', '.bit-icon:not(svg)', '.bit-tooltip', '.bit-iconButton']) {
   assert.ok(css.includes(needle), `styles.css missing: ${needle}`);
 }
 assert.ok(!/@import\s+"\.\//.test(css), 'styles.css still contains a relative @import (bundling failed)');
@@ -92,6 +92,33 @@ assert.ok(
   tierAt[0] < tierAt[1] && tierAt[1] < tierAt[2],
   `styles.css Box precedence tiers out of order: expected ${BOX_TIERS.join(' < ')}, got offsets ${tierAt.join(', ')}`,
 );
+
+// 4c. Icons: one export per icon in both builds, the opt-in class stylesheet with one rule each, its licence,
+// and no icon artwork inside styles.css.
+for (const name of ICON_EXPORTS) {
+  assert.equal(typeof esm[name]?.path, 'string', `ESM icon export missing: ${name}`);
+  assert.equal(typeof cjs[name]?.path, 'string', `CJS icon export missing: ${name}`);
+}
+const iconsCss = readFileSync(resolve(dist, 'icons.css'), 'utf8');
+assert.equal((iconsCss.match(/^\.bit-icon-[a-z0-9-]+\{--_bit-icon:url\("data:image\/svg\+xml,[^"]+"\);--_bit-icon-fill:url\("data:image\/svg\+xml,/gm) ?? []).length, ICON_EXPORTS.length, 'icons.css must have one rule per icon');
+assert.ok(!css.includes('--_bit-icon:url('), 'styles.css must not contain icon artwork (that is icons.css)');
+assert.match(readFileSync(resolve(dist, 'icons/LICENSE-material-symbols.txt'), 'utf8'), /Apache License/, 'icons/LICENSE-material-symbols.txt missing or not Apache 2.0');
+
+// 4d. Tree-shaking: a consumer that imports one icon bundles that icon's artwork and none of the others.
+const { build } = await import('esbuild');
+const bundle = await build({
+  stdin: { contents: "import { Icon, iconFavorite } from './index.js'; console.log(Icon, iconFavorite);", resolveDir: dist, loader: 'js' },
+  bundle: true,
+  write: false,
+  format: 'esm',
+  minify: true,
+  external: ['react', 'react-dom', 'react/jsx-runtime'],
+  logLevel: 'silent',
+});
+const bundled = bundle.outputFiles[0].text;
+assert.ok(bundled.includes(esm.iconFavorite.path), 'tree-shaking check is broken: the imported icon is missing');
+assert.ok(bundled.includes(esm.iconFavorite.fillPath), 'tree-shaking check is broken: the imported icon\'s fill path is missing');
+assert.ok(!bundled.includes(esm.iconHome.path), 'importing one icon pulled in others: icons are not tree-shakable');
 
 // 5. Themes copied, not bundled, with their self-hosted fonts beside them (security audit A1: no third-party request)
 const theme = resolve(dist, 'themes/power-up.css');
@@ -143,4 +170,4 @@ for (const [file, patterns] of Object.entries(IMPORT_PATTERNS)) {
   assert.deepEqual(extra, [], `dist/${file} imports something other than react, react-dom or react/jsx-runtime`);
 }
 
-console.log(`dist OK: ${EXPECTED.length} components, styles.css ${css.length} bytes, themes and ${FONT_FILES.length} font files present, nothing loaded from a third party`);
+console.log(`dist OK: ${EXPECTED.length} components, ${ICON_EXPORTS.length} icons, styles.css ${css.length} bytes, themes and ${FONT_FILES.length} font files present, nothing loaded from a third party`);

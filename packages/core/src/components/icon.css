@@ -1,0 +1,50 @@
+/* Exempt from --_bit-size-*: icons have their own 16/20/24px scale, smaller than the control heights. */
+/* Icon: an inline <svg> from <Icon>, or a <span> drawn by mask when @bit-ds/react/icons.css sets --_bit-icon. */
+.bit-icon {
+  --_bit-icon-size: 20px;
+  display: inline-block;
+  flex: none;
+  width: var(--_bit-icon-size);
+  height: var(--_bit-icon-size);
+  vertical-align: middle;
+  fill: currentColor;
+}
+
+.bit-icon.bit-sm {
+  --_bit-icon-size: 16px;
+}
+
+.bit-icon.bit-md {
+  --_bit-icon-size: 20px;
+}
+
+.bit-icon.bit-lg {
+  --_bit-icon-size: 24px;
+}
+
+/* Only an icon with its own colour class takes that colour. --_bit-color inherits, so reading it on every
+   .bit-icon would paint an icon inside a primary Button in the Button's own fill. */
+.bit-icon:is(.bit-primary, .bit-neutral, .bit-success, .bit-warning, .bit-danger) {
+  color: var(--_bit-color);
+}
+
+/* The class form, on any non-svg element: currentColor shows through the icon's shape. */
+.bit-icon:not(svg) {
+  background-color: currentColor;
+  -webkit-mask: var(--_bit-icon) center / contain no-repeat;
+  mask: var(--_bit-icon) center / contain no-repeat;
+}
+
+/* The filled version of the class form. */
+.bit-icon.bit-iconFilled:not(svg) {
+  -webkit-mask-image: var(--_bit-icon-fill);
+  mask-image: var(--_bit-icon-fill);
+}
+
+/* Forced colours drop backgrounds, which would erase a mask icon; draw it in the system text colour. */
+@media (forced-colors: active) {
+  .bit-icon:not(svg) {
+    background-color: CanvasText;
+    forced-color-adjust: none;
+  }
+}

@@ -676,3 +676,69 @@ html {
 .gallery-old-version {
   margin-block-end: var(--bit-space-16px);
 }
+
+/* Icon page, All icons: 56px square tiles, as many per row as fit. */
+.gallery-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 56px);
+  gap: var(--bit-space-12px);
+}
+
+.gallery-icon-grid .bit-iconButton {
+  width: 56px;
+  height: 56px;
+}
+
+.gallery-icon-group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-12px);
+  padding-block-end: 10px;
+  border-bottom: 2px solid var(--bit-color-line);
+}
+
+.gallery-icon-search {
+  min-width: 18rem;
+}
+
+/* Release notes: the version rail sits beside the cards on wide screens and stacks above them below 960px. */
+.gallery-releases {
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr);
+  gap: var(--bit-space-24px);
+  align-items: start;
+}
+
+.gallery-rail {
+  position: sticky;
+  top: var(--bit-space-16px);
+}
+
+/* Each version is a full-width row: bold version left, muted date right. The chosen one takes a line border and
+   the soft fill; the others keep a transparent border so nothing shifts. Specificity matches bit Link's own rules. */
+.gallery-rail__row.bit-link.bit-neutral {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--bit-space-8px);
+  padding: var(--bit-space-8px) 10px;
+  border: 2px solid transparent;
+  border-radius: var(--bit-radius-10px);
+  color: var(--bit-color-text);
+  text-decoration: none;
+  font-weight: var(--bit-weight-bold);
+}
+
+.gallery-rail__row.bit-link.bit-neutral[aria-current="true"] {
+  border-color: var(--bit-color-line);
+  background: var(--bit-color-primary-soft);
+}
+
+@media (max-width: 960px) {
+  .gallery-releases {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gallery-rail {
+    position: static;
+  }
+}

@@ -35,7 +35,7 @@ All classes and custom properties are prefixed `bit-` / `--bit-`. Internal (priv
 
 | Kind | Pattern | Example |
 |---|---|---|
-| Block (component root) | `bit-{kebab-case component}` | `Button` → `bit-button`, `IconButton` → `bit-icon-button` |
+| Block (component root) | `bit-{kebab-case component}` | `Button` → `bit-button`, `IconButton` → `bit-iconButton` (owner ruling 2026-10-08: the one camelCase exception, so it never collides with Icon's `bit-icon-{name}` classes) |
 | Element (part of a block) | `bit-{block}__{element}` | `CardHeader` → `bit-card__header` |
 | Decorator (an axis value) | `bit-{value}` | `bit-primary`, `bit-outline`, `bit-lg` |
 

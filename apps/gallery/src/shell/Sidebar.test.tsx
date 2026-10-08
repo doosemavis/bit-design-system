@@ -56,22 +56,24 @@ describe('Sidebar', () => {
     expect(screen.getByRole('link', { name: 'Spacing' })).toHaveAttribute('href', '/spacing');
   });
 
-  it('Start here comes first, with Getting started, Overview, Release notes and Versions in order', () => {
+  it('Start here comes first, with Overview, Getting started, Versions and Release notes, in that order (the one section not sorted)', () => {
     renderSidebar(NAV);
     expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent('Start here');
-    expect(linksUnder('Start here')).toEqual(['Getting started', 'Overview', 'Release notes', 'Versions']);
+    expect(linksUnder('Start here')).toEqual(['Overview', 'Getting started', 'Versions', 'Release notes']);
     expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', '/');
     expect(screen.getByRole('link', { name: 'Getting started' })).toHaveAttribute('href', '/getting-started');
     expect(screen.getByRole('link', { name: 'Versions' })).toHaveAttribute('href', '/versions');
     expect(screen.getByRole('link', { name: 'Release notes' })).toHaveAttribute('href', '/release-notes');
   });
 
-  it('every section lists its items in alphabetical order', () => {
+  it('every section but Start here lists its items in alphabetical order', () => {
     renderSidebar(NAV);
     for (const heading of screen.getAllByRole('heading', { level: 2 })) {
-      const labels = linksUnder(heading.textContent ?? '');
+      const sectionName = heading.textContent ?? '';
+      if (sectionName === 'Start here') continue; // Only Start here is not sorted alphabetically
+      const labels = linksUnder(sectionName);
       const sorted = [...labels].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
-      expect(labels, heading.textContent ?? '').toEqual(sorted);
+      expect(labels, sectionName).toEqual(sorted);
     }
   });
 

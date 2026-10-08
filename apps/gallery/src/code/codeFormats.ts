@@ -1,6 +1,7 @@
 import type { CodeLanguage } from '@bit-ds/react';
 import type { ControlState, Manifest } from '../manifests/types';
 import { isInteractive } from '../engine/childSpecs';
+import { defaultState } from '../engine/state';
 import { renderManifest } from '../engine/renderManifest';
 import { toJsx } from './toJsx';
 import { toHtml } from './toHtml';
@@ -48,7 +49,7 @@ export const CODE_FORMATS: readonly CodeFormat[] = [
     // An interactive component's markup alone doesn't work.
     available: (manifest, state) => !isInteractive(manifest, state),
     fullFile: false,
-    code: (manifest, state) => toHtml(renderManifest(manifest, state)),
+    code: (manifest, state) => (manifest.html ? manifest.html({ ...defaultState(manifest), ...state }) : toHtml(renderManifest(manifest, state))),
   },
 ];
 

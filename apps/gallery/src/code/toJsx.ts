@@ -5,6 +5,7 @@ import { isHtmlElement } from '../manifests/registry';
 import { isVirtual } from '../manifests/virtual';
 import { activeDemo, childSpecs } from '../engine/childSpecs';
 import { staticProps } from '../engine/staticProps';
+import { importedProps } from '../engine/importedProps';
 
 const INDENT = '  ';
 
@@ -139,7 +140,7 @@ function printProp(control: Control, value: ControlValue, defaultValue: ControlV
       if ((isDefault && !control.alwaysPrint) || isOmittedSentinel(control, value)) return null;
       return control.numeric ? `${control.prop}={${Number(value)}}` : `${control.prop}="${escapeAttr(String(value))}"`;
     case 'axis':
-      return isDefault ? null : `${control.prop}="${escapeAttr(String(value))}"`;
+      return isDefault || isOmittedSentinel(control, value) ? null : `${control.prop}="${escapeAttr(String(value))}"`;
     case 'text': {
       const str = String(value);
       if (str === '') return null;
@@ -178,9 +179,9 @@ function componentNames(children: readonly ChildSpec[]): string[] {
   ]);
 }
 
-function importLine(manifest: Manifest, specs: readonly ChildSpec[] | undefined, demo: ManifestDemo['code'] | undefined): string {
+function importLine(manifest: Manifest, specs: readonly ChildSpec[] | undefined, demo: ManifestDemo['code'] | undefined, imported: readonly string[]): string {
   const nested = specs ? componentNames(specs) : [];
-  const unique = [...new Set([manifest.name, ...(manifest.parts ?? []), ...nested, ...(demo?.bitImports ?? [])])].sort();
+  const unique = [...new Set([manifest.name, ...(manifest.parts ?? []), ...nested, ...(demo?.bitImports ?? []), ...imported])].sort();
   const bit = `import { ${unique.join(', ')} } from '@bit-ds/react';`;
   if (!demo || demo.reactImports.length === 0) return bit;
   return `import { ${[...demo.reactImports].sort().join(', ')} } from 'react';\n${bit}`;
@@ -197,7 +198,9 @@ interface ToJsxOptions {
 
 /** True when an axis control's value differs from its default, so it emits a class worth printing. */
 function axisChanged(control: Control, state: ControlState, defaults: ControlState): boolean {
-  return control.kind === 'axis' && (state[control.prop] ?? defaults[control.prop]) !== defaults[control.prop];
+  if (control.kind !== 'axis') return false;
+  const value = state[control.prop] ?? defaults[control.prop]!;
+  return value !== defaults[control.prop] && !isOmittedSentinel(control, value);
 }
 
 /** `className="bit-danger bit-outline"`: one class per changed axis, in control order. */
@@ -233,7 +236,8 @@ export function toJsx(manifest: Manifest, state: ControlState, options: ToJsxOpt
   );
   const { names, consts } = resolveHoisted([...printed, ...[...printedProps.values()].flat()]);
   const demo = activeDemo(manifest, state)?.code;
-  const props = [...(demo?.props ?? []), ...printed.map((p) => attr(p, names))].map((p) => ` ${p}`).join('');
+  const imported = importedProps(manifest, state);
+  const props = [...(demo?.props ?? []), ...imported.map((p) => `${p.prop}={${p.name}}`), ...printed.map((p) => attr(p, names))].map((p) => ` ${p}`).join('');
 
   const open = `<${manifest.name}${props}`;
   let element: string;
@@ -248,5 +252,5 @@ export function toJsx(manifest: Manifest, state: ControlState, options: ToJsxOpt
   }
   if (demo) element = demo.wrap(element);
   const setup = demo && demo.setup.length > 0 ? [demo.setup.join('\n')] : [];
-  return [importLine(manifest, specs, demo), ...consts, ...setup, element].join('\n\n');
+  return [importLine(manifest, specs, demo, imported.map((p) => p.name)), ...consts, ...setup, element].join('\n\n');
 }

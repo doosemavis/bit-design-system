@@ -2,6 +2,21 @@
 
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
+## 0.1.6 — 2026-10-08
+### Added
+- `Icon`: draws one of 300 Material Symbols icons (Sharp, weight 700) as an inline `<svg>`. Pass an icon export: `<Icon icon={iconFavorite} />`. `size` is `sm`/`md`/`lg` (16, 20, 24px, default `md`); `color` takes a colour role, or leave it off to follow the text colour.
+- Every icon can be drawn filled with `iconFilled` (class `bit-iconFilled`): `<Icon icon={iconFavorite} iconFilled />`.
+- 300 icon exports (`iconFavorite`, …) and `ICON_GROUPS`. Bundlers keep only the icons you import.
+- `@bit-ds/react/icons.css`: the same icons as classes, `<span class="bit-icon bit-icon-favorite bit-danger bit-iconFilled" aria-hidden="true">`, on any element except `<svg>`. It's opt-in and never part of `styles.css`.
+- A `label`, `aria-label` or `aria-labelledby` makes the icon `role="img"` with that name; without one it is hidden from screen readers.
+- `Tooltip`: a hint on hover and focus for one trigger element. `content` is the text; `open` controls it; `describe` (default on) links it to the trigger. Esc closes it without closing a Dialog around it (except while `open` is controlled: then Esc does nothing, since the parent owns it), and the pointer can move onto it.
+- `IconButton`: a square button with one icon, named by `label`. Takes `iconFilled`, `color`, `variant` and `size` like Button. It shows no tooltip unless you give `tooltip`.
+- `Badge` `size="lg"`: the readable badge, in the body font at 15px bold (`sm` and `md` keep the pixel font).
+- `flat` on `Badge`, `Card` and `Table` drops the hard shadow (class `bit-flat`, so `className="bit-flat"` does the same).
+- Types: `IconProps`, `IconData`, `IconGroup`, `TooltipProps`, `IconButtonProps`.
+### Changed
+- `package.json` `"license"` is `"MIT AND Apache-2.0"`: the code is MIT, and the icon artwork is Apache 2.0.
+
 ## 0.1.5 — 2026-10-07
 ### Added
 - `Select` `multiple`: pick any number of options. Each row shows a checkbox, and clicking a row or pressing Enter or Space toggles it while the list stays open; Escape, Tab or a click outside closes it. The closed box shows the one chosen label, or a "3 selected" pill in the primary colour when there are several. `value`/`defaultValue` are `string[]`, and `onValueChange` receives the chosen values in option order.

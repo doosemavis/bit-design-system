@@ -15,12 +15,15 @@ const GLYPHS: Readonly<Record<string, string>> = {
   code: '<>',
   codeblock: '{}',
   heading: 'H',
+  icon: '★',
+  iconbutton: '⊡',
   link: 'a',
   modetoggle: '◐',
   spinner: '◌',
   stack: '≡',
   table: '▦',
   text: 'Aa',
+  tooltip: '▴',
 };
 
 /** The compact tile's chip: the component's glyph, or its first letter when it has none. */
