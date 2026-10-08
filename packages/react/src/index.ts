@@ -66,6 +66,10 @@ export { Tabs } from './components/Tabs/Tabs';
 export type { TabsProps } from './components/Tabs/Tabs';
 export { TabList, Tab, TabPanel } from './components/Tabs/TabParts';
 export type { TabListProps, TabProps, TabPanelProps } from './components/Tabs/TabParts';
+export { Icon } from './components/Icon/Icon';
+export type { IconProps } from './components/Icon/Icon';
+export type { IconData, IconPair, IconGroup } from './icons/types';
+export * from './icons/icons.generated';
 
 export { BitLogo } from './logo/BitLogo';
 export type { BitLogoProps } from './logo/BitLogo';

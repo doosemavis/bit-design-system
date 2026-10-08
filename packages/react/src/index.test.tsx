@@ -37,6 +37,7 @@ const componentNames = Object.keys(lib).filter(
  */
 const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
   Input: { children: undefined },
+  Icon: { icon: lib.iconFavorite, children: undefined },
   Heading: { level: 2 },
   CodeBlock: { code: 'x', language: 'shell', children: undefined },
   SegmentedControl: { legend: 'x', options: [{ value: 'x', label: 'x' }], children: undefined },
@@ -96,10 +97,20 @@ describe('public index', () => {
         'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
         'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
         'Tabs', 'TabList', 'Tab', 'TabPanel',
-        'Heading', 'Box',
+        'Heading', 'Box', 'Icon',
         'Dialog', 'DialogHeader', 'DialogBody', 'DialogFooter', 'DialogClose',
       ].sort(),
     );
+  });
+
+  it('exports the 600 icons and their groups, and each fill follows its regular icon', () => {
+    const icons = Object.keys(lib).filter((name) => /^icon[A-Z]/.test(name));
+    expect(icons).toHaveLength(600);
+    expect(lib.ICON_GROUPS).toHaveLength(8);
+    const pairs = lib.ICON_GROUPS.flatMap((g) => g.icons);
+    expect(pairs).toHaveLength(300);
+    for (const { regular, fill } of pairs) expect(fill.name).toBe(`${regular.name}-fill`);
+    expect(lib.iconFavorite).toEqual({ name: 'favorite', path: expect.stringMatching(/^[Mm]/) });
   });
 
   it('exports the prefix and axes', () => {
