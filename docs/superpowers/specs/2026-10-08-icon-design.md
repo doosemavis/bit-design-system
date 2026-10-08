@@ -231,3 +231,43 @@ export interface IconProps extends Omit<SVGAttributes<SVGSVGElement>, 'color'> {
 3. **Tile glyph** is 24px (`size="lg"`), not 32px. `.bit-icon` owns the icon's width, and gallery.css may only set `--_gallery-*` custom properties.
 4. **Home chip:** the Icon tile chip is the text glyph `★`. `GLYPHS` holds strings, not elements.
 5. **Playground controls:** the icon picker and fill toggle are virtual controls named `iconName` and `filled`, so the docs-default contract test doesn't read them as the `icon` prop. Fill isn't an svg attribute either.
+
+## Addendum B (2026-10-08, owner review on localhost): fill modifier, Tooltip, IconButton, clickable tiles
+Boards: `tiles.html`, `iconbutton-tooltip.html`, `tiles-v2.html` (same folder). Still ships as **0.1.6**. Where this addendum and the sections above disagree, this addendum wins.
+
+### B1. Fill is a modifier, not a separate icon
+- One export per icon (300, not 600). `IconData` becomes `{ readonly name: string; readonly path: string; readonly fillPath: string }`. The `iconXFill` exports and `IconPair` are removed (never released).
+- `ICON_GROUPS: readonly { readonly label: string; readonly icons: readonly IconData[] }[]` (supersedes Amendment 1).
+- `Icon` gains `iconFilled?: boolean`. It draws `fillPath` and adds the class **`bit-iconFilled`** (owner naming: `icon{Name}` prop, camelCase `bit-iconFilled` class, like `bit-iconButton`). `className="bit-iconFilled"` does the same as the prop, including drawing the fill path.
+- Class form: `<span class="bit-icon bit-icon-favorite bit-iconFilled" aria-hidden="true"></span>`. `icons.css` has one rule per icon setting both `--_bit-icon` and `--_bit-icon-fill`; `.bit-icon.bit-iconFilled:not(svg)` masks with `--_bit-icon-fill`.
+- The mask form applies to any non-svg element (`.bit-icon:not(svg)`), not only `<span>` (final review Minor 2).
+
+### B2. Icon accessibility fix (final review Important 1)
+- The icon is labelled when `label`, `aria-label` or `aria-labelledby` gives it a non-blank name: then `role="img"` (plus `aria-label` when one was given), never `aria-hidden`. Otherwise `aria-hidden="true"`. A whitespace-only label is decorative.
+
+### B3. Tooltip (new component)
+- `<Tooltip content="Copy link"><Button>…</Button></Tooltip>`. Props: `content: ReactNode` (required), `children`: exactly one element (the trigger), `open?: boolean` (controlled; omit for hover/focus behaviour), `describe?: boolean` (default `true`: the trigger gets `aria-describedby`; `false` when the trigger's name already says it).
+- Opens when the pointer enters the trigger or the trigger gets focus; closes on pointer leave, blur, or **Esc** (Esc is consumed only while open, so it doesn't also close a Dialog around it). Hoverable: moving the pointer onto the bubble keeps it open (WCAG 1.4.13).
+- Look (board T1 + P1, smaller): inverse ink bubble (`--bit-color-text` background, `--bit-color-bg` text), **13px bold**, padding 5px 8px, `--bit-radius-6px`, a **14×8px** pointer joined to the bubble, centred on the trigger. Appears in two pixel steps (80ms, `steps(2)`); none with reduced motion. Forced colours: a 1px `CanvasText` border and a `CanvasText` pointer.
+- Placement: 10px above the trigger, centred, kept 8px inside the viewport (the pointer still points at the trigger's centre); flips below when there is no room above. Renders in the top layer (Popover API) with a `hidden`/fixed fallback, like Select's list; follows the trigger on scroll/resize; re-places when `content` changes.
+- Markup: the trigger, then `<span class="bit-tooltip" role="tooltip" id=… data-placement="top|bottom">`. Root class `bit-tooltip`.
+
+### B4. IconButton (new component)
+- `<IconButton icon={iconDelete} label="Delete" />` renders `<button type="button" class="bit-iconButton bit-{color} bit-{variant} bit-{size} bit-button" aria-label="Delete">` with one `Icon` inside (decorative) sized to match: sm 16, md 20, lg 24px. Square: width = the size's control height (32/40/48px), no padding.
+- Props: `icon` (required), `label` (required, the accessible name), `iconFilled?`, `color?` (default `neutral`), `variant?` (default `outline`), `size?` (default `md`), **`tooltip?: ReactNode`** — **no tooltip by default**; when given, the button is wrapped in a `Tooltip` with that content (`describe={false}`, the label is already the name). Other button props pass through; `ref` goes to the `<button>`.
+- Shares Button's CSS (colours, variants, press animation) via the `bit-button` class; `bit-iconButton` makes it square. Root class `bit-iconButton` (owner ruling).
+
+### B5. All icons tiles (supersedes the tile part of §3 and Amendment 3)
+- Each tile is a **56px square IconButton** (neutral outline, 24px icon), with **no visible name**: `label="Copy {name}"`, `tooltip={name}`. **Clicking the tile copies.** While copied the tile turns success-solid and its tooltip reads "Copied" (failed: danger, "Copy failed") for two seconds; `announce()` tells screen readers. Grid: `repeat(auto-fill, 56px)`, 12px gap.
+- Style = Fill draws the tiles with `iconFilled`. Copy gives — React: `import { Icon, iconFavorite } from '@bit-ds/react';\n\n<Icon icon={iconFavorite} iconFilled />` (no `iconFilled` for Regular); HTML: `<span class="bit-icon bit-icon-favorite bit-iconFilled" aria-hidden="true"></span>`.
+- The Icon page's Fill control becomes the real boolean prop `iconFilled` (prints `iconFilled`; the HTML tab adds `bit-iconFilled`).
+
+### B6. Gallery pages for Tooltip and IconButton
+- **Tooltip** page (group components): controls `content` (text, default "Copy link"), `open` (boolean), `describe` (boolean, default true); the trigger is an outline neutral Button "Hover or focus me". Interactive (no HTML tab).
+- **IconButton** page (group components): icon picker (virtual, same 12 names), `label` (text, always printed, default "Delete"), `iconFilled`, color × variant × size axes, `tooltip` (text, default empty — printed only when set). Variants: color × variant. HTML tab: the button + class-form icon, noting `icons.css` and that a tooltip needs React. Props table documents `tooltip` (default: none).
+- Home chips: IconButton `⊡`, Tooltip `▴`.
+
+### B7. Release hygiene (final review)
+- Generator rejects two names mapping to one export or class.
+- Smoke test asserts the packed tarball has `dist/icons.css` and `dist/icons/LICENSE-material-symbols.txt`, and that `@bit-ds/react/icons.css` resolves.
+- `packages/react/package.json` `"license": "MIT AND Apache-2.0"`.
