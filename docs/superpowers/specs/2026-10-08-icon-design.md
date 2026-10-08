@@ -106,8 +106,8 @@ export interface IconProps extends Omit<SVGAttributes<SVGSVGElement>, 'color'> {
 - The generator fails if:
   - two names map to the same export or class
   - a name doesn't produce a valid identifier (names starting with a digit are not in the curated list)
-  - a name would produce `bit-icon-button`, which the 2026-09-06 naming table reserves for a future IconButton block
 - The base class `bit-icon` follows the block rule (`bit-{component}`). `bit-icon-{name}` is the owner's requested per-icon class.
+- **Owner ruling (2026-10-08):** a future IconButton's block class is **`bit-iconButton`**, not `bit-icon-button`, so it can never collide with a `bit-icon-{name}` class. The 2026-09-06 naming table is amended to match. IconButton itself is not part of 0.1.6. When it's built, the index naming test needs a `ROOT_CLASS_OVERRIDES` entry `IconButton: 'bit-iconButton'`.
 
 ## 2. Source, generator and packaging
 
@@ -199,7 +199,7 @@ export interface IconProps extends Omit<SVGAttributes<SVGSVGElement>, 'color'> {
   - 600 exports and 600 CSS rules
   - names map to unique exports and classes
   - every listed name has a fill
-  - a non-single-path source or a reserved `button` name makes it fail
+  - a non-single-path source makes it fail
 - **CSS:**
   - core system test (icon.css imported in index.css)
   - forced-colours rule present
