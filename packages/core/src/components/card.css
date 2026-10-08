@@ -18,6 +18,11 @@
   box-shadow: none;
 }
 
+.bit-card.bit-flat,
+.bit-card.bit-flat.bit-solid {
+  box-shadow: none;
+}
+
 .bit-card__header {
   padding: var(--bit-space-12px) var(--bit-space-16px);
   font-family: var(--bit-font-display);

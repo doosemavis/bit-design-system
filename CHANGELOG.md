@@ -11,6 +11,8 @@ Package releases only. Docs-site changes don't appear here. One bullet per line.
 - A `label`, `aria-label` or `aria-labelledby` makes the icon `role="img"` with that name; without one it is hidden from screen readers.
 - `Tooltip`: a hint on hover and focus for one trigger element. `content` is the text; `open` controls it; `describe` (default on) links it to the trigger. Esc closes it without closing a Dialog around it (except while `open` is controlled: then Esc does nothing, since the parent owns it), and the pointer can move onto it.
 - `IconButton`: a square button with one icon, named by `label`. Takes `iconFilled`, `color`, `variant` and `size` like Button. It shows no tooltip unless you give `tooltip`.
+- `Badge` `size="lg"`: the readable badge, in the body font at 15px bold (`sm` and `md` keep the pixel font).
+- `flat` on `Badge`, `Card` and `Table` drops the hard shadow (class `bit-flat`, so `className="bit-flat"` does the same).
 - Types: `IconProps`, `IconData`, `IconGroup`, `TooltipProps`, `IconButtonProps`.
 ### Changed
 - `package.json` `"license"` is `"MIT AND Apache-2.0"`: the code is MIT, and the icon artwork is Apache 2.0.

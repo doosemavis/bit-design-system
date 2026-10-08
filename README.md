@@ -87,6 +87,8 @@ Booleans are attributes, never classes: `disabled`, `aria-invalid`, `data-loadin
 
 A decorator in `className` replaces the prop's decorator for that axis: `<Button className="bit-danger">` is a danger button.
 
+`flat` on Badge, Card and Table drops the hard shadow. It is the class `bit-flat`, so `<Card className="bit-flat">` does the same.
+
 ## Two ways to use every static component
 
 ```tsx

@@ -64,7 +64,7 @@ test('All icons: group header has a divider and a bold 15px count pill', async (
   const head = page.getByRole('region', { name: 'All icons' }).locator('.gallery-icon-group-head').first();
   const border = await head.evaluate((el) => parseFloat(getComputedStyle(el).borderBottomWidth));
   expect(border).toBeGreaterThan(0);
-  const pill = head.locator('.gallery-icon-count');
+  const pill = head.locator('.bit-badge.bit-lg.bit-flat');
   await expect(pill).toHaveText(/^\d+ icons$/);
   const style = await pill.evaluate((el) => ({ w: Number(getComputedStyle(el).fontWeight), s: getComputedStyle(el).fontSize }));
   expect(style.w).toBeGreaterThanOrEqual(700);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Code, Field, Heading, ICON_GROUPS, iconFavorite, Input, SegmentedControl, Stack, Text } from '@bit-ds/react';
+import { Badge, Code, Field, Heading, ICON_GROUPS, iconFavorite, Input, SegmentedControl, Stack, Text } from '@bit-ds/react';
 import { copyText, filterGroups, ICONS_CSS_IMPORT } from './iconCatalog';
 import type { CopyFormat } from './iconCatalog';
 import { IconTile } from './IconTile';
@@ -55,7 +55,7 @@ export function AllIcons() {
           <Stack key={group.label} gap={16}>
             <div className="gallery-icon-group-head">
               <Heading level={3} size={2}>{group.label}</Heading>
-              <Text as="span" weight="bold" className="gallery-icon-count">{countLabel(group.icons.length)}</Text>
+              <Badge size="lg" variant="outline" color="neutral" flat>{countLabel(group.icons.length)}</Badge>
             </div>
             <div className="gallery-icon-grid">
               {group.icons.map((icon) => (

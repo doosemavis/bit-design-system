@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import type { HTMLAttributes } from 'react';
 import { element, toClasses, withClassName } from '../../system/toClasses';
+import { withFlat } from '../../system/flat';
 import { dropLegacyColor } from '../../system/dropLegacyColor';
 
 const variants = ['solid', 'outline'] as const;
@@ -8,13 +9,15 @@ const variants = ['solid', 'outline'] as const;
 export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color'> {
   /** `solid` is a filled surface with a hard shadow; `outline` is a border only. */
   variant?: (typeof variants)[number];
+  /** Drops the hard shadow for a flat look. Class: `bit-flat`, so `className="bit-flat"` does the same. */
+  flat?: boolean;
 }
 
-export const Card = forwardRef<HTMLDivElement, CardProps>(function Card({ variant = 'solid', className, ...rest }, ref) {
+export const Card = forwardRef<HTMLDivElement, CardProps>(function Card({ variant = 'solid', flat = false, className, ...rest }, ref) {
   return (
     <div
       ref={ref}
-      className={toClasses('card', [{ name: 'variant', allowed: variants, value: variant }], className)}
+      className={toClasses('card', [{ name: 'variant', allowed: variants, value: variant }], withFlat(flat, className))}
       {...dropLegacyColor(rest)}
     />
   );

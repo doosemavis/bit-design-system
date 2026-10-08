@@ -1,6 +1,7 @@
 import { createContext, forwardRef, useContext, useEffect, useState } from 'react';
 import type { HTMLAttributes, TableHTMLAttributes, TdHTMLAttributes } from 'react';
 import { element, toClasses, withClassName } from '../../system/toClasses';
+import { withFlat } from '../../system/flat';
 import { dropLegacyColor } from '../../system/dropLegacyColor';
 
 /** Which section a cell is in, so TableCell can pick th (head) or td (body). Private. */
@@ -26,6 +27,8 @@ function useOverflows(): [(node: HTMLDivElement | null) => void, boolean] {
 export interface TableProps extends Omit<TableHTMLAttributes<HTMLTableElement>, 'color'> {
   /** Shade every other body row. Rendered as `data-striped` on the wrapper. */
   striped?: boolean;
+  /** Drops the hard shadow for a flat look. Class: `bit-flat`, so `className="bit-flat"` does the same. */
+  flat?: boolean;
 }
 
 /**
@@ -36,7 +39,7 @@ export interface TableProps extends Omit<TableHTMLAttributes<HTMLTableElement>, 
  * with no name is not a landmark. Name any table that may scroll. The table takes the ref and every other prop.
  */
 export const Table = forwardRef<HTMLTableElement, TableProps>(function Table(
-  { striped = false, className, ...rest },
+  { striped = false, flat = false, className, ...rest },
   ref,
 ) {
   const [measureRef, overflows] = useOverflows();
@@ -47,7 +50,7 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(function Table(
   return (
     <div
       ref={measureRef}
-      className={toClasses('table', [], className)}
+      className={toClasses('table', [], withFlat(flat, className))}
       data-striped={striped ? '' : undefined}
       tabIndex={overflows ? 0 : undefined}
       role={named ? 'region' : undefined}

@@ -126,6 +126,15 @@ describe('Table', () => {
     expect(body.current!.className).toBe('bit-table__body b');
   });
 
+  it('flat adds bit-flat to the wrapper once, even when className already has it; off by default', () => {
+    const { container, rerender } = render(<PropsTable flat />);
+    expect((container.firstElementChild as HTMLElement).className).toBe('bit-table bit-flat');
+    rerender(<PropsTable flat className="bit-flat" />);
+    expect((container.firstElementChild as HTMLElement).className.split(' ').filter((c) => c === 'bit-flat')).toHaveLength(1);
+    rerender(<PropsTable />);
+    expect((container.firstElementChild as HTMLElement).className).toBe('bit-table');
+  });
+
   it('striped sets data-striped on the wrapper; off by default', () => {
     const { container, rerender } = render(<PropsTable striped />);
     expect(container.firstElementChild).toHaveAttribute('data-striped', '');

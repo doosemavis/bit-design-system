@@ -43,6 +43,17 @@ describe('AllIcons', () => {
     expect(screen.queryByText('1 icons')).toBeNull();
   });
 
+  it('the count is a flat large outline neutral Badge', () => {
+    const { container } = render(<AllIcons />);
+    const badges = container.querySelectorAll('.gallery-icon-group-head .bit-badge');
+    expect(badges).toHaveLength(ICON_GROUPS.length);
+    for (const b of badges) {
+      expect(b).toHaveClass('bit-lg', 'bit-flat', 'bit-outline', 'bit-neutral');
+      expect(b.textContent).toMatch(/^\d+ icons?$/);
+    }
+    expect(container.querySelector('.gallery-icon-count')).toBeNull();
+  });
+
   it('hovering a tile shows its name in a tooltip', () => {
     render(<AllIcons />);
     fireEvent.change(screen.getByLabelText('Search icons'), { target: { value: 'favorite' } });
