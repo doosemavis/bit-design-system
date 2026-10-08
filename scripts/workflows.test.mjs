@@ -44,7 +44,7 @@ const ACTIONS = {
 
 const PINNED_ACTIONS = new Set(Object.values(ACTIONS));
 
-const TAG_JOBS = ['build', 'deploy', 'guard', 'publish', 'site-build', 'verify-install'];
+const TAG_JOBS = ['build', 'deploy', 'github-release', 'guard', 'publish', 'site-build', 'verify-install'];
 const PAGES_DEPLOY_JOBS = ['deploy', 'docs'];
 const SITE_BUILD_JOBS = ['site-build', 'docs-build'];
 // The one install the credential-holding publish job may run: npm itself, at the exact pinned version.
@@ -193,7 +193,7 @@ test('release: triggers on pull requests, v* tags, pushes to main and a manual r
 
 test('release: the jobs are exactly the dry run, the tag chain and the docs chain', () => {
   assert.deepEqual(Object.keys(release().jobs).sort(), [
-    'build', 'deploy', 'docs', 'docs-build', 'docs-check', 'dry-run', 'guard', 'publish', 'site-build', 'verify-install',
+    'build', 'deploy', 'docs', 'docs-build', 'docs-check', 'dry-run', 'github-release', 'guard', 'publish', 'site-build', 'verify-install',
   ]);
 });
 
@@ -232,7 +232,7 @@ test('release: npm publish and the npm-publish environment are reachable only on
   for (const github of NOT_TAG_PUSH) assert.ok(!jobsThatRun(jobs, github, DOCS_DEPLOY).includes('publish'), `${github.event_name} ${github.ref}`);
 });
 
-test('release: only publish, deploy and docs hold a credential; the build, site and check jobs hold none', () => {
+test('release: only publish, deploy and docs hold a credential, and github-release holds only contents: write; the build, site and check jobs hold none', () => {
   const { jobs } = release();
   const holders = Object.entries(jobs).filter(([, def]) => def.environment || def.permissions?.['id-token'] || def.permissions?.pages).map(([n]) => n).sort();
   assert.deepEqual(holders, ['deploy', 'docs', 'publish']);
@@ -241,6 +241,39 @@ test('release: only publish, deploy and docs hold a credential; the build, site 
     assert.equal(jobs[name].permissions, undefined, `${name} keeps the read-only default`);
     assert.doesNotMatch(JSON.stringify(jobs[name]), /secrets\.|id-token/, name);
   }
+  // Added with github-release: it is the one job that writes repo contents (to create a Release).
+  // That is a credential too, so it is pinned here to exactly contents: write and nothing else.
+  const writers = Object.entries(jobs).filter(([, def]) => def.permissions?.contents === 'write').map(([n]) => n);
+  assert.deepEqual(writers, ['github-release'], 'only github-release may write contents');
+  const releaseJob = jobs['github-release'];
+  assert.deepEqual(releaseJob.permissions, { contents: 'write' });
+  assert.equal(releaseJob.environment, undefined);
+  assert.doesNotMatch(JSON.stringify(releaseJob), /secrets\.|id-token/);
+});
+
+test('release: github-release needs verify-install, then makes a skip-safe Release from the CHANGELOG with node and gh only', () => {
+  const job = release().jobs['github-release'];
+  assert.deepEqual([job.needs].flat(), ['verify-install'], 'a release page appears only after npm serves the version');
+  assert.doesNotMatch(String(job.if), STATUS_FUNCTION);
+  assert.equal(job.steps.find((s) => s.uses === ACTIONS.checkout).with['persist-credentials'], false);
+  for (const step of job.steps) if (step.uses) assert.ok([ACTIONS.checkout, ACTIONS.setupNode].includes(step.uses), step.uses);
+  const runs = job.steps.filter((s) => s.run);
+  assert.equal(runs.length, 1);
+  const run = runOf(runs[0]);
+  assert.doesNotMatch(run, INSTALLS);
+  assert.ok(run.indexOf('gh release view') !== -1 && run.indexOf('gh release view') < run.indexOf('gh release create'), 'checks for an existing release first');
+  assert.match(run, /gh release view "v\$VERSION"[^\n]*\n\s*echo[^\n]*\n\s*exit 0/, 'an existing release is skipped, not an error');
+  assert.match(run, /--verify-tag/);
+  assert.match(run, /node scripts\/release-notes\.mjs "\$VERSION" > "\$RUNNER_TEMP\/notes\.md"/);
+  assert.deepEqual(Object.keys(runs[0].env).sort(), ['GH_REPO', 'GH_TOKEN', 'TAG']);
+  assert.equal(runs[0].env.GH_TOKEN, '${{ github.token }}');
+});
+
+test('release-notes.mjs, which github-release runs without an install, imports only Node built-ins and the shared heading rule', () => {
+  const source = readFileSync(new URL('./release-notes.mjs', import.meta.url), 'utf8');
+  const imports = [...source.matchAll(/^import\s[^;]*?from\s+['"]([^'"]+)['"]/gm)].map((m) => m[1]);
+  assert.ok(imports.length > 0);
+  for (const spec of imports) assert.match(spec, /^node:|^\.\.\/apps\/gallery\/src\/content\/versionLines\.mjs$/, spec);
 });
 
 // The credential jobs may run only these actions, and no package manager beyond the npm pin.

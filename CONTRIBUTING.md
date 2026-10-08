@@ -81,6 +81,7 @@ Releases are cut from a tag. Only admins can push `v*` tags.
 3. Merge the PR to `main`.
 4. Tag the merge commit and push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`.
 5. In GitHub Actions, approve the `publish` job. It uses the `npm-publish` environment, which needs a reviewer.
+6. After `verify-install` passes, the `github-release` job creates the GitHub Release `vX.Y.Z`, with that version's CHANGELOG section as the notes. To backfill or repair one by hand: `node scripts/release-notes.mjs X.Y.Z > notes.md && gh release create vX.Y.Z --title vX.Y.Z --notes-file notes.md --verify-tag`.
 
 ### When to release
 
