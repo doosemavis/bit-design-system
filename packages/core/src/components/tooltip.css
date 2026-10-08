@@ -33,12 +33,13 @@
   translate: 0 0;
 }
 
-/* The 14×8px pointer, joined to the bubble and aimed at the trigger's centre. */
+/* The 14×8px pointer, aimed at the trigger's centre. An absolute child is placed from the padding box,
+   so +1px reaches the bubble's outer edge and -1px turns the arrow x (from the border edge) into its left. */
 .bit-tooltip::after {
   content: "";
   position: absolute;
-  top: calc(100% - 1px);
-  left: var(--_bit-tooltip-arrow, 50%);
+  top: calc(100% + 1px);
+  left: calc(var(--_bit-tooltip-arrow, calc(50% + 1px)) - 1px);
   width: 14px;
   height: 8px;
   translate: -50% 0;
@@ -48,7 +49,7 @@
 
 .bit-tooltip[data-placement="bottom"]::after {
   top: auto;
-  bottom: calc(100% - 1px);
+  bottom: calc(100% + 1px);
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 

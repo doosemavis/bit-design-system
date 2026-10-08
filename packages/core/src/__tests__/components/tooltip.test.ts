@@ -17,6 +17,9 @@ describe('components/tooltip.css', () => {
     const body = block(css, '.bit-tooltip::after')!;
     expect(body).toContain('width: 14px;');
     expect(body).toContain('height: 8px;');
+    expect(body).toContain('top: calc(100% + 1px);');
+    expect(body).toContain('left: calc(var(--_bit-tooltip-arrow, calc(50% + 1px)) - 1px);');
+    expect(block(css, '.bit-tooltip[data-placement="bottom"]::after')).toContain('bottom: calc(100% + 1px);');
   });
 
   it('reduced motion turns the transition off', () => {

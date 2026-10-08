@@ -48,6 +48,15 @@ describe('Tooltip', () => {
     expect(outer).toHaveBeenCalledTimes(1);
     document.removeEventListener('keydown', outer);
   });
+  it('a controlled open={true} does not consume Esc, so an enclosing Dialog still hears it', () => {
+    const outer = vi.fn();
+    document.addEventListener('keydown', outer);
+    render(<Tooltip content="x" open><Button>Share</Button></Tooltip>);
+    fireEvent.keyDown(screen.getByRole('button'), { key: 'Escape' });
+    expect(outer).toHaveBeenCalledTimes(1);
+    expect(bubble()).toBeVisible();
+    document.removeEventListener('keydown', outer);
+  });
   it('describe={false} leaves aria-describedby off; an existing one is kept and joined', () => {
     const { rerender } = render(<Tooltip content="x" describe={false}><Button aria-describedby="hint">Share</Button></Tooltip>);
     expect(screen.getByRole('button')).toHaveAttribute('aria-describedby', 'hint');

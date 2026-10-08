@@ -50,9 +50,11 @@ export function Tooltip({ content, children, open: openProp, describe = true }: 
   }, [cancel]);
   useEffect(() => cancel, [cancel]);
 
-  // Esc closes an open bubble before anything else hears it (a Dialog behind it stays open).
+  // Esc closes an open bubble before anything else hears it (a Dialog behind it stays open). Only a
+  // bubble the Tooltip owns: when the parent owns `open`, Esc is left alone, since it couldn't close it.
+  const owned = openProp === undefined;
   useEffect(() => {
-    if (!open) return undefined;
+    if (!owned || !open) return undefined;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       event.preventDefault();
@@ -61,7 +63,7 @@ export function Tooltip({ content, children, open: openProp, describe = true }: 
     };
     document.addEventListener('keydown', onKey, true);
     return () => document.removeEventListener('keydown', onKey, true);
-  }, [open, hide]);
+  }, [owned, open, hide]);
 
   const contentKey = typeof content === 'string' || typeof content === 'number' ? String(content) : '';
   useTooltipLayer(open, triggerRef, bubbleRef, contentKey);
