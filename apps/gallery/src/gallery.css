@@ -676,3 +676,19 @@ html {
 .gallery-old-version {
   margin-block-end: var(--bit-space-16px);
 }
+
+/* Icon page, All icons: tiles fill the row, about seven across at desktop width. */
+.gallery-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: var(--bit-space-12px);
+}
+
+.gallery-icon-search {
+  min-width: 18rem;
+}
+
+/* Long names (keyboard-arrow-down) wrap inside the tile instead of widening it. */
+.gallery-icon-name {
+  overflow-wrap: anywhere;
+}
