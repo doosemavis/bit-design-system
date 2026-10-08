@@ -21,9 +21,10 @@ import { segmentedControl } from './segmentedControl';
 import { table } from './table';
 import { dialog } from './dialog';
 import { tabs } from './tabs';
+import { icon } from './icon';
 
 /** Sidebar order within each group (Components, then Forms, then Brand). */
-export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, box, text, heading, spinner, modeToggle, link, code, codeBlock, segmentedControl, table, dialog, tabs, field, input, select, switchManifest, bitLogo];
+export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, box, text, heading, spinner, modeToggle, link, code, codeBlock, segmentedControl, table, dialog, tabs, icon, field, input, select, switchManifest, bitLogo];
 
 export function findManifest(slug: string): Manifest | undefined {
   return MANIFESTS.find((m) => m.slug === slug);

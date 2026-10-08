@@ -15,6 +15,7 @@ const GLYPHS: Readonly<Record<string, string>> = {
   code: '<>',
   codeblock: '{}',
   heading: 'H',
+  icon: '★',
   link: 'a',
   modetoggle: '◐',
   spinner: '◌',
