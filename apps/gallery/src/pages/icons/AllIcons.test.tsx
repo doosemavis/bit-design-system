@@ -54,6 +54,15 @@ describe('AllIcons', () => {
     expect(note).toHaveTextContent("import '@bit-ds/react/icons.css';");
   });
 
+  it('the line under the toolbar previews the fill icon when Fill is chosen', () => {
+    render(<AllIcons />);
+    const note = screen.getByTestId('copy-gives');
+    fireEvent.click(screen.getByRole('radio', { name: 'Fill' }));
+    expect(note).toHaveTextContent("import { Icon, iconFavoriteFill } from '@bit-ds/react';");
+    fireEvent.click(screen.getByRole('radio', { name: 'HTML' }));
+    expect(note).toHaveTextContent('<span class="bit-icon bit-icon-favorite-fill" aria-hidden="true"></span>');
+  });
+
   it('Fill swaps the artwork to the fill icons', () => {
     const { container } = render(<AllIcons />);
     expect(container.querySelector('.bit-icon-favorite')).not.toBeNull();

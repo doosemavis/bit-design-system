@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardBody, Code, Field, Heading, Icon, ICON_GROUPS, iconFavorite, Input, SegmentedControl, Stack, Text } from '@bit-ds/react';
+import { Card, CardBody, Code, Field, Heading, Icon, ICON_GROUPS, iconFavorite, iconFavoriteFill, Input, SegmentedControl, Stack, Text } from '@bit-ds/react';
 import { CopyButton } from '../../ui/CopyButton';
 import { copyText, filterGroups, ICONS_CSS_IMPORT } from './iconCatalog';
 import type { CopyFormat } from './iconCatalog';
@@ -16,11 +16,12 @@ const STYLES = [
   { value: 'fill', label: 'Fill' },
 ];
 
-/** What Copy gives, shown once under the toolbar with favorite as the example. */
-function CopyGives({ format }: { format: CopyFormat }) {
+/** What Copy gives, shown once under the toolbar with favorite (or favorite-fill) as the example. */
+function CopyGives({ format, style }: { format: CopyFormat; style: IconStyle }) {
+  const example = style === 'fill' ? iconFavoriteFill : iconFavorite;
   return (
     <Text data-testid="copy-gives">
-      Copy gives <Code>{copyText(iconFavorite, format).replace('\n\n', ' ')}</Code>
+      Copy gives <Code>{copyText(example, format).replace('\n\n', ' ')}</Code>
       {format === 'html' ? (
         <>
           . The class form also needs <Code>{ICONS_CSS_IMPORT}</Code> once.
@@ -46,7 +47,7 @@ export function AllIcons() {
         <SegmentedControl legend="Copy as" size="sm" color="neutral" options={FORMATS} value={format} onValueChange={(v) => setFormat(v as CopyFormat)} />
         <SegmentedControl legend="Style" size="sm" color="neutral" options={STYLES} value={style} onValueChange={(v) => setStyle(v as IconStyle)} />
       </Stack>
-      <CopyGives format={format} />
+      <CopyGives format={format} style={style} />
       {groups.length === 0 ? <Text>No icons match. Try another word.</Text> : null}
       {groups.map((group) => (
         <Stack key={group.label} gap={8}>
@@ -59,7 +60,7 @@ export function AllIcons() {
                   <CardBody>
                     <Stack gap={8} align="center">
                       <Icon icon={icon} size="lg" />
-                      <Text as="span" size={13} className="gallery-icon-name">
+                      <Text as="span" className="gallery-icon-name">
                         {icon.name}
                       </Text>
                       <CopyButton text={copyText(icon, format)} label={`Copy ${icon.name}`} />
