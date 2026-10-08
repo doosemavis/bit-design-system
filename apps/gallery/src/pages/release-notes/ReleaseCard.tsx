@@ -11,15 +11,13 @@ interface ReleaseCardProps {
   sections: Partial<Record<ChangeKind, string[]>>;
   latest: boolean;
   open: boolean;
-  /** Set when a kind filter forces every card open, so the toggle has nothing to do. */
-  locked: boolean;
   /** Show only this kind's section. */
   only: ChangeKind | null;
   onToggle: () => void;
 }
 
 /** One release: a header that always shows the version, date and counts, and a body of per-kind lists. */
-export function ReleaseCard({ version, date, sections, latest, open, locked, only, onToggle }: ReleaseCardProps) {
+export function ReleaseCard({ version, date, sections, latest, open, only, onToggle }: ReleaseCardProps) {
   const bodyId = useId();
   const kinds = CHANGE_KINDS.filter((kind) => (sections[kind]?.length ?? 0) > 0);
   return (
@@ -40,7 +38,7 @@ export function ReleaseCard({ version, date, sections, latest, open, locked, onl
           {kinds.map((kind) => (
             <Badge key={kind} {...KIND_BADGE[kind]}>{`${kind} ${sections[kind]!.length}`}</Badge>
           ))}
-          <Button variant="ghost" aria-expanded={open} aria-controls={bodyId} disabled={locked} onClick={onToggle}>
+          <Button variant="ghost" aria-expanded={open} aria-controls={bodyId} onClick={onToggle}>
             {open ? 'Hide changes' : 'Show changes'}
           </Button>
         </Stack>

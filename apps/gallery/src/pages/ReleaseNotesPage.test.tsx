@@ -81,17 +81,24 @@ describe('ReleaseNotesPage', () => {
     }
   });
 
+  it('puts aria-current on the newest release link at first', async () => {
+    await open();
+    const rail = within(screen.getByRole('navigation', { name: 'Versions' }));
+    expect(rail.getByRole('link', { name: `v${RELEASES[0]!.version}` })).toHaveAttribute('aria-current', 'true');
+    expect(rail.getAllByRole('link').filter((a) => a.hasAttribute('aria-current'))).toHaveLength(1);
+  });
+
   it('lists every version newest first in the rail, and a link opens its card and focuses its heading', async () => {
     const user = userEvent.setup();
     await open();
     const rail = within(screen.getByRole('navigation', { name: 'Versions' }));
     expect(rail.getAllByRole('link').map((a) => a.textContent)).toEqual(RELEASES.map((r) => `v${r.version}`));
-    const target = RELEASES.find((r) => r.version === '0.1.4') ?? RELEASES[2]!;
-    await user.click(rail.getByRole('link', { name: `v${target.version}` }));
-    const heading = screen.getByRole('heading', { level: 2, name: `v${target.version}` });
-    expect(heading).toHaveFocus();
-    expect(rail.getByRole('link', { name: `v${target.version}` })).toHaveAttribute('aria-current', 'true');
+    const heading = screen.getByRole('heading', { level: 2, name: 'v0.1.4' });
     const toggle = within(heading.closest('.bit-card') as HTMLElement).getByRole('button');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await user.click(rail.getByRole('link', { name: 'v0.1.4' }));
+    expect(heading).toHaveFocus();
+    expect(rail.getByRole('link', { name: 'v0.1.4' })).toHaveAttribute('aria-current', 'true');
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
   });
 
@@ -120,6 +127,35 @@ describe('ReleaseNotesPage', () => {
       await expectNoA11yViolations(screen.getByRole('main'));
       await user.click(screen.getByRole('radio', { name: 'All' }));
       expect(main.getAllByRole('heading', { level: 2 })).toHaveLength(RELEASES.length);
+    });
+
+    const states = () => screen.getAllByRole('button', { name: /changes$/ }).map((b) => b.getAttribute('aria-expanded'));
+
+    it('keeps toggles enabled under a filter so a card can be closed and re-opened', async () => {
+      const user = userEvent.setup();
+      await open();
+      await user.click(screen.getByRole('radio', { name: /^Added \(/ }));
+      const toggle = screen.getAllByRole('button', { name: /changes$/ })[0]!;
+      expect(toggle).toBeEnabled();
+      await user.click(toggle);
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      await user.click(toggle);
+      expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('does not leak filtered open/close or rail choices into the All view', async () => {
+      const user = userEvent.setup();
+      await open();
+      const before = states();
+      await user.click(screen.getByRole('radio', { name: /^Added \(/ }));
+      const toggles = screen.getAllByRole('button', { name: /changes$/ });
+      await user.click(toggles[0]!);
+      await user.click(toggles[toggles.length - 1]!);
+      const rail = within(screen.getByRole('navigation', { name: 'Versions' }));
+      const links = rail.getAllByRole('link');
+      await user.click(links[links.length - 1]!);
+      await user.click(screen.getByRole('radio', { name: 'All' }));
+      expect(states()).toEqual(before);
     });
   });
 

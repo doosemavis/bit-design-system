@@ -19,14 +19,24 @@ const FILTER_OPTIONS = [
 export function ReleaseNotesPage() {
   const [filter, setFilter] = useState<string>(ALL);
   const [opened, setOpened] = useState<Readonly<Record<string, boolean>>>({});
+  // Choices made while a kind is chosen live apart from the All view, and start over with each new filter.
+  const [filteredOpened, setFilteredOpened] = useState<Readonly<Record<string, boolean>>>({});
   const [chosen, setChosen] = useState<string | undefined>(undefined);
   const kind = filter === ALL ? null : (filter as ChangeKind);
   const shown = kind ? RELEASES.filter((r) => (r.sections[kind]?.length ?? 0) > 0) : RELEASES;
   const current = shown.some((r) => r.version === chosen) ? chosen : shown[0]?.version;
-  const isOpen = (version: string, index: number) => kind !== null || (opened[version] ?? index === 0);
+  const isOpen = (version: string, index: number) =>
+    kind !== null ? (filteredOpened[version] ?? true) : (opened[version] ?? index === 0);
+  const setOpen = (version: string, value: boolean) =>
+    (kind !== null ? setFilteredOpened : setOpened)((prev) => ({ ...prev, [version]: value }));
+
+  function choose(next: string) {
+    setFilteredOpened({});
+    setFilter(next);
+  }
 
   function select(version: string) {
-    setOpened((prev) => ({ ...prev, [version]: true }));
+    setOpen(version, true);
     setChosen(version);
     // The heading is in the header, which is never hidden, so it can take focus now.
     scrollToSection(releaseAnchor(version));
@@ -37,7 +47,7 @@ export function ReleaseNotesPage() {
       <PageHeader title="Release notes">
         <Text>What changed in each release.</Text>
       </PageHeader>
-      <SegmentedControl legend="Show" options={FILTER_OPTIONS} value={filter} onValueChange={setFilter} />
+      <SegmentedControl legend="Show" options={FILTER_OPTIONS} value={filter} onValueChange={choose} />
       {shown.length === 0 ? (
         <Text>No changes of this kind yet.</Text>
       ) : (
@@ -50,9 +60,8 @@ export function ReleaseNotesPage() {
                 {...release}
                 latest={release.version === RELEASES[0]?.version}
                 open={isOpen(release.version, RELEASES.indexOf(release))}
-                locked={kind !== null}
                 only={kind}
-                onToggle={() => setOpened((prev) => ({ ...prev, [release.version]: !isOpen(release.version, RELEASES.indexOf(release)) }))}
+                onToggle={() => setOpen(release.version, !isOpen(release.version, RELEASES.indexOf(release)))}
               />
             ))}
           </Stack>
