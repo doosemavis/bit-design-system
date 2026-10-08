@@ -94,4 +94,11 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'font-weight', reason: 'release notes rail: bold version (owner board R1)' },
   { selector: '.gallery-rail__row.bit-link.bit-neutral[aria-current="true"]', property: 'border-color', reason: 'release notes rail: the chosen version, owner board R1' },
   { selector: '.gallery-rail__row.bit-link.bit-neutral[aria-current="true"]', property: 'background', reason: 'release notes rail: the chosen version, owner board R1' },
+  { selector: '.gallery-icon-group-head', property: 'border-bottom', reason: 'icon groups: divider under each group header (owner board H2)' },
+  { selector: '.gallery-icon-count', property: 'border', reason: 'icon groups: the count pill (owner board H2, B2)' },
+  { selector: '.gallery-icon-count', property: 'border-radius', reason: 'icon groups: the count pill (owner board H2, B2)' },
+  { selector: '.gallery-icon-count', property: 'background', reason: 'icon groups: the count pill (owner board H2, B2)' },
+  { selector: '.gallery-icon-count', property: 'color', reason: 'icon groups: the count pill (owner board H2, B2)' },
+  { selector: '.gallery-icon-count', property: 'font-weight', reason: 'icon groups: the count pill, heavier so it reads (owner board H2, B2)' },
+  { selector: '.gallery-icon-count', property: 'line-height', reason: 'icon groups: the count pill sits snug (owner board H2, B2)' },
 ];

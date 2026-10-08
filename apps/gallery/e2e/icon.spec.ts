@@ -51,10 +51,22 @@ test('All icons: toolbar controls line up with the search box and groups are spa
     expect(Math.abs(box.y - input.y)).toBeLessThanOrEqual(1);
     expect(Math.abs(box.y + box.height - (input.y + input.height))).toBeLessThanOrEqual(1);
   }
-  const headings = section.getByRole('heading', { level: 3 });
-  const h1 = (await headings.nth(0).boundingBox())!;
-  const h2 = (await headings.nth(1).boundingBox())!;
+  const heads = section.locator('.gallery-icon-group-head');
+  const h1 = (await heads.nth(0).boundingBox())!;
+  const h2 = (await heads.nth(1).boundingBox())!;
   const g1 = (await section.locator('.gallery-icon-grid').nth(0).boundingBox())!;
   expect(Math.abs(g1.y - (h1.y + h1.height) - 16)).toBeLessThanOrEqual(2);
   expect(Math.abs(h2.y - (g1.y + g1.height) - 48)).toBeLessThanOrEqual(2);
+});
+
+test('All icons: group header has a divider and a bold 15px count pill', async ({ page }) => {
+  await page.goto('#/components/icon');
+  const head = page.getByRole('region', { name: 'All icons' }).locator('.gallery-icon-group-head').first();
+  const border = await head.evaluate((el) => parseFloat(getComputedStyle(el).borderBottomWidth));
+  expect(border).toBeGreaterThan(0);
+  const pill = head.locator('.gallery-icon-count');
+  await expect(pill).toHaveText(/^\d+ icons$/);
+  const style = await pill.evaluate((el) => ({ w: Number(getComputedStyle(el).fontWeight), s: getComputedStyle(el).fontSize }));
+  expect(style.w).toBeGreaterThanOrEqual(700);
+  expect(style.s).toBe('15px');
 });

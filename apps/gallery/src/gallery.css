@@ -689,6 +689,24 @@ html {
   height: 56px;
 }
 
+.gallery-icon-group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-12px);
+  padding-block-end: 10px;
+  border-bottom: 2px solid var(--bit-color-line);
+}
+
+.gallery-icon-count {
+  line-height: 1;
+  padding: 6px var(--bit-space-12px);
+  border: 2px solid var(--bit-color-line);
+  border-radius: var(--bit-radius-full);
+  background: var(--bit-color-surface);
+  color: var(--bit-color-text);
+  font-weight: 700;
+}
+
 .gallery-icon-search {
   min-width: 18rem;
 }

@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { iconFavorite } from '@bit-ds/react';
+import { ICON_GROUPS, iconFavorite } from '@bit-ds/react';
 import { AllIcons } from './AllIcons';
 import { stubClipboard } from '../../test/clipboard';
 import { expectNoA11yViolations } from '../../test/a11y';
@@ -30,6 +30,17 @@ describe('AllIcons', () => {
     fireEvent.change(search, { target: { value: 'zzzz' } });
     expect(tiles()).toHaveLength(0);
     expect(screen.getByText('No icons match. Try another word.')).toBeInTheDocument();
+  });
+
+  it('each group header shows its icon count, singular for one', () => {
+    render(<AllIcons />);
+    const pills = ICON_GROUPS.map((g) => `${g.icons.length} icons`);
+    for (const t of pills) expect(screen.getAllByText(t).length).toBeGreaterThan(0);
+    const arrows = ICON_GROUPS.find((g) => g.label === 'Arrows & navigation')!;
+    expect(screen.getAllByText(`${arrows.icons.length} icons`)[0]).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Search icons'), { target: { value: 'Arrow Back' } });
+    expect(screen.getByText('1 icon')).toBeInTheDocument();
+    expect(screen.queryByText('1 icons')).toBeNull();
   });
 
   it('hovering a tile shows its name in a tooltip', () => {

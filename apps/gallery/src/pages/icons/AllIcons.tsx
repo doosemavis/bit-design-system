@@ -6,6 +6,8 @@ import { IconTile } from './IconTile';
 
 type IconStyle = 'regular' | 'fill';
 
+const countLabel = (n: number) => `${n} ${n === 1 ? 'icon' : 'icons'}`;
+
 const FORMATS = [
   { value: 'react', label: 'React' },
   { value: 'html', label: 'HTML' },
@@ -51,7 +53,10 @@ export function AllIcons() {
       <Stack gap={48}>
         {groups.map((group) => (
           <Stack key={group.label} gap={16}>
-            <Heading level={3}>{group.label}</Heading>
+            <div className="gallery-icon-group-head">
+              <Heading level={3} size={2}>{group.label}</Heading>
+              <Text as="span" weight="bold" className="gallery-icon-count">{countLabel(group.icons.length)}</Text>
+            </div>
             <div className="gallery-icon-grid">
               {group.icons.map((icon) => (
                 <IconTile key={icon.name} icon={icon} filled={style === 'fill'} format={format} />
