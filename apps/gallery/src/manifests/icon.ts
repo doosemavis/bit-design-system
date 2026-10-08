@@ -2,15 +2,11 @@ import { COLORS, Icon, SIZES } from '@bit-ds/react';
 import type { IconData } from '@bit-ds/react';
 import type { ControlState, Manifest } from './types';
 import { AllIcons } from '../pages/icons/AllIcons';
-import { exportNameFor, findIcon, iconHtml, ICONS_CSS_IMPORT } from '../pages/icons/iconCatalog';
+import { exportNameFor, findIcon, iconHtml, ICONS_CSS_IMPORT, PLAYGROUND_ICONS } from '../pages/icons/iconCatalog';
 
-/** The icons the playground offers. The All icons section lists every one. */
-const PLAYGROUND_ICONS = ['favorite', 'home', 'search', 'settings', 'delete', 'check-circle', 'warning', 'mail', 'person', 'download', 'add', 'close'];
-
-/** The chosen icon: the regular or fill version of the picked name. */
+/** The chosen icon, by the name the select holds. */
 function chosen(state: ControlState): IconData {
-  const pair = findIcon(String(state.iconName));
-  return state.filled === true ? pair.fill : pair.regular;
+  return findIcon(String(state.iconName));
 }
 
 export const icon: Manifest = {
@@ -18,10 +14,10 @@ export const icon: Manifest = {
   slug: 'icon',
   group: 'components',
   component: Icon,
-  description: 'A Material Symbols icon, as a React component or plain classes. 300 icons, each with a fill version.',
+  description: 'A Material Symbols icon, as a React component or plain classes. 300 icons, each with a filled version.',
   controls: [
-    { kind: 'select', prop: 'iconName', values: PLAYGROUND_ICONS, default: 'favorite', label: 'Icon', virtual: true },
-    { kind: 'boolean', prop: 'filled', default: false, label: 'Fill', virtual: true },
+    { kind: 'select', prop: 'iconName', values: [...PLAYGROUND_ICONS], default: 'favorite', label: 'Icon', virtual: true },
+    { kind: 'boolean', prop: 'iconFilled', default: false, label: 'Fill' },
     { kind: 'axis', prop: 'color', values: ['none', ...COLORS], default: 'none' },
     { kind: 'axis', prop: 'size', values: SIZES, default: 'md' },
     { kind: 'text', prop: 'label', default: '' },
@@ -34,12 +30,12 @@ export const icon: Manifest = {
     const color = state.color === 'none' ? undefined : String(state.color);
     const label = String(state.label ?? '');
     const note = `<!-- Needs ${ICONS_CSS_IMPORT.replace(/;$/, '')} as well as styles.css -->`;
-    return `${note}\n${iconHtml(chosen(state), { color, size: String(state.size), label: label || undefined })}`;
+    return `${note}\n${iconHtml(chosen(state), { color, size: String(state.size), label: label || undefined, filled: state.iconFilled === true })}`;
   },
   extraSection: { id: 'section-all-icons', title: 'All icons', Component: AllIcons },
   presets: [
     { label: 'Danger delete', state: { iconName: 'delete', color: 'danger' } },
-    { label: 'Filled heart', state: { iconName: 'favorite', filled: true, color: 'danger' } },
+    { label: 'Filled heart', state: { iconName: 'favorite', iconFilled: true, color: 'danger' } },
   ],
   docs: {
     badges: ['Inline <svg>', 'Apache 2.0 artwork'],
@@ -55,12 +51,18 @@ export const icon: Manifest = {
       ],
     },
     props: [
-      { name: 'icon', type: 'IconData', description: 'The icon to draw: an icon export such as iconFavorite or iconFavoriteFill. Adds the class bit-icon-{name}.' },
+      { name: 'icon', type: 'IconData', description: 'The icon to draw: an icon export such as iconFavorite. Adds the class bit-icon-{name}.' },
       {
         name: 'color',
         className: 'bit-{color}',
         type: "'primary' | 'neutral' | 'success' | 'warning' | 'danger'",
         description: 'The color role. Left off, the icon takes the color of the text around it.',
+      },
+      {
+        name: 'iconFilled',
+        type: 'boolean',
+        default: 'false',
+        description: 'Draws the filled version. Adds the class bit-iconFilled, so className="bit-iconFilled" does the same.',
       },
       { name: 'size', className: 'bit-{size}', type: "'sm' | 'md' | 'lg'", default: "'md'", description: '16, 20 or 24px.' },
       { name: 'label', type: 'string', description: 'What the icon means. With it, screen readers announce an image with this name; without it, the icon is hidden from them.' },

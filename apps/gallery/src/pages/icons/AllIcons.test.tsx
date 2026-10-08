@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { iconFavorite } from '@bit-ds/react';
 import { AllIcons } from './AllIcons';
 import { stubClipboard } from '../../test/clipboard';
 import { expectNoA11yViolations } from '../../test/a11y';
@@ -12,7 +13,7 @@ afterEach(() => {
 const tiles = () => screen.queryAllByRole('button', { name: /^Copy / });
 
 describe('AllIcons', () => {
-  it('shows all 300 icons under the 8 group headings, each with its own Copy button, and no axe violations', { timeout: 30_000 }, async () => {
+  it('shows all 300 icons under the 8 group headings, each a Copy tile, and no axe violations', { timeout: 30_000 }, async () => {
     const { container } = render(<AllIcons />);
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(8);
     expect(tiles()).toHaveLength(300);
@@ -31,18 +32,36 @@ describe('AllIcons', () => {
     expect(screen.getByText('No icons match. Try another word.')).toBeInTheDocument();
   });
 
-  it('Copy gives the React snippet by default, and the HTML class form after switching, in the fill style', async () => {
+  it('hovering a tile shows its name in a tooltip', () => {
+    render(<AllIcons />);
+    fireEvent.change(screen.getByLabelText('Search icons'), { target: { value: 'favorite' } });
+    fireEvent.pointerEnter(screen.getByRole('button', { name: 'Copy favorite' }));
+    expect(screen.getByRole('tooltip')).toHaveTextContent('favorite');
+  });
+
+  it('clicking a tile copies the React text, then the tooltip reads Copied and the tile turns success', async () => {
     const writeText = vi.fn(() => Promise.resolve());
     stubClipboard(writeText);
     render(<AllIcons />);
     fireEvent.change(screen.getByLabelText('Search icons'), { target: { value: 'favorite' } });
-    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Copy favorite' })));
+    const tile = screen.getByRole('button', { name: 'Copy favorite' });
+    await act(async () => fireEvent.click(tile));
     expect(writeText).toHaveBeenLastCalledWith("import { Icon, iconFavorite } from '@bit-ds/react';\n\n<Icon icon={iconFavorite} />");
+    fireEvent.pointerEnter(tile);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Copied');
+    expect(tile).toHaveClass('bit-success');
+  });
 
+  it('after switching to HTML and Fill, a click copies the iconFilled class form and the tile draws the fill path', async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    stubClipboard(writeText);
+    const { container } = render(<AllIcons />);
+    fireEvent.change(screen.getByLabelText('Search icons'), { target: { value: 'favorite' } });
     fireEvent.click(screen.getByRole('radio', { name: 'HTML' }));
     fireEvent.click(screen.getByRole('radio', { name: 'Fill' }));
-    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Copy favorite-fill' })));
-    expect(writeText).toHaveBeenLastCalledWith('<span class="bit-icon bit-icon-favorite-fill" aria-hidden="true"></span>');
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Copy favorite' })));
+    expect(writeText).toHaveBeenLastCalledWith('<span class="bit-icon bit-icon-favorite bit-iconFilled" aria-hidden="true"></span>');
+    expect(container.querySelector('.bit-iconButton svg path')).toHaveAttribute('d', iconFavorite.fillPath);
   });
 
   it('the line under the toolbar says what Copy gives, and names icons.css for HTML', () => {
@@ -54,21 +73,12 @@ describe('AllIcons', () => {
     expect(note).toHaveTextContent("import '@bit-ds/react/icons.css';");
   });
 
-  it('the line under the toolbar previews the fill icon when Fill is chosen', () => {
+  it('the line under the toolbar shows iconFilled / bit-iconFilled when Fill is chosen', () => {
     render(<AllIcons />);
     const note = screen.getByTestId('copy-gives');
     fireEvent.click(screen.getByRole('radio', { name: 'Fill' }));
-    expect(note).toHaveTextContent("import { Icon, iconFavoriteFill } from '@bit-ds/react';");
+    expect(note).toHaveTextContent("<Icon icon={iconFavorite} iconFilled />");
     fireEvent.click(screen.getByRole('radio', { name: 'HTML' }));
-    expect(note).toHaveTextContent('<span class="bit-icon bit-icon-favorite-fill" aria-hidden="true"></span>');
-  });
-
-  it('Fill swaps the artwork to the fill icons', () => {
-    const { container } = render(<AllIcons />);
-    expect(container.querySelector('.bit-icon-favorite')).not.toBeNull();
-    fireEvent.click(screen.getByRole('radio', { name: 'Fill' }));
-    expect(container.querySelector('.bit-icon-favorite')).toBeNull();
-    expect(container.querySelector('.bit-icon-favorite-fill')).not.toBeNull();
-    expect(screen.getByRole('button', { name: 'Copy favorite-fill' })).toBeInTheDocument();
+    expect(note).toHaveTextContent('bit-icon-favorite bit-iconFilled');
   });
 });
