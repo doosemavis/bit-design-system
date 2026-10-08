@@ -692,3 +692,26 @@ html {
 .gallery-icon-search {
   min-width: 18rem;
 }
+
+/* Release notes: the version rail sits beside the cards on wide screens and stacks above them below 960px. */
+.gallery-releases {
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr);
+  gap: var(--bit-space-24px);
+  align-items: start;
+}
+
+.gallery-rail {
+  position: sticky;
+  top: var(--bit-space-16px);
+}
+
+@media (max-width: 960px) {
+  .gallery-releases {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gallery-rail {
+    position: static;
+  }
+}
