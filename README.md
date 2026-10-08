@@ -104,7 +104,10 @@ Both render identically. Switch and SegmentedControl are native inputs, so their
 import { Icon, iconDelete } from '@bit-ds/react';
 
 <Icon icon={iconDelete} color="danger" label="Delete" />
+<Icon icon={iconFavorite} iconFilled />
 ```
+
+`iconFilled` draws the filled version of any icon. A `label`, `aria-label` or `aria-labelledby` names it for screen readers; without one it is hidden from them.
 
 Your bundler keeps only the icons you import. To use icons as plain classes instead, import the icon stylesheet once:
 
@@ -113,12 +116,25 @@ Your bundler keeps only the icons you import. To use icons as plain classes inst
 ```
 
 ```html
-<span class="bit-icon bit-icon-delete bit-danger" aria-hidden="true"></span>
+<span class="bit-icon bit-icon-delete bit-danger bit-iconFilled" aria-hidden="true"></span>
 ```
+
+The class form works on any element except `<svg>`.
 
 `icons.css` is separate from `styles.css` (about 46 KB gzipped), so apps that only use `<Icon>` never load it.
 
-Icon artwork: Material Symbols by Google, Apache License 2.0. The licence ships in the package at `dist/icons/LICENSE-material-symbols.txt`.
+For a button that is only an icon, use `IconButton`; `Tooltip` shows a name on hover and focus:
+
+```tsx
+import { Button, IconButton, Tooltip, iconDelete } from '@bit-ds/react';
+
+<IconButton icon={iconDelete} label="Delete" tooltip="Delete" />
+<Tooltip content="Copy link"><Button>Share</Button></Tooltip>
+```
+
+An `IconButton` shows no tooltip unless you give `tooltip`.
+
+The package is MIT. The icon artwork is Apache 2.0: Material Symbols by Google, Apache License 2.0. The licence ships in the package at `dist/icons/LICENSE-material-symbols.txt`.
 
 ## Components
 
@@ -128,7 +144,8 @@ Icon artwork: Material Symbols by Google, Apache License 2.0. The licence ships 
 - **Content:** Link, Code, CodeBlock, Table (+ TableHead, TableBody, TableRow, TableCell)
 - **Choice:** SegmentedControl, ModeToggle
 - **Overlays and navigation:** Dialog (+ DialogHeader, DialogBody, DialogFooter, DialogClose), Tabs (+ TabList, Tab, TabPanel)
-- **Icons:** Icon, with 300 Material Symbols icons and their fill versions (`iconFavorite`, `iconFavoriteFill`, …)
+- **Icons:** Icon, with 300 Material Symbols icons and their fill versions (`iconFavorite`, …), each drawn filled with `iconFilled`
+- **Icon buttons and hints:** IconButton, Tooltip
 - **Brand:** BitLogo
 
 Every one works in light and dark mode, and anything focusable shows the one focus ring from `reset.css`. Input, Switch and SegmentedControl sit on the real native element (an `<input>`, a checkbox or radios), so keyboards and screen readers work as browsers intend. Select is a bit-drawn combobox (the WAI-ARIA select-only combobox) with full keyboard support and single or multi-select, so its list looks the same in every browser; hidden native inputs carry its value (one per chosen value with `multiple`), so `name`, `required`, `disabled`, `form` and form reset work as they do on a native `<select>`. Dialog is the native modal `<dialog>`: focus moves in, the page behind is inert, Esc closes it, and focus returns to what opened it. Tabs follow the WAI-ARIA tabs pattern, with one Tab stop and arrow keys between tabs.
