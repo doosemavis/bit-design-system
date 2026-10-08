@@ -2,6 +2,13 @@
 
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
+## 0.1.6 — 2026-10-08
+### Added
+- `Icon`: draws one of 300 Material Symbols icons (Sharp, weight 700), each with a fill version, as an inline `<svg>`. Pass an icon export: `<Icon icon={iconFavorite} />`. `size` is `sm`/`md`/`lg` (16, 20, 24px, default `md`); `color` takes a colour role, or leave it off to follow the text colour. Without `label` the icon is hidden from screen readers; with one it is `role="img"` with that name.
+- 600 icon exports (`iconFavorite`, `iconFavoriteFill`, …) and `ICON_GROUPS`. Bundlers keep only the icons you import.
+- `@bit-ds/react/icons.css`: the same icons as classes, `<span class="bit-icon bit-icon-favorite bit-danger">`. It's opt-in and never part of `styles.css`.
+- Types: `IconProps`, `IconData`, `IconPair`, `IconGroup`.
+
 ## 0.1.5 — 2026-10-07
 ### Added
 - `Select` `multiple`: pick any number of options. Each row shows a checkbox, and clicking a row or pressing Enter or Space toggles it while the list stays open; Escape, Tab or a click outside closes it. The closed box shows the one chosen label, or a "3 selected" pill in the primary colour when there are several. `value`/`defaultValue` are `string[]`, and `onValueChange` receives the chosen values in option order.

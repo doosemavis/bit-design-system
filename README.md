@@ -96,6 +96,30 @@ A decorator in `className` replaces the prop's decorator for that axis: `<Button
 
 Both render identically. Switch and SegmentedControl are native inputs, so their markup works as plain HTML too. ModeToggle and CodeBlock's Copy button need React: the classes give the look, and the React component gives the behavior (the stored mode, the clipboard).
 
+## Icons
+
+300 Material Symbols icons (Sharp, weight 700), each with a fill version. Browse them and copy any one from the Icon page of the docs.
+
+```tsx
+import { Icon, iconDelete } from '@bit-ds/react';
+
+<Icon icon={iconDelete} color="danger" label="Delete" />
+```
+
+Your bundler keeps only the icons you import. To use icons as plain classes instead, import the icon stylesheet once:
+
+```css
+@import '@bit-ds/react/icons.css';
+```
+
+```html
+<span class="bit-icon bit-icon-delete bit-danger" aria-hidden="true"></span>
+```
+
+`icons.css` is separate from `styles.css` (about 46 KB gzipped), so apps that only use `<Icon>` never load it.
+
+Icon artwork: Material Symbols by Google, Apache License 2.0. The licence ships in the package at `dist/icons/LICENSE-material-symbols.txt`.
+
 ## Components
 
 - **Actions and status:** Button, Badge, Alert, Spinner
@@ -104,6 +128,7 @@ Both render identically. Switch and SegmentedControl are native inputs, so their
 - **Content:** Link, Code, CodeBlock, Table (+ TableHead, TableBody, TableRow, TableCell)
 - **Choice:** SegmentedControl, ModeToggle
 - **Overlays and navigation:** Dialog (+ DialogHeader, DialogBody, DialogFooter, DialogClose), Tabs (+ TabList, Tab, TabPanel)
+- **Icons:** Icon, with 300 Material Symbols icons and their fill versions (`iconFavorite`, `iconFavoriteFill`, …)
 - **Brand:** BitLogo
 
 Every one works in light and dark mode, and anything focusable shows the one focus ring from `reset.css`. Input, Switch and SegmentedControl sit on the real native element (an `<input>`, a checkbox or radios), so keyboards and screen readers work as browsers intend. Select is a bit-drawn combobox (the WAI-ARIA select-only combobox) with full keyboard support and single or multi-select, so its list looks the same in every browser; hidden native inputs carry its value (one per chosen value with `multiple`), so `name`, `required`, `disabled`, `form` and form reset work as they do on a native `<select>`. Dialog is the native modal `<dialog>`: focus moves in, the page behind is inert, Esc closes it, and focus returns to what opened it. Tabs follow the WAI-ARIA tabs pattern, with one Tab stop and arrow keys between tabs.

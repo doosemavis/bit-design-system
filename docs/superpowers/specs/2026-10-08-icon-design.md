@@ -224,3 +224,10 @@ export interface IconProps extends Omit<SVGAttributes<SVGSVGElement>, 'color'> {
 - An icon picker or fuzzy/synonym search.
 - Era-switching icon sets.
 - Swapping the hand-made glyphs already inside Alert/Dialog close buttons for Icon. That's a possible follow-up once Icon ships.
+
+## Amendments (2026-10-08, from the plan)
+1. **`ICON_GROUPS` shape:** `readonly { label: string; icons: readonly { regular: IconData; fill: IconData }[] }[]` replaces group → names. The gallery needs the data, and unused groups still tree-shake.
+2. **Variants:** the Icon page shows one row of colours (`none` + 5) at the playground's size. That's the engine's existing rule for a page with no `variant` axis. Colour × size would change Spinner's page too.
+3. **Tile glyph** is 24px (`size="lg"`), not 32px. `.bit-icon` owns the icon's width, and gallery.css may only set `--_gallery-*` custom properties.
+4. **Home chip:** the Icon tile chip is the text glyph `★`. `GLYPHS` holds strings, not elements.
+5. **Playground controls:** the icon picker and fill toggle are virtual controls named `iconName` and `filled`, so the docs-default contract test doesn't read them as the `icon` prop. Fill isn't an svg attribute either.

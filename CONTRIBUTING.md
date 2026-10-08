@@ -57,6 +57,10 @@ Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1
 
 Fonts are self-hosted, never loaded from a font service. A theme's `@font-face` rules point at `./fonts/<id>-<subset>-<weight>-normal.woff2`, one rule per weight and subset with that subset's `unicode-range`. Ship every subset the family's `@fontsource` package has (its `unicode.json`), in that file's order (latin last, so it wins the code points subsets share), so text in any script Google Fonts served keeps the face. Those paths resolve only in the build: `packages/react/scripts/build-css.mjs` copies each file a theme names from an `@fontsource/<id>` devDependency of `@bit-ds/react` (exact version) into `dist/themes/fonts/`, checks the `unicode-range` against the package's, and adds the family's license as `OFL-<id>.txt`. A new family needs its `@fontsource` package and an entry in `packages/react/scripts/expected-fonts.mjs`. `fonts.test.ts`, `pnpm verify` and `pnpm smoke` fail on any remote `@import` or `url()`.
 
+### Icons
+
+Icons come from `@material-symbols/svg-700` (an exact-version devDependency of `@bit-ds/react`, Sharp style) and the curated list in `packages/core/src/icons/icons.json`. To add one, add its Material name to a group there, run `npm run icons`, and commit `icons.json` with the two generated files (`packages/react/src/icons/icons.generated.ts`, `packages/core/src/icons/icons.generated.css`). `scripts/build-icons.test.mjs` fails when they drift. Adding an icon changes the package, so it ships in a release.
+
 ## Testing
 
 ### End-to-end and accessibility
