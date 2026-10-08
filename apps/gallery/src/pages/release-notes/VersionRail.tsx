@@ -16,21 +16,29 @@ interface VersionRailProps {
 export function VersionRail({ entries, current, onSelect }: VersionRailProps) {
   return (
     <nav aria-label="Versions" className="gallery-rail">
-      <Stack gap={8}>
+      <Stack gap={4}>
         {entries.map((entry) => (
-          <Stack key={entry.version} direction="row" gap={8} align="center" wrap>
-            <Link
-              href={`#${releaseAnchor(entry.version)}`}
-              aria-current={entry.version === current ? 'true' : undefined}
-              onClick={(event) => {
-                event.preventDefault();
-                onSelect(entry.version);
-              }}
-            >
-              {`v${entry.version}`}
-            </Link>
-            {entry.date ? <Text as="span">{entry.date.slice(5)}</Text> : null}
-          </Stack>
+          <Link
+            key={entry.version}
+            href={`#${releaseAnchor(entry.version)}`}
+            color='neutral'
+            className='gallery-rail__row'
+            aria-current={entry.version === current ? 'true' : undefined}
+            onClick={(event) => {
+              event.preventDefault();
+              onSelect(entry.version);
+            }}
+          >
+            <span>{`v${entry.version}`}</span>
+            {entry.date ? (
+              <>
+                {' '}
+                <Text as='span' color='neutral'>
+                  {entry.date.slice(5)}
+                </Text>
+              </>
+            ) : null}
+          </Link>
         ))}
       </Stack>
     </nav>

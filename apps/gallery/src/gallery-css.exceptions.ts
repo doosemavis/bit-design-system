@@ -86,4 +86,12 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-tile:has(.gallery-tile__link:focus-visible)', property: 'outline', reason: 'focus: visible ring for the whole tile' },
   { selector: '.gallery-tile:has(.gallery-tile__link:focus-visible)', property: 'outline-offset', reason: 'focus: visible ring for the whole tile' },
   { selector: '.gallery-tile__link:focus-visible', property: 'outline', reason: 'focus: removes the own ring of the link because the whole tile draws it' },
+  // release notes version rail
+  { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'border', reason: 'release notes rail: transparent 2px border keeps rows from shifting (owner board R1)' },
+  { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'border-radius', reason: 'release notes rail: rounded rows (owner board R1)' },
+  { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'color', reason: 'release notes rail: version in body text colour, not link purple (owner board R1)' },
+  { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'text-decoration', reason: 'release notes rail: rows read as a list, not underlined links (owner board R1)' },
+  { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'font-weight', reason: 'release notes rail: bold version (owner board R1)' },
+  { selector: '.gallery-rail__row.bit-link.bit-neutral[aria-current="true"]', property: 'border-color', reason: 'release notes rail: the chosen version, owner board R1' },
+  { selector: '.gallery-rail__row.bit-link.bit-neutral[aria-current="true"]', property: 'background', reason: 'release notes rail: the chosen version, owner board R1' },
 ];

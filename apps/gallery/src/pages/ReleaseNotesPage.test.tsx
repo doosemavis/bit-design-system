@@ -84,7 +84,7 @@ describe('ReleaseNotesPage', () => {
   it('puts aria-current on the newest release link at first', async () => {
     await open();
     const rail = within(screen.getByRole('navigation', { name: 'Versions' }));
-    expect(rail.getByRole('link', { name: `v${RELEASES[0]!.version}` })).toHaveAttribute('aria-current', 'true');
+    expect(rail.getByRole('link', { name: new RegExp(`^v${RELEASES[0]!.version.replaceAll('.', '\\.')}\\b`) })).toHaveAttribute('aria-current', 'true');
     expect(rail.getAllByRole('link').filter((a) => a.hasAttribute('aria-current'))).toHaveLength(1);
   });
 
@@ -92,13 +92,13 @@ describe('ReleaseNotesPage', () => {
     const user = userEvent.setup();
     await open();
     const rail = within(screen.getByRole('navigation', { name: 'Versions' }));
-    expect(rail.getAllByRole('link').map((a) => a.textContent)).toEqual(RELEASES.map((r) => `v${r.version}`));
+    expect(rail.getAllByRole('link').map((a) => a.querySelector('span')?.textContent)).toEqual(RELEASES.map((r) => `v${r.version}`));
     const heading = screen.getByRole('heading', { level: 2, name: 'v0.1.4' });
     const toggle = within(heading.closest('.bit-card') as HTMLElement).getByRole('button');
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    await user.click(rail.getByRole('link', { name: 'v0.1.4' }));
+    await user.click(rail.getByRole('link', { name: /^v0\.1\.4\b/ }));
     expect(heading).toHaveFocus();
-    expect(rail.getByRole('link', { name: 'v0.1.4' })).toHaveAttribute('aria-current', 'true');
+    expect(rail.getByRole('link', { name: /^v0\.1\.4\b/ })).toHaveAttribute('aria-current', 'true');
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
   });
 
@@ -121,7 +121,7 @@ describe('ReleaseNotesPage', () => {
       await user.click(screen.getByRole('radio', { name: new RegExp(`^${kind} \\(`) }));
       const main = within(screen.getByRole('main'));
       expect(main.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(matching.map((r) => `v${r.version}`));
-      expect(main.getAllByRole('link').map((a) => a.textContent)).toEqual(matching.map((r) => `v${r.version}`));
+      expect(main.getAllByRole('link').map((a) => a.querySelector('span')?.textContent)).toEqual(matching.map((r) => `v${r.version}`));
       main.getAllByRole('button', { name: /changes in v/ }).forEach((b) => expect(b).toHaveAttribute('aria-expanded', 'true'));
       main.getAllByRole('list').forEach((l) => expect(l.getAttribute('aria-label')).toMatch(new RegExp(`^${kind} in`)));
       await expectNoA11yViolations(screen.getByRole('main'));

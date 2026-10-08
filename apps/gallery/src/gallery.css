@@ -706,6 +706,25 @@ html {
   top: var(--bit-space-16px);
 }
 
+/* Each version is a full-width row: bold version left, muted date right. The chosen one takes a line border and
+   the soft fill; the others keep a transparent border so nothing shifts. Specificity matches bit Link's own rules. */
+.gallery-rail__row.bit-link.bit-neutral {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--bit-space-8px);
+  padding: var(--bit-space-8px) 10px;
+  border: 2px solid transparent;
+  border-radius: var(--bit-radius-10px);
+  color: var(--bit-color-text);
+  text-decoration: none;
+  font-weight: var(--bit-weight-bold);
+}
+
+.gallery-rail__row.bit-link.bit-neutral[aria-current="true"] {
+  border-color: var(--bit-color-line);
+  background: var(--bit-color-primary-soft);
+}
+
 @media (max-width: 960px) {
   .gallery-releases {
     grid-template-columns: minmax(0, 1fr);
