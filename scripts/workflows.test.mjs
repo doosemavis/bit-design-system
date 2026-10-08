@@ -232,7 +232,7 @@ test('release: npm publish and the npm-publish environment are reachable only on
   for (const github of NOT_TAG_PUSH) assert.ok(!jobsThatRun(jobs, github, DOCS_DEPLOY).includes('publish'), `${github.event_name} ${github.ref}`);
 });
 
-test('release: only publish, deploy and docs hold a credential; the build, site and check jobs hold none', () => {
+test('release: only publish, deploy and docs hold a credential, and github-release holds only contents: write; the build, site and check jobs hold none', () => {
   const { jobs } = release();
   const holders = Object.entries(jobs).filter(([, def]) => def.environment || def.permissions?.['id-token'] || def.permissions?.pages).map(([n]) => n).sort();
   assert.deepEqual(holders, ['deploy', 'docs', 'publish']);
