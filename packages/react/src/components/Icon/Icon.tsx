@@ -12,16 +12,27 @@ export interface IconProps extends Omit<SVGAttributes<SVGSVGElement>, 'color' | 
   color?: Color;
   /** sm 16px, md 20px, lg 24px. Class: `bit-{size}`. */
   size?: Size;
-  /** What the icon means, for screen readers. Without it the icon is decorative and hidden from them. */
+  /** Draws the filled version. Class: `bit-iconFilled`, so `className="bit-iconFilled"` does the same. */
+  iconFilled?: boolean;
+  /** What the icon means, for screen readers. Without it (or `aria-label`/`aria-labelledby`) the icon is decorative. */
   label?: string;
 }
 
+const FILLED = 'bit-iconFilled';
+
 /** A Material Symbols icon as an inline <svg>. It needs no stylesheet beyond styles.css. */
 export const Icon = forwardRef<SVGSVGElement, IconProps>(function Icon(
-  { icon, color, size = 'md', label, className, ...rest },
+  { icon, color, size = 'md', iconFilled = false, label, className, ...rest },
   ref,
 ) {
-  const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true as const };
+  const filledByClass = className?.split(/\s+/).includes(FILLED) ?? false;
+  const name = (label ?? rest['aria-label'])?.trim();
+  const labelled = Boolean(name) || Boolean(rest['aria-labelledby']);
+  // Spread after rest, so a named icon is never hidden and an unnamed one never carries an empty name.
+  const a11y = labelled
+    ? { role: 'img', 'aria-label': name || undefined, 'aria-hidden': undefined }
+    : { role: undefined, 'aria-label': undefined, 'aria-hidden': true as const };
+  const extra = [`bit-icon-${icon.name}`, iconFilled && !filledByClass ? FILLED : undefined, className].filter(Boolean).join(' ');
   return (
     <svg
       ref={ref}
@@ -31,14 +42,14 @@ export const Icon = forwardRef<SVGSVGElement, IconProps>(function Icon(
           { name: 'color', allowed: COLORS, value: color },
           { name: 'size', allowed: SIZES, value: size },
         ],
-        className ? `bit-icon-${icon.name} ${className}` : `bit-icon-${icon.name}`,
+        extra,
       )}
       viewBox="0 -960 960 960"
       focusable="false"
-      {...a11y}
       {...rest}
+      {...a11y}
     >
-      <path d={icon.path} />
+      <path d={iconFilled || filledByClass ? icon.fillPath : icon.path} />
     </svg>
   );
 });

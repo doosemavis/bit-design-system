@@ -46,6 +46,36 @@ describe('Icon', () => {
     expect(svg(container)).not.toHaveAttribute('role');
   });
 
+  it('iconFilled draws the fill path and adds bit-iconFilled', () => {
+    const { container } = render(<Icon icon={iconFavorite} iconFilled />);
+    expect(svg(container)).toHaveClass('bit-iconFilled');
+    expect(svg(container).querySelector('path')).toHaveAttribute('d', iconFavorite.fillPath);
+  });
+
+  it('className="bit-iconFilled" does the same as iconFilled, without a duplicate class', () => {
+    const { container } = render(<Icon icon={iconFavorite} className="bit-iconFilled" iconFilled />);
+    expect(svg(container).querySelector('path')).toHaveAttribute('d', iconFavorite.fillPath);
+    expect(svg(container).getAttribute('class')!.split(' ').filter((c) => c === 'bit-iconFilled')).toHaveLength(1);
+  });
+
+  it('a plain aria-label names it: role img, not hidden', () => {
+    const { getByRole } = render(<Icon icon={iconDelete} aria-label="Delete" />);
+    expect(getByRole('img', { name: 'Delete' })).not.toHaveAttribute('aria-hidden');
+  });
+
+  it('aria-labelledby names it too', () => {
+    const { container } = render(<><span id="n">Delete</span><Icon icon={iconDelete} aria-labelledby="n" /></>);
+    expect(svg(container)).toHaveAttribute('role', 'img');
+    expect(svg(container)).not.toHaveAttribute('aria-hidden');
+  });
+
+  it('a whitespace-only label stays decorative', () => {
+    const { container } = render(<Icon icon={iconDelete} label="   " />);
+    expect(svg(container)).toHaveAttribute('aria-hidden', 'true');
+    expect(svg(container)).not.toHaveAttribute('role');
+    expect(svg(container)).not.toHaveAttribute('aria-label');
+  });
+
   it('forwards the ref, merges className last, and passes other svg props through', () => {
     const ref = createRef<SVGSVGElement>();
     const { container } = render(<Icon ref={ref} icon={iconFavorite} className="extra" data-testid="i" />);

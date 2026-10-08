@@ -103,14 +103,17 @@ describe('public index', () => {
     );
   });
 
-  it('exports the 600 icons and their groups, and each fill follows its regular icon', () => {
+  it('exports the 300 icons and their groups, each with a regular and a fill path', () => {
     const icons = Object.keys(lib).filter((name) => /^icon[A-Z]/.test(name));
-    expect(icons).toHaveLength(600);
+    expect(icons).toHaveLength(300);
     expect(lib.ICON_GROUPS).toHaveLength(8);
-    const pairs = lib.ICON_GROUPS.flatMap((g) => g.icons);
-    expect(pairs).toHaveLength(300);
-    for (const { regular, fill } of pairs) expect(fill.name).toBe(`${regular.name}-fill`);
-    expect(lib.iconFavorite).toEqual({ name: 'favorite', path: expect.stringMatching(/^[Mm]/) });
+    const all = lib.ICON_GROUPS.flatMap((g) => g.icons);
+    expect(all).toHaveLength(300);
+    for (const icon of all) {
+      expect(typeof icon.path).toBe('string');
+      expect(typeof icon.fillPath).toBe('string');
+    }
+    expect(lib.iconFavorite).toEqual({ name: 'favorite', path: expect.stringMatching(/^[Mm]/), fillPath: expect.stringMatching(/^[Mm]/) });
   });
 
   it('exports the prefix and axes', () => {

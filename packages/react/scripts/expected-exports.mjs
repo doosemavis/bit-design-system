@@ -11,8 +11,8 @@ export const EXPECTED = [
   'Heading', 'Box', 'Icon', 'announce', 'useCopyToClipboard', 'colorMode', 'ColorModeService',
 ];
 
-// Every icon export: each name in icons.json and its fill, worked out from the list so it never needs retyping.
+// Every icon export: one per name in icons.json, worked out from the list so it never needs retyping.
 const ICON_LIST = JSON.parse(readFileSync(new URL('../../core/src/icons/icons.json', import.meta.url), 'utf8'));
 export const ICON_EXPORTS = Object.values(ICON_LIST)
   .flat()
-  .flatMap((name) => [iconExportName(name), iconExportName(`${name}-fill`)]);
+  .map((name) => iconExportName(name));

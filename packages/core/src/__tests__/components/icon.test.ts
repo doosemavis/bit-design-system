@@ -25,23 +25,29 @@ describe('components/icon.css', () => {
   });
 
   it('the class form draws the --_bit-icon mask in currentColor', () => {
-    const span = block(css, 'span.bit-icon')!;
+    const span = block(css, '.bit-icon:not(svg)')!;
     expect(span).toContain('background-color: currentColor;');
     expect(span).toContain('-webkit-mask: var(--_bit-icon) center / contain no-repeat;');
     expect(span).toContain('  mask: var(--_bit-icon) center / contain no-repeat;');
   });
 
+  it('the filled class form swaps in the --_bit-icon-fill mask image', () => {
+    const filled = block(css, '.bit-icon.bit-iconFilled:not(svg)')!;
+    expect(filled).toContain('-webkit-mask-image: var(--_bit-icon-fill);');
+    expect(filled).toContain('mask-image: var(--_bit-icon-fill);');
+  });
+
   it('in forced colours the mask icon is CanvasText with forced-color-adjust off, so it never disappears', () => {
-    expect(css).toMatch(/@media \(forced-colors: active\)\s*\{\s*span\.bit-icon\s*\{[^}]*background-color: CanvasText;[^}]*forced-color-adjust: none;/);
+    expect(css).toMatch(/@media \(forced-colors: active\)\s*\{\s*\.bit-icon:not\(svg\)\s*\{[^}]*background-color: CanvasText;[^}]*forced-color-adjust: none;/);
   });
 });
 
 describe('icons/icons.generated.css', () => {
   const css = readCss('icons/icons.generated.css');
-  it('has 600 rules that only set --_bit-icon, and index.css never imports it', () => {
+  it('has 300 rules that only set --_bit-icon and --_bit-icon-fill, and index.css never imports it', () => {
     const rules = css.split('\n').filter((line) => line.startsWith('.bit-icon-'));
-    expect(rules).toHaveLength(600);
-    for (const rule of rules) expect(rule).toMatch(/^\.bit-icon-[a-z0-9-]+\{--_bit-icon:url\("data:image\/svg\+xml,[^"]+"\)\}$/);
+    expect(rules).toHaveLength(300);
+    for (const rule of rules) expect(rule).toMatch(/^\.bit-icon-[a-z0-9-]+\{--_bit-icon:url\("data:image\/svg\+xml,[^"]+"\);--_bit-icon-fill:url\("data:image\/svg\+xml,[^"]+"\)\}$/);
     expect(readCss('index.css')).not.toContain('icons/');
   });
 });
