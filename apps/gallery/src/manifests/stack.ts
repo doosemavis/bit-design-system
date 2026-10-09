@@ -1,5 +1,33 @@
+import { createElement } from 'react';
+import type { ReactElement } from 'react';
 import { SPACE_STEPS, Stack } from '@bit-ds/react';
-import type { Manifest } from './types';
+import type { StackProps } from '@bit-ds/react';
+import type { ControlState, Manifest } from './types';
+import { StackDemo } from '../demos/StackDemo';
+
+/** The Box's width: px as a number, or the string '100%'. */
+const containerWidth = (state: ControlState): number | string => {
+  const width = String(state.containerWidth);
+  return width.endsWith('%') ? width : Number(width);
+};
+
+/** The Box's height in px, or undefined for auto: as tall as the children. */
+const containerHeight = (state: ControlState): number | undefined =>
+  state.containerHeight === undefined || state.containerHeight === 'auto' ? undefined : Number(state.containerHeight);
+
+/** The Box's style as JSX: `{ width: 240, height: 80 }`, with '100%' as a string. */
+const boxStyle = (state: ControlState): string => {
+  const width = containerWidth(state);
+  const height = containerHeight(state);
+  const sizes = [`width: ${typeof width === 'string' ? `'${width}'` : width}`, ...(height === undefined ? [] : [`height: ${height}`])];
+  return `{ ${sizes.join(', ')} }`;
+};
+
+const indent = (jsx: string) =>
+  jsx
+    .split('\n')
+    .map((line) => `  ${line}`)
+    .join('\n');
 
 export const stack: Manifest = {
   name: 'Stack',
@@ -13,12 +41,30 @@ export const stack: Manifest = {
     { kind: 'select', prop: 'align', values: ['stretch', 'start', 'center', 'end'], default: 'stretch' },
     { kind: 'select', prop: 'justify', values: ['start', 'center', 'end', 'between'], default: 'start' },
     { kind: 'boolean', prop: 'wrap', default: false },
+    // The page's own: the width of the Box the Stack sits in. The stage outlines that Box, so stretch shows its edge.
+    { kind: 'select', prop: 'containerWidth', label: 'container width', values: ['160', '240', '360', '100%'], default: '240', virtual: true },
+    // Its height: auto by default. With one, the Stack fills it, so stretch shows in a row and justify in a column.
+    { kind: 'select', prop: 'containerHeight', label: 'container height', values: ['auto', '80', '120', '200'], default: 'auto', virtual: true },
   ],
   children: [
     { component: 'Badge', props: { color: 'primary' }, children: 'One' },
     { component: 'Badge', props: { color: 'success' }, children: 'Two' },
     { component: 'Badge', props: { color: 'danger' }, children: 'Three' },
   ],
+  // A Stack is as wide as its container; in the stage alone it would shrink to its widest child. The Box gives it
+  // a set width to fill, and the stage's dashed Box outline shows where that edge is. A row too wide for the Box
+  // wraps in the preview (StackDemo), so nothing spills past the outline; so does a column too tall for a set height.
+  demo: {
+    render: (element, state) =>
+      createElement(StackDemo, { stack: element as ReactElement<StackProps>, width: containerWidth(state), height: containerHeight(state) }),
+    code: {
+      reactImports: [],
+      bitImports: ['Box'],
+      setup: [],
+      props: (state) => (containerHeight(state) === undefined ? [] : ["style={{ height: '100%' }}"]),
+      wrap: (jsx, state) => `<Box padding={4} style={${boxStyle(state)}}>\n${indent(jsx)}\n</Box>`,
+    },
+  },
   presets: [
     { label: 'Row, centered', state: { direction: 'row', align: 'center', gap: '16' } },
     { label: 'Row, space between', state: { direction: 'row', justify: 'between' } },

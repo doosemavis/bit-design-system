@@ -41,6 +41,9 @@ const SELECT_OPTIONS_CONST = [
 /** The JS literal a `const <name> = <literal>;` line holds, or undefined when the snippet has no such const. */
 const constLiteral = (code: string, name: string) => new RegExp(`^const ${name} = (.*);$`, 'm').exec(code)?.[1];
 
+/** Stack without its page demo (the Box it sits in), as a plain sample of the printing rules. */
+const bareStack: Manifest = { ...stack, demo: undefined };
+
 describe('toJsx', () => {
   it.each([
     ['defaults are omitted', button, {}, `import { Button } from '@bit-ds/react';\n\n<Button>Save</Button>`],
@@ -64,7 +67,7 @@ describe('toJsx', () => {
     ],
     [
       'numeric selects use braces and sentinels are omitted',
-      stack,
+      bareStack,
       { direction: 'row', gap: '24' },
       `import { Badge, Stack } from '@bit-ds/react';\n\n<Stack direction="row" gap={24}>\n  <Badge color="primary">One</Badge>\n  <Badge color="success">Two</Badge>\n  <Badge color="danger">Three</Badge>\n</Stack>`,
     ],
@@ -182,7 +185,7 @@ describe('toJsx', () => {
 
   it('prints HTML ChildSpecs as JSX but leaves them out of the import line', () => {
     const withHtml: Manifest = {
-      ...stack,
+      ...bareStack,
       children: [
         { component: 'span', props: { className: 'note' }, children: 'plain' },
         { component: 'Badge', children: 'bit' },
