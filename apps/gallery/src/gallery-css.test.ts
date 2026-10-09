@@ -79,7 +79,7 @@ describe('gallery.css', () => {
     expect(galleryCss).toMatch(/\.bit-box\.gallery-outline \{\s*outline: 2px dashed var\(--bit-color-accent\);\s*\}/);
   });
 
-  it('in forced colours the ruler bar keeps a visible fill: CanvasText, with forced-color-adjust off', () => {
+  it('in forced colors the ruler bar keeps a visible fill: CanvasText, with forced-color-adjust off', () => {
     expect(galleryCss).toMatch(
       /@media \(forced-colors: active\) \{\s*\.gallery-ruler__bar \{\s*forced-color-adjust: none;\s*background: CanvasText;\s*\}\s*\}/,
     );
@@ -150,7 +150,7 @@ describe('gallery.css', () => {
     expect(galleryCss).toMatch(
       /--_gallery-bar-height: calc\(var\(--bit-control-height-sm\) \+ 2 \* var\(--bit-space-8px\) \+ var\(--bit-border-width\)\);/,
     );
-    // The controls bar paints only through the shared list: it appears nowhere else, so it has no colours of its own.
+    // The controls bar paints only through the shared list: it appears nowhere else, so it has no colors of its own.
     expect(galleryCss.match(/\.gallery-controls__bar\b/g)).toHaveLength(1);
     const titles = /\.gallery-preview__title,\s*\.gallery-controls__title \{([^}]*)\}/.exec(galleryCss)?.[1] ?? '';
     expect(titles).toContain('font-family: var(--bit-font-pixel);');
@@ -225,18 +225,59 @@ describe('gallery.css', () => {
     expect(ruleIn(galleryCss, '.gallery-props__type')?.trim()).toBe('min-width: calc(7 * var(--bit-space-32px));');
   });
 
-  it('the All tokens Copy column is sized by a hidden widest-state button in the header, with no magic width', () => {
-    const head = ruleIn(galleryCss, '.gallery-copy-head');
-    expect(head).toContain('display: grid;');
-    expect(ruleIn(galleryCss, '.gallery-copy-head > *')).toContain('grid-area: 1 / 1;');
-    expect(ruleIn(galleryCss, '.gallery-copy-ghost')?.trim()).toBe('visibility: hidden;');
-    const cell = ruleIn(galleryCss, '.gallery-copy-cell');
-    expect(cell).toContain('display: flex;');
-    expect(cell).toContain('justify-content: flex-end;');
-    expect(cell).not.toMatch(/width/);
+  it('the All tokens table and its Copy column are gone (every token is a Copy chip in a card), and so are their rules', () => {
+    for (const selector of ['.gallery-copy-head', '.gallery-copy-ghost', '.gallery-copy-cell']) {
+      expect(galleryCss).not.toContain(selector);
+    }
   });
 
-  it('the Tokens color cards: one column on a phone, then 3 + 2, then all five in one row (never 4 + 1)', () => {
+  it('token cards: as many 17rem columns as fit (three on a desktop, one on a phone), and a full-width card for long families', () => {
+    const grid = ruleIn(galleryCss, '.gallery-token-grid');
+    expect(grid).toContain('display: grid;');
+    expect(grid).toContain('grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));');
+    expect(grid).toContain('gap: var(--bit-space-12px);');
+    expect(ruleIn(galleryCss, '.gallery-token-card--full')?.trim()).toBe('grid-column: 1 / -1;');
+    // A section of long-valued cards (Shape) uses wider columns: two on a desktop.
+    expect(ruleIn(galleryCss, '.gallery-token-grid--wide')).toContain('grid-template-columns: repeat(auto-fit, minmax(min(24rem, 100%), 1fr));');
+    expect(ruleIn(galleryCss, '.gallery-token-rows--wide')).toContain('grid-template-columns: repeat(auto-fill, minmax(min(24rem, 100%), 1fr));');
+    // A full-width card lays its rows out in columns too.
+    expect(ruleIn(galleryCss, '.gallery-token-rows--columns')).toContain(
+      'grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));',
+    );
+  });
+
+  it('a token row: a fixed 64px preview column, then name and value on one line (value pinned right), then the chip under the name', () => {
+    const row = ruleIn(galleryCss, '.gallery-token-row');
+    expect(row).toContain('display: grid;');
+    expect(row).toContain('grid-template-columns: var(--bit-space-64px) minmax(0, 1fr);');
+    expect(row).toContain('align-items: center;');
+    const text = ruleIn(galleryCss, '.gallery-token-row__text');
+    // Name, a dotted leader that takes the spare width, then the value at the card's right edge.
+    expect(text).toContain('grid-template-columns: auto minmax(var(--bit-space-16px), 1fr) auto;');
+    expect(text).not.toContain('justify-self: start;');
+    // On a phone the line tightens (8px leader, 4px gaps) so the longest value, the inset shadow, fits on one line.
+    const phone = ruleIn(mediaBody('(max-width: 30rem)'), '.gallery-token-row__text');
+    expect(phone).toContain('grid-template-columns: auto minmax(var(--bit-space-8px), 1fr) auto;');
+    expect(phone).toContain('column-gap: var(--bit-space-4px);');
+    const leader = ruleIn(galleryCss, '.gallery-token-row__leader');
+    expect(leader).toContain('align-self: end;');
+    expect(leader).toContain('border-bottom: 2px dotted var(--bit-color-text-muted);');
+    expect(text).toContain('align-items: baseline;');
+    expect(ruleIn(galleryCss, '.gallery-token-row__value')).toContain('grid-column: 3;');
+    expect(ruleIn(galleryCss, '.gallery-token-row__chip')).toContain('grid-column: 1 / -1;');
+    // A long name wraps inside its chip instead of running out of a narrow card.
+    expect(ruleIn(galleryCss, '.gallery-token-row__chip .bit-code')).toContain('overflow-wrap: anywhere;');
+  });
+
+  it('the color flow scrolls sideways on a narrow screen instead of shrinking its labels to nothing', () => {
+    expect(ruleIn(galleryCss, '.gallery-flow')).toContain('overflow-x: auto;');
+    const svg = ruleIn(galleryCss, '.gallery-flow > svg');
+    expect(svg).toContain('display: block;');
+    expect(svg).toContain('width: 100%;');
+    expect(svg).toContain('min-width: 40rem;');
+  });
+
+  it('the Tokens color cards: one column on a phone, then two even rows of three (the five roles and page)', () => {
     const grid = ruleIn(galleryCss, '.gallery-color-grid');
     expect(grid).toContain('display: grid;');
     expect(grid).toContain('grid-template-columns: minmax(0, 1fr);');
@@ -244,9 +285,22 @@ describe('gallery.css', () => {
     expect(ruleIn(mediaBody('(min-width: 30rem)'), '.gallery-color-grid')?.trim()).toBe(
       'grid-template-columns: repeat(3, minmax(0, 1fr));',
     );
-    expect(ruleIn(mediaBody('(min-width: 70rem)'), '.gallery-color-grid')?.trim()).toBe(
-      'grid-template-columns: repeat(5, minmax(0, 1fr));',
-    );
+    // No wider step: six cards stay 3 + 3, never 5 + 1 or 4 + 2.
+    expect(ruleIn(mediaBody('(min-width: 70rem)'), '.gallery-color-grid')).toBeNull();
+  });
+
+  it('the page card puts its six swatches in two columns when the card is wide enough, so it is no taller than the role cards', () => {
+    const swatches = ruleIn(galleryCss, '.gallery-swatch-grid');
+    expect(swatches).toContain('display: grid;');
+    // 7rem fits the widest swatch row (text-muted with its hex), so the card takes two columns from a 1120px window.
+    expect(swatches).toContain('grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));');
+  });
+
+  it('a Copy chip is a bare button: only its Code chip shows', () => {
+    const chip = ruleIn(galleryCss, '.gallery-copy-chip');
+    for (const declaration of ['padding: 0;', 'border: 0;', 'background: none;', 'font: inherit;', 'cursor: pointer;']) {
+      expect(chip).toContain(declaration);
+    }
   });
 
   it('below 390px the header logo drops its caption, so Menu, the logo and both mode options fit 360px and 375px phones', () => {
@@ -277,7 +331,7 @@ describe('gallery.css', () => {
 });
 
 describe('the animated section underline', () => {
-  it('section titles take the full text colour, outranking the muted shade bit Text gives a neutral', () => {
+  it('section titles take the full text color, outranking the muted shade bit Text gives a neutral', () => {
     expect(galleryCss).toMatch(/\.gallery-sidebar__title\.bit-text\.bit-neutral \{[^}]*color: var\(--bit-color-text\);/);
   });
 

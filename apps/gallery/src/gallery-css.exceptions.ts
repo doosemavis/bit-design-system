@@ -19,15 +19,15 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-face[data-face="mono"]', property: 'font-weight', reason: 'specimen: shows the mono type face' },
   { selector: '.gallery-face[data-face="mono"]', property: 'font-size', reason: 'specimen: shows the mono type face' },
   { selector: '.gallery-ruler__bar', property: 'background', reason: 'specimen: shows a spacing token as a bar' },
-  { selector: '@media (forced-colors: active) .gallery-ruler__bar', property: 'forced-color-adjust', reason: 'forced colours: keeps the spacing bar visible' },
-  { selector: '@media (forced-colors: active) .gallery-ruler__bar', property: 'background', reason: 'forced colours: keeps the spacing bar visible' },
+  { selector: '@media (forced-colors: active) .gallery-ruler__bar', property: 'forced-color-adjust', reason: 'forced colors: keeps the spacing bar visible' },
+  { selector: '@media (forced-colors: active) .gallery-ruler__bar', property: 'background', reason: 'forced colors: keeps the spacing bar visible' },
   { selector: '.bit-box.gallery-outline', property: 'outline', reason: 'specimen: shows the extent of a Box' },
   { selector: '.gallery-preview__stage > .bit-box', property: 'outline', reason: 'specimen: shows the extent of a Box' },
   { selector: '.gallery-preview[data-checkerboard] .gallery-preview__stage', property: 'background-image', reason: 'specimen: checkerboard shows transparency' },
   { selector: '.gallery-preview[data-checkerboard] .gallery-preview__stage', property: 'background-size', reason: 'specimen: checkerboard shows transparency' },
   { selector: '.gallery-preview[data-checkerboard] .gallery-preview__stage', property: 'background-position', reason: 'specimen: checkerboard shows transparency' },
-  { selector: '.gallery-swatch', property: 'border', reason: 'specimen: outlines a colour swatch' },
-  { selector: '.gallery-swatch', property: 'border-radius', reason: 'specimen: rounds a colour swatch' },
+  { selector: '.gallery-swatch', property: 'border', reason: 'specimen: outlines a color swatch' },
+  { selector: '.gallery-swatch', property: 'border-radius', reason: 'specimen: rounds a color swatch' },
   { selector: '.gallery-shape', property: 'background', reason: 'specimen: shows a radius or shadow token' },
   { selector: '.gallery-shape', property: 'border', reason: 'specimen: shows a radius or shadow token' },
   // ---------------------------------------------------------------- C: frame and accessibility
@@ -89,10 +89,17 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   // release notes version rail
   { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'border', reason: 'release notes rail: transparent 2px border keeps rows from shifting (owner board R1)' },
   { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'border-radius', reason: 'release notes rail: rounded rows (owner board R1)' },
-  { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'color', reason: 'release notes rail: version in body text colour, not link purple (owner board R1)' },
+  { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'color', reason: 'release notes rail: version in body text color, not link purple (owner board R1)' },
   { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'text-decoration', reason: 'release notes rail: rows read as a list, not underlined links (owner board R1)' },
   { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'font-weight', reason: 'release notes rail: bold version (owner board R1)' },
   { selector: '.gallery-rail__row.bit-link.bit-neutral[aria-current="true"]', property: 'border-color', reason: 'release notes rail: the chosen version, owner board R1' },
   { selector: '.gallery-rail__row.bit-link.bit-neutral[aria-current="true"]', property: 'background', reason: 'release notes rail: the chosen version, owner board R1' },
   { selector: '.gallery-icon-group-head', property: 'border-bottom', reason: 'icon groups: divider under each group header (owner board H2)' },
+  // Tokens page: the dotted leader that ties a token's name to its value
+  { selector: '.gallery-token-row__leader', property: 'border-bottom', reason: 'token row: dotted leader from the name to its value' },
+  // Tokens page: a Code chip that copies itself
+  { selector: '.gallery-copy-chip', property: 'border', reason: 'copy chip: a bare button, so only its Code chip shows' },
+  { selector: '.gallery-copy-chip', property: 'background', reason: 'copy chip: a bare button, so only its Code chip shows' },
+  { selector: '.gallery-copy-chip', property: 'font', reason: 'copy chip: a bare button, so only its Code chip shows' },
+  { selector: '.gallery-copy-chip', property: 'cursor', reason: 'copy chip: the pointer says the chip can be clicked' },
 ];

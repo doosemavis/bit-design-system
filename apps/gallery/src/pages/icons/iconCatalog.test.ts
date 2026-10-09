@@ -22,7 +22,7 @@ describe('iconCatalog', () => {
     expect(copyText(iconFavorite, 'html', true)).toBe('<span class="bit-icon bit-icon-favorite bit-iconFilled" aria-hidden="true"></span>');
   });
 
-  it('iconHtml adds colour and size classes, and a label as role img with an escaped aria-label', () => {
+  it('iconHtml adds color and size classes, and a label as role img with an escaped aria-label', () => {
     expect(iconHtml(iconFavorite, { color: 'danger', size: 'lg' })).toBe('<span class="bit-icon bit-icon-favorite bit-danger bit-lg" aria-hidden="true"></span>');
     expect(iconHtml(iconFavorite, { color: 'danger', size: 'lg', filled: true })).toBe(
       '<span class="bit-icon bit-icon-favorite bit-iconFilled bit-danger bit-lg" aria-hidden="true"></span>',

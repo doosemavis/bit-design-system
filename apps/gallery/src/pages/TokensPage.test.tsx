@@ -6,13 +6,24 @@ import { MemoryRouter } from 'react-router-dom';
 import { SEMANTIC_TOKENS } from '@bit-ds/react';
 import { renderAt } from '../test/renderRoute';
 import { TokensPage } from './TokensPage';
-import { filterTokens } from './tokens/AllTokens';
 import { expectNoA11yViolations } from '../test/a11y';
 import { stubClipboard } from '../test/clipboard';
+import { flowTokens } from './tokens/colorFlows';
+import { THEME_FLOWS } from './tokens/themeFlows';
+
+// jsdom reads a `?raw` CSS import as empty, so hand the page the real theme's wiring, read from disk.
+vi.mock('./tokens/themeFlows', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { dirname, resolve } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+  const { parseColorFlows } = await import('./tokens/colorFlows');
+  const theme = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../packages/core/src/themes/power-up.css');
+  return { THEME_FLOWS: parseColorFlows(readFileSync(theme, 'utf8')) };
+});
 
 /** jsdom loads no CSS, so give it a few literal token values, light and dark, to compute. */
 const THEME = `
-  :root { --bit-color-primary: #7C3AED; --bit-color-neutral: #FFFFFF; --bit-color-bg: #EEEFE9; --bit-radius-6px: 6px; }
+  :root { --bit-color-primary: #7C3AED; --bit-color-neutral: #FFFFFF; --bit-color-bg: #EEEFE9; --bit-radius-6px: 6px; --bit-space-16px: 16px; }
   [data-mode="dark"] { --bit-color-neutral: #2B2B37; --bit-color-bg: #15151C; }
 `;
 let style: HTMLStyleElement;
@@ -36,23 +47,99 @@ async function open() {
   return utils;
 }
 
-/** How many public tokens share a name prefix, so the expected counts follow the token list. */
-const countPrefix = (...prefixes: string[]) =>
-  SEMANTIC_TOKENS.filter((name) => prefixes.some((prefix) => name.startsWith(prefix))).length;
-const SPACE_COUNT = countPrefix('--bit-space-');
-const SHAPE_COUNT = countPrefix('--bit-radius-', '--bit-shadow-');
+/** Every public token the page shows. --bit-text-11px is deprecated (removed in 0.2.0), so the page leaves it out. */
+const SHOWN_TOKENS = SEMANTIC_TOKENS.filter((name) => name !== '--bit-text-11px');
 
-const card = (color: string) => screen.getByRole('group', { name: `${color} tokens` });
+const card = (name: string) => screen.getByRole('group', { name: `${name} tokens` });
+const region = (name: string) => screen.getByRole('region', { name });
+/** The token cards in a section, by name, in order. */
+const cardsIn = (section: string) =>
+  within(region(section))
+    .getAllByRole('group')
+    .map((group) => group.getAttribute('aria-label') ?? '')
+    .filter((label) => label.endsWith(' tokens'))
+    .map((label) => label.replace(/ tokens$/, ''));
 
 describe('TokensPage', () => {
   it('has a section bar, and the five sections in order, with no axe violations', async () => {
     const { container } = await open();
     const main = screen.getByRole('main');
-    const titles = ['Color', 'Type', 'Space', 'Shape', 'All tokens'];
+    const titles = ['Color', 'Type', 'Space', 'Shape', 'System'];
     expect(within(main).getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(titles);
     const bar = screen.getByRole('navigation', { name: 'On this page' });
     expect(within(bar).getAllByRole('link').map((l) => l.textContent)).toEqual(titles);
     await expectNoA11yViolations(container);
+  });
+
+  it('every public token can be copied by name exactly once: the flow holds the color tokens, the cards hold the rest', async () => {
+    await open();
+    const named = within(screen.getByRole('main'))
+      .getAllByRole('button')
+      .map((button) => button.getAttribute('aria-label') ?? '')
+      .filter((label) => label.startsWith('Copy --bit-'))
+      .map((label) => label.slice('Copy '.length));
+    expect(named.filter((name, i) => named.indexOf(name) !== i)).toEqual([]);
+    expect([...named].sort()).toEqual([...SHOWN_TOKENS].sort());
+    // The long table is gone: every token is in a card or the flow.
+    expect(screen.queryByRole('region', { name: 'Token values' })).toBeNull();
+  });
+
+  it('each section is a grid of cards, named for the family they hold', async () => {
+    await open();
+    expect(cardsIn('Type')).toEqual(['faces', 'sizes', 'weight & leading']);
+    expect(cardsIn('Space')).toEqual(['space', 'controls']);
+    // Shadow last and full width: its values are the longest, so it gets the room to keep each on one line.
+    expect(cardsIn('Shape')).toEqual(['radius', 'lines', 'shadow']);
+    expect(card('shadow')).toHaveClass('gallery-token-card--full');
+    expect(cardsIn('System')).toEqual(['motion', 'text colors', 'logo', 'code syntax']);
+    for (const section of ['Type', 'Space', 'Shape', 'System']) {
+      expect(region(section).querySelector('.gallery-token-grid')).not.toBeNull();
+    }
+  });
+
+  it('every token row has the same shape: a preview, then name, a dotted leader and the value on one line, then the Copy chip', async () => {
+    await open();
+    const rows = [...document.querySelectorAll('.gallery-token-row')];
+    // One row per token the color flow does not draw.
+    expect(rows).toHaveLength(SHOWN_TOKENS.length - flowTokens(THEME_FLOWS!).size);
+    for (const row of rows) {
+      const [preview, text] = [...row.children];
+      expect(preview).toHaveClass('gallery-token-row__preview');
+      expect(preview).toHaveAttribute('aria-hidden', 'true');
+      expect([...text!.children].map((el) => el.className.split(' ').find((c) => c.startsWith('gallery-token-row__')))).toEqual([
+        'gallery-token-row__name',
+        'gallery-token-row__leader',
+        'gallery-token-row__value',
+        'gallery-token-row__chip',
+      ]);
+      expect(text!.querySelector('.gallery-token-row__chip button.gallery-copy-chip')).not.toBeNull();
+      // The leader is decoration: screen readers hear the name, then the value.
+      expect(text!.querySelector('.gallery-token-row__leader')).toHaveAttribute('aria-hidden', 'true');
+    }
+  });
+
+  it('values come from the live page', async () => {
+    await open();
+    const row = (token: string) => screen.getByRole('button', { name: `Copy ${token}` }).closest('.gallery-token-row')!;
+    expect(row('--bit-radius-6px').querySelector('.gallery-token-row__value')).toHaveTextContent('6px');
+    expect(row('--bit-space-16px').querySelector('.gallery-token-row__value')).toHaveTextContent('16px');
+  });
+
+  it('Type: each face is previewed in itself and named, the sizes are the supported ones (no deprecated 11px), and Typography is linked', async () => {
+    await open();
+    const faces = card('faces');
+    expect([...faces.querySelectorAll('.gallery-face')].map((el) => el.getAttribute('data-face'))).toEqual(['display', 'body', 'pixel', 'mono']);
+    expect([...faces.querySelectorAll('.gallery-token-row__name')].map((el) => el.textContent)).toEqual([
+      'Lilita One',
+      'Nunito',
+      'Press Start',
+      'JetBrains Mono',
+    ]);
+    expect([...card('sizes').querySelectorAll('.gallery-token-row__name')].map((el) => el.textContent)).toEqual(['13', '15', '18', '24', '32']);
+    expect(screen.queryByRole('button', { name: 'Copy --bit-text-11px' })).toBeNull();
+    expect(card('sizes')).not.toHaveTextContent('deprecated');
+    expect(screen.getByRole('link', { name: 'See Typography' })).toHaveAttribute('href', '/typography');
+    expect(screen.getByRole('link', { name: 'See Spacing' })).toHaveAttribute('href', '/spacing');
   });
 
   it('the color cards show values computed from the live page', async () => {
@@ -65,17 +152,26 @@ describe('TokensPage', () => {
       'soft',
       'contrast',
     ]);
-    expect(within(screen.getByRole('group', { name: 'Surface tokens' })).getByText('#EEEFE9')).toBeInTheDocument();
+    expect(within(card('page')).getByText('#EEEFE9')).toBeInTheDocument();
   });
 
-  it('the five color cards share the color grid (five in a row on desktop, never 4 + 1)', async () => {
+  it('the page card holds the six page-wide colors, headed like the role cards', async () => {
+    await open();
+    expect(within(card('page')).getByText('page', { selector: '.bit-card__header' })).toBeInTheDocument();
+    expect(
+      within(card('page'))
+        .getAllByText(/^(bg|surface|text|text-muted|ink|focus)$/)
+        .map((el) => el.textContent),
+    ).toEqual(['bg', 'surface', 'text', 'text-muted', 'ink', 'focus']);
+  });
+
+  it('the six color cards share the color grid (two even rows of three, page last)', async () => {
     await open();
     const grid = card('primary').parentElement!;
     // gallery-css.test.ts pins the columns this class sets.
     expect(grid).toHaveClass('gallery-color-grid');
-    expect(grid).not.toHaveClass('gallery-grid');
     expect([...grid.children].map((el) => el.getAttribute('aria-label'))).toEqual(
-      ['primary', 'neutral', 'success', 'warning', 'danger'].map((c) => `${c} tokens`),
+      ['primary', 'neutral', 'success', 'warning', 'danger', 'page'].map((c) => `${c} tokens`),
     );
   });
 
@@ -102,7 +198,7 @@ describe('TokensPage', () => {
     await open();
     await userEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Dark' }));
     expect(within(card('neutral')).getByText('#2B2B37')).toBeInTheDocument();
-    expect(within(screen.getByRole('group', { name: 'Surface tokens' })).getByText('#15151C')).toBeInTheDocument();
+    expect(within(card('page')).getByText('#15151C')).toBeInTheDocument();
     await userEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Light' }));
     expect(within(card('neutral')).getByText('#FFFFFF')).toBeInTheDocument();
   });
@@ -118,93 +214,36 @@ describe('TokensPage', () => {
     }
   });
 
-  it('Type and Space are one compact row each, linking to their pages', async () => {
+  it('Color opens with the color flow, above the cards, drawn for the mode on screen', async () => {
     await open();
-    expect(screen.getByRole('link', { name: 'See Typography' })).toHaveAttribute('href', '/typography');
-    expect(screen.getByRole('link', { name: 'See Spacing' })).toHaveAttribute('href', '/spacing');
-    const type = screen.getByRole('region', { name: 'Type' });
-    expect([...type.querySelectorAll('.gallery-face')].map((el) => el.textContent)).toEqual([
-      'Lilita One',
-      'Nunito',
-      'Press Start',
-      'JetBrains Mono',
-    ]);
-    expect(screen.getByRole('region', { name: 'Space' }).querySelectorAll('.gallery-ruler__bar')).toHaveLength(SPACE_COUNT);
+    const flow = within(region('Color')).getByRole('group', { name: 'Where every color goes' });
+    expect(flow.compareDocumentPosition(card('primary')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(flow).getByRole('group', { name: /light mode$/ })).toBeInTheDocument();
+    await userEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Dark' }));
+    expect(within(flow).getByRole('group', { name: /dark mode$/ })).toBeInTheDocument();
   });
 
-  it('Shape has a tile per radius and shadow token, with its name and value', async () => {
-    await open();
-    const shape = screen.getByRole('region', { name: 'Shape' });
-    expect(shape.querySelectorAll('.gallery-shape')).toHaveLength(SHAPE_COUNT);
-    expect(within(shape).getByText('--bit-radius-6px')).toHaveClass('bit-code');
-    expect(within(shape).getByText('6px')).toBeInTheDocument();
-  });
-
-  it('All tokens: every token with a count, and a Copy for each that copies var(--name)', async () => {
-    await open();
-    const count = screen.getByText(`${SEMANTIC_TOKENS.length} of ${SEMANTIC_TOKENS.length} tokens`);
-    expect(count).toHaveClass('bit-badge');
-    expect(count).toHaveAttribute('role', 'status');
-    const table = screen.getByRole('region', { name: 'Token values' });
-    expect(within(table).getAllByRole('row')).toHaveLength(SEMANTIC_TOKENS.length + 1);
-    expect(within(table).getByRole('button', { name: 'Copy var(--bit-color-primary)' })).toBeInTheDocument();
-  });
-
-  it('each Copy sits in an end-pinned wrapper, and the header holds one inert widest-state ghost that sizes the column', async () => {
-    await open();
-    const table = screen.getByRole('region', { name: 'Token values' });
-    const button = within(table).getByRole('button', { name: 'Copy var(--bit-color-primary)' });
-    expect(button.parentElement).toHaveClass('gallery-copy-cell');
-    const ghosts = table.querySelectorAll('.gallery-copy-ghost');
-    expect(ghosts).toHaveLength(1);
-    const ghost = ghosts[0]!;
-    expect(ghost).toHaveAttribute('aria-hidden', 'true');
-    expect(ghost.closest('thead')).not.toBeNull();
-    const ghostButton = ghost.querySelector('button')!;
-    expect(ghostButton).toHaveTextContent('Copy failed');
-    expect(ghostButton).toHaveAttribute('tabindex', '-1');
-    // Not in the accessible tree, so no duplicate control.
-    expect(within(table).getAllByRole('button')).toHaveLength(SEMANTIC_TOKENS.length);
-  });
-
-  it("a row's Copy puts var(--name) on the clipboard", async () => {
+  it.each([
+    ['a color card hex', () => card('primary'), '#7C3AED'],
+    ['a Shape token name', () => region('Shape'), '--bit-radius-6px'],
+    ['a Space token name', () => card('space'), '--bit-space-16px'],
+    ['a color flow token', () => screen.getByRole('group', { name: 'Where every color goes' }), '--bit-color-accent'],
+  ])('clicking %s copies exactly what it shows', async (_, scope, shown) => {
     await open();
     const writeText = vi.fn(() => Promise.resolve());
     stubClipboard(writeText);
-    const table = screen.getByRole('region', { name: 'Token values' });
+    const chip = within(scope()).getByRole('button', { name: `Copy ${shown}` });
+    expect(chip).toHaveTextContent(shown);
     await act(async () => {
-      fireEvent.click(within(table).getByRole('button', { name: 'Copy var(--bit-color-primary)' }));
+      fireEvent.click(chip);
     });
-    expect(writeText).toHaveBeenCalledExactlyOnceWith('var(--bit-color-primary)');
+    expect(writeText).toHaveBeenCalledExactlyOnceWith(shown);
   });
 
-  it('the filter narrows the table and the count', async () => {
+  it('every hex chip in the color cards is a Copy chip', async () => {
     await open();
-    await userEvent.type(screen.getByLabelText('Filter'), 'SPACE');
-    const table = screen.getByRole('region', { name: 'Token values' });
-    expect(within(table).getAllByRole('row')).toHaveLength(SPACE_COUNT + 1);
-    expect(screen.getByText(`${SPACE_COUNT} of ${SEMANTIC_TOKENS.length} tokens`)).toBeInTheDocument();
-  });
-
-  it('no match: the message, the name format, and Clear filter, which restores the list and focuses the field', async () => {
-    await open();
-    const field = screen.getByLabelText('Filter');
-    await userEvent.type(field, 'sparkle');
-    expect(screen.queryByRole('region', { name: 'Token values' })).toBeNull();
-    expect(screen.getByText('No tokens match “sparkle”.')).toBeInTheDocument();
-    expect(screen.getByText('--bit-color-primary', { selector: 'code' })).toBeInTheDocument();
-    expect(screen.getByText(`0 of ${SEMANTIC_TOKENS.length} tokens`)).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'Clear filter' }));
-    expect(field).toHaveValue('');
-    expect(document.activeElement).toBe(field);
-    expect(screen.getByRole('region', { name: 'Token values' })).toBeInTheDocument();
-  });
-});
-
-describe('filterTokens', () => {
-  it('matches part of a name, ignoring case and outer spaces; empty keeps every name', () => {
-    expect(filterTokens(['--bit-color-bg', '--bit-space-4px'], ' COLOR ')).toEqual(['--bit-color-bg']);
-    expect(filterTokens(['--bit-color-bg'], '')).toEqual(['--bit-color-bg']);
-    expect(filterTokens(['--bit-color-bg'], 'zzz')).toEqual([]);
+    const codes = [...card('primary').parentElement!.querySelectorAll('code')];
+    expect(codes.length).toBeGreaterThan(0);
+    expect(codes.filter((code) => !code.closest('button.gallery-copy-chip'))).toEqual([]);
   });
 });

@@ -111,7 +111,7 @@ describe('GettingStartedPage', () => {
     it('explains each file: the theme first, then the component styles', async () => {
       await open();
       const items = within(main()).getAllByRole('listitem').map((li) => li.textContent);
-      expect(items).toContain('themes/power-up.css: the theme. Colours, fonts and sizes as --bit-* tokens, in light and dark. It comes first.');
+      expect(items).toContain('themes/power-up.css: the theme. Colors, fonts and sizes as --bit-* tokens, in light and dark. It comes first.');
       expect(items).toContain('styles.css: the component styles. They read the theme\'s tokens.');
     });
 
@@ -208,7 +208,7 @@ describe('GettingStartedPage', () => {
           'import { Button, Stack }: name every component you use, in one import from @bit-ds/react.',
           'export function Toolbar(): your own component. It returns the JSX to show.',
           '<Button>Save</Button>: a Button with its defaults. The text between the tags is its label.',
-          'color="danger": a prop that changes the colour.',
+          'color="danger": a prop that changes the color.',
           'className="bit-danger": the same change written as a class. The last two Buttons look the same.',
           '<Stack direction="row" gap={8} wrap>: lays the Buttons out in a row, 8px apart, and wraps them on a narrow screen.',
         ]),

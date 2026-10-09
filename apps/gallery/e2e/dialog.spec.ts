@@ -78,8 +78,8 @@ test.describe('Dialog page', () => {
     await expect(alert).toBeVisible();
     // It clears on its animationend, so the next click can shake again.
     await expect(alert).not.toHaveAttribute('data-shake');
-    // The red title bar: the header's background is the danger colour.
-    const colours = await alert.evaluate((el) => {
+    // The red title bar: the header's background is the danger color.
+    const colors = await alert.evaluate((el) => {
       const probe = document.createElement('div');
       probe.style.background = 'var(--bit-color-danger)';
       el.append(probe);
@@ -87,8 +87,8 @@ test.describe('Dialog page', () => {
       probe.remove();
       return { danger, header: getComputedStyle(el.querySelector('.bit-dialog__header')!).backgroundColor };
     });
-    expect(colours.header).toBe(colours.danger);
-    expect(colours.danger).not.toBe('rgba(0, 0, 0, 0)');
+    expect(colors.header).toBe(colors.danger);
+    expect(colors.danger).not.toBe('rgba(0, 0, 0, 0)');
     await alert.getByRole('button', { name: 'Close' }).click();
     await expect(alert).toBeHidden();
   });
