@@ -1,49 +1,86 @@
-import { Badge, Button, Card, Heading, Link, Stack } from '@bit-ds/react';
+import type { ReactNode } from 'react';
+import {
+  Badge,
+  Card,
+  CodeBlock,
+  Heading,
+  Link,
+  Stack,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TabList,
+  TabPanel,
+  Tabs,
+  Text,
+} from '@bit-ds/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { MANIFESTS, routeFor } from '../../manifests';
 import type { Manifest } from '../../manifests';
 import { renderManifest } from '../../engine/renderManifest';
 import { defaultState } from '../../engine/state';
 
-/** Components that get a large live tile. Every Forms component does too. */
-const HEADLINERS: readonly string[] = ['alert', 'button', 'card', 'segmentedcontrol'];
-
-/** The icon chip on a compact tile. A component missing here shows its first letter. */
-const GLYPHS: Readonly<Record<string, string>> = {
-  badge: '+1',
-  box: '□',
-  code: '<>',
-  codeblock: '{}',
-  heading: 'H',
-  icon: '★',
-  iconbutton: '⊡',
-  link: 'a',
-  modetoggle: '◐',
-  spinner: '◌',
-  stack: '≡',
-  table: '▦',
-  text: 'Aa',
-  tooltip: '▴',
+/**
+ * Compact samples for the demos too big for a tile (a full code panel, a props table, five tabs): the same
+ * component, cut down, so every tile shows its component whole and every row stays the same height.
+ */
+const COMPACT: Readonly<Record<string, () => ReactNode>> = {
+  codeblock: () => <CodeBlock language="jsx" code={'<Button size="lg" />'} copy={false} label="CodeBlock sample" />,
+  table: () => (
+    <Table aria-label="Table sample">
+      <TableHead>
+        <TableRow>
+          <TableCell>Item</TableCell>
+          <TableCell>Qty</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        <TableRow>
+          <TableCell>Coins</TableCell>
+          <TableCell>3</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell>Stars</TableCell>
+          <TableCell>1</TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  ),
+  // Its badges alone: the Stack page's demo sits them in a sized Box, too wide for a tile.
+  stack: () => (
+    <Stack gap={8}>
+      <Badge color="primary">One</Badge>
+      <Badge color="success">Two</Badge>
+      <Badge color="danger">Three</Badge>
+    </Stack>
+  ),
+  tabs: () => (
+    <Tabs defaultValue="one">
+      <TabList aria-label="Tabs sample">
+        <Tab value="one">One</Tab>
+        <Tab value="two">Two</Tab>
+      </TabList>
+      <TabPanel value="one">Level 1</TabPanel>
+      <TabPanel value="two">Level 2</TabPanel>
+    </Tabs>
+  ),
 };
 
-/** The compact tile's chip: the component's glyph, or its first letter when it has none. */
-export function glyphFor(manifest: Manifest): string {
-  return GLYPHS[manifest.slug] ?? manifest.name.charAt(0);
-}
-
-export function isLargeTile(manifest: Manifest): boolean {
-  return manifest.group === 'forms' || HEADLINERS.includes(manifest.slug);
-}
+const previewOf = (manifest: Manifest): ReactNode => COMPACT[manifest.slug]?.() ?? renderManifest(manifest, defaultState(manifest));
 
 /**
  * A live preview on top, the name and → below; the whole tile is one Link. The preview is inert: it shows
- * the component but takes no clicks or focus, so the tile stays a single link.
+ * the component but takes no clicks or focus, so the tile stays a single link. Every component gets the
+ * same tile, so the grid has even rows.
  */
-function LargeTile({ manifest }: { manifest: Manifest }) {
+function Tile({ manifest }: { manifest: Manifest }) {
   return (
     <Card className="gallery-tile">
       <div className="gallery-tile__preview" inert>
-        {renderManifest(manifest, defaultState(manifest))}
+        {previewOf(manifest)}
       </div>
       <Link asChild color="neutral" className="gallery-tile__link">
         <RouterLink to={routeFor(manifest)}>
@@ -54,55 +91,37 @@ function LargeTile({ manifest }: { manifest: Manifest }) {
   );
 }
 
-function CompactTile({ manifest }: { manifest: Manifest }) {
+function TileGroup({ title, lead, manifests }: { title: string; lead: string; manifests: readonly Manifest[] }) {
   return (
-    <Button asChild variant="outline" color="neutral" size="sm" className="gallery-chip">
-      <RouterLink to={routeFor(manifest)}>
-        <span aria-hidden="true">
-          <Badge variant="outline" size="sm">
-            {glyphFor(manifest)}
-          </Badge>
-        </span>
-        {manifest.name}
-        <span aria-hidden="true">→</span>
-      </RouterLink>
-    </Button>
-  );
-}
-
-function TileGroup({ title, manifests }: { title: string; manifests: readonly Manifest[] }) {
-  const large = manifests.filter(isLargeTile);
-  const compact = manifests.filter((m) => !isLargeTile(m));
-  return (
-    <Stack gap={16}>
+    <Stack gap={12}>
       <Stack direction="row" gap={8} align="center">
         <Heading level={2}>{title}</Heading>
         <Badge variant="outline">{String(manifests.length)}</Badge>
       </Stack>
-      {large.length > 0 ? (
-        <div className="gallery-tiles">
-          {large.map((m) => (
-            <LargeTile key={m.slug} manifest={m} />
-          ))}
-        </div>
-      ) : null}
-      {compact.length > 0 ? (
-        <div className="gallery-chips">
-          {compact.map((m) => (
-            <CompactTile key={m.slug} manifest={m} />
-          ))}
-        </div>
-      ) : null}
+      <Text color="neutral">{lead}</Text>
+      <div className="gallery-tiles">
+        {manifests.map((m) => (
+          <Tile key={m.slug} manifest={m} />
+        ))}
+      </div>
     </Stack>
   );
 }
 
-/** Every component and form control as a tile, from the manifests, so a new one shows up by itself. */
+/** Every component and form control as a live tile, from the manifests, so a new one shows up by itself. */
 export function ComponentTiles() {
   return (
-    <Stack gap={32}>
-      <TileGroup title="Components" manifests={MANIFESTS.filter((m) => m.group === 'components')} />
-      <TileGroup title="Forms" manifests={MANIFESTS.filter((m) => m.group === 'forms')} />
+    <Stack gap={48}>
+      <TileGroup
+        title="Components"
+        lead="Every component with a live preview. Pick one for its props, variants and examples."
+        manifests={MANIFESTS.filter((m) => m.group === 'components')}
+      />
+      <TileGroup
+        title="Forms"
+        lead="Inputs that behave like native ones in a form: name, required and reset all work."
+        manifests={MANIFESTS.filter((m) => m.group === 'forms')}
+      />
     </Stack>
   );
 }

@@ -36,12 +36,36 @@ describe('gallery.css, home page section', () => {
     expect(rule('.gallery-tiles')).not.toMatch(/align-items|align-self/);
   });
 
-  it('a tile and a chip draw no paint of their own: Card and Button do', () => {
+  it('a tile draws no paint of their own: Card does; the old compact chip rows are gone', () => {
     for (const paint of ['background', 'border:', 'border-radius', 'box-shadow']) {
       expect(rule('.gallery-tile')).not.toContain(paint);
     }
+    expect(rule('.gallery-chips')).toBeNull();
     expect(rule('.gallery-chip')).toBeNull();
-    expect(rule('.gallery-chip__glyph')).toBeNull();
+  });
+
+  it('the tiles: as many 14rem columns as fit, so a desktop shows 20 components as five even rows of four', () => {
+    expect(rule('.gallery-tiles')).toContain('grid-template-columns: repeat(auto-fill, minmax(min(14rem, 100%), 1fr));');
+  });
+
+  it('the hero: one column on a narrow screen, then the intro beside the quick start card', () => {
+    expect(rule('.gallery-hero')).toContain('display: grid;');
+    expect(rule('.gallery-hero')).toContain('grid-template-columns: minmax(0, 1fr);');
+    const wide = /@media \(min-width: 70rem\) \{\s*\.gallery-hero \{([^}]*)\}/.exec(home)?.[1] ?? '';
+    expect(wide).toContain('grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);');
+  });
+
+  it('the facts: two by two under the buttons, each count in the pixel face and the link color, its label beside it', () => {
+    const facts = rule('.gallery-facts');
+    expect(facts).toContain('display: grid;');
+    expect(facts).toContain('grid-template-columns: repeat(2, minmax(0, 1fr));');
+    // A list for screen readers, with no bullets.
+    expect(facts).toContain('padding: 0;');
+    expect(rule('.gallery-fact')).toContain('align-items: baseline;');
+    const count = rule('.gallery-fact__count');
+    expect(count).toContain('font-family: var(--bit-font-pixel);');
+    expect(count).toContain('font-size: var(--bit-text-24px);');
+    expect(count).toContain('color: var(--bit-color-link);');
   });
 
   it('the naming-rule codes never wrap mid-word, scoped to that table', () => {
