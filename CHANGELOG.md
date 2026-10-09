@@ -2,6 +2,12 @@
 
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
+## 0.1.7 — 2026-10-09
+### Changed
+- CodeBlock: attributes (JSX and HTML) and shell flags are orchid `#EC8FFF` (`--bit-code-attr`), no longer orange `#FFB86B`, so they stand apart from component names (yellow) and stay close to props (pink). Contrast is 8.6:1 on the code background.
+- Badge: a badge made wider than its label (a stretched `Stack` child, a grid cell, a set width) centers the label instead of leaving it at the left.
+- Stack: with `justify` or `align` set to `center` or `end`, children too big for the Stack now spill past its end, where you can scroll to them, instead of off its start, where you can't.
+
 ## 0.1.6 — 2026-10-08
 ### Added
 - `Icon`: draws one of 300 Material Symbols icons (Sharp, weight 700) as an inline `<svg>`. Pass an icon export: `<Icon icon={iconFavorite} />`. `size` is `sm`/`md`/`lg` (16, 20, 24px, default `md`); `color` takes a colour role, or leave it off to follow the text colour.

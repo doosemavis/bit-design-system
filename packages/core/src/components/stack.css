@@ -17,12 +17,14 @@
 .bit-stack[data-gap="48"] { gap: var(--bit-space-48px); }
 .bit-stack[data-gap="64"] { gap: var(--bit-space-64px); }
 
+/* center and end are safe: children too big for the Stack spill past its end, where a scroll can reach them,
+   never off its start. The plain value first is for browsers that don't know safe. */
 .bit-stack[data-align="start"] { align-items: flex-start; }
-.bit-stack[data-align="center"] { align-items: center; }
-.bit-stack[data-align="end"] { align-items: flex-end; }
+.bit-stack[data-align="center"] { align-items: center; align-items: safe center; }
+.bit-stack[data-align="end"] { align-items: flex-end; align-items: safe flex-end; }
 .bit-stack[data-align="stretch"] { align-items: stretch; }
 
 .bit-stack[data-justify="start"] { justify-content: flex-start; }
-.bit-stack[data-justify="center"] { justify-content: center; }
-.bit-stack[data-justify="end"] { justify-content: flex-end; }
+.bit-stack[data-justify="center"] { justify-content: center; justify-content: safe center; }
+.bit-stack[data-justify="end"] { justify-content: flex-end; justify-content: safe flex-end; }
 .bit-stack[data-justify="between"] { justify-content: space-between; }
