@@ -5,6 +5,7 @@
 .bit-badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--bit-space-4px);
   font-family: var(--bit-font-pixel);
   text-transform: uppercase;

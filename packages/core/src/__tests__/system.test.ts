@@ -348,6 +348,23 @@ describe('components/badge.css', () => {
     expect(block(css, '.bit-badge')).toContain('border-radius: var(--bit-radius-full);');
     expect(block(css, '.bit-badge[data-shape="square"]')).toContain('border-radius: var(--bit-radius-6px);');
   });
+  it('centers its label when made wider than its text (a stretched Stack child, a grid cell), like Button', () => {
+    expect(decl(block(css, '.bit-badge') ?? '', 'justify-content')).toBe('center');
+  });
+});
+
+describe('components/stack.css: children too big for the Stack spill past its end, never off its start', () => {
+  const css = readCss('components/stack.css');
+  // Plain end or center pushes overflow off the start side, where no scroll can reach it. safe falls back to
+  // start when the children don't fit. The plain value comes first for browsers that don't know safe.
+  it.each([
+    ['[data-justify="end"]', 'justify-content', 'flex-end'],
+    ['[data-justify="center"]', 'justify-content', 'center'],
+    ['[data-align="end"]', 'align-items', 'flex-end'],
+    ['[data-align="center"]', 'align-items', 'center'],
+  ])('.bit-stack%s: %s safe %s, after the plain value', (attr, property, value) => {
+    expect(block(css, `.bit-stack${attr}`)).toBe(` ${property}: ${value}; ${property}: safe ${value}; `);
+  });
 });
 
 describe('components/badge.css lg', () => {
