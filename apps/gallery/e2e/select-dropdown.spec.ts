@@ -14,9 +14,12 @@ async function listOf(page: Page, trigger: Locator): Promise<Locator> {
   return page.locator(`[id="${id}"]`);
 }
 
-/** Put the trigger mid-viewport, so its list has room to open below. */
+/**
+ * Put the trigger mid-viewport, so its list has room to open below. Instant: the gallery scrolls smoothly, and a
+ * click mid-scroll would open the list near the viewport's bottom, where it flips up.
+ */
 async function centre(trigger: Locator): Promise<void> {
-  await trigger.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await trigger.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
 }
 
 /** True when the topmost element at the centre of `row` is the row itself or inside it: nothing clips or covers it. */
@@ -30,11 +33,11 @@ function hitsItself(row: Locator): Promise<boolean> {
 
 test.describe('a ControlsPanel Select inside the one-card playground', () => {
   test('opens a list that is visible, inside the viewport and not clipped by the card; choosing updates the preview and the URL', async ({ page }) => {
-    // Stack's justify is the last control in the card at 1280px: its list overhangs the card's bottom edge.
+    // Stack's container height is the last control in the card at 1280px: its list overhangs the card's bottom edge.
     await page.goto('#/components/stack');
     await expect(page.getByRole('heading', { level: 1, name: 'Stack' })).toBeVisible();
     const card = page.locator('.bit-card.gallery-playground__top');
-    const trigger = card.getByRole('combobox', { name: 'justify' });
+    const trigger = card.getByRole('combobox', { name: 'container height' });
     await centre(trigger);
     await trigger.click();
     await expect(trigger).toHaveAttribute('aria-expanded', 'true');
@@ -61,10 +64,10 @@ test.describe('a ControlsPanel Select inside the one-card playground', () => {
     // The last row, below the card's edge, takes the click.
     await rows.last().click();
     await expect(list).toBeHidden();
-    await expect(trigger).toHaveText('between');
+    await expect(trigger).toHaveText('200');
     await expect(trigger).toBeFocused();
-    await expect(page.getByRole('region', { name: 'Stack preview' }).locator('.bit-stack').first()).toHaveAttribute('data-justify', 'between');
-    expect(new URL(page.url()).hash).toBe('#/components/stack?justify=between');
+    await expect(page.getByRole('region', { name: 'Stack preview' }).locator('.bit-box').first()).toHaveCSS('height', '200px');
+    expect(new URL(page.url()).hash).toBe('#/components/stack?containerHeight=200');
   });
 
   test('chooses by keyboard: Enter opens, the arrows move, Enter chooses; Escape closes without choosing', async ({ page }) => {

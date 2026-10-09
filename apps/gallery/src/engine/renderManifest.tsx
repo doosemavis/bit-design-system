@@ -4,6 +4,7 @@ import type { ChildSpec, ControlState, Manifest } from '../manifests/types';
 import { COMPONENTS, isHtmlElement } from '../manifests/registry';
 import { activeDemo, childSpecs } from './childSpecs';
 import { buildProps } from './buildProps';
+import { defaultState } from './state';
 
 /** One ChildSpec as an element, with its nested parts rendered the same way. */
 function renderChild(child: ChildSpec, index: number): ReactElement {
@@ -22,5 +23,5 @@ function renderChildren(manifest: Manifest, state: ControlState): ReactNode {
 export function renderManifest(manifest: Manifest, state: ControlState): ReactElement {
   const element = createElement(manifest.component, buildProps(manifest, state), renderChildren(manifest, state));
   const demo = activeDemo(manifest, state);
-  return demo ? demo.render(element) : element;
+  return demo ? demo.render(element, { ...defaultState(manifest), ...state }) : element;
 }

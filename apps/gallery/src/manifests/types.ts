@@ -106,7 +106,8 @@ export interface ManifestDocs {
 
 /**
  * A stateful wrapper for a component that can't show itself alone (a Dialog needs a trigger and open state).
- * The preview renders `render(element)`; the printed code adds the imports and setup lines and wraps the element.
+ * The preview renders `render(element, state)`; the printed code adds the imports and setup lines and wraps the element.
+ * Both get the full state, defaults merged in, so a demo can follow a virtual control (Stack's container width).
  */
 export interface ManifestDemo {
   /**
@@ -114,7 +115,7 @@ export interface ManifestDemo {
    * bare element. It gets the full state, defaults merged in. Leave it off for a demo that always applies (Dialog).
    */
   when?: (state: ControlState) => boolean;
-  render: (element: ReactElement) => ReactElement;
+  render: (element: ReactElement, state: ControlState) => ReactElement;
   code: {
     /** Named imports from 'react' (`useState`), printed on their own line above the bit import. */
     reactImports: readonly string[];
@@ -122,10 +123,10 @@ export interface ManifestDemo {
     bitImports: readonly string[];
     /** Lines at the top of the component body (`const [open, setOpen] = useState(false);`). */
     setup: readonly string[];
-    /** Attributes printed first on the element (`open={open}`). */
-    props: readonly string[];
+    /** Attributes printed first on the element (`open={open}`), or a function of the state for ones that follow a control. */
+    props: readonly string[] | ((state: ControlState) => readonly string[]);
     /** The JSX around the element. */
-    wrap: (elementJsx: string) => string;
+    wrap: (elementJsx: string, state: ControlState) => string;
   };
 }
 

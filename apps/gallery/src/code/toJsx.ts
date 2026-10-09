@@ -237,7 +237,8 @@ export function toJsx(manifest: Manifest, state: ControlState, options: ToJsxOpt
   const { names, consts } = resolveHoisted([...printed, ...[...printedProps.values()].flat()]);
   const demo = activeDemo(manifest, state)?.code;
   const imported = importedProps(manifest, state);
-  const props = [...(demo?.props ?? []), ...imported.map((p) => `${p.prop}={${p.name}}`), ...printed.map((p) => attr(p, names))].map((p) => ` ${p}`).join('');
+  const demoProps = typeof demo?.props === 'function' ? demo.props({ ...defaults, ...state }) : (demo?.props ?? []);
+  const props = [...demoProps, ...imported.map((p) => `${p.prop}={${p.name}}`), ...printed.map((p) => attr(p, names))].map((p) => ` ${p}`).join('');
 
   const open = `<${manifest.name}${props}`;
   let element: string;
@@ -250,7 +251,7 @@ export function toJsx(manifest: Manifest, state: ControlState, options: ToJsxOpt
   } else {
     element = `${open} />`;
   }
-  if (demo) element = demo.wrap(element);
+  if (demo) element = demo.wrap(element, { ...defaults, ...state });
   const setup = demo && demo.setup.length > 0 ? [demo.setup.join('\n')] : [];
   return [importLine(manifest, specs, demo, imported.map((p) => p.name)), ...consts, ...setup, element].join('\n\n');
 }

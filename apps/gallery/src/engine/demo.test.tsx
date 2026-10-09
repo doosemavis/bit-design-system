@@ -86,6 +86,30 @@ describe('engine: demo wrapper', () => {
     expect(toJsx(sometimes, { loud: true })).toBe(toJsx(withDemo, defaultState(withDemo)));
   });
 
+  it('render and wrap get the full state, defaults merged in, so a demo can follow a virtual control', () => {
+    const titled = testManifest({
+      ...withDemo,
+      demo: {
+        ...withDemo.demo!,
+        render: (element, state) => <section data-testid="demo" data-title={String(state.title)}>{element}</section>,
+        code: { ...withDemo.demo!.code, wrap: (jsx, state) => `<Frame title="${String(state.title)}">\n${jsx}\n</Frame>` },
+      },
+    });
+    render(renderManifest(titled, {}));
+    expect(screen.getByTestId('demo')).toHaveAttribute('data-title', 'Hello');
+    expect(toJsx(titled, { title: 'Hi' })).toContain('<Frame title="Hi">');
+    expect(toJsx(titled, {})).toContain('<Frame title="Hello">');
+  });
+
+  it('demo props can follow the state too: a function of it, printed first on the element', () => {
+    const loud = testManifest({
+      ...withDemo,
+      demo: { ...withDemo.demo!, code: { ...withDemo.demo!.code, props: (state) => (state.loud === true ? ['data-loud'] : []) } },
+    });
+    expect(toJsx(loud, { loud: true })).toContain('<Panel data-loud>');
+    expect(toJsx(loud, {})).toContain('<Panel>');
+  });
+
   it('a module-level const (a hoisted options array) still goes above the component', () => {
     const file = fullFile("import { X } from '@bit-ds/react';\n\nconst options = [\n  'a',\n];\n\n<X options={options} />");
     expect(file.indexOf('const options')).toBeLessThan(file.indexOf('export function Example()'));
