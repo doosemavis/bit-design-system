@@ -39,6 +39,8 @@ Versions and release notes: [all versions](https://doosemavis.github.io/bit-desi
 
 ## How it's tested
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 Every pull request runs all of this in CI ([workflow](https://github.com/doosemavis/bit-design-system/blob/main/.github/workflows/ci.yml)). Releases publish only from a tagged commit on `main`, and the release job runs the package checks again before publishing:
 
 - **Unit tests** (Vitest and Testing Library) for every component, with 100% statement, branch, function and line coverage on `@bit-ds/react`.
@@ -53,6 +55,8 @@ Every pull request runs all of this in CI ([workflow](https://github.com/doosema
 There is no screenshot-diff (visual regression) suite yet. Visual changes are reviewed with light and dark screenshots before they merge.
 
 ## Install
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 Needs React 19 (`react` and `react-dom` ^19).
 
@@ -84,6 +88,8 @@ Or put the styles at the very top of your global stylesheet (`src/index.css` or 
 
 ## The naming rule
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 | You write (prop) | Or write (className) | Class it emits | Token |
 | --- | --- | --- | --- |
 | `color="primary"` | `className="bit-primary"` | `bit-primary` | `--bit-color-primary` |
@@ -105,6 +111,8 @@ A decorator in `className` replaces the prop's decorator for that axis: `<Button
 
 ## Two ways to use every static component
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 ```tsx
 <Card><CardHeader>Stats</CardHeader></Card>
 <div className="bit-card bit-solid"><div className="bit-card__header">Stats</div></div>
@@ -113,6 +121,8 @@ A decorator in `className` replaces the prop's decorator for that axis: `<Button
 Both render identically. Switch and SegmentedControl are native inputs, so their markup works as plain HTML too. ModeToggle and CodeBlock's Copy button need React: the classes give the look, and the React component gives the behavior (the stored mode, the clipboard).
 
 ## Icons
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 300 Material Symbols icons (Sharp, weight 700), each with a fill version. Browse them and copy any one from the Icon page of the docs.
 
@@ -154,6 +164,8 @@ The package is MIT. The icon artwork is Apache 2.0: Material Symbols by Google, 
 
 ## Components
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 - **Actions and status:** Button, Badge, Alert, Spinner
 - **Layout and type:** Card (+ CardHeader, CardBody, CardFooter), Stack, Box, Text, Heading
 - **Forms:** Field, Input, Select, Switch
@@ -174,6 +186,8 @@ Every one works in light and dark mode, and anything focusable shows the one foc
 - `CodeBlock` takes an optional `label` (default `` `${language} code` ``). Its code area is a named region, so give each CodeBlock a unique `label` when a page has several in the same language. A failed copy turns the Copy button solid danger red.
 
 ## Utilities
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 `announce()` says a short message to screen readers, for results that appear without a focus move, such as "Saved".
 
@@ -204,6 +218,8 @@ const { state, label, copy } = useCopyToClipboard(command);
 
 ## Themes
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 A theme is one CSS file that fills in every semantic token. Switch with an attribute:
 
 ```html
@@ -211,6 +227,8 @@ A theme is one CSS file that fills in every semantic token. Switch with an attri
 ```
 
 ### Light and dark
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 Set the theme and the mode on `<html>`:
 
@@ -240,6 +258,8 @@ It applies a saved choice; with none it sets `system` when `<html>` has no `data
 
 ## Fonts
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 The fonts ship in the package. The theme's `@font-face` rules load Lilita One, Nunito, Press Start 2P, Audiowide and JetBrains Mono from woff2 files next to it (`themes/fonts/`), so your bundler serves them from your own site with nothing extra to import.
 
 - The theme makes no third-party requests: no Google Fonts, and no CSP exception for a font host. `font-src 'self'` covers it; add `data:` if your bundler inlines small files (Vite does under 4 KB).
@@ -249,11 +269,15 @@ The fonts ship in the package. The theme's `@font-face` rules load Lilita One, N
 
 ## Links
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 - Docs: https://doosemavis.github.io/bit-design-system/
 - Design spec: https://github.com/doosemavis/bit-design-system/blob/main/docs/superpowers/specs/2026-09-06-bit-design-system-design.md
 - Source and issues: https://github.com/doosemavis/bit-design-system
 
 ## Contributing
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 Working on bit itself? See [CONTRIBUTING.md](https://github.com/doosemavis/bit-design-system/blob/main/CONTRIBUTING.md).
 
