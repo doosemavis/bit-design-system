@@ -95,7 +95,7 @@ html {
   margin: 0 0 var(--bit-space-8px);
 }
 
-/* Full text colour. Doubled with .bit-text.bit-neutral so it outranks the muted shade bit Text gives a neutral. */
+/* Full text color. Doubled with .bit-text.bit-neutral so it outranks the muted shade bit Text gives a neutral. */
 .gallery-sidebar__title.bit-text.bit-neutral {
   color: var(--bit-color-text);
 }
@@ -371,7 +371,7 @@ html {
   background: var(--bit-color-accent);
 }
 
-/* Forced colours would drop the background and leave the ruler empty; draw the bar in the text colour. */
+/* Forced colors would drop the background and leave the ruler empty; draw the bar in the text color. */
 @media (forced-colors: active) {
   .gallery-ruler__bar {
     forced-color-adjust: none;
@@ -438,7 +438,7 @@ html {
 
 /* The presets row and the sidebar scroll on their own background: a transparent track and a solid accent
    thumb, the same slim shape as the CodeBlock's (the transparent border stays part of the grab area, and
-   nothing changes on hover). Forced colours draw their own scrollbars. */
+   nothing changes on hover). Forced colors draw their own scrollbars. */
 @media not (forced-colors: active) {
   .gallery-presets::-webkit-scrollbar { height: 14px; }
   .gallery-sidebar::-webkit-scrollbar { width: 14px; }
@@ -555,8 +555,8 @@ html {
 
 /* ---------- tokens page ---------- */
 
-/* The five color role cards: one column on a phone, 3 + 2 from 30rem, and all five in one row from 70rem
-   (the 1120px-wide window where five 10rem cards fit beside the sidebar). Never 4 + 1 with danger alone. */
+/* The six color cards (the five roles, then page): one column on a phone, and two even rows of three from
+   30rem. No wider step, so it is never 5 + 1 or 4 + 2. */
 .gallery-color-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -569,10 +569,127 @@ html {
   }
 }
 
-@media (min-width: 70rem) {
-  .gallery-color-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+/* The page card's six swatches: two columns once the card is wide enough (from a 1120px window), so it is
+   no taller than a four-row role card; one column in a narrower card. 7rem fits the widest row. */
+.gallery-swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  gap: var(--bit-space-8px) var(--bit-space-12px);
+}
+
+/* The color flow (palette → tokens) on the Tokens page: a fixed-ratio SVG, so on a narrow screen it keeps
+   a readable 40rem and scrolls sideways instead of shrinking its labels. */
+.gallery-flow {
+  overflow-x: auto;
+}
+
+.gallery-flow > svg {
+  display: block;
+  width: 100%;
+  min-width: 40rem;
+}
+
+/* The token cards under Color (Type, Space, Shape, System): as many 17rem columns as fit, so three on a
+   desktop and one on a phone, never a card too narrow for its longest token name. A long family spans the
+   grid and lays its rows out in columns of the same width. A section of long values (Shape) uses 24rem
+   columns instead, so its full-width shadow card has room to keep every value on one line. */
+.gallery-token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
+  gap: var(--bit-space-12px);
+}
+
+.gallery-token-grid--wide {
+  grid-template-columns: repeat(auto-fit, minmax(min(24rem, 100%), 1fr));
+}
+
+.gallery-token-card--full {
+  grid-column: 1 / -1;
+}
+
+.gallery-token-rows {
+  display: grid;
+  gap: var(--bit-space-12px);
+}
+
+.gallery-token-rows--columns {
+  grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));
+  column-gap: var(--bit-space-24px);
+}
+
+.gallery-token-rows--wide {
+  grid-template-columns: repeat(auto-fill, minmax(min(24rem, 100%), 1fr));
+  column-gap: var(--bit-space-24px);
+}
+
+/* One token row, the same in every card: a 64px preview column (the widest sample is the 64px space bar),
+   then the name, a dotted leader and the value on one line, then the Copy chip under the name. The leader
+   takes the spare width, so every value in a card ends at the same right edge and the dots tie it to its
+   name. Every row is at least the preview's 48px. */
+.gallery-token-row {
+  display: grid;
+  grid-template-columns: var(--bit-space-64px) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--bit-space-12px);
+}
+
+.gallery-token-row__preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: var(--bit-space-48px);
+}
+
+.gallery-token-row__text {
+  display: grid;
+  grid-template-columns: auto minmax(var(--bit-space-16px), 1fr) auto;
+  align-items: baseline;
+  column-gap: var(--bit-space-8px);
+  row-gap: var(--bit-space-4px);
+}
+
+/* On a phone the line tightens (an 8px leader, 4px gaps) so the longest value, the inset shadow, still fits. */
+@media (max-width: 30rem) {
+  .gallery-token-row__text {
+    grid-template-columns: auto minmax(var(--bit-space-8px), 1fr) auto;
+    column-gap: var(--bit-space-4px);
   }
+}
+
+/* The dots: an empty span, so it sits at the line's bottom and lifts by about a descender to meet the text. */
+.gallery-token-row__leader {
+  align-self: end;
+  margin-bottom: 0.35em;
+  border-bottom: 2px dotted var(--bit-color-text-muted);
+}
+
+/* One line, always: the leader gives way first, and the cards are sized so no value needs to wrap. */
+.gallery-token-row__value {
+  grid-column: 3;
+  white-space: nowrap;
+}
+
+.gallery-token-row__chip {
+  grid-column: 1 / -1;
+  justify-self: start;
+  max-width: 100%;
+}
+
+/* A long token name wraps inside its chip instead of running out of a narrow card. */
+.gallery-token-row__chip .bit-code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* A Code chip that copies itself (ui/CopyChip): a bare button around the chip, so only the chip shows.
+   The theme's :focus-visible ring still draws around it. */
+.gallery-copy-chip {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
 }
 
 /* A color sample: the token's own color, set inline through var(), edged so white and the page bg show. */
@@ -584,22 +701,94 @@ html {
   border-radius: var(--bit-radius-6px);
 }
 
-/* A shape sample: a surface square that takes one radius or shadow token inline. */
+/* A shape sample: a surface tile that takes one radius, shadow or line token inline. 48 × 32, so a 6px
+   shadow still fits the 64px preview column of a token row. */
 .gallery-shape {
-  width: var(--bit-space-64px);
-  height: var(--bit-space-48px);
+  width: var(--bit-space-48px);
+  height: var(--bit-space-32px);
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
 }
 
 /* ---------- home page ---------- */
 
-/* Large tiles: a live preview over a footer link. The link's ::after covers the tile, so the whole tile
-   is one link while the preview inside stays inert. Tiles in a row stretch to one height; each is a flex
-   column whose preview takes the spare height, so every link row sits on the tile's floor. */
+/* The hero: the logo, tagline and buttons, then the quick start card. Stacked on a narrow screen; side by
+   side from 70rem, where the card's code lines fit without scrolling. */
+.gallery-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--bit-space-32px);
+}
+
+@media (min-width: 70rem) {
+  .gallery-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+/* Four facts, two by two under the hero's buttons, so the intro is about as tall as the quick start card
+   beside it. A list for screen readers. Each card is compact: the count and its label share one line. */
+.gallery-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bit-space-12px);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gallery-facts .bit-card__body {
+  padding: var(--bit-space-12px) var(--bit-space-16px);
+}
+
+.gallery-fact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--bit-space-8px);
+}
+
+/* The count: the pixel face, larger, in the link color (violet by day, lilac at night). */
+.gallery-fact__count {
+  font-family: var(--bit-font-pixel);
+  font-size: var(--bit-text-24px);
+  color: var(--bit-color-link);
+}
+
+/* A "start building" card: its body fills the card and its link sits on the floor, so the three links line up. */
+.gallery-start-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-start-card > .bit-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bit-space-12px);
+}
+
+.gallery-start-card__link {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.gallery-steps {
+  margin: 0;
+  padding-left: var(--bit-space-24px);
+  display: grid;
+  gap: var(--bit-space-4px);
+}
+
+/* Tiles: a live preview over a footer link. The link's ::after covers the tile, so the whole tile is one
+   link while the preview inside stays inert. Every component gets the same tile, as many 14rem columns as
+   fit: 20 components are five even rows of four on a desktop. Tiles in a row stretch to one height; each is
+   a flex column whose preview takes the spare height, so every link row sits on the tile's floor. */
 .gallery-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(14rem, 100%), 1fr));
   gap: var(--bit-space-16px);
 }
 
@@ -640,37 +829,9 @@ html {
   outline: none;
 }
 
-/* Compact tiles: a glyph chip, the name and →, all one link. */
-.gallery-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--bit-space-12px);
-}
-
 /* The naming rule: a code never wraps mid-word; on a phone the Table scrolls sideways inside its border. */
 .gallery-naming .bit-code {
   white-space: nowrap;
-}
-
-/* The All tokens Copy column. The button's text changes ("Copy", "Copied", "Copy failed"). The header cell
-   holds a hidden "Copy failed" button, the widest state, so the column is always wide enough and only the
-   button resizes. The header text and the ghost share one grid area. Body cells pin the button to the end. */
-.gallery-copy-head {
-  display: grid;
-  justify-items: end;
-}
-
-.gallery-copy-head > * {
-  grid-area: 1 / 1;
-}
-
-.gallery-copy-ghost {
-  visibility: hidden;
-}
-
-.gallery-copy-cell {
-  display: flex;
-  justify-content: flex-end;
 }
 
 .gallery-old-version {

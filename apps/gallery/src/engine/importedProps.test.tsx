@@ -8,7 +8,7 @@ import { toJsx } from '../code/toJsx';
 import { CODE_FORMATS } from '../code/codeFormats';
 import { componentSections } from '../pages/component/sections';
 
-/** Badge with the four hooks: a colour axis that starts at none, an imported prop, an HTML override and an extra section. */
+/** Badge with the four hooks: a color axis that starts at none, an imported prop, an HTML override and an extra section. */
 const hooked: Manifest = {
   ...badge,
   controls: [

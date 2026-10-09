@@ -27,7 +27,7 @@ describe('Select page: the options control', () => {
     expect(optionCount(undefined)).toBe(5);
   });
 
-  it('starts with the five colours, then fruit, values lowercase', () => {
+  it('starts with the five colors, then fruit, values lowercase', () => {
     expect(staticProps(select, { optionCount: '7' }).options).toEqual([
       { value: 'primary', label: 'Primary' },
       { value: 'neutral', label: 'Neutral' },

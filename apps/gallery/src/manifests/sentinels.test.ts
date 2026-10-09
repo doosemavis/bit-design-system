@@ -43,7 +43,7 @@ describe('preview and code agree on sentinels (D12)', () => {
   });
 });
 
-describe('axis sentinels (Icon colour: none leaves the prop off)', () => {
+describe('axis sentinels (Icon color: none leaves the prop off)', () => {
   const axis: Control = { kind: 'axis', prop: 'color', values: ['none', 'primary'], default: 'none' };
   it('an axis value "none" means leave the prop off', () => expect(isOmittedSentinel(axis, 'none')).toBe(true));
   it('a real axis value is kept', () => expect(isOmittedSentinel(axis, 'primary')).toBe(false));

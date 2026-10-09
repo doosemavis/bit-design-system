@@ -33,7 +33,7 @@ describe('Sidebar', () => {
     expect(screen.getByRole('link', { name: 'Tokens' })).toHaveAttribute('aria-current', 'page');
   });
 
-  it('group titles are Text in its neutral colour, so the muted shade comes from bit', () => {
+  it('group titles are Text in its neutral color, so the muted shade comes from bit', () => {
     renderSidebar(NAV);
     expect(screen.getByRole('heading', { level: 2, name: 'Foundations' })).toHaveClass('bit-text', 'bit-neutral');
   });

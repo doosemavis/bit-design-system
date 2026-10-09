@@ -23,7 +23,23 @@ Browse every component, with live controls and copyable code, in the docs: https
 
 Versions and release notes: [all versions](https://doosemavis.github.io/bit-design-system/#/versions) and [release notes](https://doosemavis.github.io/bit-design-system/#/release-notes).
 
+## Contents
+
+- [How it's tested](#how-its-tested)
+- [Install](#install)
+- [The naming rule](#the-naming-rule)
+- [Two ways to use every static component](#two-ways-to-use-every-static-component)
+- [Icons](#icons)
+- [Components](#components)
+- [Utilities](#utilities)
+- [Themes](#themes) · [Light and dark](#light-and-dark)
+- [Fonts](#fonts)
+- [Links](#links)
+- [Contributing](#contributing)
+
 ## How it's tested
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 Every pull request runs all of this in CI ([workflow](https://github.com/doosemavis/bit-design-system/blob/main/.github/workflows/ci.yml)). Releases publish only from a tagged commit on `main`, and the release job runs the package checks again before publishing:
 
@@ -32,13 +48,15 @@ Every pull request runs all of this in CI ([workflow](https://github.com/doosema
 - **Accessibility in a real browser:** Playwright opens every docs page in light and dark mode and fails on any axe violation of the WCAG 2.0, 2.1 and 2.2 A and AA rules.
 - **Keyboard and focus:** Select's keyboard model (arrows, Home and End, Page Up and Page Down, typeahead, Enter, Space, Escape, Tab) is tested key by key, along with where focus goes and how it behaves in a form (`required`, reset, `form="id"`).
 - **Dialog and Tabs:** Dialog is tested for focus moving in (to `data-autofocus`), Esc and the × closing it, focus returning to the opener, and an `alert` dialog ignoring clicks on the dimmed page; in a real browser, Playwright checks the page behind is inert and won't take focus. Tabs are tested for the one Tab stop, arrows (swapped right-to-left), Home and End, skipping disabled tabs, and manual activation.
-- **Colour contrast, computed:** tests read the theme tokens and compute WCAG contrast ratios in light and dark, so a colour change that drops text below 4.5:1 fails the build.
-- **Forced colours (Windows High Contrast):** Playwright runs pages with `forced-colors: active` and checks that states such as invalid still show without colour.
+- **Color contrast, computed:** tests read the theme tokens and compute WCAG contrast ratios in light and dark, so a color change that drops text below 4.5:1 fails the build.
+- **Forced colors (Windows High Contrast):** Playwright runs pages with `forced-colors: active` and checks that states such as invalid still show without color.
 - **The published package:** before every release the built package is installed into a fresh TypeScript app, type-checked, and imported through both ESM and CommonJS. A Vite app checks that the CSS and fonts load, all from the package, with nothing from a third party.
 
 There is no screenshot-diff (visual regression) suite yet. Visual changes are reviewed with light and dark screenshots before they merge.
 
 ## Install
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 Needs React 19 (`react` and `react-dom` ^19).
 
@@ -70,6 +88,8 @@ Or put the styles at the very top of your global stylesheet (`src/index.css` or 
 
 ## The naming rule
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 | You write (prop) | Or write (className) | Class it emits | Token |
 | --- | --- | --- | --- |
 | `color="primary"` | `className="bit-primary"` | `bit-primary` | `--bit-color-primary` |
@@ -91,6 +111,8 @@ A decorator in `className` replaces the prop's decorator for that axis: `<Button
 
 ## Two ways to use every static component
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 ```tsx
 <Card><CardHeader>Stats</CardHeader></Card>
 <div className="bit-card bit-solid"><div className="bit-card__header">Stats</div></div>
@@ -99,6 +121,8 @@ A decorator in `className` replaces the prop's decorator for that axis: `<Button
 Both render identically. Switch and SegmentedControl are native inputs, so their markup works as plain HTML too. ModeToggle and CodeBlock's Copy button need React: the classes give the look, and the React component gives the behavior (the stored mode, the clipboard).
 
 ## Icons
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 300 Material Symbols icons (Sharp, weight 700), each with a fill version. Browse them and copy any one from the Icon page of the docs.
 
@@ -140,6 +164,8 @@ The package is MIT. The icon artwork is Apache 2.0: Material Symbols by Google, 
 
 ## Components
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 - **Actions and status:** Button, Badge, Alert, Spinner
 - **Layout and type:** Card (+ CardHeader, CardBody, CardFooter), Stack, Box, Text, Heading
 - **Forms:** Field, Input, Select, Switch
@@ -160,6 +186,8 @@ Every one works in light and dark mode, and anything focusable shows the one foc
 - `CodeBlock` takes an optional `label` (default `` `${language} code` ``). Its code area is a named region, so give each CodeBlock a unique `label` when a page has several in the same language. A failed copy turns the Copy button solid danger red.
 
 ## Utilities
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 `announce()` says a short message to screen readers, for results that appear without a focus move, such as "Saved".
 
@@ -190,6 +218,8 @@ const { state, label, copy } = useCopyToClipboard(command);
 
 ## Themes
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 A theme is one CSS file that fills in every semantic token. Switch with an attribute:
 
 ```html
@@ -197,6 +227,8 @@ A theme is one CSS file that fills in every semantic token. Switch with an attri
 ```
 
 ### Light and dark
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 Set the theme and the mode on `<html>`:
 
@@ -226,6 +258,8 @@ It applies a saved choice; with none it sets `system` when `<html>` has no `data
 
 ## Fonts
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 The fonts ship in the package. The theme's `@font-face` rules load Lilita One, Nunito, Press Start 2P, Audiowide and JetBrains Mono from woff2 files next to it (`themes/fonts/`), so your bundler serves them from your own site with nothing extra to import.
 
 - The theme makes no third-party requests: no Google Fonts, and no CSP exception for a font host. `font-src 'self'` covers it; add `data:` if your bundler inlines small files (Vite does under 4 KB).
@@ -235,11 +269,15 @@ The fonts ship in the package. The theme's `@font-face` rules load Lilita One, N
 
 ## Links
 
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
 - Docs: https://doosemavis.github.io/bit-design-system/
 - Design spec: https://github.com/doosemavis/bit-design-system/blob/main/docs/superpowers/specs/2026-09-06-bit-design-system-design.md
 - Source and issues: https://github.com/doosemavis/bit-design-system
 
 ## Contributing
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 Working on bit itself? See [CONTRIBUTING.md](https://github.com/doosemavis/bit-design-system/blob/main/CONTRIBUTING.md).
 

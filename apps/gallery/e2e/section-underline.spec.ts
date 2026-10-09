@@ -52,7 +52,7 @@ test("a section that is not current keeps the 22px bar", async ({ page }) => {
 });
 
 for (const mode of MODES) {
-  test(`${mode} mode: the Foundations title is in the full text colour, not the muted shade`, async ({
+  test(`${mode} mode: the Foundations title is in the full text color, not the muted shade`, async ({
     page,
   }) => {
     await seedColorMode(page, mode);
@@ -61,7 +61,7 @@ for (const mode of MODES) {
     const { title, text } = await page
       .getByRole("heading", { level: 2, name: "Foundations" })
       .evaluate((el) => {
-        // A probe resolves var(--bit-color-text) to the same computed form as the title's colour.
+        // A probe resolves var(--bit-color-text) to the same computed form as the title's color.
         const probe = document.createElement("span");
         probe.style.color = "var(--bit-color-text)";
         el.parentElement!.appendChild(probe);

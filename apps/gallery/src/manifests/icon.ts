@@ -71,7 +71,7 @@ export const icon: Manifest = {
       'Without a label the svg is aria-hidden, so the words beside it carry the meaning.',
       'With a label it is role="img" with that aria-label.',
       'It is never focusable (focusable="false"), so keyboard users never land on it.',
-      'It draws in currentColor, so it follows the text colour, including in Windows high-contrast mode. The class form switches to the system text colour there.',
+      'It draws in currentColor, so it follows the text color, including in Windows high-contrast mode. The class form switches to the system text color there.',
     ],
   },
 };

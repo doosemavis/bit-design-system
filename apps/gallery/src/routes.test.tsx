@@ -78,6 +78,12 @@ describe('component routes (route smoke, D14)', () => {
     expect(container.querySelector('.gallery-preview__stage > .bit-box')).not.toBeNull();
   });
 
+  it('the Stack page draws the same dashed outline: its Stack sits in a Box that is the stage child, so stretch shows its edge', async () => {
+    const { container } = renderAt('/components/stack');
+    await screen.findByRole('heading', { level: 1, name: 'Stack' });
+    expect(container.querySelector('.gallery-preview__stage > .bit-box > .bit-stack')).not.toBeNull();
+  });
+
   it.each([
     ['/components/nope', 'nope', 'Go to Code', '/components/code'],
     ['/components/buton', 'buton', 'Go to Button', '/components/button'],
