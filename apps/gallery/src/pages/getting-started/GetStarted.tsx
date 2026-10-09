@@ -82,7 +82,7 @@ export function GetStarted() {
       >
         <ul className="gallery-bullets">
           <li>
-            <Code>themes/power-up.css</Code>: the theme. Colours, fonts and sizes as <Code>--bit-*</Code> tokens, in light and dark.
+            <Code>themes/power-up.css</Code>: the theme. Colors, fonts and sizes as <Code>--bit-*</Code> tokens, in light and dark.
             It comes first.
           </li>
           <li>
@@ -159,7 +159,7 @@ export function GetStarted() {
                 <Code>{'<Button>Save</Button>'}</Code>: a Button with its defaults. The text between the tags is its label.
               </li>
               <li>
-                <Code>color="danger"</Code>: a prop that changes the colour.
+                <Code>color="danger"</Code>: a prop that changes the color.
               </li>
               <li>
                 <Code>className="bit-danger"</Code>: the same change written as a class. The last two Buttons look the same.

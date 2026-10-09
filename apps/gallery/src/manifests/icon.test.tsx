@@ -17,7 +17,7 @@ describe('Icon manifest', () => {
     expect(routeFor(icon)).toBe('/components/icon');
   });
 
-  it('prints the icon by export name and imports it; colour, size and label only when set', () => {
+  it('prints the icon by export name and imports it; color, size and label only when set', () => {
     expect(toJsx(icon, defaultState(icon))).toBe("import { Icon, iconFavorite } from '@bit-ds/react';\n\n<Icon icon={iconFavorite} />");
     expect(toJsx(icon, { ...defaultState(icon), iconName: 'delete', iconFilled: true, color: 'danger', size: 'lg', label: 'Delete' })).toBe(
       "import { Icon, iconDelete } from '@bit-ds/react';\n\n<Icon icon={iconDelete} iconFilled color=\"danger\" size=\"lg\" label=\"Delete\" />",
@@ -27,7 +27,7 @@ describe('Icon manifest', () => {
     );
   });
 
-  it('the preview draws the chosen icon, with no colour class at none', () => {
+  it('the preview draws the chosen icon, with no color class at none', () => {
     const { container } = render(renderManifest(icon, { ...defaultState(icon), iconName: 'home', iconFilled: true }));
     const svg = container.querySelector('svg')!;
     expect(svg).toHaveClass('bit-icon', 'bit-icon-home', 'bit-iconFilled', 'bit-md');

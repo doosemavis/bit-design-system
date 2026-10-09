@@ -23,6 +23,20 @@ Browse every component, with live controls and copyable code, in the docs: https
 
 Versions and release notes: [all versions](https://doosemavis.github.io/bit-design-system/#/versions) and [release notes](https://doosemavis.github.io/bit-design-system/#/release-notes).
 
+## Contents
+
+- [How it's tested](#how-its-tested)
+- [Install](#install)
+- [The naming rule](#the-naming-rule)
+- [Two ways to use every static component](#two-ways-to-use-every-static-component)
+- [Icons](#icons)
+- [Components](#components)
+- [Utilities](#utilities)
+- [Themes](#themes) · [Light and dark](#light-and-dark)
+- [Fonts](#fonts)
+- [Links](#links)
+- [Contributing](#contributing)
+
 ## How it's tested
 
 Every pull request runs all of this in CI ([workflow](https://github.com/doosemavis/bit-design-system/blob/main/.github/workflows/ci.yml)). Releases publish only from a tagged commit on `main`, and the release job runs the package checks again before publishing:
@@ -32,8 +46,8 @@ Every pull request runs all of this in CI ([workflow](https://github.com/doosema
 - **Accessibility in a real browser:** Playwright opens every docs page in light and dark mode and fails on any axe violation of the WCAG 2.0, 2.1 and 2.2 A and AA rules.
 - **Keyboard and focus:** Select's keyboard model (arrows, Home and End, Page Up and Page Down, typeahead, Enter, Space, Escape, Tab) is tested key by key, along with where focus goes and how it behaves in a form (`required`, reset, `form="id"`).
 - **Dialog and Tabs:** Dialog is tested for focus moving in (to `data-autofocus`), Esc and the × closing it, focus returning to the opener, and an `alert` dialog ignoring clicks on the dimmed page; in a real browser, Playwright checks the page behind is inert and won't take focus. Tabs are tested for the one Tab stop, arrows (swapped right-to-left), Home and End, skipping disabled tabs, and manual activation.
-- **Colour contrast, computed:** tests read the theme tokens and compute WCAG contrast ratios in light and dark, so a colour change that drops text below 4.5:1 fails the build.
-- **Forced colours (Windows High Contrast):** Playwright runs pages with `forced-colors: active` and checks that states such as invalid still show without colour.
+- **Color contrast, computed:** tests read the theme tokens and compute WCAG contrast ratios in light and dark, so a color change that drops text below 4.5:1 fails the build.
+- **Forced colors (Windows High Contrast):** Playwright runs pages with `forced-colors: active` and checks that states such as invalid still show without color.
 - **The published package:** before every release the built package is installed into a fresh TypeScript app, type-checked, and imported through both ESM and CommonJS. A Vite app checks that the CSS and fonts load, all from the package, with nothing from a third party.
 
 There is no screenshot-diff (visual regression) suite yet. Visual changes are reviewed with light and dark screenshots before they merge.

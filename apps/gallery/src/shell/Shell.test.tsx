@@ -13,7 +13,7 @@ describe('Shell', () => {
     renderAt('/');
     const skip = await screen.findByRole('link', { name: 'Skip to content' });
     expect(skip).toHaveAttribute('href', '#main');
-    // Neutral, so .gallery-skip's text colour isn't beaten by the primary link colour.
+    // Neutral, so .gallery-skip's text color isn't beaten by the primary link color.
     expect(skip).toHaveClass('bit-link', 'bit-neutral', 'gallery-skip');
     expect(skip).not.toHaveClass('bit-primary');
     expect(document.getElementById('main')).toHaveAttribute('tabindex', '-1');

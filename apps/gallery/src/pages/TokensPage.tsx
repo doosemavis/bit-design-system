@@ -4,19 +4,23 @@ import { PageSection } from '../ui/PageSection';
 import { SectionBar } from '../ui/SectionBar';
 import { useTokenValues } from './tokens/tokenValues';
 import { ColorSection } from './tokens/ColorSection';
-import { SpaceRow, TypeRow } from './tokens/CompactRows';
+import { TypeSection } from './tokens/TypeSection';
+import { SpaceSection } from './tokens/SpaceSection';
 import { ShapeSection } from './tokens/ShapeSection';
-import { AllTokens } from './tokens/AllTokens';
+import { SystemSection } from './tokens/SystemSection';
 
 const SECTIONS = {
   color: { id: 'tokens-color', title: 'Color' },
   type: { id: 'tokens-type', title: 'Type' },
   space: { id: 'tokens-space', title: 'Space' },
   shape: { id: 'tokens-shape', title: 'Shape' },
-  all: { id: 'tokens-all', title: 'All tokens' },
+  system: { id: 'tokens-system', title: 'System' },
 } as const;
 
-/** Foundations: the theme's whole public API, with values computed live in the current mode. */
+/**
+ * Foundations: the theme's whole public API, with values computed live in the current mode. The color flow
+ * holds the color tokens; every other token is a row in one card below it, each name a Copy chip.
+ */
 export function TokensPage() {
   const values = useTokenValues();
   return (
@@ -33,16 +37,16 @@ export function TokensPage() {
         <ColorSection values={values} />
       </PageSection>
       <PageSection {...SECTIONS.type}>
-        <TypeRow />
+        <TypeSection values={values} />
       </PageSection>
       <PageSection {...SECTIONS.space}>
-        <SpaceRow />
+        <SpaceSection values={values} />
       </PageSection>
       <PageSection {...SECTIONS.shape}>
         <ShapeSection values={values} />
       </PageSection>
-      <PageSection {...SECTIONS.all}>
-        <AllTokens values={values} />
+      <PageSection {...SECTIONS.system}>
+        <SystemSection values={values} />
       </PageSection>
     </Stack>
   );

@@ -1,7 +1,7 @@
 import { SIZES, Select } from '@bit-ds/react';
 import type { ControlValue, Manifest } from './types';
 
-/** The playground's choices: the five colours, then fruit, so a long list still reads well. */
+/** The playground's choices: the five colors, then fruit, so a long list still reads well. */
 const LABELS = [
   'Primary',
   'Neutral',

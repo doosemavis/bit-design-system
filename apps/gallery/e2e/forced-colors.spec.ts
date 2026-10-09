@@ -6,7 +6,7 @@ for (const [slug, selector] of [
   ['input', '.bit-input'],
   ['select', '.bit-select__control'],
 ] as const) {
-  test(`an invalid ${slug} shows a 10px start edge in forced colours`, async ({ page }) => {
+  test(`an invalid ${slug} shows a 10px start edge in forced colors`, async ({ page }) => {
     await page.goto(`#/components/${slug}`);
     // The switch input sits under its track, so click the visible label, as a person would.
     await page.locator('label.bit-switch', { hasText: /^invalid$/ }).click();
