@@ -712,12 +712,83 @@ html {
 
 /* ---------- home page ---------- */
 
-/* Large tiles: a live preview over a footer link. The link's ::after covers the tile, so the whole tile
-   is one link while the preview inside stays inert. Tiles in a row stretch to one height; each is a flex
-   column whose preview takes the spare height, so every link row sits on the tile's floor. */
+/* The hero: the logo, tagline and buttons, then the quick start card. Stacked on a narrow screen; side by
+   side from 70rem, where the card's code lines fit without scrolling. */
+.gallery-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--bit-space-32px);
+}
+
+@media (min-width: 70rem) {
+  .gallery-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+/* Four facts, two by two under the hero's buttons, so the intro is about as tall as the quick start card
+   beside it. A list for screen readers. Each card is compact: the count and its label share one line. */
+.gallery-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bit-space-12px);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gallery-facts .bit-card__body {
+  padding: var(--bit-space-12px) var(--bit-space-16px);
+}
+
+.gallery-fact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--bit-space-8px);
+}
+
+/* The count: the pixel face, larger, in the link color (violet by day, lilac at night). */
+.gallery-fact__count {
+  font-family: var(--bit-font-pixel);
+  font-size: var(--bit-text-24px);
+  color: var(--bit-color-link);
+}
+
+/* A "start building" card: its body fills the card and its link sits on the floor, so the three links line up. */
+.gallery-start-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-start-card > .bit-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bit-space-12px);
+}
+
+.gallery-start-card__link {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.gallery-steps {
+  margin: 0;
+  padding-left: var(--bit-space-24px);
+  display: grid;
+  gap: var(--bit-space-4px);
+}
+
+/* Tiles: a live preview over a footer link. The link's ::after covers the tile, so the whole tile is one
+   link while the preview inside stays inert. Every component gets the same tile, as many 14rem columns as
+   fit: 20 components are five even rows of four on a desktop. Tiles in a row stretch to one height; each is
+   a flex column whose preview takes the spare height, so every link row sits on the tile's floor. */
 .gallery-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(14rem, 100%), 1fr));
   gap: var(--bit-space-16px);
 }
 
@@ -756,13 +827,6 @@ html {
 
 .gallery-tile__link:focus-visible {
   outline: none;
-}
-
-/* Compact tiles: a glyph chip, the name and →, all one link. */
-.gallery-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--bit-space-12px);
 }
 
 /* The naming rule: a code never wraps mid-word; on a phone the Table scrolls sideways inside its border. */
