@@ -109,3 +109,17 @@
 - **Cons:** None worth noting.
 - **Context:** Found in the PR3c final review.
 - **Depends on / blocked by:** Nothing.
+
+## Tests: Icon route smoke under 5s
+
+- **Target:** 0.1.8.
+- **What:** Make the Icon page's route smoke test (`apps/gallery/src/routes.test.tsx`, "Icon: heading, the five sections…") finish well under Vitest's 5s default, consistently on CI. Then remove `icon` from `SLOW_PAGES`, which gives it a 15s limit for now.
+- **Why:** On 2026-10-09 it took 5.6s on CI and failed PR #44 once; a re-run passed. Alone it takes about 0.9s locally, so the time goes to rendering 300 icons and running axe over all of them while other test files share the runner.
+- **Pros:** No flaky CI failures, and no special-case timeout to remember.
+- **Cons:** Any speed-up must keep the accessibility check meaningful for the Icon page.
+- **Context:** Ideas to measure first:
+  - Run axe on the preview and playground only, and cover the icon grid in a test of its own that checks a sample of icons.
+  - Limit axe to the rules that matter for icons (`svg-img-alt`, `role-img-alt`, `aria-hidden-focus`) on the grid.
+  - Render the grid lazily, or a page of icons at a time, which may also help the real page.
+  - Check whether the jsdom environment or the axe import is the slow part, with `--reporter=verbose` timings on CI.
+- **Depends on / blocked by:** Nothing.

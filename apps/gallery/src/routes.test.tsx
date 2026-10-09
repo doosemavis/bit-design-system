@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MANIFESTS, routeFor } from './manifests';
+import type { Manifest } from './manifests';
 import { renderAt } from './test/renderRoute';
 import { expectNoA11yViolations } from './test/a11y';
 import { PAGE_ROUTES } from './test/smokeRoutes';
@@ -12,32 +13,44 @@ function reactPanel(): HTMLElement {
   return screen.getByRole('region', { name: 'Example code' }).closest<HTMLElement>('.bit-code__block')!;
 }
 
+/**
+ * Pages too slow for Vitest's 5s default, each with its own limit. Icon renders 300 icons and runs axe over them:
+ * about 0.9s alone, but 5.6s once on a busy CI runner. TODOS.md, "Tests: Icon route smoke under 5s".
+ */
+const SLOW_PAGES: Readonly<Record<string, number>> = { icon: 15_000 };
+
+/** The five sections, live preview, controls and code of one component page, with no axe violations. */
+async function checkComponentPage(manifest: Manifest) {
+  const { container } = renderAt(routeFor(manifest));
+  expect(await screen.findByRole('heading', { level: 1, name: manifest.name })).toBeInTheDocument();
+  const preview = screen.getByRole('region', { name: `${manifest.name} preview` });
+  expect(preview.querySelector('[class*="bit-"]')).not.toBeNull();
+  expect(screen.getByRole('heading', { level: 3, name: 'Controls' })).toBeInTheDocument();
+  for (const name of ['Playground', 'Usage', 'Props', 'Accessibility']) {
+    expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument();
+  }
+  expect(reactPanel()).toHaveAttribute('data-language', 'jsx');
+  // Full file is the default: the component import (plus React's, when a demo needs state), any hoisted consts, then (for a demo) its state inside Example, then an Example component returning it.
+  expect(reactPanel().querySelector('pre')!.textContent).toMatch(
+    /^(?:import \{ .+ \} from 'react';\n)?import \{ .+ \} from '@bit-ds\/react';\n\n(?:const \w+ = [\s\S]*?;\n\n)*export function Example\(\) \{\n(?: {2}const \[[\w, ]+\] = .+;\n\n)? {2}return \(\n/,
+  );
+  // Nothing in the gallery is drawn at the deprecated 11px size.
+  expect(container.querySelector('[data-size="11"]')).toBeNull();
+  await expectNoA11yViolations(container);
+}
+
 describe('component routes (route smoke, D14)', () => {
   beforeEach(() => {
     document.documentElement.dataset.theme = 'power-up';
   });
 
-  it.each(MANIFESTS.map((m) => [m.name, m] as const))(
-    '%s: heading, the five sections, live preview, controls and code, with no axe violations',
-    async (_name, manifest) => {
-      const { container } = renderAt(routeFor(manifest));
-      expect(await screen.findByRole('heading', { level: 1, name: manifest.name })).toBeInTheDocument();
-      const preview = screen.getByRole('region', { name: `${manifest.name} preview` });
-      expect(preview.querySelector('[class*="bit-"]')).not.toBeNull();
-      expect(screen.getByRole('heading', { level: 3, name: 'Controls' })).toBeInTheDocument();
-      for (const name of ['Playground', 'Usage', 'Props', 'Accessibility']) {
-        expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument();
-      }
-      expect(reactPanel()).toHaveAttribute('data-language', 'jsx');
-      // Full file is the default: the component import (plus React's, when a demo needs state), any hoisted consts, then (for a demo) its state inside Example, then an Example component returning it.
-      expect(reactPanel().querySelector('pre')!.textContent).toMatch(
-        /^(?:import \{ .+ \} from 'react';\n)?import \{ .+ \} from '@bit-ds\/react';\n\n(?:const \w+ = [\s\S]*?;\n\n)*export function Example\(\) \{\n(?: {2}const \[[\w, ]+\] = .+;\n\n)? {2}return \(\n/,
-      );
-      // Nothing in the gallery is drawn at the deprecated 11px size.
-      expect(container.querySelector('[data-size="11"]')).toBeNull();
-      await expectNoA11yViolations(container);
-    },
+  const PAGE_TITLE = '%s: heading, the five sections, live preview, controls and code, with no axe violations';
+  it.each(MANIFESTS.filter((m) => !(m.slug in SLOW_PAGES)).map((m) => [m.name, m] as const))(PAGE_TITLE, (_name, manifest) =>
+    checkComponentPage(manifest),
   );
+  for (const manifest of MANIFESTS.filter((m) => m.slug in SLOW_PAGES)) {
+    it(PAGE_TITLE.replace('%s', manifest.name), () => checkComponentPage(manifest), SLOW_PAGES[manifest.slug]);
+  }
 
   it.each(PAGE_ROUTES)('%s: its heading, with no axe violations', async (path, heading) => {
     const { container } = renderAt(path);
