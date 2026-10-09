@@ -167,7 +167,9 @@
   --bit-code-string: #7EE2A0;
   --bit-code-tag: #7CC7FF;
   --bit-code-component: #FFD54A;
-  --bit-code-attr: #FFB86B;
+  /* Orchid: attributes sit beside component names (yellow) and their string values (green), so they take a
+     cool violet-pink that stands apart from both, next to prop pink in the same family. */
+  --bit-code-attr: #EC8FFF;
   --bit-code-punct: #A3A3AE;
   --bit-code-comment: #8E8E9A;
   --bit-code-number: #FF9F7A;
