@@ -3,6 +3,9 @@
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
 ## 0.1.8 — 2026-10-10
+### Added
+- Text `italic`, `underline` and `strikethrough`: on/off props that combine with each other and with `weight`, rendered as `data-italic`, `data-underline` and `data-strikethrough`. `<Text>Press <Text weight="bold" italic>Start</Text></Text>`. The underline is thinner than Link's, so it doesn't read as a link.
+- The power-up theme ships Nunito italic (600 and 800, every subset), so italic body text uses the real italic instead of a slanted copy. At 24, 32 and 40 the display face has no italic, so the browser slants it.
 ### Changed
 - Heads up, the type scale is even now: Text sizes are 14, 16, 18, 24, 32 and 40 (they were 11, 13, 15, 18, 24 and 32), and body text is 16 (it was 15). Every component moves with it, so most text in bit is about 1px bigger. Your code keeps working: the old sizes are deprecated, not removed. Swap `13` for `14` and `15` for `16` before 0.2.0.
 - Type scale: `TEXT_SIZES` is `[14, 16, 18, 24, 32, 40]`, with new tokens `--bit-text-14px`, `--bit-text-16px` and `--bit-text-40px`. 14 is the smallest text; it was 13.

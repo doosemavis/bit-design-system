@@ -26,7 +26,7 @@ describe('Typography page', () => {
     const outline = within(main)
       .getAllByRole('heading')
       .map((h) => `${h.tagName} ${h.textContent}`);
-    expect(outline).toEqual(['H1 Typography', 'H2 Fonts', 'H2 Headings', 'H2 Text sizes', "H2 Do and Don't"]);
+    expect(outline).toEqual(['H1 Typography', 'H2 Fonts', 'H2 Headings', 'H2 Text sizes', 'H2 Text styles', "H2 Do and Don't"]);
   });
 
   it('shows all four fonts, each card in three parts: header, Sample and In use groups, footer', async () => {
@@ -143,6 +143,23 @@ describe('Typography page', () => {
     expect(samples.map((el) => el.getAttribute('data-size'))).toEqual(['18', '16', '14']);
     expect(samples[2]).toHaveClass('bit-neutral');
     expect(within(table).getByText('<Text size={14} color="neutral">')).toHaveClass('bit-code');
+  });
+
+  it('the Text styles table shows each style live on one word, with its prop and code', async () => {
+    await renderTypography();
+    const table = screen.getByRole('table', { name: 'Text styles' });
+    const rows = [...table.querySelectorAll('.bit-table__body .bit-table__row')];
+    expect(rows.map((row) => cellTexts(row).slice(1))).toEqual([
+      ['weight="bold"', '<Text weight="bold">'],
+      ['italic', '<Text italic>'],
+      ['underline', '<Text underline>'],
+      ['strikethrough', '<Text strikethrough>'],
+    ]);
+    const words = rows.map((row) => row.querySelector('p.bit-text > span.bit-text')!);
+    expect(words[0]).toHaveAttribute('data-weight', 'bold');
+    expect(words[1]).toHaveAttribute('data-italic', '');
+    expect(words[2]).toHaveAttribute('data-underline', '');
+    expect(words[3]).toHaveAttribute('data-strikethrough', '');
   });
 
   it("Do and Don't are success and danger Alerts, read as notes rather than live status", async () => {

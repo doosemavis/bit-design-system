@@ -109,13 +109,13 @@ async function assertFontsLoadFromOrigin(page, origin, requests) {
   await page.evaluate(() => document.fonts.ready);
   const early = requestedFonts(requests);
   assert.ok(early.length > 0, 'the page rendered Latin text but requested no woff2 from the app');
-  assert.deepEqual(early.filter((f) => !/-latin-\d+-normal\.woff2$/.test(f)), [], 'Latin-only text fetched another subset');
+  assert.deepEqual(early.filter((f) => !/-latin-\d+-(normal|italic)\.woff2$/.test(f)), [], 'Latin-only text fetched another subset');
 
   const loaded = await page.evaluate(
     async ({ faces, samples }) => {
-      for (const { family, weight, subset } of faces) {
+      for (const { family, weight, style, subset } of faces) {
         const el = document.createElement('span');
-        el.style.cssText = `font-family: "${family}"; font-weight: ${weight}`;
+        el.style.cssText = `font-family: "${family}"; font-weight: ${weight}; font-style: ${style}`;
         el.textContent = samples[subset];
         document.body.append(el);
       }
@@ -131,12 +131,12 @@ async function assertFontsLoadFromOrigin(page, origin, requests) {
         .filter((face) => face.status === 'loaded')
         .map((face) => {
           const subset = Object.keys(samples).find((s) => covers(face.unicodeRange, samples[s].codePointAt(0)));
-          return `${face.family.replace(/"/g, '')} ${face.weight} ${subset}`;
+          return `${face.family.replace(/"/g, '')} ${face.weight} ${face.style} ${subset}`;
         });
     },
     { faces: FONT_FACES, samples: SUBSET_SAMPLES },
   );
-  const expected = FONT_FACES.map(({ family, weight, subset }) => `${family} ${weight} ${subset}`);
+  const expected = FONT_FACES.map(({ family, weight, style, subset }) => `${family} ${weight} ${style} ${subset}`);
   assert.deepEqual([...loaded].sort(), [...expected].sort(), 'every self-hosted face, in every subset, must reach status "loaded"');
   const offOrigin = requests.filter((u) => !u.startsWith(`${origin}/`) && !u.startsWith('data:'));
   assert.deepEqual(offOrigin, [], `requests left ${origin}`);

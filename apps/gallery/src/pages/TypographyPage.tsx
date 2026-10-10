@@ -104,6 +104,14 @@ const TEXT_SIZES: readonly { props: TextProps; example: string; size: string; co
   { props: { size: 14, color: 'neutral' }, example: 'Hints and captions', size: '14', code: '<Text size={14} color="neutral">' },
 ];
 
+/** The styles Text takes, each on a word in a sentence, as you'd use them. */
+const TEXT_STYLES: readonly { prop: string; props: TextProps; code: string }[] = [
+  { prop: 'weight="bold"', props: { weight: 'bold' }, code: '<Text weight="bold">' },
+  { prop: 'italic', props: { italic: true }, code: '<Text italic>' },
+  { prop: 'underline', props: { underline: true }, code: '<Text underline>' },
+  { prop: 'strikethrough', props: { strikethrough: true }, code: '<Text strikethrough>' },
+];
+
 /** A value column (size, tag, token): muted text, centered under its heading. */
 function ValueCell({ children }: { children: string }) {
   return (
@@ -253,6 +261,30 @@ function TextSizes() {
   );
 }
 
+/** Each style on one word of a sentence, so it shows inline, the way it's used. */
+function TextStyles() {
+  return (
+    <Table aria-label="Text styles">
+      <HeadRow values={['Prop']} />
+      <TableBody>
+        {TEXT_STYLES.map(({ prop, props, code }) => (
+          <TableRow key={prop}>
+            <TableCell>
+              <Text>
+                Press <Text {...props}>Start</Text> to play
+              </Text>
+            </TableCell>
+            <ValueCell>{prop}</ValueCell>
+            <TableCell>
+              <Code>{code}</Code>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 /** Do and Don't are guidance, not news: role="note" instead of Alert's default live status. */
 function DoAndDont() {
   return (
@@ -294,6 +326,14 @@ export function TypographyPage() {
       <Stack gap={12}>
         <Heading>Text sizes</Heading>
         <TextSizes />
+      </Stack>
+      <Stack gap={12}>
+        <Heading>Text styles</Heading>
+        <Text>
+          Bold, italic, underline and strikethrough, each a prop on Text. They combine, and a Text inside a sentence
+          stays inline.
+        </Text>
+        <TextStyles />
       </Stack>
       <Stack gap={12}>
         <Heading>Do and Don't</Heading>

@@ -4,7 +4,14 @@
 // Chromium), so they cannot drift apart. build-css.mjs copies the files from the @fontsource packages.
 export const THEME_FONTS = Object.freeze([
   { family: 'Lilita One', id: 'lilita-one', weights: [400], subsets: ['latin-ext', 'latin'] },
-  { family: 'Nunito', id: 'nunito', weights: [600, 700, 800], subsets: ['cyrillic-ext', 'cyrillic', 'vietnamese', 'latin-ext', 'latin'] },
+  {
+    family: 'Nunito',
+    id: 'nunito',
+    weights: [600, 700, 800],
+    // Text italic: the weights --bit-weight-normal and --bit-weight-bold use, upright and italic.
+    italicWeights: [600, 800],
+    subsets: ['cyrillic-ext', 'cyrillic', 'vietnamese', 'latin-ext', 'latin'],
+  },
   { family: 'Press Start 2P', id: 'press-start-2p', weights: [400], subsets: ['cyrillic-ext', 'cyrillic', 'greek', 'latin-ext', 'latin'] },
   { family: 'Audiowide', id: 'audiowide', weights: [400], subsets: ['latin-ext', 'latin'] },
   {
@@ -25,10 +32,15 @@ export const SUBSET_SAMPLES = Object.freeze({
   vietnamese: 'Ạạ', // Ạ ạ
 });
 
-/** One @font-face per family, weight and subset. */
+/** One @font-face per family, style, weight and subset. */
 export const FONT_FACES = Object.freeze(
-  THEME_FONTS.flatMap(({ family, id, weights, subsets }) =>
-    weights.flatMap((weight) => subsets.map((subset) => ({ family, weight, subset, file: `${id}-${subset}-${weight}-normal.woff2` }))),
+  THEME_FONTS.flatMap(({ family, id, weights, italicWeights = [], subsets }) =>
+    [
+      ...weights.map((weight) => ({ weight, style: 'normal' })),
+      ...italicWeights.map((weight) => ({ weight, style: 'italic' })),
+    ].flatMap(({ weight, style }) =>
+      subsets.map((subset) => ({ family, weight, style, subset, file: `${id}-${subset}-${weight}-${style}.woff2` })),
+    ),
   ),
 );
 

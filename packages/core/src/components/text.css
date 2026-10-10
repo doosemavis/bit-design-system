@@ -24,6 +24,26 @@
 .bit-text[data-weight="normal"] { font-weight: var(--bit-weight-normal); }
 .bit-text[data-weight="bold"] { font-weight: var(--bit-weight-bold); }
 
+/* Style and decoration: on/off props, rendered as empty data attributes, and free to combine. Body sizes use
+   Nunito's own italic; the display face (24, 32, 40) has none, so there the browser slants it. The lines are
+   thinner than Link's 2px underline, so underlined text doesn't read as a link, and they scale with the size. */
+.bit-text[data-italic] { font-style: italic; }
+
+.bit-text[data-underline] {
+  text-decoration-line: underline;
+  text-decoration-thickness: max(1px, 0.06em);
+  text-underline-offset: 0.15em;
+}
+
+.bit-text[data-strikethrough] {
+  text-decoration-line: line-through;
+  text-decoration-thickness: max(1px, 0.06em);
+}
+
+.bit-text[data-underline][data-strikethrough] {
+  text-decoration-line: underline line-through;
+}
+
 /* 24, 32 and 40 switch to the display face, which has one weight. This rule comes after the weight rules
    at the same specificity, so font-weight: 400 wins and the browser never synthesizes a faux bold. */
 .bit-text[data-size="24"],

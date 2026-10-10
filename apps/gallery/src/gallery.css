@@ -605,18 +605,24 @@ html {
 
 /* ---------- examples ---------- */
 /* A component page example: the live sample on the left, its code on the right; stacked under 70rem, as
-   .gallery-split is. The sample's parts sit on top of each other with a small gap, centred in the height. */
+   .gallery-split is. */
 .gallery-example__body {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-  align-items: center;
+  align-items: stretch;
   gap: var(--bit-space-16px);
 }
 
+/* The sample sits in a Box (padding 16) framed like a small stage: a line, rounded corners and the page
+   background, as tall as the code beside it, with its parts centred in that height. */
 .gallery-example__sample {
   display: grid;
+  align-content: center;
   gap: var(--bit-space-8px);
   min-width: 0;
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+  background: var(--bit-color-bg);
 }
 
 @media (max-width: 70rem) {

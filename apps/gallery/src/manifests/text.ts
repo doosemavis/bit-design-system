@@ -22,6 +22,9 @@ export const text: Manifest = {
     { kind: 'select', prop: 'size', values: SUPPORTED_TEXT_SIZES.map(String), default: '16', numeric: true },
     { kind: 'select', prop: 'color', values: ['default', 'neutral'], default: 'default', label: 'color' },
     { kind: 'select', prop: 'weight', values: ['normal', 'bold'], default: 'normal', lock: weightLock },
+    { kind: 'boolean', prop: 'italic', default: false },
+    { kind: 'boolean', prop: 'underline', default: false },
+    { kind: 'boolean', prop: 'strikethrough', default: false },
   ],
   children: 'The quick brown fox jumps over the lazy dog.',
   extraSection: { id: 'section-examples', title: 'Examples', Component: TextExamples },
@@ -35,10 +38,12 @@ export const text: Manifest = {
       do: [
         'Use Text for body copy, labels and captions; pick the look with size.',
         'Use color="neutral" for hints and captions that should step back.',
+        'Pick out words in a sentence with a Text inside it: weight="bold", italic, underline or strikethrough.',
       ],
       dont: [
         'Use Text for a section title, even a big one. Use Heading: same size prop, and it joins the page outline.',
         'Use size to make body text tiny; 14 is the smallest, for hints and captions.',
+        "Underline something people can't click: it reads as a link. A link is Link.",
       ],
     },
     props: [
@@ -56,7 +61,10 @@ export const text: Manifest = {
         default: "'normal'",
         description: 'Rendered as data-weight. No effect at 24, 32 and 40, where the display face has one weight.',
       },
-      { name: 'children', type: 'ReactNode', description: 'The text. A Text inside it renders a <span>, for bold or muted words in a sentence.' },
+      { name: 'italic', type: 'boolean', default: 'false', description: "Italic. Rendered as data-italic. Body sizes use Nunito's own italic; at 24, 32 and 40 the browser slants the display face." },
+      { name: 'underline', type: 'boolean', default: 'false', description: "A thin underline, lighter than Link's. Rendered as data-underline. For emphasis, not for something to click." },
+      { name: 'strikethrough', type: 'boolean', default: 'false', description: 'A line through the text, for something removed or no longer true. Rendered as data-strikethrough.' },
+      { name: 'children', type: 'ReactNode', description: 'The text. A Text inside it renders a <span>, for bold, italic or muted words in a sentence.' },
       {
         name: 'as',
         type: "'p' | 'span' | 'div' | 'label' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'",

@@ -31,11 +31,17 @@ export interface TextProps extends HTMLAttributes<HTMLElement> {
    * display face, which ships a single weight, so a heavier value would be browser-synthesized.
    */
   weight?: 'normal' | 'bold';
+  /** Italic. Rendered as `data-italic`. Body sizes use Nunito's own italic; at 24, 32 and 40 the browser slants the display face. */
+  italic?: boolean;
+  /** A thin underline, lighter than Link's. Rendered as `data-underline`. For emphasis, not for something to click: that's Link. */
+  underline?: boolean;
+  /** A line through the text, for something removed or no longer true. Rendered as `data-strikethrough`. */
+  strikethrough?: boolean;
 }
 
 /** Body copy: a `<p>`, or a `<span>` when it sits inside a Text, Heading, Button or Link. */
 export const Text = forwardRef<HTMLElement, TextProps>(function Text(
-  { as, size = 16, color, weight = 'normal', className, children, ...rest },
+  { as, size = 16, color, weight = 'normal', italic = false, underline = false, strikethrough = false, className, children, ...rest },
   ref,
 ) {
   const inline = useContext(InlineText);
@@ -60,6 +66,9 @@ export const Text = forwardRef<HTMLElement, TextProps>(function Text(
       className: toClasses('text', [{ name: 'color', allowed: colors, value: color }], className),
       'data-size': dataValue('text', { name: 'size', allowed: TEXT_SIZES, value: old === undefined ? size : DEPRECATED_TEXT_SIZE_TO[old] }),
       'data-weight': weight,
+      'data-italic': italic ? '' : undefined,
+      'data-underline': underline ? '' : undefined,
+      'data-strikethrough': strikethrough ? '' : undefined,
       ...rest,
     },
     children,

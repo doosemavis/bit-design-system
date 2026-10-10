@@ -65,6 +65,38 @@ describe('Text', () => {
     expect(screen.getByText('Two').tagName).toBe('P');
   });
 
+  it('italic, underline and strikethrough are off by default, so no attribute is rendered', () => {
+    render(<Text>Plain</Text>);
+    const el = screen.getByText('Plain');
+    for (const attr of ['data-italic', 'data-underline', 'data-strikethrough']) expect(el).not.toHaveAttribute(attr);
+  });
+
+  it.each(['italic', 'underline', 'strikethrough'] as const)('%s renders its empty data attribute', (style) => {
+    render(<Text {...{ [style]: true }}>Styled</Text>);
+    expect(screen.getByText('Styled')).toHaveAttribute(`data-${style}`, '');
+  });
+
+  it('the styles combine with each other and with weight', () => {
+    render(
+      <Text weight="bold" italic underline strikethrough>
+        All
+      </Text>,
+    );
+    const el = screen.getByText('All');
+    expect(el).toHaveAttribute('data-weight', 'bold');
+    for (const attr of ['data-italic', 'data-underline', 'data-strikethrough']) expect(el).toHaveAttribute(attr, '');
+  });
+
+  it('a styled Text inside a sentence stays inline', () => {
+    render(
+      <Text>
+        It was <Text strikethrough>$20</Text> <Text italic>now</Text> $10.
+      </Text>,
+    );
+    expect(screen.getByText('$20').tagName).toBe('SPAN');
+    expect(screen.getByText('now')).toHaveAttribute('data-italic', '');
+  });
+
   describe('deprecated: as (removed in 0.2.0)', () => {
     it('still renders the element given, and warns once', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});

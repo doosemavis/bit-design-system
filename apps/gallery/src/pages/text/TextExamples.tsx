@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import type { ReactNode } from 'react';
-import { Alert, Card, CardBody, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
+import { Alert, Box, Card, CardBody, CardHeader, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
 
 interface Example {
   title: string;
@@ -48,6 +48,41 @@ const EXAMPLES: readonly Example[] = [
 </Text>`,
   },
   {
+    title: 'Bold, italic, underline, strikethrough',
+    when: 'Each is a prop on a Text inside the sentence, and they combine. Strikethrough suits something no longer true, like an old price.',
+    sample: (
+      <>
+        <Text>
+          Press <Text weight="bold">Start</Text> to play, <Text italic>if you dare</Text>.
+        </Text>
+        <Text>
+          Read the <Text underline>whole</Text> manual first.
+        </Text>
+        <Text>
+          Extra lives: <Text strikethrough>500 coins</Text> <Text weight="bold">300 coins</Text>
+        </Text>
+        <Text>
+          <Text weight="bold" italic>
+            Bold and italic
+          </Text>{' '}
+          together.
+        </Text>
+      </>
+    ),
+    code: `<Text>
+  Press <Text weight="bold">Start</Text> to play, <Text italic>if you dare</Text>.
+</Text>
+<Text>
+  Read the <Text underline>whole</Text> manual first.
+</Text>
+<Text>
+  Extra lives: <Text strikethrough>500 coins</Text> <Text weight="bold">300 coins</Text>
+</Text>
+<Text>
+  <Text weight="bold" italic>Bold and italic</Text> together.
+</Text>`,
+  },
+  {
     title: 'Big text that is not a title',
     when: '24, 32 and 40 use the display face, for a big number or statement that does not name a section. That face has one weight, so weight does nothing here.',
     sample: <Text size={32}>300 icons</Text>,
@@ -81,16 +116,21 @@ function ExampleCard({ title, when, sample, code, note }: Example) {
   const titleId = useId();
   return (
     <Card role="article" aria-labelledby={titleId}>
+      {/* The header's bottom border divides the title and its line from the example. */}
+      <CardHeader>
+        <Stack gap={4}>
+          <Heading size={26} id={titleId}>
+            {title}
+          </Heading>
+          <Text color="neutral">{when}</Text>
+        </Stack>
+      </CardHeader>
       <CardBody>
         <Stack gap={12}>
-          <Stack gap={4}>
-            <Heading size={26} id={titleId}>
-              {title}
-            </Heading>
-            <Text color="neutral">{when}</Text>
-          </Stack>
           <div className="gallery-example__body">
-            <div className="gallery-example__sample">{sample}</div>
+            <Box padding={16} className="gallery-example__sample">
+              {sample}
+            </Box>
             <CodeBlock code={code} language="jsx" label={`${title} code`} />
           </div>
           {note ? (
@@ -107,7 +147,8 @@ function ExampleCard({ title, when, sample, code, note }: Example) {
 /** The Text page's Examples: the common jobs for Text, each live beside its code, then Text against Heading. */
 export function TextExamples() {
   return (
-    <Stack gap={16}>
+    // 32px between cards, twice the gap inside one, so each example reads as its own block.
+    <Stack gap={32}>
       {EXAMPLES.map((example) => (
         <ExampleCard key={example.title} {...example} />
       ))}
