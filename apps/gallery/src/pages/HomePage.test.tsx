@@ -1,7 +1,8 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { COLOR_MODES, ICON_GROUPS, SEMANTIC_TOKENS } from '@bit-ds/react';
+import { COLOR_MODES, ICON_GROUPS } from '@bit-ds/react';
+import { CURRENT_TOKENS } from '../content/currentTokens';
 import { renderAt } from '../test/renderRoute';
 import { expectNoA11yViolations } from '../test/a11y';
 import { MANIFESTS, routeFor } from '../manifests';
@@ -73,7 +74,7 @@ describe('HomePage', () => {
     expect(facts.querySelectorAll('.gallery-fact__count')).toHaveLength(4);
     expect(within(facts).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
       `${TILED.length}components`,
-      `${SEMANTIC_TOKENS.length}tokens`,
+      `${CURRENT_TOKENS.length}tokens`,
       `${ICON_GROUPS.reduce((n, group) => n + group.icons.length, 0)}icons`,
       `${COLOR_MODES.length}color modes`,
     ]);

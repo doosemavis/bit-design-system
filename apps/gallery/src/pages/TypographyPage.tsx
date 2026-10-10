@@ -17,26 +17,26 @@ import type { HeadingSize, HeadingTag, TextProps } from '@bit-ds/react';
 
 /** power-up's four faces. The sample is set in the face through `.gallery-face[data-face]` in gallery.css. */
 const FACES = [
-  { face: 'display', name: 'Lilita One', use: 'Headings at 18 and up, and Text at 24 and 32.' },
-  { face: 'body', name: 'Nunito', use: 'Body copy, labels, and headings at 15 and 13.' },
+  { face: 'display', name: 'Lilita One', use: 'Headings at 18 and up, and Text at 24, 32 and 40.' },
+  { face: 'body', name: 'Nunito', use: 'Body copy, labels, and headings at 16 and 14.' },
   { face: 'pixel', name: 'Press Start', use: 'Badges, table headers, small labels.' },
   { face: 'mono', name: 'JetBrains Mono', use: 'Code and CodeBlock.' },
 ] as const;
 
 /** Each tag at its own px size, written out: the code reads like Text's as and size. */
 const HEADINGS: readonly { tag: HeadingTag; example: string; size: HeadingSize; face: string }[] = [
-  { tag: 'h1', example: 'Page title', size: 32, face: 'display' },
-  { tag: 'h2', example: 'Section', size: 24, face: 'display' },
-  { tag: 'h3', example: 'Subsection', size: 18, face: 'display' },
-  { tag: 'h4', example: 'Group title', size: 15, face: 'body bold' },
-  { tag: 'h5', example: 'Small title', size: 13, face: 'body bold' },
-  { tag: 'h6', example: 'Smallest title', size: 13, face: 'body bold' },
+  { tag: 'h1', example: 'Page title', size: 40, face: 'display' },
+  { tag: 'h2', example: 'Section', size: 32, face: 'display' },
+  { tag: 'h3', example: 'Subsection', size: 24, face: 'display' },
+  { tag: 'h4', example: 'Group title', size: 18, face: 'display' },
+  { tag: 'h5', example: 'Small title', size: 16, face: 'body bold' },
+  { tag: 'h6', example: 'Smallest title', size: 14, face: 'body bold' },
 ];
 
 const TEXT_SIZES: readonly { props: TextProps; example: string; size: string; code: string }[] = [
   { props: { size: 18 }, example: 'Lead paragraph', size: '18', code: '<Text size={18}>' },
-  { props: {}, example: 'Body copy, the default', size: '15', code: '<Text>' },
-  { props: { size: 13, color: 'neutral' }, example: 'Hints and captions', size: '13', code: '<Text size={13} color="neutral">' },
+  { props: {}, example: 'Body copy, the default', size: '16', code: '<Text>' },
+  { props: { size: 14, color: 'neutral' }, example: 'Hints and captions', size: '14', code: '<Text size={14} color="neutral">' },
 ];
 
 /** A value column (tag, size, face, token): muted text, centered under its heading. */

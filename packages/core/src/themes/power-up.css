@@ -119,13 +119,16 @@
   --bit-font-body: "Nunito", "Segoe UI", sans-serif;
   --bit-font-pixel: "Press Start 2P", monospace;
   --bit-font-mono: "JetBrains Mono", ui-monospace, monospace;
-  /* Deprecated: under the 13px minimum text size. Only Text size={11}, itself deprecated, reads it; both go in 0.2.0. */
-  --bit-text-11px: 11px;
-  --bit-text-13px: 13px;
-  --bit-text-15px: 15px;
+  --bit-text-14px: 14px;
+  --bit-text-16px: 16px;
   --bit-text-18px: 18px;
   --bit-text-24px: 24px;
   --bit-text-32px: 32px;
+  --bit-text-40px: 40px;
+  /* Deprecated in 0.1.8, removed in 0.2.0: the old odd sizes, now aliases of the even size each renders as. */
+  --bit-text-11px: var(--bit-text-14px);
+  --bit-text-13px: var(--bit-text-14px);
+  --bit-text-15px: var(--bit-text-16px);
   --bit-leading-tight: 1.1;
   --bit-leading-normal: 1.5;
   --bit-weight-normal: 600;

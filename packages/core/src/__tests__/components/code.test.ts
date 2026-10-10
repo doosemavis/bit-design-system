@@ -4,11 +4,11 @@ import { block, decl, readCss } from '../css';
 describe('components/code.css', () => {
   const css = readCss('components/code.css');
 
-  it('inline code is a mono chip at 0.9em (never under 13px) without ligatures, in the regular mono weight', () => {
+  it('inline code is a mono chip at 0.9em (never under 14px) without ligatures, in the regular mono weight', () => {
     const root = block(css, '.bit-code')!;
     for (const line of [
       'font-family: var(--bit-font-mono);',
-      'font-size: max(0.9em, var(--bit-text-13px));',
+      'font-size: max(0.9em, var(--bit-text-14px));',
       'font-weight: 400;',
       'font-variant-ligatures: none;',
       'padding: 1px 6px;',

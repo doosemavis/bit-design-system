@@ -41,21 +41,21 @@ describe('Typography page', () => {
     const table = screen.getByRole('table', { name: 'Headings' });
     const samples = [...table.querySelectorAll('.bit-heading')];
     expect(samples.map((el) => `${el.tagName} ${el.getAttribute('data-size')}`)).toEqual([
-      'H1 32',
-      'H2 24',
-      'H3 18',
-      'H4 15',
-      'H5 13',
-      'H6 13',
+      'H1 40',
+      'H2 32',
+      'H3 24',
+      'H4 18',
+      'H5 16',
+      'H6 14',
     ]);
     for (const el of samples) expect(el).toHaveAttribute('role', 'presentation');
-    expect(within(table).getByText('<Heading as="h6" size={13}>')).toHaveClass('bit-code');
+    expect(within(table).getByText('<Heading as="h6" size={14}>')).toHaveClass('bit-code');
     expect(table.textContent).not.toContain('level');
   });
 
   it.each([
-    ['Headings', ['Example', 'Tag', 'Size', 'Face', 'Code'], 3, ['h4', '15', 'body bold']],
-    ['Text sizes', ['Example', 'Size', 'Token', 'Code'], 1, ['15', '--bit-text-15px']],
+    ['Headings', ['Example', 'Tag', 'Size', 'Face', 'Code'], 4, ['h5', '16', 'body bold']],
+    ['Text sizes', ['Example', 'Size', 'Token', 'Code'], 1, ['16', '--bit-text-16px']],
   ])('the %s table gives each value a column, centered under its heading', async (name, head, sampleRow, values) => {
     await renderTypography();
     const table = screen.getByRole('table', { name });
@@ -86,13 +86,13 @@ describe('Typography page', () => {
     }
   });
 
-  it('the Text sizes table shows 18, 15 and 13 muted, with their code', async () => {
+  it('the Text sizes table shows 18, 16 and 14 muted, with their code', async () => {
     await renderTypography();
     const table = screen.getByRole('table', { name: 'Text sizes' });
     const samples = [...table.querySelectorAll('.bit-table__body .bit-table__cell:first-child .bit-text')];
-    expect(samples.map((el) => el.getAttribute('data-size'))).toEqual(['18', '15', '13']);
+    expect(samples.map((el) => el.getAttribute('data-size'))).toEqual(['18', '16', '14']);
     expect(samples[2]).toHaveClass('bit-neutral');
-    expect(within(table).getByText('<Text size={13} color="neutral">')).toHaveClass('bit-code');
+    expect(within(table).getByText('<Text size={14} color="neutral">')).toHaveClass('bit-code');
   });
 
   it("Do and Don't are success and danger Alerts, read as notes rather than live status", async () => {

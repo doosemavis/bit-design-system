@@ -16,25 +16,27 @@ function sourceFiles(dir: string): string[] {
 }
 
 /**
- * Reading text in the gallery is 15px or larger: 13px is too small for many readers. Nothing is ever under 13px.
- * The only 13px text left is listed here, each with its reason.
+ * Reading text in the gallery is 16px or larger. 14px, the smallest step, is only for the uses listed here, each
+ * with its reason. The old odd sizes (11, 13, 15) are deprecated and never written.
  */
 const SMALL_TEXT_ALLOWED: Readonly<Record<string, readonly string[]>> = {
-  // The type scale's 13px rows have to show 13px: the h5 and h6 headings, the Text caption row, and the code
-  // sample that documents it.
-  'pages/TypographyPage.tsx': ['size: 13', 'size: 13', 'size: 13', 'size={13'],
-  // The Text page's "Hint or caption" example shows the 13px caption: the live sample and its code.
-  'pages/text/TextExamples.tsx': ['size={13', 'size={13'],
+  // The type scale's 14px rows have to show 14px: the h6 heading, the Text caption row, and its code sample.
+  'pages/TypographyPage.tsx': ['size: 14', 'size: 14', 'size={14'],
+  // The Text page's "Hint or caption" example shows the 14px caption: the live sample and its code.
+  'pages/text/TextExamples.tsx': ['size={14', 'size={14'],
+  // A token row's value: muted detail beside the token's name, at the caption size, so the longest (the inset
+  // shadow) stays on one line on a phone.
+  'pages/tokens/TokenRow.tsx': ['size={14'],
   // Pixel-face labels (sidebar groups, the preview and controls titles): uppercase display type, not
-  // reading text, at the 13px floor.
-  'shell/Sidebar.tsx': ['size={13'],
-  'engine/Preview.tsx': ['size={13'],
-  'engine/ControlsPanel.tsx': ['size={13'],
+  // reading text, at the 14px floor.
+  'shell/Sidebar.tsx': ['size={14'],
+  'engine/Preview.tsx': ['size={14'],
+  'engine/ControlsPanel.tsx': ['size={14'],
 };
 
 describe('gallery text size', () => {
-  it.each(sourceFiles(SRC).map((path) => [relative(SRC, path), path]))('%s has no 13px or 11px text unless listed', (name, path) => {
+  it.each(sourceFiles(SRC).map((path) => [relative(SRC, path), path]))('%s has no 14px text unless listed, and no old odd size', (name, path) => {
     const source = readFileSync(path, 'utf8');
-    expect(source.match(/size(=\{|: )1[13]\b/g) ?? []).toEqual(SMALL_TEXT_ALLOWED[name] ?? []);
+    expect(source.match(/size(=\{|: )1[1345]\b/g) ?? []).toEqual(SMALL_TEXT_ALLOWED[name] ?? []);
   });
 });

@@ -11,12 +11,12 @@ describe('Text', () => {
   beforeEach(() => resetDeprecationWarnings());
   afterEach(() => vi.restoreAllMocks());
 
-  it('renders a <p> at 15px and normal weight by default', () => {
+  it('renders a <p> at 16px and normal weight by default', () => {
     render(<Text>Hello</Text>);
     const el = screen.getByText('Hello');
     expect(el.tagName).toBe('P');
     expect(el.className).toBe('bit-text');
-    expect(el).toHaveAttribute('data-size', '15');
+    expect(el).toHaveAttribute('data-size', '16');
     expect(el).toHaveAttribute('data-weight', 'normal');
   });
 
@@ -28,30 +28,35 @@ describe('Text', () => {
     expect(el).toHaveAttribute('data-weight', 'bold');
   });
 
-  it('size={11} still renders, but warns once that it is deprecated (under the 13px floor; removed in 0.2.0)', () => {
+  it.each([
+    [11, 14],
+    [13, 14],
+    [15, 16],
+  ] as const)('size={%i} (an old odd size) renders as %i and warns once (removed in 0.2.0)', (old, even) => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     render(
       <>
-        <Text size={11}>a</Text>
-        <Text size={11}>b</Text>
+        <Text size={old}>a</Text>
+        <Text size={old}>b</Text>
       </>,
     );
-    expect(screen.getByText('a')).toHaveAttribute('data-size', '11');
+    expect(screen.getByText('a')).toHaveAttribute('data-size', String(even));
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledWith(
-      '[bit] Text size={11} is deprecated: 11px is under the 13px minimum text size. Use size={13}. It will be removed in 0.2.0.',
+      `[bit] Text size={${old}} is deprecated: the scale is even now (14, 16, 18, 24, 32, 40). Use size={${even}}. It will be removed in 0.2.0.`,
     );
   });
 
-  it('size="11" from untyped JS or MDX warns too', () => {
+  it('size="13" from untyped JS or MDX is the old form too', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    render(<Text size={'11' as unknown as 11}>m</Text>);
+    render(<Text size={'13' as unknown as 13}>m</Text>);
+    expect(screen.getByText('m')).toHaveAttribute('data-size', '14');
     expect(warn).toHaveBeenCalledTimes(1);
   });
 
-  it('no other size warns', () => {
+  it('no current size warns', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    render(<>{TEXT_SIZES.filter((n) => n !== 11).map((n) => <Text key={n} size={n}>{n}</Text>)}</>);
+    render(<>{TEXT_SIZES.map((n) => <Text key={n} size={n}>{n}</Text>)}</>);
     expect(warn).not.toHaveBeenCalled();
   });
 

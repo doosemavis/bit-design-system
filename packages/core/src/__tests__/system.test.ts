@@ -40,8 +40,8 @@ describe('system/colors.css', () => {
 
 describe('system/sizes.css', () => {
   const css = readCss('system/sizes.css');
-  /** Control text sizes in px. Frozen with the rename: sm 13px, md 15px, lg 18px. */
-  const CONTROL_TEXT = { sm: 13, md: 15, lg: 18 } as const;
+  /** Control text sizes in px: sm 14px, md 16px, lg 18px (the even scale, 0.1.8; 13 and 15 before). */
+  const CONTROL_TEXT = { sm: 14, md: 16, lg: 18 } as const;
 
   it.each(SIZES)('.bit-%s remaps height, padding, and text', (size) => {
     const body = block(css, `.bit-${size}`);
@@ -370,9 +370,9 @@ describe('components/stack.css: children too big for the Stack spill past its en
 describe('components/badge.css lg', () => {
   const css = readCss('components/badge.css');
   const body = block(css, '.bit-badge.bit-lg') ?? '';
-  it('lg reads in the body font at 15px bold, not uppercase', () => {
+  it('lg reads in the body font at 16px bold, not uppercase', () => {
     expect(decl(body, 'font-family')).toBe('var(--bit-font-body)');
-    expect(decl(body, 'font-size')).toBe('var(--bit-text-15px)');
+    expect(decl(body, 'font-size')).toBe('var(--bit-text-16px)');
     expect(decl(body, 'font-weight')).toBe('var(--bit-weight-bold)');
     expect(decl(body, 'text-transform')).toBe('none');
     expect(decl(body, 'letter-spacing')).toBe('0');

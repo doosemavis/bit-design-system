@@ -6,20 +6,20 @@ import { expectNoA11yViolations } from '../../test/a11y';
 import { resetDeprecationWarnings } from '../../system/warnDeprecated';
 
 const TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
-const SIZES = [13, 15, 18, 24, 32] as const;
+const SIZES = [14, 16, 18, 24, 32, 40] as const;
 /** Each tag's own px size, used when size is left off. */
-const TAG_PX = { h1: 32, h2: 24, h3: 18, h4: 15, h5: 13, h6: 13 } as const;
+const TAG_PX = { h1: 40, h2: 32, h3: 24, h4: 18, h5: 16, h6: 14 } as const;
 
 describe('Heading', () => {
   beforeEach(() => resetDeprecationWarnings());
   afterEach(() => vi.restoreAllMocks());
 
-  it('is an h2 at 24px with no props', () => {
+  it('is an h2 at 32px with no props', () => {
     render(<Heading>Title</Heading>);
     const heading = screen.getByRole('heading', { level: 2, name: 'Title' });
     expect(heading.tagName).toBe('H2');
     expect(heading.className).toBe('bit-heading');
-    expect(heading).toHaveAttribute('data-size', '24');
+    expect(heading).toHaveAttribute('data-size', '32');
     expect(heading).not.toHaveAttribute('data-level');
   });
 
@@ -46,7 +46,7 @@ describe('Heading', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     // @ts-expect-error "p" is not a heading tag
     render(<Heading as="p">Title</Heading>);
-    expect(screen.getByRole('heading', { level: 2 })).toHaveAttribute('data-size', '24');
+    expect(screen.getByRole('heading', { level: 2 })).toHaveAttribute('data-size', '32');
     expect(warn.mock.calls[0]?.[0]).toContain('as="p"');
   });
 
@@ -54,20 +54,27 @@ describe('Heading', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     // @ts-expect-error "lg" is not a heading size
     render(<Heading as="h3" size="lg">Title</Heading>);
-    expect(screen.getByRole('heading', { level: 3 })).toHaveAttribute('data-size', '18');
+    expect(screen.getByRole('heading', { level: 3 })).toHaveAttribute('data-size', '24');
     expect(warn.mock.calls[0]?.[0]).toContain('size="lg"');
   });
 
-  it('drops 11, the deprecated Text size, since a heading never goes under 13px', () => {
+  it('drops 11, an old Text size, since a heading never goes under 14px', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     // @ts-expect-error 11 is not a heading size
     render(<Heading as="h5" size={11}>Title</Heading>);
-    expect(screen.getByRole('heading', { level: 5 })).toHaveAttribute('data-size', '13');
+    expect(screen.getByRole('heading', { level: 5 })).toHaveAttribute('data-size', '16');
     expect(warn.mock.calls[0]?.[0]).toContain('size="11"');
   });
 
   describe('deprecated: level (removed in 0.2.0)', () => {
-    it.each([1, 2, 3, 4, 5, 6] as const)('level={%i} keeps its old tag and look, and warns once to use as', (level) => {
+    it.each([
+      [1, 32],
+      [2, 24],
+      [3, 18],
+      [4, 16],
+      [5, 14],
+      [6, 14],
+    ] as const)('level={%i} keeps its old tag and look, and warns once to use as with size={%i}', (level, px) => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <>
@@ -81,7 +88,7 @@ describe('Heading', () => {
       expect(heading).not.toHaveAttribute('data-size');
       expect(warn).toHaveBeenCalledTimes(1);
       expect(warn).toHaveBeenCalledWith(
-        `[bit] Heading level={${level}} is deprecated: use as="h${level}" (and size in px to change its look). It will be removed in 0.2.0.`,
+        `[bit] Heading level={${level}} is deprecated: use as="h${level}" size={${px}}, which keeps this look. It will be removed in 0.2.0.`,
       );
     });
 
@@ -104,7 +111,7 @@ describe('Heading', () => {
           Title
         </Heading>,
       );
-      expect(screen.getByRole('heading', { level: 3 })).toHaveAttribute('data-size', '18');
+      expect(screen.getByRole('heading', { level: 3 })).toHaveAttribute('data-size', '24');
     });
 
     it('a number-like string level from an untyped caller works the same', () => {
@@ -117,7 +124,7 @@ describe('Heading', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       // @ts-expect-error 7 is not a heading level
       render(<Heading level={7}>Title</Heading>);
-      expect(screen.getByRole('heading', { level: 2 })).toHaveAttribute('data-size', '24');
+      expect(screen.getByRole('heading', { level: 2 })).toHaveAttribute('data-size', '32');
       expect(warn.mock.calls[0]?.[0]).toContain('level="7"');
     });
   });
@@ -127,9 +134,9 @@ describe('Heading', () => {
       [1, 32],
       [2, 24],
       [3, 18],
-      [4, 15],
-      [5, 13],
-      [6, 13],
+      [4, 16],
+      [5, 14],
+      [6, 14],
     ] as const)('size={%i} keeps that level look and warns once to use size={%i}', (old, px) => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
@@ -148,7 +155,7 @@ describe('Heading', () => {
       expect(heading).not.toHaveAttribute('data-size');
       expect(warn).toHaveBeenCalledTimes(1);
       expect(warn).toHaveBeenCalledWith(
-        `[bit] Heading size={${old}} is deprecated: size is now in px (13, 15, 18, 24, 32). Use size={${px}}. It will be removed in 0.2.0.`,
+        `[bit] Heading size={${old}} is deprecated: size is now in px (14, 16, 18, 24, 32, 40). Use size={${px}}. It will be removed in 0.2.0.`,
       );
     });
   });

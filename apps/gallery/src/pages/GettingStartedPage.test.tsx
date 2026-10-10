@@ -51,7 +51,7 @@ describe('GettingStartedPage', () => {
     }
   });
 
-  it('every step reads easily: no text under 15px, and its parts sit 24px apart so each caption pairs with the code under it', async () => {
+  it('every step reads easily: no text under 16px, and its parts sit 24px apart so each caption pairs with the code under it', async () => {
     await open();
     for (const heading of within(main()).getAllByRole('heading', { level: 2 })) {
       const body = stepOf(heading).querySelector('.bit-card__body > .bit-stack')!;
@@ -187,7 +187,7 @@ describe('GettingStartedPage', () => {
       await open();
       const one = subheading('1. In a component file, such as src/Toolbar.tsx:');
       const two = subheading('2. Then use your component like any other, for example in src/App.tsx:');
-      for (const label of [one, two, subheading('It renders:')]) expect(label).toHaveAttribute('data-size', '15');
+      for (const label of [one, two, subheading('It renders:')]) expect(label).toHaveAttribute('data-size', '16');
       const parts = one.closest('[data-step-part="1"]')!.parentElement!;
       expect(parts).toHaveAttribute('data-gap', '24');
       expect(two.closest('[data-step-part="2"]')!.parentElement).toBe(parts);

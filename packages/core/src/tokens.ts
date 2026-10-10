@@ -6,11 +6,18 @@ export const COLORS = ['primary', 'neutral', 'success', 'warning', 'danger'] as 
 /** Control sizes. Same words as the `size` prop and the `bit-{size}` class. */
 export const SIZES = ['sm', 'md', 'lg'] as const;
 /**
- * Text sizes in px. Same numbers as Text's `size` prop, its `data-size` attribute and the
- * `--bit-text-{n}px` token. The names describe power-up's scale; revisit if a theme needs another.
- * 11 is deprecated (under the 13px minimum text size) and will be removed in 0.2.0.
+ * Text sizes in px, all even. Same numbers as Text's and Heading's `size` prop, their `data-size` attribute and
+ * the `--bit-text-{n}px` token. 14 is the smallest text. The names describe power-up's scale; revisit if a theme
+ * needs another.
  */
-export const TEXT_SIZES = [11, 13, 15, 18, 24, 32] as const;
+export const TEXT_SIZES = [14, 16, 18, 24, 32, 40] as const;
+/**
+ * The old odd sizes, deprecated in 0.1.8 and removed in 0.2.0. Each still works and renders as the size it maps
+ * to, and its `--bit-text-{n}px` token is an alias of that size's token.
+ */
+export const DEPRECATED_TEXT_SIZES = [11, 13, 15] as const;
+/** What each deprecated size renders as: 11 and 13 → 14, 15 → 16. */
+export const DEPRECATED_TEXT_SIZE_TO = { 11: 14, 13: 14, 15: 16 } as const;
 /** Space in px. Same numbers as Stack's `gap` prop, its `data-gap` attribute and the `--bit-space-{n}px` token. */
 export const SPACE_STEPS = [4, 8, 12, 16, 24, 32, 48, 64] as const;
 /** Corner radii in px, as `--bit-radius-{n}px`. `--bit-radius-full` (the pill) names a shape, not a size. */
@@ -21,6 +28,8 @@ export const CODE_KINDS = ['text', 'keyword', 'string', 'tag', 'component', 'att
 export type Color = (typeof COLORS)[number];
 export type Size = (typeof SIZES)[number];
 export type TextSize = (typeof TEXT_SIZES)[number];
+/** @deprecated 11, 13 and 15: use 14 or 16. Removed in 0.2.0. */
+export type DeprecatedTextSize = (typeof DEPRECATED_TEXT_SIZES)[number];
 export type SpaceStep = (typeof SPACE_STEPS)[number];
 
 const token = (category: string, ...parts: (string | number)[]) =>
@@ -55,6 +64,7 @@ const shapeTokens = [
 const typeTokens = [
   ...['display', 'body', 'pixel', 'mono'].map((f) => token('font', f)),
   ...TEXT_SIZES.map((n) => token('text', px(n))),
+  ...DEPRECATED_TEXT_SIZES.map((n) => token('text', px(n))),
   token('leading', 'tight'),
   token('leading', 'normal'),
   token('weight', 'normal'),

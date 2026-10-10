@@ -58,7 +58,7 @@ describe('components/alert.css', () => {
 
     it("the × is centred on the body's first line, and on the title line when there is a title", () => {
       expect(decl(block(css, '.bit-alert__dismiss')!, 'inset-block-start')).toBe(
-        'calc(var(--bit-space-16px) + (var(--bit-text-15px) * var(--bit-leading-normal) - var(--_bit-size-height)) / 2)',
+        'calc(var(--bit-space-16px) + (var(--bit-text-16px) * var(--bit-leading-normal) - var(--_bit-size-height)) / 2)',
       );
       expect(decl(block(css, '.bit-alert__title ~ .bit-alert__dismiss')!, 'inset-block-start')).toBe(
         'calc(var(--bit-space-16px) + (var(--bit-text-18px) * var(--bit-leading-tight) - var(--_bit-size-height)) / 2)',

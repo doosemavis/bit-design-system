@@ -7,8 +7,8 @@
 .bit-code {
   padding: 1px 6px;
   font-family: var(--bit-font-mono);
-  /* 0.9em of the text around it, but never under the 13px floor (inside 13px text it would be 11.7px). */
-  font-size: max(0.9em, var(--bit-text-13px));
+  /* 0.9em of the text around it, but never under the 14px floor (inside 14px text it would be 12.6px). */
+  font-size: max(0.9em, var(--bit-text-14px));
   /* JetBrains Mono ships 400 and 700; the page's 600 would snap to bold. */
   font-weight: 400;
   font-variant-ligatures: none;

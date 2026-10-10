@@ -4,11 +4,15 @@ Package releases only. Docs-site changes don't appear here. One bullet per line.
 
 ## 0.1.8 — 2026-10-10
 ### Changed
-- Heading works like Text: `as` picks the tag (`'h1'` to `'h6'`, default `'h2'`) and `size` picks the look in px: `13`, `15`, `18`, `24` or `32` (`<Heading as="h2" size={18}>`). With no `size` a heading takes its tag's own size (h1 32, h2 24, h3 18, h4 15, h5 and h6 13). The face follows the size: 18 and up use the display face, 15 and 13 the body face in bold. Rendered as `data-size`. New types: `HeadingTag`, `HeadingSize`.
-- The pixel-caps h6 look is gone from the new API: `as="h6"` is the body face in bold at 13px.
-### Deprecated
-- Heading `level` is optional and deprecated: `level={2}` still renders an h2 with its old look, and warns once in development to use `as="h2"`. It will be removed in 0.2.0.
-- Heading `size={1}` to `size={6}` (a level) still gives that level's old look, and warns once to use the px size (`size={3}` → `size={18}`). It will be removed in 0.2.0.
+- Heads up, the type scale is even now: Text sizes are 14, 16, 18, 24, 32 and 40 (they were 11, 13, 15, 18, 24 and 32), and body text is 16 (it was 15). Every component moves with it, so most text in bit is about 1px bigger. Your code keeps working: the old sizes are deprecated, not removed. Swap `13` for `14` and `15` for `16` before 0.2.0.
+- Type scale: `TEXT_SIZES` is `[14, 16, 18, 24, 32, 40]`, with new tokens `--bit-text-14px`, `--bit-text-16px` and `--bit-text-40px`. 14 is the smallest text; it was 13.
+- Text: `size` takes 14, 16, 18, 24, 32 or 40, and defaults to 16 (was 15). 24, 32 and 40 use the display face.
+- Every component that used 13px or 15px text now uses 14px or 16px: Alert, Badge (`lg`), CodeBlock, Code, Field, Select, Switch, Table headers, Tabs, SegmentedControl, Tooltip, and the `sm` and `md` control sizes.
+- Heading works like Text: `as` picks the tag (`'h1'` to `'h6'`, default `'h2'`) and `size` picks the look in px (`<Heading as="h2" size={24}>`). With no `size` each tag takes its own step: h1 40, h2 32, h3 24, h4 18, h5 16, h6 14. 18 and up use the display face; 16 and 14 the body face in bold. Rendered as `data-size`. New types: `HeadingTag`, `HeadingSize`.
+- The pixel-caps h6 look is gone from the new API: `as="h6"` is the body face in bold at 14px.
+- Text `size={11}`, `size={13}` and `size={15}` render as 14, 14 and 16, and warn once in development. `--bit-text-11px`, `--bit-text-13px` and `--bit-text-15px` are aliases of `--bit-text-14px` and `--bit-text-16px`. All removed in 0.2.0. New exports: `DEPRECATED_TEXT_SIZES`, `DeprecatedTextSize`.
+- Heading `level` is optional and deprecated: `level={2}` still renders an h2 with its old look, and warns once to use `as="h2" size={24}`, which keeps that look. Removed in 0.2.0.
+- Heading `size={1}` to `size={6}` (a level) still gives that level's old look, and warns once to use the px size (`size={3}` → `size={18}`). Removed in 0.2.0.
 
 ## 0.1.7 — 2026-10-09
 ### Changed

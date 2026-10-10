@@ -1,7 +1,7 @@
 import { createElement, forwardRef } from 'react';
 import type { HTMLAttributes } from 'react';
-import { TEXT_SIZES } from '../../system/axes';
-import type { TextSize } from '../../system/axes';
+import { DEPRECATED_TEXT_SIZES, DEPRECATED_TEXT_SIZE_TO, TEXT_SIZES } from '../../system/axes';
+import type { DeprecatedTextSize, TextSize } from '../../system/axes';
 import { dataValue, toClasses } from '../../system/toClasses';
 import { warnDeprecated } from '../../system/warnDeprecated';
 
@@ -14,34 +14,36 @@ export interface TextProps extends HTMLAttributes<HTMLElement> {
   /** Which element to render. Styling comes from `size`, not from the tag. */
   as?: TextElement;
   /**
-   * Size in px (13, 15, 18, 24, 32). Rendered as `data-size`; reads `--bit-text-{size}px`. 24 and 32 use the display face.
-   * `11` is deprecated: it is under the 13px minimum text size. Use `13`. It will be removed in 0.2.0.
+   * Size in px (14, 16, 18, 24, 32, 40). Rendered as `data-size`; reads `--bit-text-{size}px`. 24, 32 and 40 use the
+   * display face. Default 16.
+   * `11`, `13` and `15` are deprecated: they render as 14, 14 and 16. They will be removed in 0.2.0.
    */
-  size?: TextSize;
+  size?: TextSize | DeprecatedTextSize;
   /** `neutral` renders muted text. */
   color?: (typeof colors)[number];
   /**
-   * Rendered as `data-weight`. Has no visible effect at 24 and 32: those sizes use the
+   * Rendered as `data-weight`. Has no visible effect at 24, 32 and 40: those sizes use the
    * display face, which ships a single weight, so a heavier value would be browser-synthesized.
    */
   weight?: 'normal' | 'bold';
 }
 
 export const Text = forwardRef<HTMLElement, TextProps>(function Text(
-  { as = 'p', size = 15, color, weight = 'normal', className, ...rest },
+  { as = 'p', size = 16, color, weight = 'normal', className, ...rest },
   ref,
 ) {
-  // String(): untyped callers (JS, MDX) can pass size="11", which dataValue accepts too.
-  if (String(size) === '11') {
+  // String(): untyped callers (JS, MDX) can pass size="13", which is the old form too.
+  const old = DEPRECATED_TEXT_SIZES.find((n) => String(n) === String(size));
+  if (old !== undefined) {
     warnDeprecated(
-      'text-size-11',
-      'Text size={11} is deprecated: 11px is under the 13px minimum text size. Use size={13}. It will be removed in 0.2.0.',
+      `text-size-${old}`,
+      `Text size={${old}} is deprecated: the scale is even now (14, 16, 18, 24, 32, 40). Use size={${DEPRECATED_TEXT_SIZE_TO[old]}}. It will be removed in 0.2.0.`,
     );
   }
   return createElement(as, {
     ref,
     className: toClasses('text', [{ name: 'color', allowed: colors, value: color }], className),
-    'data-size': dataValue('text', { name: 'size', allowed: TEXT_SIZES, value: size }),
+    'data-size': dataValue('text', { name: 'size', allowed: TEXT_SIZES, value: old === undefined ? size : DEPRECATED_TEXT_SIZE_TO[old] }),
     'data-weight': weight,
     ...rest,
   });

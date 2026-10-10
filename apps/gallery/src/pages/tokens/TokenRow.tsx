@@ -30,7 +30,8 @@ export function TokenRow({ preview, name, token, value = '' }: TokenRowProps) {
           {name}
         </Text>
         <span className="gallery-token-row__leader" aria-hidden="true" />
-        <Text as="span" color="neutral" className="gallery-token-row__value">
+        {/* 14, the caption size: the value is muted detail beside the name, and the inset shadow's still fits a phone. */}
+        <Text as="span" size={14} color="neutral" className="gallery-token-row__value">
           {formatValue(value)}
         </Text>
         <span className="gallery-token-row__chip">

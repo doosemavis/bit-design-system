@@ -126,12 +126,12 @@ describe('public index', () => {
     expect(lib.COLORS).toHaveLength(5);
     expect(lib.VARIANTS).toEqual(['solid', 'outline', 'ghost']);
     expect(lib.SIZES).toEqual(['sm', 'md', 'lg']);
-    expect(lib.TEXT_SIZES).toEqual([11, 13, 15, 18, 24, 32]);
+    expect(lib.TEXT_SIZES).toEqual([14, 16, 18, 24, 32, 40]);
     expect(lib.SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('exports SEMANTIC_TOKENS, the 98 tier-2 token names every theme declares, from @bit-ds/core', () => {
-    expect(lib.SEMANTIC_TOKENS).toHaveLength(98);
+  it('exports SEMANTIC_TOKENS, the 101 tier-2 token names every theme declares, from @bit-ds/core', () => {
+    expect(lib.SEMANTIC_TOKENS).toHaveLength(101);
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-color-primary');
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-space-64px');
     expect(lib.SEMANTIC_TOKENS.every((name) => name.startsWith('--bit-'))).toBe(true);

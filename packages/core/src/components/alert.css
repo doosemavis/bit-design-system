@@ -33,7 +33,7 @@
 }
 
 .bit-alert__body {
-  font-size: var(--bit-text-15px);
+  font-size: var(--bit-text-16px);
 }
 
 /* Dismissible: the × (a bit Button, sm, neutral outline) sits in the inline-end corner, and the content keeps
@@ -46,7 +46,7 @@
 /* Square, as the Dialog ×, and centred on the body's first line (the page's normal leading). */
 .bit-alert__dismiss {
   position: absolute;
-  inset-block-start: calc(var(--bit-space-16px) + (var(--bit-text-15px) * var(--bit-leading-normal) - var(--_bit-size-height)) / 2);
+  inset-block-start: calc(var(--bit-space-16px) + (var(--bit-text-16px) * var(--bit-leading-normal) - var(--_bit-size-height)) / 2);
   inset-inline-end: var(--bit-space-12px);
   width: var(--_bit-size-height);
   padding: 0;

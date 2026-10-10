@@ -6,8 +6,8 @@ import { warnDeprecated } from '../../system/warnDeprecated';
 
 const TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
 
-/** Text's sizes without the deprecated 11: a heading never goes under the 13px floor. */
-const SIZES = [13, 15, 18, 24, 32] as const;
+/** The even type scale, the same as Text's. */
+const SIZES = [14, 16, 18, 24, 32, 40] as const;
 
 /** Deprecated: the old `level` prop and the old `size={level}` form. */
 const LEVELS = [1, 2, 3, 4, 5, 6] as const;
@@ -19,8 +19,11 @@ export type HeadingSize = (typeof SIZES)[number];
 /** @deprecated Use `as` ('h1' to 'h6'). Removed in 0.2.0. */
 export type HeadingLevel = (typeof LEVELS)[number];
 
-/** Each tag's own px size: the size when `size` is left off. */
-const TAG_PX: Record<HeadingTag, HeadingSize> = { h1: 32, h2: 24, h3: 18, h4: 15, h5: 13, h6: 13 };
+/** Each tag's own px size, one step each: the size when `size` is left off. */
+const TAG_PX: Record<HeadingTag, HeadingSize> = { h1: 40, h2: 32, h3: 24, h4: 18, h5: 16, h6: 14 };
+
+/** The px size each deprecated level looked like, to keep that look on the way to as and size. */
+const LEVEL_PX: Record<HeadingLevel, HeadingSize> = { 1: 32, 2: 24, 3: 18, 4: 16, 5: 14, 6: 14 };
 
 export interface HeadingProps extends Omit<HTMLAttributes<HTMLHeadingElement>, 'color'> {
   /**
@@ -29,8 +32,8 @@ export interface HeadingProps extends Omit<HTMLAttributes<HTMLHeadingElement>, '
    */
   as?: HeadingTag;
   /**
-   * Size in px (13, 15, 18, 24, 32). Rendered as `data-size`; reads `--bit-text-{size}px`. 18 and up use the
-   * display face; 15 and 13 the body face in bold. Default: the tag's own size (h1 32, h2 24, h3 18, h4 15, h5 and h6 13).
+   * Size in px (14, 16, 18, 24, 32, 40). Rendered as `data-size`; reads `--bit-text-{size}px`. 18 and up use the
+   * display face; 16 and 14 the body face in bold. Default: the tag's own size (h1 40, h2 32, h3 24, h4 18, h5 16, h6 14).
    * A level (1 to 6) is deprecated: use the px size. It will be removed in 0.2.0.
    */
   size?: HeadingSize | HeadingLevel;
@@ -46,7 +49,7 @@ function levelTag(level: HeadingLevel | undefined): HeadingTag | undefined {
   if (valid === undefined) return undefined;
   warnDeprecated(
     `heading-level-${valid}`,
-    `Heading level={${valid}} is deprecated: use as="h${valid}" (and size in px to change its look). It will be removed in 0.2.0.`,
+    `Heading level={${valid}} is deprecated: use as="h${valid}" size={${LEVEL_PX[Number(valid) as HeadingLevel]}}, which keeps this look. It will be removed in 0.2.0.`,
   );
   return `h${valid}` as HeadingTag;
 }
@@ -58,7 +61,7 @@ function oldLevelSize(size: HeadingProps['size']): HeadingLevel | undefined {
   if (old !== undefined) {
     warnDeprecated(
       `heading-size-${old}`,
-      `Heading size={${old}} is deprecated: size is now in px (13, 15, 18, 24, 32). Use size={${TAG_PX[`h${old}`]}}. It will be removed in 0.2.0.`,
+      `Heading size={${old}} is deprecated: size is now in px (14, 16, 18, 24, 32, 40). Use size={${LEVEL_PX[old]}}. It will be removed in 0.2.0.`,
     );
   }
   return old;

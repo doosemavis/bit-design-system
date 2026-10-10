@@ -15,7 +15,7 @@ interface Example {
 const EXAMPLES: readonly Example[] = [
   {
     title: 'Lead and body',
-    when: 'Open a page or a section with an 18px lead, then body copy at the default 15.',
+    when: 'Open a page or a section with an 18px lead, then body copy at the default 16.',
     sample: (
       <>
         <Text size={18}>bit is a retro-styled design system for React.</Text>
@@ -27,13 +27,13 @@ const EXAMPLES: readonly Example[] = [
   },
   {
     title: 'Hint or caption',
-    when: '13px in neutral steps back: help under a field, a caption under a figure, a timestamp.',
+    when: '14px in neutral steps back: help under a field, a caption under a figure, a timestamp.',
     sample: (
-      <Text size={13} color="neutral">
+      <Text size={14} color="neutral">
         We only use this to send your receipt.
       </Text>
     ),
-    code: `<Text size={13} color="neutral">We only use this to send your receipt.</Text>`,
+    code: `<Text size={14} color="neutral">We only use this to send your receipt.</Text>`,
   },
   {
     title: 'Inline emphasis',
@@ -53,7 +53,7 @@ const EXAMPLES: readonly Example[] = [
   },
   {
     title: 'Big text that is not a title',
-    when: '24 and 32 use the display face, for a big number or statement that does not name a section. That face has one weight, so weight does nothing here.',
+    when: '24, 32 and 40 use the display face, for a big number or statement that does not name a section. That face has one weight, so weight does nothing here.',
     sample: <Text size={32}>98 tokens</Text>,
     code: `<Text size={32}>98 tokens</Text>`,
   },
@@ -87,7 +87,7 @@ function ExampleCard({ title, when, sample, code, note }: Example) {
       <CardBody>
         <Stack gap={12}>
           <Stack gap={4}>
-            <Heading as="h3" size={15} id={titleId}>
+            <Heading as="h3" size={16} id={titleId}>
               {title}
             </Heading>
             <Text color="neutral">{when}</Text>

@@ -19,9 +19,11 @@ const FROZEN: readonly (readonly [oldName: string, newName: string, px: string])
   ['--bit-radius-sm', '--bit-radius-6px', '6px'],
   ['--bit-radius-md', '--bit-radius-10px', '10px'],
   ['--bit-radius-lg', '--bit-radius-14px', '14px'],
-  ['--bit-text-xs', '--bit-text-11px', '11px'],
-  ['--bit-text-sm', '--bit-text-13px', '13px'],
-  ['--bit-text-md', '--bit-text-15px', '15px'],
+  // 0.1.8 (owner, 2026-10-10): the scale went even. 11, 13 and 15 are deprecated aliases of 14 and 16, so these
+  // three sizes really changed, on purpose.
+  ['--bit-text-xs', '--bit-text-11px', '14px'],
+  ['--bit-text-sm', '--bit-text-13px', '14px'],
+  ['--bit-text-md', '--bit-text-15px', '16px'],
   ['--bit-text-lg', '--bit-text-18px', '18px'],
   ['--bit-text-xl', '--bit-text-24px', '24px'],
   ['--bit-text-2xl', '--bit-text-32px', '32px'],
@@ -46,7 +48,8 @@ describe('px rename (D13 frozen table)', () => {
     expect(readCss('components/text.css')).toContain(`.bit-text[data-size="${n}"] { font-size: var(--bit-text-${n}px); }`);
   });
 
-  it('Text with no size renders 15px, the old md', () => {
-    expect(readCss('components/text.css')).toMatch(/\.bit-text \{[^}]*font-size: var\(--bit-text-15px\);/);
+  // 0.1.8 (owner, 2026-10-10): the even scale moved the default from 15 to 16, on purpose.
+  it('Text with no size renders 16px, the body default', () => {
+    expect(readCss('components/text.css')).toMatch(/\.bit-text \{[^}]*font-size: var\(--bit-text-16px\);/);
   });
 });

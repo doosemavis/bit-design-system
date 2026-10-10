@@ -165,7 +165,7 @@ describe('ControlsPanel', () => {
     expect(heading).toHaveAttribute('id', 'controls-heading');
     // The same Text size as the preview title; the pixel face comes from the selector list it shares with it.
     expect(heading).toHaveClass('bit-text', 'gallery-controls__title');
-    expect(heading).toHaveAttribute('data-size', '13');
+    expect(heading).toHaveAttribute('data-size', '14');
     expect([...bar.children]).toEqual([heading, screen.getByRole('button', { name: 'Reset' })]);
     expect(bar.nextElementSibling).toHaveClass('gallery-controls__grid');
   });
@@ -178,7 +178,7 @@ describe('ControlsPanel', () => {
   });
 
   describe('a locked control (Text weight at the display sizes)', () => {
-    const WHY = '24 and 32 use the display face, which has one weight. Pick 13, 15 or 18 to set the weight.';
+    const WHY = '24, 32 and 40 use the display face, which has one weight. Pick 14, 16 or 18 to set the weight.';
 
     function renderText(size: string) {
       return render(

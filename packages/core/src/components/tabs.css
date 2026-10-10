@@ -27,7 +27,7 @@
   margin: 0;
   padding: var(--bit-space-12px) var(--bit-space-16px) var(--bit-space-8px);
   font-family: var(--bit-font-body);
-  font-size: var(--bit-text-15px);
+  font-size: var(--bit-text-16px);
   font-weight: var(--bit-weight-bold);
   line-height: 1;
   color: var(--bit-color-text-muted);

@@ -59,7 +59,7 @@ test('All icons: toolbar controls line up with the search box and groups are spa
   expect(Math.abs(h2.y - (g1.y + g1.height) - 48)).toBeLessThanOrEqual(2);
 });
 
-test('All icons: group header has a divider and a bold 15px count pill', async ({ page }) => {
+test('All icons: group header has a divider and a bold 16px count pill', async ({ page }) => {
   await page.goto('#/components/icon');
   const head = page.getByRole('region', { name: 'All icons' }).locator('.gallery-icon-group-head').first();
   const border = await head.evaluate((el) => parseFloat(getComputedStyle(el).borderBottomWidth));
@@ -68,5 +68,5 @@ test('All icons: group header has a divider and a bold 15px count pill', async (
   await expect(pill).toHaveText(/^\d+ icons$/);
   const style = await pill.evaluate((el) => ({ w: Number(getComputedStyle(el).fontWeight), s: getComputedStyle(el).fontSize }));
   expect(style.w).toBeGreaterThanOrEqual(700);
-  expect(style.s).toBe('15px');
+  expect(style.s).toBe('16px');
 });

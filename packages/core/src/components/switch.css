@@ -7,7 +7,7 @@
   align-items: center;
   gap: var(--bit-space-8px);
   font-family: var(--bit-font-body);
-  font-size: var(--bit-text-15px);
+  font-size: var(--bit-text-16px);
   font-weight: var(--bit-weight-bold);
   line-height: var(--bit-leading-tight);
   color: var(--bit-color-text);
@@ -24,7 +24,7 @@
   --_bit-switch-width: 40px;
   --_bit-switch-height: 24px;
   --_bit-switch-thumb: 12px;
-  font-size: var(--bit-text-13px);
+  font-size: var(--bit-text-14px);
 }
 
 .bit-switch__input {
