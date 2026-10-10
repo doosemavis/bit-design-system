@@ -329,7 +329,7 @@ describe('manifest contract', () => {
   });
 
   it('only ModeToggle, CodeBlock, Dialog, Tabs, Tooltip and Select are interactive (no HTML tab): they need React to work', () => {
-    expect(MANIFESTS.filter((m) => isInteractive(m, defaultState(m))).map((m) => m.name)).toEqual(['ModeToggle', 'CodeBlock', 'Dialog', 'Tabs', 'Tooltip', 'Select']);
+    expect(MANIFESTS.filter((m) => isInteractive(m, defaultState(m))).map((m) => m.name)).toEqual(['ModeToggle', 'CodeBlock', 'Dialog', 'Tabs', 'Tooltip', 'Select', 'Slider']);
     expect(isInteractive(field, { control: 'Select' })).toBe(true);
   });
 
@@ -377,7 +377,7 @@ describe('manifest contract', () => {
   });
 
   it('the form controls are in the forms group', () => {
-    expect(MANIFESTS.filter((m) => m.group === 'forms').map((m) => m.name)).toEqual(['Field', 'Input', 'Textarea', 'Select', 'Checkbox', 'RadioGroup', 'Switch']);
+    expect(MANIFESTS.filter((m) => m.group === 'forms').map((m) => m.name)).toEqual(['Field', 'Input', 'Textarea', 'Select', 'Checkbox', 'RadioGroup', 'Switch', 'Slider']);
   });
 
   it('isHtmlElement follows JSX: lowercase is an HTML tag, PascalCase is a component', () => {

@@ -14,7 +14,7 @@ export interface FieldProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color'
   error?: ReactNode;
   /** Shows a "*" (hidden from screen readers) and passes `required` to the control. */
   required?: boolean;
-  /** Exactly one control: Input, Textarea, Select, Checkbox, Switch or RadioGroup. */
+  /** Exactly one control: Input, Textarea, Select, Checkbox, Switch, RadioGroup or Slider. */
   children: ReactElement;
 }
 

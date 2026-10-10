@@ -4,14 +4,16 @@
 
 /* A control with a hard shadow: while it has keyboard focus, the shadow moves from under the control to under
    the ring, so the gap between control and ring shows the background evenly on every side (owner pick A,
-   2026-10-10). The control drops its own shadow (button.css, switch.css, checkbox.css, radio.css), and this ::after, a box exactly the
+   2026-10-10). The control drops its own shadow (button.css, switch.css, checkbox.css, radio.css, slider.css), and this ::after, a box exactly the
    ring's outer edge, casts it instead: an outer box-shadow paints only outside its own box, so the gap stays
    see-through. Each control sets --_bit-lift (the shadow to move) and --_bit-lift-radius (its corner radius). */
 .bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])::after,
 .bit-button:is(.bit-solid, .bit-outline)[aria-disabled="true"]:focus-visible::after,
 .bit-switch__input:focus-visible + .bit-switch__track::after,
 .bit-checkbox__input:focus-visible + .bit-checkbox__box::after,
-.bit-radio__input:focus-visible + .bit-radio__dot::after {
+.bit-radio__input:focus-visible + .bit-radio__dot::after,
+.bit-slider__input:focus-visible ~ .bit-slider__thumb::after,
+.bit-slider__input:focus-visible ~ .bit-slider__blocks::after {
   content: "";
   position: absolute;
   inset: calc(-1 * (var(--bit-border-width) + var(--bit-focus-ring-offset) + var(--bit-focus-ring-width)));

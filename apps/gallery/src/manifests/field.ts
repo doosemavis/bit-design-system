@@ -6,6 +6,7 @@ const INPUT_CHILD: ChildSpec = { component: 'Input', props: { type: 'email', pla
 const TEXTAREA_CHILD: ChildSpec = { component: 'Textarea', props: { placeholder: 'Tell us more' } };
 const CHECKBOX_CHILD: ChildSpec = { component: 'Checkbox', children: 'I agree to the terms' };
 const SWITCH_CHILD: ChildSpec = { component: 'Switch', children: 'Email me' };
+const SLIDER_CHILD: ChildSpec = { component: 'Slider', props: { defaultValue: 40 } };
 const RADIO_CHILD: ChildSpec = {
   component: 'RadioGroup',
   props: {
@@ -36,6 +37,7 @@ const CHILDREN: Readonly<Record<string, ChildSpec>> = {
   Checkbox: CHECKBOX_CHILD,
   RadioGroup: RADIO_CHILD,
   Switch: SWITCH_CHILD,
+  Slider: SLIDER_CHILD,
 };
 
 export const field: Manifest = {
@@ -50,7 +52,7 @@ export const field: Manifest = {
       kind: 'select',
       prop: 'control',
       label: 'control',
-      values: ['Input', 'Textarea', 'Select', 'Checkbox', 'RadioGroup', 'Switch'],
+      values: ['Input', 'Textarea', 'Select', 'Checkbox', 'RadioGroup', 'Switch', 'Slider'],
       default: 'Input',
       virtual: true,
     },
@@ -60,8 +62,8 @@ export const field: Manifest = {
     { kind: 'boolean', prop: 'required', default: false },
   ],
   deriveChildren: (state) => [CHILDREN[String(state.control)] ?? INPUT_CHILD],
-  // A Select's markup needs React, so the HTML tab hides while it is the child.
-  interactive: (state) => state.control === 'Select',
+  // A Select's and a Slider's markup need React, so the HTML tab hides while one is the child.
+  interactive: (state) => state.control === 'Select' || state.control === 'Slider',
   presets: [
     { label: 'With a hint', state: { hint: 'We never share it.' } },
     { label: 'With an error', state: { error: 'Enter your email.' } },
@@ -73,7 +75,7 @@ export const field: Manifest = {
     badges: ['Wires the ids', 'One control'],
     usage: {
       do: [
-        'Wrap every Input, Textarea, Select and RadioGroup in a Field, so it has a visible label.',
+        'Wrap every Input, Textarea, Select, RadioGroup and Slider in a Field, so it has a visible label.',
         'Wrap a Checkbox or Switch in a Field when it needs a hint or an error; the Field label and its own are both read.',
         'Use hint for help that is always true, and error for what went wrong and how to fix it.',
       ],
@@ -95,7 +97,7 @@ export const field: Manifest = {
         default: 'false',
         description: 'Shows a "*" (hidden from screen readers) and passes required to the control.',
       },
-      { name: 'children', type: 'ReactElement', description: 'Exactly one control: Input, Textarea, Select, Checkbox, RadioGroup or Switch.' },
+      { name: 'children', type: 'ReactElement', description: 'Exactly one control: Input, Textarea, Select, Checkbox, RadioGroup, Switch or Slider.' },
     ],
     a11y: [
       'The label points at the control, so clicking it focuses the control and screen readers read it. For a Select, clicking the label also opens the list.',

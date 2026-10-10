@@ -19,6 +19,10 @@ const EXEMPT: Readonly<Record<string, { sizes: readonly string[]; why: string }>
     why: 'Inline Code is 0.9em of the text around it, but max() holds it at 14px or more inside 14px text.',
   },
   'dialog.css': { sizes: ['11px'], why: 'The Retro window title is the pixel font, which reads large; 11px is its sub-scale, as Badge (owner pick D2).' },
+  'slider.css': {
+    sizes: ['11px'],
+    why: "The round Slider's value bubble is the pixel font, which reads large, at Dialog's 11px; it is hidden from screen readers, which read the input's value.",
+  },
   'text.css': {
     sizes: ['var(--bit-text-11px)', 'var(--bit-text-13px)', 'var(--bit-text-15px)'],
     why: 'Deprecated data-size 11, 13 and 15 (removed in 0.2.0). Their tokens alias 14 and 16, so they render at the floor or above.',

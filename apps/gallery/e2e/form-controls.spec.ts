@@ -52,3 +52,43 @@ test.describe('forced colors', () => {
     expect(chosen).not.toBe(other);
   });
 });
+
+test('Slider: the real arrow, Page and Home/End keys move it, the thumb shows the ring, and the round bubble opens on focus', async ({ page }) => {
+  await page.goto('#/components/slider');
+  const stage = page.locator('.gallery-preview__stage');
+  const input = stage.getByRole('slider', { name: 'Volume' });
+  await expect(input).toHaveValue('6');
+  await input.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(input).toHaveValue('7');
+  await page.keyboard.press('Home');
+  await expect(input).toHaveValue('0');
+  await page.keyboard.press('PageUp');
+  await expect(input).not.toHaveValue('0');
+  await page.keyboard.press('End');
+  await expect(input).toHaveValue('10');
+  await expect(stage.locator('.bit-slider__thumb')).toHaveCSS('outline-style', 'solid');
+  // The thumb ends flush with the track's end at max.
+  const [thumb, track] = await Promise.all([stage.locator('.bit-slider__thumb').boundingBox(), stage.locator('.bit-slider__track').boundingBox()]);
+  expect(Math.abs(thumb!.x + thumb!.width - (track!.x + track!.width))).toBeLessThan(1);
+
+  await page.goto('#/components/slider?variant=round');
+  const round = page.locator('.gallery-preview__stage');
+  await round.getByRole('slider').focus();
+  await expect(round.locator('.bit-slider__bubble')).toHaveCSS('opacity', '1');
+});
+
+test('Slider: a click on a block picks that block, and a drag on the square thumb lands where the pointer is', async ({ page }) => {
+  await page.goto('#/components/slider?variant=blocks');
+  const stage = page.locator('.gallery-preview__stage');
+  const input = stage.getByRole('slider');
+  await stage.locator('.bit-slider__block').nth(2).click();
+  await expect(input).toHaveValue('3');
+  await expect(stage.locator('.bit-slider__block[data-state="current"]')).toHaveCount(1);
+
+  await page.goto('#/components/slider');
+  const square = page.locator('.gallery-preview__stage');
+  const box = (await square.locator('.bit-slider').boundingBox())!;
+  await page.mouse.click(box.x + box.width - 2, box.y + box.height / 2);
+  await expect(square.getByRole('slider')).toHaveValue('10');
+});

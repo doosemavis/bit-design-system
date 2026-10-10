@@ -44,7 +44,7 @@ Versions and release notes: [all versions](https://doosemavis.github.io/bit-desi
 Every pull request runs all of this in CI ([workflow](https://github.com/doosemavis/bit-design-system/blob/main/.github/workflows/ci.yml)). Releases publish only from a tagged commit on `main`, and the release job runs the package checks again before publishing:
 
 - **Unit tests** (Vitest and Testing Library) for every component, with 100% statement, branch, function and line coverage on `@bit-ds/react`.
-- **Accessibility in unit tests:** all 29 components listed under [Components](#components) run [axe-core](https://github.com/dequelabs/axe-core) on what they render. Select is checked both closed and open.
+- **Accessibility in unit tests:** all 30 components listed under [Components](#components) run [axe-core](https://github.com/dequelabs/axe-core) on what they render. Select is checked both closed and open.
 - **Accessibility in a real browser:** Playwright opens every docs page in light and dark mode and fails on any axe violation of the WCAG 2.0, 2.1 and 2.2 A and AA rules.
 - **Keyboard and focus:** Select's keyboard model (arrows, Home and End, Page Up and Page Down, typeahead, Enter, Space, Escape, Tab) is tested key by key, along with where focus goes and how it behaves in a form (`required`, reset, `form="id"`).
 - **Dialog and Tabs:** Dialog is tested for focus moving in (to `data-autofocus`), Esc and the × closing it, focus returning to the opener, and an `alert` dialog ignoring clicks on the dimmed page; in a real browser, Playwright checks the page behind is inert and won't take focus. Tabs are tested for the one Tab stop, arrows (swapped right-to-left), Home and End, skipping disabled tabs, and manual activation.
@@ -168,7 +168,7 @@ The package is MIT. The icon artwork is Apache 2.0: Material Symbols by Google, 
 
 - **Actions and status:** Button, Badge, Alert, Spinner
 - **Layout and type:** Card (+ CardHeader, CardBody, CardFooter), Stack, Box, Text, Heading
-- **Forms:** Field, Input, Textarea, Select, Checkbox, RadioGroup (+ Radio), Switch
+- **Forms:** Field, Input, Textarea, Select, Checkbox, RadioGroup (+ Radio), Switch, Slider
 - **Content:** Link, Code, CodeBlock, Table (+ TableHead, TableBody, TableRow, TableCell)
 - **Choice:** SegmentedControl, ModeToggle
 - **Theming:** BitTheme, for a subtree with its own mode or theme
@@ -177,13 +177,14 @@ The package is MIT. The icon artwork is Apache 2.0: Material Symbols by Google, 
 - **Icon buttons and hints:** IconButton, Tooltip
 - **Brand:** BitLogo
 
-Every one works in light and dark mode, and anything focusable shows the one focus ring from `reset.css`. Input, Textarea, Checkbox, RadioGroup, Switch and SegmentedControl sit on the real native element (an `<input>`, a `<textarea>`, a checkbox or radios), so keyboards and screen readers work as browsers intend. Select is a bit-drawn combobox (the WAI-ARIA select-only combobox) with full keyboard support and single or multi-select, so its list looks the same in every browser; hidden native inputs carry its value (one per chosen value with `multiple`), so `name`, `required`, `disabled`, `form` and form reset work as they do on a native `<select>`. Dialog is the native modal `<dialog>`: focus moves in, the page behind is inert, Esc closes it, and focus returns to what opened it. Tabs follow the WAI-ARIA tabs pattern, with one Tab stop and arrow keys between tabs.
+Every one works in light and dark mode, and anything focusable shows the one focus ring from `reset.css`. Input, Textarea, Checkbox, RadioGroup, Switch, Slider and SegmentedControl sit on the real native element (an `<input>`, a `<textarea>`, a checkbox, radios or a range input), so keyboards and screen readers work as browsers intend. Select is a bit-drawn combobox (the WAI-ARIA select-only combobox) with full keyboard support and single or multi-select, so its list looks the same in every browser; hidden native inputs carry its value (one per chosen value with `multiple`), so `name`, `required`, `disabled`, `form` and form reset work as they do on a native `<select>`. Dialog is the native modal `<dialog>`: focus moves in, the page behind is inert, Esc closes it, and focus returns to what opened it. Tabs follow the WAI-ARIA tabs pattern, with one Tab stop and arrow keys between tabs.
 
 - `Heading` takes `size` in px, every 2px from 20 to 44 (default 32), and the size picks the tag for the page outline: 40 and up is an h1, 32 to 38 an h2, 26 to 30 an h3, 24 an h4, 22 an h5, 20 an h6. `Text`'s `size` is 14, 16, 18, 24, 32 or 40; body text is 16. A Text inside a Text renders inline: `<Text>You have <Text weight="bold">3 coins</Text> left.</Text>`. Text also takes `italic`, `underline` and `strikethrough`.
 - `Box` pads and offsets one element on the space scale (`padding`, `paddingX`, `paddingTop`, … and the same for `margin`). When props overlap, the most specific wins: `paddingTop` beats `paddingY`, which beats `padding`. Use `Stack` for space between things.
 - `Switch` and `Checkbox` carry their own label. Put them in a `Field` when they need a hint or an error; the Field label and their own label are both read.
 - `RadioGroup` takes `options` or `<Radio value>` children, and a `legend` (or the label of a `Field` around it). Native radios, so the arrow keys move the choice.
 - `Input`, `Textarea`, `Select`, `Checkbox` and `RadioGroup` take `readOnly`: the value stays readable, focusable and submitted, with a dashed edge, where `disabled` fades it and takes it out of the Tab order.
+- `Slider` is a native `<input type="range">` under the drawn track, so the arrow keys, Home, End, Page Up and Page Down move it, and `name` and form reset work. It takes `value` or `defaultValue`, `onValueChange(number)`, `min`, `max`, `step` and three looks: `variant="square"` (default), `"blocks"` (a health bar, one block per step, 20 at most) and `"round"` (with a value bubble while you drag or focus it). `formatValue` gives screen readers and the bubble the words for the value. Outside a Field, give it an `aria-label`.
 - `SegmentedControl` is native radios (checkboxes with `multiple`), so the arrow keys move the choice. With `multiple`, each segment is a Tab stop and Space toggles it.
 - `Link` takes `color="primary"` or `color="neutral"` only.
 - `CodeBlock` takes an optional `label` (default `` `${language} code` ``). Its code area is a named region, so give each CodeBlock a unique `label` when a page has several in the same language. A failed copy turns the Copy button solid danger red.
