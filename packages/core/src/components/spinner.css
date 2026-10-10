@@ -24,3 +24,10 @@
     border-top-color: var(--_bit-color);
   }
 }
+
+/* Reduced motion: the arc stands still. The ring and its label still say it is loading. */
+@media (prefers-reduced-motion: reduce) {
+  .bit-spinner {
+    animation: none;
+  }
+}

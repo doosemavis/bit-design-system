@@ -309,14 +309,36 @@ export const VISION_EXAMPLES: readonly Example[] = [
   },
 ];
 
+/** The motion example's live sample: a smooth scroll to the top, or a jump with Reduce motion on. */
+function scrollToTop() {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+}
+
 export const MOTION_EXAMPLES: readonly Example[] = [
   {
-    title: 'Check Reduce motion for movement in JavaScript',
-    when: "With Reduce motion on, bit's stylesheet stops CSS animations and transitions across the page, yours included. Movement you start in JavaScript, like a smooth scroll, is yours to check.",
+    title: 'Stop your own animations with a media query',
+    when: "With Reduce motion on, bit's components stop their own motion, and nothing else: bit's stylesheet never reaches into your app's CSS. Give your own animations and transitions the same query.",
     sample: <Spinner aria-label="Loading" />,
+    code: `@media (prefers-reduced-motion: reduce) {
+  .your-panel {
+    animation: none;
+    transition: none;
+  }
+}`,
+    language: 'css',
+    note: 'Turn on Reduce motion in your system settings and this Spinner stops turning: bit gives it its own query. It still says "Loading" to screen readers.',
+  },
+  {
+    title: 'Check Reduce motion for movement in JavaScript',
+    when: 'Movement you start in JavaScript, like a smooth scroll, is yours to check too.',
+    sample: (
+      <Button color="neutral" variant="outline" size="sm" onClick={scrollToTop}>
+        Back to top
+      </Button>
+    ),
     code: `const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });`,
+window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });`,
     language: 'ts',
-    note: 'Turn on Reduce motion in your system settings and this Spinner stops turning. It still says "Loading" to screen readers.',
   },
 ];

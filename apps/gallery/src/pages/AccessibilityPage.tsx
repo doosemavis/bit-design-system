@@ -43,7 +43,7 @@ const BUILT_IN: readonly { title: string; body: ReactNode }[] = [
   },
   {
     title: 'Reduced motion',
-    body: "With Reduce motion on, bit's stylesheet stops CSS animations and transitions across the page: Dialog, Tabs, Select, Tooltip and Spinner change at once.",
+    body: "With Reduce motion on, bit's components stop their own motion: Dialog, Tabs, Select, Tooltip, Spinner, Switch and Button change at once. bit leaves the rest of your page alone, so give your own animations the same media query.",
   },
   {
     title: 'High contrast',

@@ -146,3 +146,14 @@
     border-color: GrayText;
   }
 }
+
+/* Reduced motion: hover and press change at once, and the loading arc stands still. */
+@media (prefers-reduced-motion: reduce) {
+  .bit-button {
+    transition: none;
+  }
+
+  .bit-button[data-loading]::before {
+    animation: none;
+  }
+}

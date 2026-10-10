@@ -114,3 +114,11 @@
     border-color: HighlightText;
   }
 }
+
+/* Reduced motion: the thumb jumps and the track fills at once. */
+@media (prefers-reduced-motion: reduce) {
+  .bit-switch__track,
+  .bit-switch__thumb {
+    transition: none;
+  }
+}

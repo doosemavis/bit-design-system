@@ -108,7 +108,7 @@
   }
 }
 
-/* Instant press for reduced motion (system/motion.css also clamps every transition globally). */
+/* Instant press for reduced motion. */
 @media (prefers-reduced-motion: reduce) {
   .bit-segmented-control__label {
     transition: none;

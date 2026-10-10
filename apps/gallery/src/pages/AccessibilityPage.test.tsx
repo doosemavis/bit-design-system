@@ -63,7 +63,7 @@ describe('Accessibility page', () => {
       ],
     ],
     ['Color and vision', ['Say it in words, not just color', 'Keep reading text at 16, captions at 14', 'Respect the light or dark choice']],
-    ['Motion', ['Check Reduce motion for movement in JavaScript']],
+    ['Motion', ['Stop your own animations with a media query', 'Check Reduce motion for movement in JavaScript']],
   ])('%s: each example pairs a live sample, framed in a Box, with its code', async (section, titles) => {
     await renderAccessibility();
     const examples = within(screen.getByRole('region', { name: section })).getAllByRole('article');
