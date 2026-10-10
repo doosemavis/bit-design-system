@@ -274,6 +274,7 @@ The fonts ship in the package. The theme's `@font-face` rules load Lilita One, N
 - Docs: https://doosemavis.github.io/bit-design-system/
 - Design spec: https://github.com/doosemavis/bit-design-system/blob/main/docs/superpowers/specs/2026-09-06-bit-design-system-design.md
 - Source and issues: https://github.com/doosemavis/bit-design-system
+- Security: report a vulnerability privately, see [SECURITY.md](https://github.com/doosemavis/bit-design-system/blob/main/SECURITY.md)
 
 ## Contributing
 
