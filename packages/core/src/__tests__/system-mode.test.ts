@@ -10,7 +10,7 @@ function systemDarkBody(source: string): string | null {
 }
 
 function darkBody(source: string): string {
-  const m = /(^|\n)\[data-mode="dark"\]\s*\{([^}]*)\}/.exec(source);
+  const m = /(^|\n)\s*\[data-mode="dark"\]\s*\{([^}]*)\}/.exec(source);
   return m ? m[2]! : '';
 }
 

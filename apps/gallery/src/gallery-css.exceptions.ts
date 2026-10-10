@@ -59,6 +59,7 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-header__brand', property: 'text-decoration', reason: 'frame: the brand link is not underlined' },
   { selector: '.gallery-sidebar', property: 'border-right', reason: 'frame: sidebar surface and divider' },
   { selector: '.gallery-sidebar', property: 'background', reason: 'frame: sidebar surface and divider' },
+  { selector: 'html, .gallery-presets, .gallery-sidebar', property: 'scrollbar-width', reason: "frame: thin scrollbars on the page and the gallery's own scroll areas (bit sets them only on its components)" },
   { selector: '@media not (forced-colors: active) .gallery-presets::-webkit-scrollbar-track, .gallery-sidebar::-webkit-scrollbar-track', property: 'background', reason: 'frame: the scrollbar track shows the area\'s own background' },
   { selector: '@media not (forced-colors: active) .gallery-presets::-webkit-scrollbar-thumb, .gallery-sidebar::-webkit-scrollbar-thumb', property: 'background', reason: 'frame: solid accent scrollbar thumb' },
   { selector: '@media not (forced-colors: active) .gallery-presets::-webkit-scrollbar-thumb, .gallery-sidebar::-webkit-scrollbar-thumb', property: 'background-clip', reason: 'frame: the transparent border slims the scrollbar thumb' },

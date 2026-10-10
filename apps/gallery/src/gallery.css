@@ -12,6 +12,13 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Thin scrollbars on the page and the gallery's own scroll areas. bit sets them only on its own components. */
+html,
+.gallery-presets,
+.gallery-sidebar {
+  scrollbar-width: thin;
+}
+
 /* ---------- shell ---------- */
 .gallery-shell {
   min-height: 100vh;
@@ -526,7 +533,8 @@ html {
     border: 3px solid transparent;
     border-radius: var(--bit-radius-10px);
   }
-  /* reset.css sets the standard scrollbar-color and scrollbar-width, which Chrome 121+ lets override ::-webkit-scrollbar.
+  /* bit's reset.css sets the standard scrollbar-color and the rule above sets scrollbar-width, which Chrome 121+ lets
+     override ::-webkit-scrollbar.
      Where the pseudo-elements work, hand the scrollbar back to them. */
   @supports selector(::-webkit-scrollbar) {
     .gallery-presets, .gallery-sidebar { scrollbar-color: auto; scrollbar-width: auto; }

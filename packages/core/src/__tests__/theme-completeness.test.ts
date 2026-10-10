@@ -35,7 +35,7 @@ describe('themes', () => {
     });
 
     it('dark block is attribute-only, so any element (not just <html>) can be dark', () => {
-      expect(css).toMatch(/(^|\n)\[data-mode="dark"\] \{/);
+      expect(css).toMatch(/(^|\n)\s*\[data-mode="dark"\] \{/);
     });
 
     it('the shared block also applies to [data-mode="light"], [data-mode="dark"] and [data-mode="system"] elements, so derived tokens (shadows) re-resolve in a dark subtree', () => {

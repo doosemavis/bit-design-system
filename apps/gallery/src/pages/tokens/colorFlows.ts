@@ -62,8 +62,8 @@ export function flowTokens(flows: ColorFlows): ReadonlySet<string> {
  */
 export function parseColorFlows(css: string): ColorFlows | null {
   const clean = css.replace(/\/\*[\s\S]*?\*\//g, '');
-  const lightBody = ruleBody(clean, /(?:^|\})\s*:root\b/);
-  const darkBody = ruleBody(clean, /(?:^|\})\s*\[data-mode="dark"\]\s*\{/);
+  const lightBody = ruleBody(clean, /(?:^|[{}])\s*:root\b/);
+  const darkBody = ruleBody(clean, /(?:^|[{}])\s*\[data-mode="dark"\]\s*\{/);
   if (lightBody === null || darkBody === null) return null;
   const light = declarationsOf(lightBody);
   const dark = { ...light, ...declarationsOf(darkBody) };

@@ -84,6 +84,11 @@ describe.each(cases)('scrollbar on $sel', ({ owner, sel, track, size }) => {
 });
 
 describe(FILE, () => {
+  it("thins bit's own scroll areas, the Dialog body included, outside the forced-colors guard", () => {
+    const thin = styleRules(css).find((rule) => rule.media === null && decl(rule.body, 'scrollbar-width') === 'thin');
+    expect(thin?.selector.split(/,\s*/)).toEqual(['.bit-code__pre', '.bit-table', '.bit-select__list', '.bit-tabs__list', '.bit-dialog__body']);
+  });
+
   it('does not change on hover, so the bar never looks bigger', () => {
     expect(block).not.toContain('::-webkit-scrollbar-thumb:hover');
   });
@@ -93,6 +98,6 @@ describe(FILE, () => {
   });
 
   it('is imported by index.css', () => {
-    expect(readCss('index.css')).toContain('@import "./system/scrollbar.css";');
+    expect(readCss('index.css')).toContain('@import "./system/scrollbar.css" layer(bit.components);');
   });
 });

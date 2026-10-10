@@ -56,29 +56,29 @@ export function contrastRatio(hexA: string, hexB: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-/** A `[data-mode="dark"]` that starts a line and isn't continuing a comma-separated selector list. */
-const DARK_RULE = /(?<!,\s*)(^|\n)\[data-mode="dark"\]\s*\{/;
+/** A selector that turns dark mode on: the `bit-dark` class or `[data-mode="dark"]`. */
+const DARK_SELECTOR = /\[data-mode="dark"\]|\.bit-dark\b/;
+/** A selector that also applies outside dark mode: the root, a light or system mode, or a theme on its own. */
+const NOT_ONLY_DARK = /:root|\[data-mode="(light|system)"\]|\.bit-light\b/;
 
-/** The `@media (prefers-color-scheme: dark) { [data-mode="system"] { ... } }` rule. */
-const SYSTEM_RULE = /@media\s*\(prefers-color-scheme:\s*dark\)\s*\{\s*\[data-mode="system"\]\s*\{[^}]*\}\s*\}/;
+/** True for a rule that applies only in dark mode: every selector in its list turns dark on, and none is shared. */
+function isDarkRule(selector: string): boolean {
+  return splitSelectors(selector).every((s) => DARK_SELECTOR.test(s) && !NOT_ONLY_DARK.test(s));
+}
 
 /**
- * Split a theme file into its light (default) declarations and its `[data-mode="dark"]` overrides.
- * The dark block is found with `/(?<!,\s*)(^|\n)\[data-mode="dark"\]\s*\{/`: a `[data-mode="dark"]`
- * that starts a line and isn't continuing a comma-separated selector list. Its declarations run from
- * that match's `{` to the next `}`; light is everything else. `dark` is empty when there is no such rule.
+ * Split a theme file into its light (default) declarations and its dark-mode overrides. The dark overrides are
+ * the top-level rules (outside any `@media`) whose every selector turns dark mode on (`.bit-dark`,
+ * `[data-mode="dark"]`), alone or inside a theme scope; light is every other top-level rule. Rules inside
+ * `@layer` blocks count as top-level; rules inside `@media` (the system-on-a-dark-OS copy) count as neither.
+ * `dark` is empty when there is no dark rule.
  */
 export function themeModes(css: string): { light: Map<string, string>; dark: Map<string, string> } {
-  const match = DARK_RULE.exec(css);
-  if (!match) return { light: parseCustomProps(css), dark: new Map() };
-  const start = match.index;
-  const open = start + match[0].length - 1;
-  const close = css.indexOf('}', open);
-  // The system block is the dark block again behind a dark-OS media query; keep it out of light.
-  const lightCss = (css.slice(0, start) + css.slice(close + 1)).replace(SYSTEM_RULE, '');
+  const rules = styleRules(css).filter((rule) => rule.media === null);
+  const props = (bodies: CssRule[]) => parseCustomProps(bodies.map((rule) => rule.body).join('\n'));
   return {
-    light: parseCustomProps(lightCss),
-    dark: parseCustomProps(css.slice(open + 1, close)),
+    light: props(rules.filter((rule) => !isDarkRule(rule.selector))),
+    dark: props(rules.filter((rule) => isDarkRule(rule.selector))),
   };
 }
 
@@ -150,19 +150,22 @@ export const VISUALLY_HIDDEN: readonly string[] = [
 /** Matches any outline declaration, longhands included (outline-offset is allowed). */
 export const OUTLINE_DECLARATION = /(^|[;{])\s*outline(-(color|style|width))?\s*:/m;
 
-/** One style rule: its selector text, its body, and the `@media` prelude it sits in (null at top level). */
+/** One style rule: its selector text, its body, the `@media` prelude it sits in (null at top level), and its `@layer`. */
 interface CssRule {
   selector: string;
   body: string;
   media: string | null;
+  /** The `@layer` block it sits in (`bit.tokens`), or null when it is in none. */
+  layer: string | null;
 }
 
 /**
  * Every style rule in a CSS string, with comments removed. Rules inside an `@media` block carry its
- * prelude (e.g. `(prefers-color-scheme: dark)`). Enough for this repo's flat CSS: one level of
- * `@media`, no nested rules inside style rules.
+ * prelude (e.g. `(prefers-color-scheme: dark)`); rules inside an `@layer` block carry the layer's name and
+ * otherwise count as top-level. Enough for this repo's flat CSS: `@layer` and `@media` blocks, no nested
+ * rules inside style rules.
  */
-export function styleRules(css: string, media: string | null = null): CssRule[] {
+export function styleRules(css: string, media: string | null = null, layer: string | null = null): CssRule[] {
   const source = css.replace(/\/\*[\s\S]*?\*\//g, '');
   const found: CssRule[] = [];
   let i = 0;
@@ -179,8 +182,10 @@ export function styleRules(css: string, media: string | null = null): CssRule[] 
     }
     const inner = source.slice(open + 1, close - 1);
     const at = /^@media\s+(.*)$/s.exec(prelude);
-    if (at) found.push(...styleRules(inner, at[1]!.trim()));
-    else if (!prelude.startsWith('@')) found.push({ selector: prelude.replace(/\s+/g, ' '), body: inner.trim(), media });
+    const inLayer = /^@layer\s+([\w.-]+)$/.exec(prelude);
+    if (at) found.push(...styleRules(inner, at[1]!.trim(), layer));
+    else if (inLayer) found.push(...styleRules(inner, media, inLayer[1]!));
+    else if (!prelude.startsWith('@')) found.push({ selector: prelude.replace(/\s+/g, ' '), body: inner.trim(), media, layer });
     i = close;
   }
   return found;

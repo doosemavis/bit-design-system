@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { SEMANTIC_TOKENS, SIZES, COLORS } from '../tokens';
-import { OUTLINE_DECLARATION, block, decl, listCss, readCss, resolveVar, rulesFor, themeModes, withoutBlocks } from './css';
+import { OUTLINE_DECLARATION, block, decl, listCss, readCss, resolveVar, rulesFor, styleRules, themeModes, withoutBlocks } from './css';
 
 /**
  * The only places a component may read --bit-color-ink, by file and exact selector. Everything else
@@ -65,18 +65,44 @@ describe('system/motion.css', () => {
 
 describe('index.css', () => {
   const css = readCss('index.css');
+  /** Every `@import "<path>" layer(<layer>);` in order. */
+  const imports = [...css.matchAll(/^@import "([^"]+)"(?: layer\(([\w.]+)\))?;$/gm)].map((m) => ({ path: m[1]!, layer: m[2] }));
+
+  it('declares the layer order before anything else, so it holds whichever bit file loads first', () => {
+    const code = css.replace(/\/\*[\s\S]*?\*\//g, '').trim();
+    expect(code.startsWith('@layer bit.reset, bit.tokens, bit.components;')).toBe(true);
+  });
+
   it('imports every system file, in order, before any component file', () => {
-    for (const name of ['reset', 'colors', 'sizes', 'motion']) {
-      expect(css).toContain(`@import "./system/${name}.css";`);
-    }
-    const systemEnd = css.lastIndexOf('./system/');
-    const firstComponent = css.indexOf('./components/');
+    const paths = imports.map((i) => i.path);
+    for (const file of listCss('system')) expect(paths).toContain(`./system/${file}`);
+    const systemEnd = paths.map((p) => p.startsWith('./system/')).lastIndexOf(true);
+    const firstComponent = paths.findIndex((p) => p.startsWith('./components/'));
     expect(firstComponent).toBeGreaterThan(systemEnd);
   });
+
   it('imports every file in components/', () => {
     for (const file of listCss('components')) {
-      expect(css).toContain(`@import "./components/${file}";`);
+      expect(imports.map((i) => i.path)).toContain(`./components/${file}`);
     }
+  });
+
+  it('puts every import in a layer: reset.css in bit.reset, everything else in bit.components', () => {
+    expect(imports.length).toBe(css.match(/@import/g)!.length);
+    for (const { path, layer } of imports) {
+      expect(layer, path).toBe(path === './system/reset.css' ? 'bit.reset' : 'bit.components');
+    }
+  });
+});
+
+describe('the themes declare the same layer order and keep their tokens in bit.tokens', () => {
+  it.each(listCss('themes'))('%s', (file) => {
+    const css = readCss(`themes/${file}`);
+    const code = css.replace(/\/\*[\s\S]*?\*\//g, '').trim();
+    expect(code.startsWith('@layer bit.reset, bit.tokens, bit.components;')).toBe(true);
+    const rules = styleRules(css);
+    expect(rules.length).toBeGreaterThan(0);
+    expect(rules.filter((rule) => rule.layer !== 'bit.tokens').map((rule) => rule.selector)).toEqual([]);
   });
 });
 
@@ -128,7 +154,11 @@ describe('system/reset.css browser surfaces (amendments §C)', () => {
     expect(root).toContain('caret-color: var(--bit-color-primary);');
     expect(root).toContain('scrollbar-color: var(--bit-color-line) var(--bit-color-neutral-soft);');
     expect(root).toContain('color: var(--bit-color-text);');
-    expect(block(css, '*')).toContain('scrollbar-width: thin;');
+  });
+
+  it('sets no scrollbar-width on every element: the page and the host app keep their own scrollbars', () => {
+    expect(styleRules(css).filter((rule) => rule.selector === '*' && decl(rule.body, 'scrollbar-width') !== null)).toEqual([]);
+    expect(css).not.toContain('scrollbar-width');
   });
 
   it('a nested system subtree recomputes its text, caret and scrollbar too', () => {
@@ -268,6 +298,8 @@ describe('themes/power-up.css (logo)', () => {
 
 describe('focus ring (dark mode spec: one ring, no band)', () => {
   const reset = readCss('system/reset.css');
+  // Component focus rules: in the bit.components layer, so they still beat a component's own box-shadow.
+  const focus = readCss('system/focus.css');
 
   it('reset.css draws the ring from the three focus-ring tokens, unless a colored container overrides its color', () => {
     const body = rulesFor(reset, ':focus-visible');
@@ -298,7 +330,7 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
     const track = readCss('components/switch.css');
 
     it("::after is a box exactly the ring's outer edge, casting the control's own shadow and catching no clicks", () => {
-      const body = block(reset, lifted)!;
+      const body = block(focus, lifted)!;
       expect(body).not.toBeNull();
       expect(decl(body, 'content')).toBe('""');
       expect(decl(body, 'position')).toBe('absolute');
@@ -334,11 +366,11 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
     });
 
     it("Table's scrolling wrapper paints gap, ring and moved shadow as box-shadow, keeping a transparent outline for forced colors", () => {
-      const body = block(reset, '.bit-table:not(.bit-flat):focus-visible')!;
+      const body = block(focus, '.bit-table:not(.bit-flat):focus-visible')!;
       expect(decl(body, 'outline-color')).toBe('transparent');
       expect(body).toContain('0 0 0 var(--bit-focus-ring-offset) var(--_bit-focus-gap, var(--bit-color-bg))');
       expect(body).toContain('4px 4px 0 calc(var(--bit-focus-ring-offset) + var(--bit-focus-ring-width)) var(--bit-color-shadow)');
-      expect(decl(block(reset, '.bit-card')!, '--_bit-focus-gap')).toBe('var(--bit-color-surface)');
+      expect(decl(block(focus, '.bit-card')!, '--_bit-focus-gap')).toBe('var(--bit-color-surface)');
     });
 
     it("a ModeToggle option's ring sits inside it, on the pressed fill in that fill's contrast color", () => {
