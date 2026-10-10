@@ -1,4 +1,4 @@
-import { Stack, Text } from '@bit-ds/react';
+import { HEADING_SIZES, Stack, Text } from '@bit-ds/react';
 import { SUPPORTED_TEXT_SIZES } from '../../content/textSizes';
 import { SectionLead, TokenCard, TokenGrid } from './TokenCard';
 import { TokenRow, TokenRows } from './TokenRow';
@@ -25,13 +25,13 @@ function LeadingSample({ leading }: { leading: string }) {
   );
 }
 
-/** Faces, the text sizes, and the weights and line heights, each a card of rows. */
+/** Faces, the Text and Heading sizes, and the weights and line heights, each a card of rows. */
 export function TypeSection({ values }: { values: TokenValues }) {
   const value = (token: string) => values.values.get(token) ?? '';
   return (
     <Stack gap={12}>
       <SectionLead to="/typography" page="Typography">
-        The four faces, the text sizes, and the weights and line heights Text and Heading use.
+        The four faces, the Text and Heading sizes, and the weights and line heights they use.
       </SectionLead>
       <TokenGrid>
         <TokenCard name="faces">
@@ -40,7 +40,7 @@ export function TypeSection({ values }: { values: TokenValues }) {
               <TokenRow
                 key={face}
                 preview={
-                  <Text as="span" size={24} className="gallery-face" data-face={face}>
+                  <Text size={24} className="gallery-face" data-face={face}>
                     Aa
                   </Text>
                 }
@@ -50,7 +50,7 @@ export function TypeSection({ values }: { values: TokenValues }) {
             ))}
           </TokenRows>
         </TokenCard>
-        <TokenCard name="sizes">
+        <TokenCard name="text sizes">
           <TokenRows>
             {/* The supported sizes only: the deprecated 11 goes in 0.2.0, so it isn't offered here. */}
             {SUPPORTED_TEXT_SIZES.map((size) => (
@@ -60,6 +60,19 @@ export function TypeSection({ values }: { values: TokenValues }) {
                 name={`${size}`}
                 token={`--bit-text-${size}px`}
                 value={value(`--bit-text-${size}px`)}
+              />
+            ))}
+          </TokenRows>
+        </TokenCard>
+        <TokenCard name="heading sizes">
+          <TokenRows>
+            {HEADING_SIZES.map((size) => (
+              <TokenRow
+                key={size}
+                preview={<span style={{ fontFamily: 'var(--bit-font-display)', fontSize: `var(--bit-heading-${size}px)` }}>Ag</span>}
+                name={`${size}`}
+                token={`--bit-heading-${size}px`}
+                value={value(`--bit-heading-${size}px`)}
               />
             ))}
           </TokenRows>

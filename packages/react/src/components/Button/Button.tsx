@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import type { ButtonHTMLAttributes, ElementType } from 'react';
+import { InlineText } from '../../system/inlineText';
 import { createSlot } from '../../system/Slot';
 import { SIZES, COLORS, VARIANTS } from '../../system/axes';
 import type { Size, Color, Variant } from '../../system/axes';
@@ -54,16 +55,19 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     className,
   );
 
+  // A Text in a button renders a span: a <p> can't sit in a <button>.
   return (
-    <Comp
-      ref={ref}
-      className={classes}
-      data-loading={loading ? '' : undefined}
-      aria-busy={loading || undefined}
-      {...(asChild ? { 'aria-disabled': inert || undefined } : { type, disabled: inert })}
-      {...rest}
-    >
-      {children}
-    </Comp>
+    <InlineText.Provider value>
+      <Comp
+        ref={ref}
+        className={classes}
+        data-loading={loading ? '' : undefined}
+        aria-busy={loading || undefined}
+        {...(asChild ? { 'aria-disabled': inert || undefined } : { type, disabled: inert })}
+        {...rest}
+      >
+        {children}
+      </Comp>
+    </InlineText.Provider>
   );
 });

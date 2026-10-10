@@ -194,19 +194,31 @@ describe('manifest contract', () => {
     expect(text.controls.find((c) => c.prop === 'size')).toMatchObject({
       kind: 'select',
       numeric: true,
-      default: '15',
-      // 11 is deprecated (under the 13px floor), so the playground does not offer it.
-      values: ['13', '15', '18', '24', '32'],
+      default: '16',
+      // The even scale; the deprecated 11, 13 and 15 are not offered.
+      values: ['14', '16', '18', '24', '32', '40'],
     });
-    expect(text.presets?.map((p) => p.state.size)).toEqual(['32', '13']);
+    expect(text.presets?.map((p) => p.state.size)).toEqual(['32', '14']);
   });
 
-  it('Heading always prints its required level; size is left off until chosen', () => {
+  it('Heading has one control, size, and always prints it; no as and no level anywhere', () => {
     expect(toJsx(heading, defaultState(heading))).toBe(
-      "import { Heading } from '@bit-ds/react';\n\n<Heading level={2}>Build with bit</Heading>",
+      "import { Heading } from '@bit-ds/react';\n\n<Heading size={32}>Build with bit</Heading>",
     );
-    const preset = heading.presets!.find((p) => p.label === 'h2 that looks like h3')!;
-    expect(toJsx(heading, { ...defaultState(heading), ...preset.state } as ControlState)).toContain('<Heading level={2} size={3}>Build with bit</Heading>');
+    const preset = heading.presets!.find((p) => p.label === 'Page title')!;
+    expect(toJsx(heading, { ...defaultState(heading), ...preset.state } as ControlState)).toContain('<Heading size={40}>Build with bit</Heading>');
+    expect(heading.controls.map((c) => c.prop)).toEqual(['size']);
+  });
+
+  it('Text has no as control: Text picks its element, and titles belong to Heading', () => {
+    expect(text.presets?.map((p) => p.label)).toEqual(['Display text', 'Muted caption']);
+    expect(text.controls.map((c) => c.prop)).not.toContain('as');
+    expect(text.presets?.every((p) => !('as' in p.state))).toBe(true);
+  });
+
+  it('Heading size offers every 2px from 20 to 44, never the deprecated levels', () => {
+    const size = heading.controls.find((c) => c.prop === 'size')!;
+    expect(size.kind === 'select' && size.values).toEqual(['20', '22', '24', '26', '28', '30', '32', '34', '36', '38', '40', '42', '44']);
   });
 
   it('Box prints its padding and leaves the other spacing props off until chosen; 0 prints as 0', () => {

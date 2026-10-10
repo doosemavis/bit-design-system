@@ -40,7 +40,7 @@ const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
   Icon: { icon: lib.iconFavorite, children: undefined },
   IconButton: { icon: lib.iconDelete, label: 'x', children: undefined },
   Tooltip: { content: 'x', children: <button type="button">x</button> },
-  Heading: { level: 2 },
+  Heading: { size: 32 },
   CodeBlock: { code: 'x', language: 'shell', children: undefined },
   SegmentedControl: { legend: 'x', options: [{ value: 'x', label: 'x' }], children: undefined },
   Select: { options: [{ value: 'x', label: 'x' }], children: undefined },
@@ -126,12 +126,13 @@ describe('public index', () => {
     expect(lib.COLORS).toHaveLength(5);
     expect(lib.VARIANTS).toEqual(['solid', 'outline', 'ghost']);
     expect(lib.SIZES).toEqual(['sm', 'md', 'lg']);
-    expect(lib.TEXT_SIZES).toEqual([11, 13, 15, 18, 24, 32]);
+    expect(lib.TEXT_SIZES).toEqual([14, 16, 18, 24, 32, 40]);
+    expect(lib.HEADING_SIZES).toEqual([20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44]);
     expect(lib.SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('exports SEMANTIC_TOKENS, the 98 tier-2 token names every theme declares, from @bit-ds/core', () => {
-    expect(lib.SEMANTIC_TOKENS).toHaveLength(98);
+  it('exports SEMANTIC_TOKENS, the 114 tier-2 token names every theme declares, from @bit-ds/core', () => {
+    expect(lib.SEMANTIC_TOKENS).toHaveLength(114);
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-color-primary');
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-space-64px');
     expect(lib.SEMANTIC_TOKENS.every((name) => name.startsWith('--bit-'))).toBe(true);

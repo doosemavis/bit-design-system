@@ -24,6 +24,7 @@ const UNSORTED_NAV: readonly NavItem[] = [
   { group: 'Start here', label: 'Overview', to: '/' },
   { group: 'Start here', label: 'Getting started', to: '/getting-started' },
   { group: 'Start here', label: 'Versions', to: '/versions' },
+  { group: 'Start here', label: 'Accessibility', to: '/accessibility' },
   { group: 'Start here', label: 'Release notes', to: '/release-notes' },
   { group: 'Foundations', label: 'Tokens', to: '/tokens' },
   { group: 'Foundations', label: 'Typography', to: '/typography' },
@@ -58,6 +59,9 @@ function currentGroup(items: readonly NavItem[], pathname: string): NavGroup | n
   return match?.group ?? null;
 }
 
+/** The id of a group's title, which labels its list of links. */
+const titleId = (group: string) => `gallery-nav-${group.toLowerCase().replace(/\s+/g, '-')}`;
+
 export function Sidebar({ items, open, onNavigate, footer }: SidebarProps) {
   const current = currentGroup(items, useLocation().pathname);
   // Derived during render: the counter changes only when the current group does, so the title's key
@@ -71,16 +75,17 @@ export function Sidebar({ items, open, onNavigate, footer }: SidebarProps) {
         if (links.length === 0) return null;
         return (
           <section key={group} className="gallery-sidebar__group" data-current={group === current ? '' : undefined}>
+            {/* A label, not a heading: it names the list below, so a screen reader says "Foundations, list". */}
             <Text
               key={group === current ? `${group}-${seen.count}` : group}
-              as="h2"
-              size={13}
+              id={titleId(group)}
+              size={14}
               color="neutral"
               className="gallery-sidebar__title"
             >
               {group}
             </Text>
-            <ul className="gallery-sidebar__list">
+            <ul className="gallery-sidebar__list" aria-labelledby={titleId(group)}>
               {links.map((item) => (
                 <li key={item.to}>
                   <Link asChild color="neutral" className="gallery-sidebar__link">

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { checkCss, declarationKeys, isLayoutProperty } from './cssGuard';
 
 describe('isLayoutProperty', () => {
-  it.each(['display', 'grid-template-columns', 'gap', 'margin-inline', 'padding', 'inset-block-start', 'overflow-x', '--_gallery-x', 'scroll-margin-top'])(
+  it.each(['display', 'grid-template-columns', 'gap', 'margin-inline', 'padding', 'inset-block-start', 'overflow-x', '--_gallery-x', 'scroll-margin-top', 'text-align'])(
     '%s is layout',
     (p) => expect(isLayoutProperty(p)).toBe(true),
   );

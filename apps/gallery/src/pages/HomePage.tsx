@@ -15,11 +15,11 @@ export const BROWSE_TARGET = NAV.find((item) => item.group === 'Components')!.to
  */
 export function HomePage() {
   return (
-    <Stack gap={48}>
+    <Stack gap={64}>
       <Stack gap={32}>
         <div className="gallery-hero">
           <Stack gap={16} align="start">
-            <Heading level={1}>
+            <Heading size={40}>
               <BitLogo size="lg" />
             </Heading>
             <Text size={18}>A retro-styled React Design System for people who want a bit of nostalgia.</Text>
@@ -43,12 +43,11 @@ export function HomePage() {
         <Text color="neutral">Install it, see every token, and find an icon.</Text>
         <StartBuilding />
       </PageSection>
-      {/* A plain heading, not a PageSection: the table itself is the region named "The naming rule". */}
-      <Stack gap={12}>
-        <Heading level={2}>The naming rule</Heading>
+      {/* Not a landmark: the table itself is the region named "The naming rule". */}
+      <PageSection id="home-naming-rule" title="The naming rule" landmark={false}>
         <Text color="neutral">The prop you write is the class it emits is the token it reads, with a real Button in each row.</Text>
         <NamingRule />
-      </Stack>
+      </PageSection>
     </Stack>
   );
 }

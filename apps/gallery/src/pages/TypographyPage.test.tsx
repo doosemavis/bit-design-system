@@ -11,6 +11,11 @@ async function renderTypography() {
   return { ...utils, main: screen.getByRole('main') };
 }
 
+/** The text of each cell in a table row, in column order. */
+function cellTexts(row: Element): (string | null)[] {
+  return [...row.querySelectorAll('.bit-table__cell')].map((cell) => cell.textContent);
+}
+
 describe('Typography page', () => {
   beforeEach(() => {
     document.documentElement.dataset.theme = 'power-up';
@@ -21,55 +26,140 @@ describe('Typography page', () => {
     const outline = within(main)
       .getAllByRole('heading')
       .map((h) => `${h.tagName} ${h.textContent}`);
-    expect(outline).toEqual(['H1 Typography', 'H2 Faces', 'H2 Headings', 'H2 Text sizes', "H2 Do and Don't"]);
+    expect(outline).toEqual(['H1 Typography', 'H2 Fonts', 'H2 Headings', 'H2 Text sizes', 'H2 Text styles', "H2 Do and Don't"]);
   });
 
-  it('shows the four faces, each with its font token', async () => {
-    const { container } = await renderTypography();
-    const faces = [...container.querySelectorAll('.gallery-face')].map((el) => el.getAttribute('data-face'));
-    expect(faces).toEqual(['display', 'body', 'pixel', 'mono']);
-    for (const face of faces) expect(screen.getByText(`--bit-font-${face}`)).toHaveClass('bit-code');
-  });
-
-  it('the Headings table renders every level as a real Heading, with its tag, size, face and code', async () => {
+  it('shows all four fonts, each card in three parts: header, Sample and In use groups, footer', async () => {
     await renderTypography();
-    const table = screen.getByRole('table', { name: 'Heading levels' });
+    const cards = ['Lilita One', 'Nunito', 'Press Start 2P', 'JetBrains Mono'].map((name) => screen.getByRole('article', { name }));
+    const faces = ['display', 'body', 'pixel', 'mono'];
+    cards.forEach((card, i) => {
+      const face = faces[i]!;
+      expect([...card.children].map((part) => part.classList[0])).toEqual(['bit-card__header', 'bit-card__body', 'bit-card__footer']);
+      // Header: the name in its font, and its token.
+      const header = card.querySelector('.bit-card__header')!;
+      expect(header.querySelector('.gallery-face')).toHaveAttribute('data-face', face);
+      expect(within(header as HTMLElement).getByText(`--bit-font-${face}`)).toHaveClass('bit-code');
+      // Body: a labelled Sample group of two quotes in the font, then a labelled In use group.
+      const groups = [...card.querySelectorAll('[data-group]')];
+      expect(groups.map((g) => g.getAttribute('data-group'))).toEqual(['sample', 'in-use']);
+      expect(groups.map((g) => g.firstElementChild?.textContent)).toEqual(['Sample', 'In use']);
+      const quotes = [...groups[0]!.querySelectorAll('.gallery-face--sample')];
+      expect(quotes).toHaveLength(2);
+      for (const quote of quotes) {
+        expect(quote).toHaveAttribute('data-face', face);
+        expect(quote.textContent).toMatch(/^“.+”$/);
+      }
+      // Only the quotes: no alphabet, digits, game titles or years.
+      expect(card.textContent).not.toMatch(/ABCDEFG|0123456789|\(\d{4}\)/);
+      // Footer: what the font is used for.
+      const footer = card.querySelector('.bit-card__footer')!;
+      expect(footer).toHaveTextContent(/^Used for /);
+      // One size under body text, so the line fits in the card.
+      expect(footer.querySelector('.bit-text')).toHaveAttribute('data-size', '14');
+    });
+    // Each "In use" sample is the real component that uses the font.
+    expect(cards[0]!.querySelector('.bit-heading')).toHaveAttribute('role', 'presentation');
+    expect(cards[2]!.querySelectorAll('.bit-badge')).toHaveLength(2);
+    expect(within(cards[3]!).getByText('npm i @bit-ds/react')).toHaveClass('bit-code');
+  });
+
+  it('the Headings table shows every size from 44 down to 20 as a real Heading, with the tag the size picks', async () => {
+    await renderTypography();
+    const table = screen.getByRole('table', { name: 'Headings' });
     const samples = [...table.querySelectorAll('.bit-heading')];
-    expect(samples.map((el) => `${el.tagName} ${el.getAttribute('data-level')}`)).toEqual([
-      'H1 1',
-      'H2 2',
-      'H3 3',
-      'H4 4',
-      'H5 5',
-      'H6 6',
+    expect(samples.map((el) => `${el.tagName} ${el.getAttribute('data-size')}`)).toEqual([
+      'H1 44',
+      'H1 42',
+      'H1 40',
+      'H2 38',
+      'H2 36',
+      'H2 34',
+      'H2 32',
+      'H3 30',
+      'H3 28',
+      'H3 26',
+      'H4 24',
+      'H5 22',
+      'H6 20',
     ]);
     for (const el of samples) expect(el).toHaveAttribute('role', 'presentation');
-    expect(within(table).getByText('h4 · 15 · body bold')).toBeInTheDocument();
-    expect(within(table).getByText('<Heading level={6}>')).toHaveClass('bit-code');
+    expect(within(table).getByText('<Heading size={20}>')).toHaveClass('bit-code');
+    expect(table.textContent).not.toContain('level');
+    expect(table.textContent).not.toContain('as=');
   });
 
-  // Value: protects=each Headings row's "hN · size · face" text matches heading.css for that level; fails_when=heading.css changes a level's size or face (as h6 11→13 did) and the page text does not; why_new=only h4's text is checked, never against the CSS; seam=none
-  it("every Headings row's size and face match heading.css", async () => {
-    // Not new URL(..., import.meta.url): under jsdom Vite rewrites that to an http: URL; ?raw CSS comes back empty.
-    const css = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../../../packages/core/src/components/heading.css'), 'utf8');
+  it.each([
+    ['Headings', ['Example', 'Size', 'Tag', 'Code'], 10, ['24', 'h4']],
+    ['Text sizes', ['Example', 'Size', 'Token', 'Code'], 1, ['16', '--bit-text-16px']],
+  ])('the %s table gives each value a column, centered under its heading', async (name, head, sampleRow, values) => {
     await renderTypography();
-    const table = screen.getByRole('table', { name: 'Heading levels' });
-    for (let level = 1; level <= 6; level++) {
-      const rule = new RegExp(`\\.bit-heading\\[data-level="${level}"\\]\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? '';
-      const size = /font-size:\s*var\(--bit-text-(\d+)px\)/.exec(rule)?.[1];
-      const face = /font-family:\s*var\(--bit-font-(\w+)\)/.exec(rule)?.[1];
-      expect(size, `h${level} font-size`).toBeDefined();
-      expect(within(table).getByText(new RegExp(`^h${level} · ${size} · ${face}\\b`))).toBeInTheDocument();
+    const table = screen.getByRole('table', { name });
+    expect(cellTexts(table.querySelector('.bit-table__head .bit-table__row')!)).toEqual(head);
+    const rows = [...table.querySelectorAll('.bit-table__body .bit-table__row')];
+    expect(cellTexts(rows[sampleRow]!).slice(1, -1)).toEqual(values);
+    for (const row of [table.querySelector('.bit-table__head .bit-table__row')!, ...rows]) {
+      const centered = [...row.querySelectorAll('.bit-table__cell')].map((cell) => cell.classList.contains('gallery-cell-center'));
+      // Example and Code stay left; every value column between them is centered. (A Headings row under the first
+      // of its tag has no Tag cell: the first row's spans it.)
+      expect(centered).toEqual(centered.map((_, i) => i > 0 && i < centered.length - 1));
     }
   });
 
-  it('the Text sizes table shows 18, 15 and 13 muted, with their code', async () => {
+  it("every Headings row's size has a rule in heading.css, its sample renders its tag, and its code is size only", async () => {
+    // Not new URL(..., import.meta.url): under jsdom Vite rewrites that to an http: URL; ?raw CSS comes back empty.
+    const css = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../../../packages/core/src/components/heading.css'), 'utf8');
+    await renderTypography();
+    const table = screen.getByRole('table', { name: 'Headings' });
+    for (const row of table.querySelectorAll<HTMLElement>('.bit-table__body .bit-table__row')) {
+      const cells = cellTexts(row);
+      const [size, code] = [cells[1], cells.at(-1)];
+      expect(css, `${size}: a data-size rule`).toContain(`.bit-heading[data-size="${size}"]`);
+      const sample = row.querySelector('.bit-heading')!;
+      expect(sample.tagName.toLowerCase(), `${size} tag`).toBe(row.dataset.tag);
+      expect(sample).toHaveAttribute('data-size', size);
+      expect(code, `${size} code`).toBe(`<Heading size={${size}}>`);
+    }
+  });
+
+  it('groups the sizes by tag: one Tag cell per tag spans all its rows, with a bracket beside them', async () => {
+    await renderTypography();
+    const table = screen.getByRole('table', { name: 'Headings' });
+    const groups = [...table.querySelectorAll<HTMLTableCellElement>('.gallery-tag-group')];
+    expect(groups.map((cell) => `${cell.textContent} ${cell.rowSpan}`)).toEqual(['h1 3', 'h2 4', 'h3 3', 'h4 1', 'h5 1', 'h6 1']);
+    for (const cell of groups) {
+      expect(cell.querySelector('.gallery-tag-group__bracket')).toHaveAttribute('aria-hidden', 'true');
+      // The rows it spans all render its tag.
+      const rows = [...table.querySelectorAll<HTMLElement>(`.bit-table__body .bit-table__row[data-tag="${cell.textContent}"]`)];
+      expect(rows).toHaveLength(cell.rowSpan);
+      expect(rows[0]).toContainElement(cell);
+    }
+  });
+
+  it('the Text sizes table shows 18, 16 and 14 muted, with their code', async () => {
     await renderTypography();
     const table = screen.getByRole('table', { name: 'Text sizes' });
     const samples = [...table.querySelectorAll('.bit-table__body .bit-table__cell:first-child .bit-text')];
-    expect(samples.map((el) => el.getAttribute('data-size'))).toEqual(['18', '15', '13']);
+    expect(samples.map((el) => el.getAttribute('data-size'))).toEqual(['18', '16', '14']);
     expect(samples[2]).toHaveClass('bit-neutral');
-    expect(within(table).getByText('<Text size={13} color="neutral">')).toHaveClass('bit-code');
+    expect(within(table).getByText('<Text size={14} color="neutral">')).toHaveClass('bit-code');
+  });
+
+  it('the Text styles table shows each style live on one word, with its prop and code', async () => {
+    await renderTypography();
+    const table = screen.getByRole('table', { name: 'Text styles' });
+    const rows = [...table.querySelectorAll('.bit-table__body .bit-table__row')];
+    expect(rows.map((row) => cellTexts(row).slice(1))).toEqual([
+      ['weight="bold"', '<Text weight="bold">'],
+      ['italic', '<Text italic>'],
+      ['underline', '<Text underline>'],
+      ['strikethrough', '<Text strikethrough>'],
+    ]);
+    const words = rows.map((row) => row.querySelector('p.bit-text > span.bit-text')!);
+    expect(words[0]).toHaveAttribute('data-weight', 'bold');
+    expect(words[1]).toHaveAttribute('data-italic', '');
+    expect(words[2]).toHaveAttribute('data-underline', '');
+    expect(words[3]).toHaveAttribute('data-strikethrough', '');
   });
 
   it("Do and Don't are success and danger Alerts, read as notes rather than live status", async () => {

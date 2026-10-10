@@ -15,6 +15,7 @@ import {
   TableRow,
   Text,
 } from '@bit-ds/react';
+import { PageSection } from '../ui/PageSection';
 
 const STACK_EXAMPLE = `<Stack direction="row" gap={16}>
   <Badge>One</Badge>
@@ -41,7 +42,7 @@ function Ruler() {
         <Stack gap={8}>
           {SPACE_STEPS.map((step) => (
             <Box key={step} className="gallery-ruler">
-              <Text as="span" color="neutral">
+              <Text color="neutral">
                 {step}
               </Text>
               <Box paddingLeft={step} className="gallery-ruler__bar" aria-hidden="true" />
@@ -60,7 +61,7 @@ function StackOrBox() {
       <Card>
         <CardBody>
           <Stack gap={12}>
-            <Heading level={3} size={4}>
+            <Heading size={26}>
               Stack: space between things
             </Heading>
             <Stack direction="row" gap={16}>
@@ -75,7 +76,7 @@ function StackOrBox() {
       <Card>
         <CardBody>
           <Stack gap={12}>
-            <Heading level={3} size={4}>
+            <Heading size={26}>
               Box: space around one thing
             </Heading>
             {/* A row, so the Box hugs its Badge instead of stretching across the card. */}
@@ -126,30 +127,27 @@ function BoxProps() {
 /** Foundations: the space scale, when to reach for Stack or Box, and Box's props. Built only from bit components. */
 export function SpacingPage() {
   return (
-    <Stack gap={32}>
+    <Stack gap={64}>
       <Stack gap={8}>
-        <Heading level={1}>Spacing</Heading>
+        <Heading size={40}>Spacing</Heading>
         <Text size={18}>
           One scale for every gap, pad and margin: 4, 8, 12, 16, 24, 32, 48 and 64. <Code>Stack</Code> spaces things
           apart, and <Code>Box</Code> pads and offsets a single thing.
         </Text>
       </Stack>
-      <Stack gap={12}>
-        <Heading level={2}>The scale</Heading>
+      <PageSection id="spacing-scale" title="The scale" landmark={false}>
         <Ruler />
-      </Stack>
-      <Stack gap={12}>
-        <Heading level={2}>Stack or Box?</Heading>
+      </PageSection>
+      <PageSection id="spacing-stack-or-box" title="Stack or Box?" landmark={false}>
         <StackOrBox />
-      </Stack>
-      <Stack gap={12}>
-        <Heading level={2}>Box props</Heading>
+      </PageSection>
+      <PageSection id="spacing-box-props" title="Box props" landmark={false}>
         <BoxProps />
         <Text color="neutral">
           When props overlap, the most specific wins: <Code>paddingTop</Code> beats <Code>paddingY</Code>, which beats{' '}
           <Code>padding</Code>.
         </Text>
-      </Stack>
+      </PageSection>
     </Stack>
   );
 }

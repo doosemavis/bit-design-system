@@ -115,7 +115,7 @@ export function ColorFlow({ flows, mode }: { flows: ColorFlows; mode: ColorMode 
     <Card role="group" aria-labelledby={titleId}>
       <CardBody>
         <Stack gap={8}>
-          <Heading level={3} id={titleId}>
+          <Heading size={26} id={titleId}>
             Where every color goes
           </Heading>
           <Text color="neutral">

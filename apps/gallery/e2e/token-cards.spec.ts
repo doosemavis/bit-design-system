@@ -46,7 +46,9 @@ for (const [label, width] of [
       if (r.chip.right > r.body.right + 0.5) problems.push(`${r.token}: chip runs out of its card`);
       if (r.value) {
         if (!near(r.value.right, r.text.right)) problems.push(`${r.token}: value ends at ${r.value.right}, not the row's right edge ${r.text.right}`);
-        if (Math.abs(r.value.top - r.name.top) > 1) problems.push(`${r.token}: value is not on the name's line`);
+        // On the name's line: the value (14px, a caption) sits on the name's baseline, so its middle is inside the name's box.
+        const valueMiddle = (r.value.top + r.value.bottom) / 2;
+        if (valueMiddle < r.name.top || valueMiddle > r.name.bottom) problems.push(`${r.token}: value is not on the name's line`);
         if (r.name.right > r.value.left + 0.5) problems.push(`${r.token}: name and value overlap`);
         // Every value stays on one line, the inset shadow's too.
         if (r.value.bottom - r.value.top > (r.name.bottom - r.name.top) * 1.5) problems.push(`${r.token}: value wraps`);

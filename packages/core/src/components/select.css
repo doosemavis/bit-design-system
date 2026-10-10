@@ -180,7 +180,7 @@
 .bit-select__count {
   display: inline-block;
   padding: 0 var(--bit-space-8px);
-  font-size: var(--bit-text-13px);
+  font-size: var(--bit-text-14px);
   font-weight: var(--bit-weight-bold);
   line-height: 20px; /* raw: the pill's height inside every control size; there is no 20px leading token */
   color: var(--bit-color-primary-contrast);

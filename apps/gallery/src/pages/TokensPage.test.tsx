@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterAll, afterEach, beforeAll, describe, it, expect, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
-import { SEMANTIC_TOKENS } from '@bit-ds/react';
+import { CURRENT_TOKENS } from '../content/currentTokens';
 import { renderAt } from '../test/renderRoute';
 import { TokensPage } from './TokensPage';
 import { expectNoA11yViolations } from '../test/a11y';
@@ -47,8 +47,8 @@ async function open() {
   return utils;
 }
 
-/** Every public token the page shows. --bit-text-11px is deprecated (removed in 0.2.0), so the page leaves it out. */
-const SHOWN_TOKENS = SEMANTIC_TOKENS.filter((name) => name !== '--bit-text-11px');
+/** Every public token the page shows: the deprecated text-size aliases (11, 13, 15; removed in 0.2.0) are left out. */
+const SHOWN_TOKENS = CURRENT_TOKENS;
 
 const card = (name: string) => screen.getByRole('group', { name: `${name} tokens` });
 const region = (name: string) => screen.getByRole('region', { name });
@@ -86,7 +86,7 @@ describe('TokensPage', () => {
 
   it('each section is a grid of cards, named for the family they hold', async () => {
     await open();
-    expect(cardsIn('Type')).toEqual(['faces', 'sizes', 'weight & leading']);
+    expect(cardsIn('Type')).toEqual(['faces', 'text sizes', 'heading sizes', 'weight & leading']);
     expect(cardsIn('Space')).toEqual(['space', 'controls']);
     // Shadow last and full width: its values are the longest, so it gets the room to keep each on one line.
     expect(cardsIn('Shape')).toEqual(['radius', 'lines', 'shadow']);
@@ -125,7 +125,7 @@ describe('TokensPage', () => {
     expect(row('--bit-space-16px').querySelector('.gallery-token-row__value')).toHaveTextContent('16px');
   });
 
-  it('Type: each face is previewed in itself and named, the sizes are the supported ones (no deprecated 11px), and Typography is linked', async () => {
+  it('Type: each face is previewed in itself and named, the sizes are the even scale (no deprecated 11, 13 or 15), and Typography is linked', async () => {
     await open();
     const faces = card('faces');
     expect([...faces.querySelectorAll('.gallery-face')].map((el) => el.getAttribute('data-face'))).toEqual(['display', 'body', 'pixel', 'mono']);
@@ -135,9 +135,12 @@ describe('TokensPage', () => {
       'Press Start',
       'JetBrains Mono',
     ]);
-    expect([...card('sizes').querySelectorAll('.gallery-token-row__name')].map((el) => el.textContent)).toEqual(['13', '15', '18', '24', '32']);
-    expect(screen.queryByRole('button', { name: 'Copy --bit-text-11px' })).toBeNull();
-    expect(card('sizes')).not.toHaveTextContent('deprecated');
+    expect([...card('text sizes').querySelectorAll('.gallery-token-row__name')].map((el) => el.textContent)).toEqual(['14', '16', '18', '24', '32', '40']);
+    expect([...card('heading sizes').querySelectorAll('.gallery-token-row__name')].map((el) => el.textContent)).toEqual(
+      ['20', '22', '24', '26', '28', '30', '32', '34', '36', '38', '40', '42', '44'],
+    );
+    for (const old of [11, 13, 15]) expect(screen.queryByRole('button', { name: `Copy --bit-text-${old}px` })).toBeNull();
+    expect(card('text sizes')).not.toHaveTextContent('deprecated');
     expect(screen.getByRole('link', { name: 'See Typography' })).toHaveAttribute('href', '/typography');
     expect(screen.getByRole('link', { name: 'See Spacing' })).toHaveAttribute('href', '/spacing');
   });

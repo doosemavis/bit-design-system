@@ -8,6 +8,7 @@ import type { ControlState, ControlValue, Manifest } from '../manifests/types';
 import { button } from '../manifests/button';
 import { spinner } from '../manifests/spinner';
 import { badge as badgeManifest } from '../manifests/badge';
+import { text } from '../manifests/text';
 import { expectNoA11yViolations } from '../test/a11y';
 import { chooseOption, chosenLabel, optionLabels } from '../test/select';
 
@@ -111,9 +112,10 @@ describe('ControlsPanel', () => {
     expect(screen.getByLabelText('aria-label')).toHaveValue('Loading coins');
   });
 
-  it('Controls is an h3 under the Playground h2', () => {
+  it('Controls names the panel: a region labelled by its title, which is a label, not a heading', () => {
     render(<ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={() => {}} />);
-    expect(screen.getByRole('heading', { level: 3, name: 'Controls' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Controls' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Controls' })).toBeNull();
   });
 
   it("emptied children show the manifest's error, tied to the field and marking it invalid", async () => {
@@ -152,7 +154,7 @@ describe('ControlsPanel', () => {
     expect(container.querySelector('[class*="gallery-control__"], .gallery-switch')).toBeNull();
   });
 
-  it('starts with a bar like the preview bar: the h3 "Controls" in the pixel label face, then Reset', () => {
+  it('starts with a bar like the preview bar: the "Controls" label in the pixel label face, then Reset', () => {
     const { container } = render(
       <ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={() => {}} />,
     );
@@ -160,11 +162,11 @@ describe('ControlsPanel', () => {
     expect(section).toHaveAttribute('aria-labelledby', 'controls-heading');
     const bar = section.firstElementChild!;
     expect(bar).toHaveClass('gallery-controls__bar');
-    const heading = screen.getByRole('heading', { level: 3, name: 'Controls' });
+    const heading = screen.getByText('Controls');
     expect(heading).toHaveAttribute('id', 'controls-heading');
     // The same Text size as the preview title; the pixel face comes from the selector list it shares with it.
     expect(heading).toHaveClass('bit-text', 'gallery-controls__title');
-    expect(heading).toHaveAttribute('data-size', '13');
+    expect(heading).toHaveAttribute('data-size', '14');
     expect([...bar.children]).toEqual([heading, screen.getByRole('button', { name: 'Reset' })]);
     expect(bar.nextElementSibling).toHaveClass('gallery-controls__grid');
   });
@@ -174,5 +176,37 @@ describe('ControlsPanel', () => {
     render(<ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={onReset} />);
     await userEvent.click(screen.getByRole('button', { name: 'Reset' }));
     expect(onReset).toHaveBeenCalledTimes(1);
+  });
+
+  describe('a locked control (Text weight at the display sizes)', () => {
+    const WHY = '24, 32 and 40 use the display face, which has one weight. Pick 14, 16 or 18 to set the weight.';
+
+    function renderText(size: string) {
+      return render(
+        <ControlsPanel manifest={text} state={{ ...defaultState(text), size }} onChange={() => {}} onReset={() => {}} />,
+      );
+    }
+
+    it('is disabled and explains why in a primary note it is described by', async () => {
+      const { container } = renderText('32');
+      const weight = screen.getByRole('combobox', { name: 'weight' });
+      expect(weight).toBeDisabled();
+      const note = screen.getByRole('note');
+      expect(note).toHaveTextContent(WHY);
+      expect(note).toHaveClass('bit-alert', 'bit-primary', 'bit-outline');
+      expect(weight.getAttribute('aria-describedby')?.split(' ')).toContain(note.id);
+      await expectNoA11yViolations(container);
+    });
+
+    it('is open with no note at a body size', () => {
+      renderText('15');
+      expect(screen.getByRole('combobox', { name: 'weight' })).toBeEnabled();
+      expect(screen.queryByRole('note')).toBeNull();
+    });
+
+    it('offers no as: Text picks its element', () => {
+      renderText('16');
+      expect(screen.queryByRole('combobox', { name: 'as' })).toBeNull();
+    });
   });
 });

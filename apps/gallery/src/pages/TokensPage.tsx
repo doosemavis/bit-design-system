@@ -24,7 +24,7 @@ const SECTIONS = {
 export function TokensPage() {
   const values = useTokenValues();
   return (
-    <Stack gap={32}>
+    <Stack gap={64}>
       <Stack gap={16}>
         <PageHeader title="Tokens">
           <Text size={18}>

@@ -60,19 +60,28 @@ test('css refs: a root-absolute ref (what Vite writes into built CSS) resolves f
   assert.deepEqual(unresolvedRefs('assets/index-Cd34.css', css, new Set(['assets/nunito-latin-600-normal-Ab12.woff2'])), []);
 });
 
-test('expected fonts: the five families at the weights the Google import loaded, every subset, plus each license', () => {
+test('expected fonts: the five families at the weights the Google import loaded, Nunito italic for Text italic, every subset, plus each license', () => {
   assert.deepEqual(
-    THEME_FONTS.map(({ family, weights, subsets }) => `${family} ${weights.join('/')}: ${subsets.join(' ')}`),
+    THEME_FONTS.map(
+      ({ family, weights, italicWeights = [], subsets }) =>
+        `${family} ${weights.join('/')}${italicWeights.length ? ` italic ${italicWeights.join('/')}` : ''}: ${subsets.join(' ')}`,
+    ),
     [
       'Lilita One 400: latin-ext latin',
-      'Nunito 600/700/800: cyrillic-ext cyrillic vietnamese latin-ext latin',
+      'Nunito 600/700/800 italic 600/800: cyrillic-ext cyrillic vietnamese latin-ext latin',
       'Press Start 2P 400: cyrillic-ext cyrillic greek latin-ext latin',
       'Audiowide 400: latin-ext latin',
       'JetBrains Mono 400/700: cyrillic-ext cyrillic greek vietnamese latin-ext latin',
     ],
   );
-  assert.equal(FONT_FILES.filter((f) => f.endsWith('.woff2')).length, 36);
-  for (const file of ['nunito-vietnamese-800-normal.woff2', 'press-start-2p-greek-400-normal.woff2', 'jetbrains-mono-cyrillic-ext-700-normal.woff2']) {
+  assert.equal(FONT_FILES.filter((f) => f.endsWith('.woff2')).length, 46);
+  for (const file of [
+    'nunito-vietnamese-800-normal.woff2',
+    'nunito-latin-600-italic.woff2',
+    'nunito-cyrillic-800-italic.woff2',
+    'press-start-2p-greek-400-normal.woff2',
+    'jetbrains-mono-cyrillic-ext-700-normal.woff2',
+  ]) {
     assert.ok(FONT_FILES.includes(file), file);
   }
   assert.deepEqual(

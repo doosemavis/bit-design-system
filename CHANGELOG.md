@@ -2,6 +2,24 @@
 
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
+## 0.1.8 — 2026-10-10
+### Added
+- Text `italic`, `underline` and `strikethrough`: on/off props that combine with each other and with `weight`, rendered as `data-italic`, `data-underline` and `data-strikethrough`. `<Text>Press <Text weight="bold" italic>Start</Text></Text>`. The underline is thinner than Link's, so it doesn't read as a link.
+- The power-up theme ships Nunito italic (600 and 800, every subset), so italic body text uses the real italic instead of a slanted copy. At 24, 32 and 40 the display face has no italic, so the browser slants it.
+### Changed
+- Heads up, the type scale is even now: Text sizes are 14, 16, 18, 24, 32 and 40 (they were 11, 13, 15, 18, 24 and 32), and body text is 16 (it was 15). Every component moves with it, so most text in bit is about 1px bigger. Your code keeps working: the old sizes are deprecated, not removed. Swap `13` for `14` and `15` for `16` before 0.2.0.
+- Type scale: `TEXT_SIZES` is `[14, 16, 18, 24, 32, 40]`, with new tokens `--bit-text-14px`, `--bit-text-16px` and `--bit-text-40px`. 14 is the smallest text; it was 13.
+- Text: `size` takes 14, 16, 18, 24, 32 or 40, and defaults to 16 (was 15). 24, 32 and 40 use the display face.
+- Focus ring: on Button, IconButton, Switch and Table, the hard shadow moves from under the control to under the ring while it has keyboard focus, so the gap between control and ring is even on every side (it used to fill with shadow at the bottom right). ModeToggle draws its ring inside the option, like SegmentedControl.
+- Every component that used 13px or 15px text now uses 14px or 16px: Alert, Badge (`lg`), CodeBlock, Code, Field, Select, Switch, Table headers, Tabs, SegmentedControl, Tooltip, and the `sm` and `md` control sizes.
+- Heads up, Heading is set by `size` alone now: every 2px from 20 to 44, all in the display face, default 32. The size picks the tag too: 40 to 44 render an h1, 32 to 38 an h2, 26 to 30 an h3, 24 an h4, 22 an h5 and 20 an h6. So `<Heading size={40}>` is a page title. `level` is deprecated, not removed: swap `level={1}` for `size={40}` and `level={2}` for `size={32}` before 0.2.0.
+- Heading sizes come from new tokens `--bit-heading-20px` to `--bit-heading-44px`. New exports: `HEADING_SIZES`, `HeadingSize`.
+- Text renders a `<p>`, or a `<span>` when it sits inside a Text, Heading, Button or Link, so `<Text>You have <Text weight="bold">3 coins</Text> left.</Text>` is one paragraph.
+- Text `size={11}`, `size={13}` and `size={15}` render as 14, 14 and 16, and warn once in development. `--bit-text-11px`, `--bit-text-13px` and `--bit-text-15px` are aliases of `--bit-text-14px` and `--bit-text-16px`. All removed in 0.2.0. New exports: `DEPRECATED_TEXT_SIZES`, `DeprecatedTextSize`.
+- Text `as` is deprecated: it still renders the element you give, and warns once in development. Removed in 0.2.0. For a title, use Heading.
+- Heading `level` is optional and deprecated: `level={2}` still renders an h2 with its old look, and warns once to use the size that renders that tag (`level={2}` → `size={32}`). Removed in 0.2.0.
+- Heading `size={1}` to `size={6}` (a level) still gives that level's old look, and warns once to use a px size (`size={3}` → `size={26}`). Removed in 0.2.0.
+
 ## 0.1.7 — 2026-10-09
 ### Changed
 - CodeBlock: attributes (JSX and HTML) and shell flags are orchid `#EC8FFF` (`--bit-code-attr`), no longer orange `#FFB86B`, so they stand apart from component names (yellow) and stay close to props (pink). Contrast is 8.6:1 on the code background.

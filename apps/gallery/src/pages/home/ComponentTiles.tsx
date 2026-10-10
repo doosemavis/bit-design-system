@@ -17,6 +17,7 @@ import {
   Tabs,
   Text,
 } from '@bit-ds/react';
+import { SECTION_CLASS, SECTION_TITLE_CLASS } from '../../ui/PageSection';
 import { Link as RouterLink } from 'react-router-dom';
 import { MANIFESTS, routeFor } from '../../manifests';
 import type { Manifest } from '../../manifests';
@@ -93,9 +94,9 @@ function Tile({ manifest }: { manifest: Manifest }) {
 
 function TileGroup({ title, lead, manifests }: { title: string; lead: string; manifests: readonly Manifest[] }) {
   return (
-    <Stack gap={12}>
+    <Stack gap={16} className={SECTION_CLASS}>
       <Stack direction="row" gap={8} align="center">
-        <Heading level={2}>{title}</Heading>
+        <Heading className={SECTION_TITLE_CLASS}>{title}</Heading>
         <Badge variant="outline">{String(manifests.length)}</Badge>
       </Stack>
       <Text color="neutral">{lead}</Text>
@@ -110,8 +111,9 @@ function TileGroup({ title, lead, manifests }: { title: string; lead: string; ma
 
 /** Every component and form control as a live tile, from the manifests, so a new one shows up by itself. */
 export function ComponentTiles() {
+  // A fragment, so each group is a section of the home page and gets the same break as the rest.
   return (
-    <Stack gap={48}>
+    <>
       <TileGroup
         title="Components"
         lead="Every component with a live preview. Pick one for its props, variants and examples."
@@ -122,6 +124,6 @@ export function ComponentTiles() {
         lead="Inputs that behave like native ones in a form: name, required and reset all work."
         manifests={MANIFESTS.filter((m) => m.group === 'forms')}
       />
-    </Stack>
+    </>
   );
 }

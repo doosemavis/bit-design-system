@@ -19,6 +19,9 @@ const FAMILIES: readonly (readonly [family: string, id: string, weights: readonl
   ['JetBrains Mono', 'jetbrains-mono', [400, 700], ['cyrillic-ext', 'cyrillic', 'greek', 'vietnamese', 'latin-ext', 'latin']],
 ];
 
+/** Italic weights, beside the upright ones: Nunito's two weight tokens, for Text italic (0.1.8). */
+const ITALICS: Readonly<Record<string, readonly number[]>> = { Nunito: [600, 800] };
+
 /**
  * Google's (and @fontsource's) ranges, so a page fetches a subset only when it shows one of its characters.
  * Listed in Google's order: where ranges overlap (U+0304, U+0308, U+0329) the later rule wins, so latin is last.
@@ -59,33 +62,36 @@ describe('no shipped CSS loads anything from a third party (security audit A1)',
 
 describe('power-up self-hosts its fonts', () => {
   const expected = FAMILIES.flatMap(([family, id, weights, subsets]) =>
-    weights.flatMap((weight) => subsets.map((subset) => ({ family, weight, subset, file: `${id}-${subset}-${weight}-normal.woff2` }))),
+    [...weights.map((weight) => [weight, 'normal'] as const), ...(ITALICS[family] ?? []).map((weight) => [weight, 'italic'] as const)].flatMap(
+      ([weight, style]) => subsets.map((subset) => ({ family, weight, style, subset, file: `${id}-${subset}-${weight}-${style}.woff2` })),
+    ),
   );
 
-  it('declares exactly one @font-face per family, weight and subset the family has: 36 in all', () => {
+  it('declares exactly one @font-face per family, style, weight and subset the family has: 46 in all', () => {
     const declared = faces.map((body) => `${familyOf(body)} ${decl(body, 'font-weight')} ${decl(body, 'src')}`).sort();
     const wanted = expected.map(({ family, weight, file }) => `${family} ${weight} url("./fonts/${file}") format("woff2")`).sort();
     expect(declared).toEqual(wanted);
-    expect(faces).toHaveLength(36);
+    expect(faces).toHaveLength(46);
   });
 
   it("orders each family and weight's subsets as Google does, latin last, so latin wins the shared code points", () => {
     for (const [family, , weights] of FAMILIES) {
-      for (const weight of weights) {
+      const styled = [...weights.map((w) => [w, 'normal'] as const), ...(ITALICS[family] ?? []).map((w) => [w, 'italic'] as const)];
+      for (const [weight, style] of styled) {
         const order = faces
-          .filter((b) => familyOf(b) === family && decl(b, 'font-weight') === String(weight))
-          .map((b) => SUBSET_ORDER.find((s) => decl(b, 'src')?.includes(`-${s}-${weight}-normal.woff2`)) ?? '');
-        expect(order, `${family} ${weight}`).toEqual([...order].sort((a, b) => SUBSET_ORDER.indexOf(a) - SUBSET_ORDER.indexOf(b)));
-        expect(order.at(-1), `${family} ${weight}`).toBe('latin');
+          .filter((b) => familyOf(b) === family && decl(b, 'font-weight') === String(weight) && decl(b, 'font-style') === style)
+          .map((b) => SUBSET_ORDER.find((s) => decl(b, 'src')?.includes(`-${s}-${weight}-${style}.woff2`)) ?? '');
+        expect(order, `${family} ${weight} ${style}`).toEqual([...order].sort((a, b) => SUBSET_ORDER.indexOf(a) - SUBSET_ORDER.indexOf(b)));
+        expect(order.at(-1), `${family} ${weight} ${style}`).toBe('latin');
       }
     }
   });
 
-  it.each(expected)('$family $weight $subset: normal style, swap, woff2 only, its own unicode-range', ({ family, weight, subset, file }) => {
+  it.each(expected)('$family $weight $style $subset: its style, swap, woff2 only, its own unicode-range', ({ family, weight, style, subset, file }) => {
     const body = faces.find((b) => decl(b, 'src')?.includes(`/${file}"`));
     expect(body, file).toBeDefined();
     expect(decl(body!, 'font-family')).toBe(`"${family}"`);
-    expect(decl(body!, 'font-style')).toBe('normal');
+    expect(decl(body!, 'font-style')).toBe(style);
     expect(decl(body!, 'font-weight')).toBe(String(weight));
     expect(decl(body!, 'font-display')).toBe('swap');
     expect(decl(body!, 'src')).toBe(`url("./fonts/${file}") format("woff2")`);

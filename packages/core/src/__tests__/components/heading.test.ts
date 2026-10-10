@@ -1,14 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { block, decl, readCss } from '../css';
+import { HEADING_SIZES } from '../../tokens';
 
 /** Spec §1's table, one row per data-level. Every level declares all five, so none inherits another's. */
 const LEVELS = {
   1: { 'font-family': 'var(--bit-font-display)', 'font-size': 'var(--bit-text-32px)', 'font-weight': '400', 'line-height': 'var(--bit-leading-tight)', 'letter-spacing': '0.01em' },
   2: { 'font-family': 'var(--bit-font-display)', 'font-size': 'var(--bit-text-24px)', 'font-weight': '400', 'line-height': 'var(--bit-leading-tight)', 'letter-spacing': '0.01em' },
   3: { 'font-family': 'var(--bit-font-display)', 'font-size': 'var(--bit-text-18px)', 'font-weight': '400', 'line-height': 'var(--bit-leading-tight)', 'letter-spacing': '0.01em' },
-  4: { 'font-family': 'var(--bit-font-body)', 'font-size': 'var(--bit-text-15px)', 'font-weight': 'var(--bit-weight-bold)', 'line-height': '1.3', 'letter-spacing': 'normal' },
-  5: { 'font-family': 'var(--bit-font-body)', 'font-size': 'var(--bit-text-13px)', 'font-weight': 'var(--bit-weight-bold)', 'line-height': '1.3', 'letter-spacing': 'normal' },
-  6: { 'font-family': 'var(--bit-font-pixel)', 'font-size': 'var(--bit-text-13px)', 'font-weight': '400', 'line-height': '1.4', 'letter-spacing': '0.08em' },
+  4: { 'font-family': 'var(--bit-font-body)', 'font-size': 'var(--bit-text-16px)', 'font-weight': 'var(--bit-weight-bold)', 'line-height': '1.3', 'letter-spacing': 'normal' },
+  5: { 'font-family': 'var(--bit-font-body)', 'font-size': 'var(--bit-text-14px)', 'font-weight': 'var(--bit-weight-bold)', 'line-height': '1.3', 'letter-spacing': 'normal' },
+  6: { 'font-family': 'var(--bit-font-pixel)', 'font-size': 'var(--bit-text-14px)', 'font-weight': '400', 'line-height': '1.4', 'letter-spacing': '0.08em' },
 } as const;
 
 const TYPE_PROPS = ['font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing'] as const;
@@ -42,8 +43,29 @@ describe('components/heading.css', () => {
     expect(decl(block(css, '.bit-heading')!, 'text-transform')).toBeNull();
   });
 
-  it('with no data-level, the base rule is the h2 look', () => {
+  // One face for every size: each data-size rule sets only its font size, and the base rule has the rest.
+  const DISPLAY = { 'font-family': 'var(--bit-font-display)', 'font-weight': '400', 'line-height': 'var(--bit-leading-tight)', 'letter-spacing': '0.01em' };
+  it.each(HEADING_SIZES)('data-size="%i" sets only its px size, from --bit-heading-%ipx', (px) => {
+    const body = block(css, `.bit-heading[data-size="${px}"]`)!;
+    expect(body).not.toBeNull();
+    expect(decl(body, 'font-size')).toBe(`var(--bit-heading-${px}px)`);
+    for (const prop of TYPE_PROPS.filter((p) => p !== 'font-size')) expect(decl(body, prop), prop).toBeNull();
+  });
+
+  it('has no data-size rule outside 20 to 44', () => {
+    const sizes = [...css.matchAll(/\.bit-heading\[data-size="(\d+)"\]/g)].map((m) => Number(m[1]));
+    expect(sizes).toEqual([...HEADING_SIZES]);
+  });
+
+  it('every data-size rule comes after every data-level rule', () => {
+    const lastLevel = Math.max(...[1, 2, 3, 4, 5, 6].map((n) => css.indexOf(`.bit-heading[data-level="${n}"]`)));
+    const firstSize = Math.min(...HEADING_SIZES.map((n) => css.indexOf(`.bit-heading[data-size="${n}"]`)));
+    expect(firstSize).toBeGreaterThan(lastLevel);
+  });
+
+  it('the base rule is the display face at the 32px default', () => {
     const root = block(css, '.bit-heading')!;
-    for (const prop of TYPE_PROPS) expect(decl(root, prop), prop).toBe(LEVELS[2][prop]);
+    expect(decl(root, 'font-size')).toBe('var(--bit-heading-32px)');
+    for (const [prop, value] of Object.entries(DISPLAY)) expect(decl(root, prop), prop).toBe(value);
   });
 });

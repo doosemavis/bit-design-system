@@ -33,10 +33,10 @@ describe('components/table.css', () => {
     expect(css).not.toContain('vertical-align: top;');
   });
 
-  it('head cells are 13px pixel type in capitals over a 3px line rule (13px is the floor)', () => {
+  it('head cells are 14px pixel type in capitals over a 3px line rule (14px is the floor)', () => {
     const head = block(css, '.bit-table__head .bit-table__cell')!;
     expect(head).toContain('font-family: var(--bit-font-pixel);');
-    expect(head).toContain('font-size: var(--bit-text-13px);');
+    expect(head).toContain('font-size: var(--bit-text-14px);');
     expect(head).toContain('text-transform: uppercase;');
     expect(head).toContain('border-bottom: var(--bit-border-width) solid var(--bit-color-line);');
   });

@@ -98,8 +98,8 @@ describe('toJsx', () => {
     [
       'the default sentinel is omitted and neutral is printed',
       text,
-      { color: 'neutral', as: 'h2' },
-      `import { Text } from '@bit-ds/react';\n\n<Text as="h2" color="neutral">The quick brown fox jumps over the lazy dog.</Text>`,
+      { color: 'neutral' },
+      `import { Text } from '@bit-ds/react';\n\n<Text color="neutral">The quick brown fox jumps over the lazy dog.</Text>`,
     ],
     [
       'an alwaysPrint text prop prints at its default, and a ChildSpec with no children self-closes',

@@ -22,6 +22,14 @@ interface SelectControl {
   alwaysPrint?: boolean;
   /** A control that only shapes the page (how many segments): it shows in the panel and presets, but is never a prop and never printed. */
   virtual?: boolean;
+  /** One line under the control, always shown (Text `as`: titles belong to Heading). */
+  hint?: string;
+  /**
+   * Why the control can't change in this state, or undefined when it can (Text weight at 24 and 32). While
+   * locked it is disabled, a primary note under it says why, and it holds its default, so the preview and the
+   * code drop it.
+   */
+  lock?: (state: ControlState) => string | undefined;
 }
 interface BooleanControl {
   kind: 'boolean';

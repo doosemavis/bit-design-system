@@ -26,11 +26,11 @@ describe('components/code-block.css', () => {
     expect(block(css, '.bit-code__block')).toContain('--_bit-focus-ring: initial;');
   });
 
-  it('the bar has a 2px accent rule; the language is pixel type at 13px (the floor) in the punct color', () => {
+  it('the bar has a 2px accent rule; the language is pixel type at 14px (the floor) in the punct color', () => {
     expect(block(css, '.bit-code__bar')).toContain('border-bottom: 2px solid var(--bit-color-accent);');
     const lang = block(css, '.bit-code__lang')!;
     expect(lang).toContain('font-family: var(--bit-font-pixel);');
-    expect(lang).toContain('font-size: var(--bit-text-13px);');
+    expect(lang).toContain('font-size: var(--bit-text-14px);');
     expect(lang).toContain('color: var(--bit-code-punct);');
   });
 
@@ -65,12 +65,12 @@ describe('components/code-block.css', () => {
     expect(actions).not.toMatch(OUTLINE_DECLARATION);
   });
 
-  it('the pre scrolls sideways in 13px mono at line-height 1.6, without ligatures', () => {
+  it('the pre scrolls sideways in 14px mono at line-height 1.6, without ligatures', () => {
     const pre = block(css, '.bit-code__pre')!;
     for (const line of [
       'overflow-x: auto;',
       'font-family: var(--bit-font-mono);',
-      'font-size: var(--bit-text-13px);',
+      'font-size: var(--bit-text-14px);',
       'font-weight: 400;',
       'line-height: 1.6;',
       'font-variant-ligatures: none;',

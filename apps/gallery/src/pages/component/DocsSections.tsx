@@ -28,7 +28,7 @@ export function UsageLists({ usage }: { usage: ManifestDocs['usage'] }) {
 /** A cell with nothing to show: no default, or no class. */
 function None() {
   return (
-    <Text as="span" color="neutral">
+    <Text color="neutral">
       —
     </Text>
   );

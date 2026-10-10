@@ -247,13 +247,13 @@ describe('components/select.css', () => {
       expect(css.indexOf(`${MULTI}[data-active] {`)).toBeGreaterThan(css.indexOf(`${MULTI}[aria-selected="true"] {`));
     });
 
-    it('the "N selected" pill is primary, bold, body text 13px, fully rounded', () => {
+    it('the "N selected" pill is primary, bold, body text 14px, fully rounded', () => {
       const pill = block(css, '.bit-select__count')!;
       for (const line of [
         'background: var(--bit-color-primary);',
         'color: var(--bit-color-primary-contrast);',
         'font-weight: var(--bit-weight-bold);',
-        'font-size: var(--bit-text-13px);',
+        'font-size: var(--bit-text-14px);',
         'border-radius: var(--bit-radius-full);',
         'padding: 0 var(--bit-space-8px);',
       ]) {

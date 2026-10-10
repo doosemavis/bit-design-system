@@ -346,7 +346,7 @@ html {
 .gallery-face[data-face="pixel"] {
   font-family: var(--bit-font-pixel);
   font-weight: 400;
-  font-size: var(--bit-text-13px);
+  font-size: var(--bit-text-14px);
   text-transform: uppercase;
 }
 
@@ -354,6 +354,83 @@ html {
   font-family: var(--bit-font-mono);
   font-weight: 400;
   font-size: var(--bit-text-18px);
+}
+
+/* A font's sample (a game quote), in its face, wrapping where it needs to. The pixel name is caps, but its
+   sample keeps its own case. */
+.gallery-face--sample {
+  min-height: 0;
+  overflow-wrap: anywhere;
+}
+
+.gallery-face--sample[data-face="pixel"] {
+  text-transform: none;
+}
+
+/* A font card's name, in its header: no sample floor, so it centers on the token chip beside it. */
+.gallery-face--name {
+  min-height: 0;
+}
+
+/* A font card's body takes the spare height, so the footers line up along the bottom of a row of cards; the
+   footer's "Used for" line starts at the left, not at Card's default right. */
+.gallery-font-card__body {
+  flex: 1;
+}
+
+.gallery-font-card__footer {
+  justify-content: flex-start;
+}
+
+/* The Accessibility page's Built in cards: wider than the default grid's, so each paragraph has room. */
+.gallery-grid--a11y {
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}
+
+/* The four font cards: two by two, so none sits alone on a row; one column on a phone. */
+.gallery-grid--fonts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 40rem) {
+  .gallery-grid--fonts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The Headings table's Tag cell spans every size that renders that tag. Its bracket, a "]" with a nub pointing
+   at the tag, runs down the cell's left edge, next to the sizes it groups. */
+.gallery-tag-group {
+  position: relative;
+}
+
+.gallery-tag-group__bracket {
+  position: absolute;
+  top: var(--bit-space-12px);
+  bottom: var(--bit-space-12px);
+  left: 0;
+  width: var(--bit-space-12px);
+  border: 3px solid var(--bit-color-accent);
+  border-left: 0;
+  border-radius: 0 var(--bit-radius-6px) var(--bit-radius-6px) 0;
+}
+
+.gallery-tag-group__bracket::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: var(--bit-space-8px);
+  margin-top: -1.5px;
+  border-top: 3px solid var(--bit-color-accent);
+}
+
+/* A Typography table value (tag, size, face, token) centered under its column heading. Two classes, so it
+   beats the core .bit-table__cell rule that sets text-align: left. One line, so a token never breaks at a
+   hyphen on a phone: the table scrolls instead. */
+.bit-table__cell.gallery-cell-center {
+  text-align: center;
+  white-space: nowrap;
 }
 
 /* One row of the Spacing page's ruler: the step, its bar (the 64px bar fits in 5rem), its token. */
@@ -527,6 +604,59 @@ html {
 
 @media (max-width: 70rem) {
   .gallery-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- page sections ---------- */
+/* The break between a page's sections (owner pick, 2026-10-10): 128px of space, then the title with a short
+   accent bar under it. No rule. The page's Stack (gap 64) gives the first 64px and this the rest, on every
+   section after the first, so the page header keeps its 64px. */
+.gallery-section + .gallery-section {
+  padding-top: var(--bit-space-64px);
+}
+
+/* The accent bar: 48px wide, 4px tall, hung 6px under the title in the gap before the content, so the title's
+   own box (and anything lined up beside it, like a step's number) doesn't move. */
+.gallery-section-title {
+  position: relative;
+}
+
+.gallery-section-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -10px;
+  width: var(--bit-space-48px);
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bit-color-accent);
+}
+
+/* ---------- examples ---------- */
+/* A component page example: the live sample on the left, its code on the right; stacked under 70rem, as
+   .gallery-split is. */
+.gallery-example__body {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: stretch;
+  gap: var(--bit-space-16px);
+}
+
+/* The sample sits in a Box (padding 16) framed like a small stage: a line, rounded corners and the page
+   background, as tall as the code beside it, with its parts centred in that height. */
+.gallery-example__sample {
+  display: grid;
+  align-content: center;
+  gap: var(--bit-space-8px);
+  min-width: 0;
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+  background: var(--bit-color-bg);
+}
+
+@media (max-width: 70rem) {
+  .gallery-example__body {
     grid-template-columns: minmax(0, 1fr);
   }
 }

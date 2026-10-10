@@ -363,6 +363,15 @@ describe('the animated section underline', () => {
       { key: '@keyframes spin to', property: 'color' },
     ]);
   });
+
+  it('an example puts its sample beside its code, and stacks them under 70rem', () => {
+    expect(ruleIn(galleryCss, '.gallery-example__body')).toMatch(/grid-template-columns: minmax\(0, 2fr\) minmax\(0, 3fr\);/);
+    expect(ruleIn(mediaBody('(max-width: 70rem)'), '.gallery-example__body')).toMatch(/grid-template-columns: minmax\(0, 1fr\);/);
+  });
+
+  it('a centered table cell beats the core cell rule, which sets text-align: left on .bit-table__cell', () => {
+    expect(ruleIn(galleryCss, '.bit-table__cell.gallery-cell-center')).toMatch(/text-align: center;/);
+  });
 });
 
 describe('gallery.css is layout only, apart from the documented exceptions', () => {

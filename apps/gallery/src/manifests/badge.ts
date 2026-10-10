@@ -52,7 +52,7 @@ export const badge: Manifest = {
         className: 'bit-{size}',
         type: "'sm' | 'md' | 'lg'",
         default: "'md'",
-        description: 'Text size and padding. sm and md use the pixel font; lg uses the body font at 15px bold, so it stays readable.',
+        description: 'Text size and padding. sm and md use the pixel font; lg uses the body font at 16px bold, so it stays readable.',
       },
       {
         name: 'shape',

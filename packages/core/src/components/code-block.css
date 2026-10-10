@@ -27,7 +27,7 @@
 
 .bit-code__lang {
   font-family: var(--bit-font-pixel);
-  font-size: var(--bit-text-13px);
+  font-size: var(--bit-text-14px);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--bit-code-punct);
@@ -45,7 +45,7 @@
 .bit-code__copy {
   padding: var(--bit-space-4px) var(--bit-space-8px);
   font-family: var(--bit-font-body);
-  font-size: var(--bit-text-13px);
+  font-size: var(--bit-text-14px);
   font-weight: var(--bit-weight-bold);
   line-height: 1;
   color: var(--bit-color-ink);
@@ -66,7 +66,7 @@
   padding: var(--bit-space-12px) var(--bit-space-16px);
   overflow-x: auto;
   font-family: var(--bit-font-mono);
-  font-size: var(--bit-text-13px);
+  font-size: var(--bit-text-14px);
   /* JetBrains Mono ships 400 and 700; the page's 600 would snap to bold. */
   font-weight: 400;
   line-height: 1.6;

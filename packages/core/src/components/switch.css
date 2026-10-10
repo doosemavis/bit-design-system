@@ -7,7 +7,7 @@
   align-items: center;
   gap: var(--bit-space-8px);
   font-family: var(--bit-font-body);
-  font-size: var(--bit-text-15px);
+  font-size: var(--bit-text-16px);
   font-weight: var(--bit-weight-bold);
   line-height: var(--bit-leading-tight);
   color: var(--bit-color-text);
@@ -24,7 +24,7 @@
   --_bit-switch-width: 40px;
   --_bit-switch-height: 24px;
   --_bit-switch-thumb: 12px;
-  font-size: var(--bit-text-13px);
+  font-size: var(--bit-text-14px);
 }
 
 .bit-switch__input {
@@ -49,6 +49,17 @@
   border-radius: var(--bit-radius-full);
   box-shadow: var(--bit-shadow-sm);
   transition: background-color var(--bit-duration-fast);
+}
+
+/* Keyboard focus: the track's shadow moves out to under the focus ring, so the ring's gap is even all round
+   (reset.css casts it from ::after). The track is already position: relative. */
+.bit-switch__track {
+  --_bit-lift: var(--bit-shadow-sm);
+  --_bit-lift-radius: var(--bit-radius-full);
+}
+
+.bit-switch__input:focus-visible + .bit-switch__track {
+  box-shadow: none;
 }
 
 /* The thumb sits 3px inside the track. On, it slides to the far end by `left` (no transform). */

@@ -14,10 +14,12 @@ async function open() {
 const main = () => screen.getByRole('main');
 /** A paragraph by its whole text, for lines broken up by inline Code. */
 const paragraph = (text: string) => within(main()).getByText((_, el) => el?.tagName === 'P' && el.textContent === text);
-/** A step's sub-heading (an h3), by its visible text (inline Code changes the computed accessible name's spacing). */
+/** Every step sub-label: a bold caption, not a heading, since the smallest Heading is 20px. */
+const captions = () => [...main().querySelectorAll<HTMLElement>('.gallery-caption')];
+/** A step's sub-label, by its visible text. */
 const subheading = (text: string) => {
-  const match = within(main()).getAllByRole('heading', { level: 3 }).find((h) => h.textContent === text);
-  if (!match) throw new Error(`No h3 reads "${text}"`);
+  const match = captions().find((h) => h.textContent === text);
+  if (!match) throw new Error(`No caption reads "${text}"`);
   return match;
 };
 /** The step a heading belongs to, by the Step's data-step hook. */
@@ -51,7 +53,7 @@ describe('GettingStartedPage', () => {
     }
   });
 
-  it('every step reads easily: no text under 15px, and its parts sit 24px apart so each caption pairs with the code under it', async () => {
+  it('every step reads easily: no text under 16px, and its parts sit 24px apart so each caption pairs with the code under it', async () => {
     await open();
     for (const heading of within(main()).getAllByRole('heading', { level: 2 })) {
       const body = stepOf(heading).querySelector('.bit-card__body > .bit-stack')!;
@@ -62,9 +64,10 @@ describe('GettingStartedPage', () => {
     }
   });
 
-  it("the steps' sub-labels are h3 headings, so screen readers can jump between them", async () => {
+  it("the steps' sub-labels are bold captions, and the page has no headings under the steps' h2s", async () => {
     await open();
-    const names = within(main()).getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
+    expect(within(main()).queryAllByRole('heading', { level: 3 })).toEqual([]);
+    const names = captions().map((h) => h.textContent);
     expect(names).toEqual([
       'In your entry file',
       'Or in your global stylesheet',
@@ -78,9 +81,10 @@ describe('GettingStartedPage', () => {
 
   it('every sub-label is a gallery caption, so inline Code in it gets the slim chip', async () => {
     await open();
-    for (const h3 of within(main()).getAllByRole('heading', { level: 3 })) {
-      expect(h3, h3.textContent!).toHaveClass('bit-text', 'gallery-caption');
-      expect(h3, h3.textContent!).toHaveAttribute('data-weight', 'bold');
+    for (const caption of captions()) {
+      expect(caption, caption.textContent!).toHaveClass('bit-text', 'gallery-caption');
+      expect(caption.tagName, caption.textContent!).toBe('P');
+      expect(caption, caption.textContent!).toHaveAttribute('data-weight', 'bold');
     }
   });
 
@@ -187,7 +191,7 @@ describe('GettingStartedPage', () => {
       await open();
       const one = subheading('1. In a component file, such as src/Toolbar.tsx:');
       const two = subheading('2. Then use your component like any other, for example in src/App.tsx:');
-      for (const label of [one, two, subheading('It renders:')]) expect(label).toHaveAttribute('data-size', '15');
+      for (const label of [one, two, subheading('It renders:')]) expect(label).toHaveAttribute('data-size', '16');
       const parts = one.closest('[data-step-part="1"]')!.parentElement!;
       expect(parts).toHaveAttribute('data-gap', '24');
       expect(two.closest('[data-step-part="2"]')!.parentElement).toBe(parts);

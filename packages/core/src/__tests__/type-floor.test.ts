@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { listCss, readCss } from './css';
 
-/** Font sizes that resolve to 13px or more: the 13px, 15px, 18px, 24px and 32px steps, and the control sizes. */
-const AT_LEAST_13 = /^var\(--bit-text-(13|15|18|24|32)px\)$|^var\(--_bit-size-text\)$/;
+/** Font sizes that resolve to 14px or more: the 14 to 40px text steps, the 20 to 44px heading sizes, and the control sizes. */
+const AT_LEAST_14 = /^var\(--bit-text-(14|16|18|24|32|40)px\)$|^var\(--bit-heading-(2[02468]|3[02468]|4[024])px\)$|^var\(--_bit-size-text\)$/;
 
 /**
- * Below the 13px floor on purpose, by file, each with its reason (owner, 2026-10-05). Anything else under 13px
+ * Below the 14px floor on purpose, by file, each with its reason (owner, 2026-10-05). Anything else under 14px
  * fails, so new small text is a choice someone writes down here.
  */
 const EXEMPT: Readonly<Record<string, { sizes: readonly string[]; why: string }>> = {
@@ -15,19 +15,22 @@ const EXEMPT: Readonly<Record<string, { sizes: readonly string[]; why: string }>
     why: 'Logo artwork: sizes match the "bit" lettering, not reading text. The two calc() sizes are the md and lg logo (48px, 72px).',
   },
   'code.css': {
-    sizes: ['max(0.9em, var(--bit-text-13px))'],
-    why: 'Inline Code is 0.9em of the text around it, but max() holds it at 13px or more inside 13px text.',
+    sizes: ['max(0.9em, var(--bit-text-14px))'],
+    why: 'Inline Code is 0.9em of the text around it, but max() holds it at 14px or more inside 14px text.',
   },
   'dialog.css': { sizes: ['11px'], why: 'The Retro window title is the pixel font, which reads large; 11px is its sub-scale, as Badge (owner pick D2).' },
-  'text.css': { sizes: ['var(--bit-text-11px)'], why: 'Text keeps its public size={11} step; nothing in bit uses it.' },
+  'text.css': {
+    sizes: ['var(--bit-text-11px)', 'var(--bit-text-13px)', 'var(--bit-text-15px)'],
+    why: 'Deprecated data-size 11, 13 and 15 (removed in 0.2.0). Their tokens alias 14 and 16, so they render at the floor or above.',
+  },
 };
 
 const fontSizes = (css: string) => [...css.matchAll(/font-size:\s*([^;]+);/g)].map((m) => m[1]!.trim());
 
-describe('the 13px floor', () => {
-  it.each(listCss('components'))('%s draws no text under 13px unless exempt', (file) => {
-    // Every size that isn't a plain 13px-or-larger step must be listed, calc() included.
-    const small = fontSizes(readCss(`components/${file}`)).filter((size) => !AT_LEAST_13.test(size));
+describe('the 14px floor', () => {
+  it.each(listCss('components'))('%s draws no text under 14px unless exempt', (file) => {
+    // Every size that isn't a plain 14px-or-larger step must be listed, calc() included.
+    const small = fontSizes(readCss(`components/${file}`)).filter((size) => !AT_LEAST_14.test(size));
     expect([...new Set(small)].sort()).toEqual([...(EXEMPT[file]?.sizes ?? [])].sort());
   });
 
@@ -40,9 +43,9 @@ describe('the 13px floor', () => {
     expect(readers).toEqual([]);
   });
 
-  it('every control size step (system/sizes.css) is 13px or larger', () => {
+  it('every control size step (system/sizes.css) is 14px or larger', () => {
     const steps = [...readCss('system/sizes.css').matchAll(/--_bit-size-text:\s*([^;]+);/g)].map((m) => m[1]!.trim());
-    expect(steps).toEqual(['var(--bit-text-13px)', 'var(--bit-text-15px)', 'var(--bit-text-18px)']);
+    expect(steps).toEqual(['var(--bit-text-14px)', 'var(--bit-text-16px)', 'var(--bit-text-18px)']);
   });
 
   it('no system stylesheet reads the 11px step', () => {

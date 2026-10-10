@@ -33,7 +33,7 @@ export function VersionRail({ entries, current, onSelect }: VersionRailProps) {
             {entry.date ? (
               <>
                 {' '}
-                <Text as='span' color='neutral'>
+                <Text color='neutral'>
                   {entry.date.slice(5)}
                 </Text>
               </>

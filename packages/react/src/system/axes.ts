@@ -1,9 +1,9 @@
-import { COLORS, SIZES, TEXT_SIZES, SPACE_STEPS } from '@bit-ds/core/tokens';
-import type { Color, Size, TextSize, SpaceStep } from '@bit-ds/core/tokens';
+import { COLORS, SIZES, TEXT_SIZES, DEPRECATED_TEXT_SIZES, DEPRECATED_TEXT_SIZE_TO, HEADING_SIZES, SPACE_STEPS } from '@bit-ds/core/tokens';
+import type { Color, Size, TextSize, DeprecatedTextSize, HeadingSize, SpaceStep } from '@bit-ds/core/tokens';
 
 /** Emphasis. Rendered per component, unlike color and size which are global remaps. */
 export const VARIANTS = ['solid', 'outline', 'ghost'] as const;
 export type Variant = (typeof VARIANTS)[number];
 
-export { COLORS, SIZES, TEXT_SIZES, SPACE_STEPS };
-export type { Color, Size, TextSize, SpaceStep };
+export { COLORS, SIZES, TEXT_SIZES, DEPRECATED_TEXT_SIZES, DEPRECATED_TEXT_SIZE_TO, HEADING_SIZES, SPACE_STEPS };
+export type { Color, Size, TextSize, DeprecatedTextSize, HeadingSize, SpaceStep };

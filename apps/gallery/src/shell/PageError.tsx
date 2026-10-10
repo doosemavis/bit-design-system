@@ -16,7 +16,7 @@ function reloadTab(): void {
 export function PageError({ onReload = reloadTab }: PageErrorProps) {
   return (
     <Stack gap={16} align="start">
-      <Heading level={1}>Something went wrong</Heading>
+      <Heading size={40}>Something went wrong</Heading>
       <Alert color="danger" role="alert">
         This page didn't load. Check your connection and try again.
       </Alert>

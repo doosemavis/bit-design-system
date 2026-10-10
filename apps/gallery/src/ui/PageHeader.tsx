@@ -12,7 +12,7 @@ interface PageHeaderProps {
 export function PageHeader({ title, children }: PageHeaderProps) {
   return (
     <Stack gap={8} align="start">
-      <Heading level={1}>{title}</Heading>
+      <Heading size={40}>{title}</Heading>
       {children}
     </Stack>
   );

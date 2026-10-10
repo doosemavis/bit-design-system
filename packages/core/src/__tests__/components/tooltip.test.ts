@@ -4,11 +4,11 @@ import { block, readCss, styleRules } from '../css';
 describe('components/tooltip.css', () => {
   const css = readCss('components/tooltip.css');
 
-  it('the bubble: inverse ink, 13px bold, 5px 8px padding', () => {
+  it('the bubble: inverse ink, 14px bold, 5px 8px padding', () => {
     const body = block(css, '.bit-tooltip')!;
     expect(body).toContain('background: var(--bit-color-text);');
     expect(body).toContain('color: var(--bit-color-bg);');
-    expect(body).toContain('font-size: var(--bit-text-13px);');
+    expect(body).toContain('font-size: var(--bit-text-14px);');
     expect(body).toContain('font-weight: var(--bit-weight-bold);');
     expect(body).toContain('padding: 5px 8px;');
   });

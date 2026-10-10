@@ -32,7 +32,7 @@ export function Disclosure({ title, defaultOpen = false, children }: DisclosureP
           onClick={() => setOpen((current) => !current)}
         >
           {/* Like ModeToggle's ☀/☾: the glyph is decoration, so the name stays the title. The Button's gap spaces it. */}
-          <Text as="span" aria-hidden="true" className="gallery-disclosure__glyph">
+          <Text aria-hidden="true" className="gallery-disclosure__glyph">
             ▸
           </Text>
           {title}

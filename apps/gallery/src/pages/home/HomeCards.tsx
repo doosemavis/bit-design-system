@@ -15,11 +15,11 @@ import {
   iconPalette,
   iconSearch,
   Link,
-  SEMANTIC_TOKENS,
   Stack,
   Text,
 } from '@bit-ds/react';
 import { Link as RouterLink } from 'react-router-dom';
+import { CURRENT_TOKENS } from '../../content/currentTokens';
 import { InstallCommand } from '../../content/InstallCommand';
 import { PACKAGE_NAME, STYLE_IMPORTS } from '../../content/snippets.mjs';
 import { MANIFESTS, routeFor } from '../../manifests';
@@ -51,7 +51,7 @@ const ICON_COUNT = ICON_GROUPS.reduce((n, group) => n + group.icons.length, 0);
 /** Four facts, each counted from its source, so they stay true as the system grows. */
 const FACTS: readonly (readonly [number, string])[] = [
   [MANIFESTS.filter((m) => m.group !== 'brand').length, 'components'],
-  [SEMANTIC_TOKENS.length, 'tokens'],
+  [CURRENT_TOKENS.length, 'tokens'],
   [ICON_COUNT, 'icons'],
   [COLOR_MODES.length, 'color modes'],
 ];
@@ -66,7 +66,7 @@ export function Facts() {
             <CardBody>
               <div className="gallery-fact">
                 <span className="gallery-fact__count">{count}</span>
-                <Text as="span" color="neutral">
+                <Text color="neutral">
                   {label}
                 </Text>
               </div>
@@ -118,7 +118,7 @@ export function StartBuilding() {
             <span key={role} className="gallery-swatch" style={{ background: `var(--bit-color-${role})` }} />
           ))}
         </Stack>
-        <Text color="neutral">{`${SEMANTIC_TOKENS.length} tokens for color, type, space and shape, each one copyable.`}</Text>
+        <Text color="neutral">{`${CURRENT_TOKENS.length} tokens for color, type, space and shape, each one copyable.`}</Text>
       </StartCard>
       <StartCard name="icons" to={routeFor(icon)} link="Browse the icons">
         <Stack direction="row" gap={12} aria-hidden="true">
