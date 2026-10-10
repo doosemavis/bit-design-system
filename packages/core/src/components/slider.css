@@ -1,19 +1,26 @@
 /* Slider: a native <input type="range">, see-through, laid over the parts that draw it, so keys, forms and
    screen readers are the browser's own. React sets --_bit-slider-fill (0 to 1) on the root, and the fill and
    thumb read it. square and round draw a track, a fill up to the thumb, and the thumb; blocks draws a framed
-   row of blocks, like a health bar. The ring is drawn on the thumb (or the blocks frame) by system/reset.css,
+   row of blocks, like a health bar. While a pointer drags a smooth slider, React sets the fill from the pointer,
+   so the thumb glides, and back to the value when it lifts. notched adds a mark under each step, and
+   numberInput a number box after the track. The ring is drawn on the thumb (or the blocks frame) by system/reset.css,
    and their hard shadow moves under it (system/focus.css). */
 .bit-slider {
   --_bit-slider-fill: 0;
+  /* Room under the thumb for notched's marks; 0 otherwise. The track and thumb sit in the middle of the rest. */
+  --_bit-slider-room: 0px;
+  --_bit-slider-notch: 6px;
   position: relative;
   display: block;
   inline-size: 100%;
   min-inline-size: 8rem;
-  block-size: var(--_bit-slider-thumb);
+  block-size: calc(var(--_bit-slider-thumb) + var(--_bit-slider-room));
 }
 
-/* Thumb and track heights. A track's height is inside its border. */
+/* Thumb and track heights. A track's height is inside its border. spin is the width of the number box's step
+   buttons. */
 .bit-slider.bit-sm {
+  --_bit-slider-spin: 18px;
   --_bit-slider-thumb: 20px;
   --_bit-slider-track: 6px;
   --_bit-slider-block: 12px;
@@ -21,6 +28,7 @@
 }
 
 .bit-slider.bit-md {
+  --_bit-slider-spin: 20px;
   --_bit-slider-thumb: 24px;
   --_bit-slider-track: 8px;
   --_bit-slider-block: 16px;
@@ -28,6 +36,7 @@
 }
 
 .bit-slider.bit-lg {
+  --_bit-slider-spin: 24px;
   --_bit-slider-thumb: 28px;
   --_bit-slider-track: 10px;
   --_bit-slider-block: 20px;
@@ -82,7 +91,7 @@
 .bit-slider__track,
 .bit-slider__fill {
   position: absolute;
-  inset-block-start: calc(50% - var(--_bit-slider-track) / 2 - var(--bit-border-width));
+  inset-block-start: calc((100% - var(--_bit-slider-room)) / 2 - var(--_bit-slider-track) / 2 - var(--bit-border-width));
   block-size: calc(var(--_bit-slider-track) + 2 * var(--bit-border-width));
   border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-full);
@@ -104,7 +113,7 @@
 /* The thumb moves by inset-inline-start, so RTL fills from the right. square: a small button. */
 .bit-slider__thumb {
   position: absolute;
-  inset-block-start: calc(50% - var(--_bit-slider-thumb) / 2);
+  inset-block-start: calc((100% - var(--_bit-slider-room)) / 2 - var(--_bit-slider-thumb) / 2);
   inset-inline-start: calc(var(--_bit-slider-fill) * (100% - var(--_bit-slider-thumb)));
   inline-size: var(--_bit-slider-thumb);
   block-size: var(--_bit-slider-thumb);
@@ -169,6 +178,154 @@
 
 .bit-slider__bubble[data-open] {
   opacity: 1;
+}
+
+/* notched: a mark under the track at each step, lined up with the middle of the thumb there. */
+.bit-slider[data-notched] {
+  --_bit-slider-room: calc(var(--bit-space-4px) + var(--_bit-slider-notch));
+}
+
+.bit-slider__notches {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bit-slider__notch {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: calc(var(--_bit-slider-thumb) / 2 + var(--_bit-slider-at) * (100% - var(--_bit-slider-thumb)) - var(--bit-border-width) / 2);
+  inline-size: var(--bit-border-width);
+  block-size: var(--_bit-slider-notch);
+  background: var(--bit-color-line);
+  border-radius: 1px;
+}
+
+/* numberInput: two columns, the slider and the number box. The slider's parts are drawn over the first column, so
+   the track ends before the box; the row is the box's height, so the track lines up with its middle. */
+.bit-slider[data-number-input] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: var(--bit-space-16px);
+  align-items: start;
+  block-size: auto;
+}
+
+/* All four lines: an absolutely placed part's auto line is the grid's edge, not the column's. */
+.bit-slider[data-number-input] > :not(.bit-slider__box) {
+  grid-area: 1 / 1 / 2 / 2;
+}
+
+.bit-slider__box {
+  display: inline-flex;
+  grid-area: 1 / 2;
+  margin-block-end: var(--_bit-slider-room);
+}
+
+.bit-slider__spin {
+  position: relative;
+  display: inline-flex;
+}
+
+/* An Input that fits the longest value, its digits centered: the padding on both sides leaves room for the step
+   buttons, so the number sits in the true middle. The browser's own spin buttons are hidden. */
+.bit-input.bit-slider__number {
+  inline-size: calc(var(--_bit-slider-chars) * 1ch + 2 * (var(--_bit-slider-spin) + var(--bit-space-4px) + var(--bit-border-width)) + var(--bit-space-4px));
+  padding-inline: calc(var(--_bit-slider-spin) + var(--bit-space-4px));
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.bit-slider__number::-webkit-inner-spin-button,
+.bit-slider__number::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* The whole slider fades when disabled, so the box doesn't fade again. */
+.bit-input.bit-slider__number:disabled {
+  opacity: 1;
+}
+
+/* The step buttons: a narrow column inside the box's end, split in two, behind a line-colored divider. Rounded
+   only on the box's outer corners. */
+.bit-slider__steps {
+  position: absolute;
+  inset-block: var(--bit-border-width);
+  inset-inline-end: var(--bit-border-width);
+  display: flex;
+  flex-direction: column;
+  inline-size: var(--_bit-slider-spin);
+  border-inline-start: var(--bit-border-width) solid var(--bit-color-line);
+  border-start-end-radius: calc(var(--bit-radius-10px) - var(--bit-border-width));
+  border-end-end-radius: calc(var(--bit-radius-10px) - var(--bit-border-width));
+  overflow: hidden;
+}
+
+.bit-slider__step {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-block-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--bit-color-text);
+  cursor: pointer;
+}
+
+.bit-slider__step > .bit-icon.bit-sm {
+  --_bit-icon-size: min(16px, calc(var(--_bit-size-height) / 2 - var(--bit-border-width)));
+}
+
+.bit-slider__step:hover:not(:disabled) {
+  background: var(--bit-color-primary-soft);
+}
+
+.bit-slider__step:active:not(:disabled) > .bit-icon {
+  translate: var(--bit-press-offset) var(--bit-press-offset);
+}
+
+.bit-slider__step:disabled {
+  color: var(--bit-color-text-muted);
+  cursor: not-allowed;
+}
+
+.bit-slider__number[readonly] + .bit-slider__steps {
+  border-inline-start-style: dashed;
+}
+
+.bit-slider__number[readonly] + .bit-slider__steps .bit-slider__step {
+  cursor: default;
+}
+
+/* unit: a purple tab on the box's end. The box's own end border divides them, so its end corners go square. */
+.bit-slider__box:has(> .bit-slider__unit) :is(.bit-input.bit-slider__number, .bit-slider__steps) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.bit-slider__unit {
+  display: inline-flex;
+  align-items: center;
+  block-size: var(--_bit-size-height);
+  padding-inline: var(--bit-space-8px);
+  background: var(--bit-color-primary-soft);
+  color: var(--bit-color-text);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-inline-start: 0;
+  border-start-end-radius: var(--bit-radius-10px);
+  border-end-end-radius: var(--bit-radius-10px);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-bold);
+  white-space: nowrap;
+}
+
+.bit-slider__box:has(.bit-slider__number[readonly]) .bit-slider__unit {
+  border-style: dashed;
 }
 
 /* blocks: a health bar. One block per step, lit in the color role up to the value; the block at the value is
@@ -282,6 +439,17 @@
 
   .bit-slider__bubble {
     border-color: CanvasText;
+  }
+
+  .bit-slider__notch {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+
+  .bit-slider__step:hover:not(:disabled) {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
   }
 
   .bit-slider:has(> .bit-slider__input:disabled) :is(.bit-slider__fill, .bit-slider__block[data-state]) {

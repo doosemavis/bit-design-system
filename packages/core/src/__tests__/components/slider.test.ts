@@ -145,6 +145,76 @@ describe('components/slider.css', () => {
     expect(decl(inMedia(media, '.bit-slider__input[aria-invalid="true"] ~ :is(.bit-slider__track, .bit-slider__blocks)'), 'border-style')).toBe('double');
   });
 
+  it('notched: room under the thumb, and a line-colored mark per step lined up with the middle of the thumb there', () => {
+    expect(decl(block(css, '.bit-slider')!, 'block-size')).toBe('calc(var(--_bit-slider-thumb) + var(--_bit-slider-room))');
+    expect(decl(block(css, '.bit-slider[data-notched]')!, '--_bit-slider-room')).toBe('calc(var(--bit-space-4px) + var(--_bit-slider-notch))');
+    expect(decl(block(css, '.bit-slider__notches')!, 'pointer-events')).toBe('none');
+    const mark = block(css, '.bit-slider__notch')!;
+    expect(decl(mark, 'inset-inline-start')).toBe(
+      'calc(var(--_bit-slider-thumb) / 2 + var(--_bit-slider-at) * (100% - var(--_bit-slider-thumb)) - var(--bit-border-width) / 2)',
+    );
+    expect(decl(mark, 'background')).toBe('var(--bit-color-line)');
+    for (const part of ['.bit-slider__track,\n.bit-slider__fill', '.bit-slider__thumb']) {
+      expect(decl(block(css, part)!, 'inset-block-start')).toMatch(/^calc\(\(100% - var\(--_bit-slider-room\)\) \/ 2 - /);
+    }
+  });
+
+  it('numberInput: a grid of the slider and the box, the slider parts drawn over the first column', () => {
+    const grid = block(css, '.bit-slider[data-number-input]')!;
+    expect(decl(grid, 'display')).toBe('grid');
+    expect(decl(grid, 'grid-template-columns')).toBe('minmax(0, 1fr) auto');
+    expect(decl(block(css, '.bit-slider[data-number-input] > :not(.bit-slider__box)')!, 'grid-area')).toBe('1 / 1 / 2 / 2');
+    expect(decl(block(css, '.bit-slider__box')!, 'grid-area')).toBe('1 / 2');
+  });
+
+  it('the number box: digits centered between equal padding that leaves room for the step buttons, native spinners hidden', () => {
+    const box = block(css, '.bit-input.bit-slider__number')!;
+    expect(decl(box, 'text-align')).toBe('center');
+    expect(decl(box, 'padding-inline')).toBe('calc(var(--_bit-slider-spin) + var(--bit-space-4px))');
+    expect(decl(box, 'appearance')).toBe('textfield');
+    expect(decl(box, '-moz-appearance')).toBe('textfield');
+    expect(decl(box, 'inline-size')).toContain('var(--_bit-slider-chars) * 1ch');
+    const spinners = block(css, '.bit-slider__number::-webkit-inner-spin-button,\n.bit-slider__number::-webkit-outer-spin-button')!;
+    expect(decl(spinners, 'appearance')).toBe('none');
+    expect(decl(spinners, 'margin')).toBe('0');
+  });
+
+  it.each([
+    ['sm', '18px'],
+    ['md', '20px'],
+    ['lg', '24px'],
+  ])('%s: the step buttons are %s wide', (size, spin) => {
+    expect(decl(block(css, `.bit-slider.bit-${size}`)!, '--_bit-slider-spin')).toBe(spin);
+  });
+
+  it('step buttons: a column at the box’s end behind a line divider, primary-soft on hover, sunk by the press offset', () => {
+    const steps = block(css, '.bit-slider__steps')!;
+    expect(decl(steps, 'inset-inline-end')).toBe('var(--bit-border-width)');
+    expect(decl(steps, 'border-inline-start')).toBe('var(--bit-border-width) solid var(--bit-color-line)');
+    expect(decl(steps, 'border-start-end-radius')).toBe('calc(var(--bit-radius-10px) - var(--bit-border-width))');
+    expect(decl(steps, 'border-start-start-radius')).toBeNull();
+    expect(decl(block(css, '.bit-slider__step:hover:not(:disabled)')!, 'background')).toBe('var(--bit-color-primary-soft)');
+    expect(decl(block(css, '.bit-slider__step:active:not(:disabled) > .bit-icon')!, 'translate')).toBe('var(--bit-press-offset) var(--bit-press-offset)');
+    expect(decl(block(css, '.bit-slider__step:disabled')!, 'cursor')).toBe('not-allowed');
+  });
+
+  it('unit: a primary-soft tab on the box’s end, rounded at its end; the box’s end corners go square', () => {
+    const unit = block(css, '.bit-slider__unit')!;
+    expect(decl(unit, 'background')).toBe('var(--bit-color-primary-soft)');
+    expect(decl(unit, 'border')).toBe('var(--bit-border-width) solid var(--bit-color-line)');
+    expect(decl(unit, 'border-inline-start')).toBe('0');
+    expect(decl(unit, 'border-end-end-radius')).toBe('var(--bit-radius-10px)');
+    const square = block(css, '.bit-slider__box:has(> .bit-slider__unit) :is(.bit-input.bit-slider__number, .bit-slider__steps)')!;
+    expect(decl(square, 'border-start-end-radius')).toBe('0');
+    expect(decl(square, 'border-end-end-radius')).toBe('0');
+  });
+
+  it('forced colors: the marks keep the text color', () => {
+    const mark = inMedia('(forced-colors: active)', '.bit-slider__notch');
+    expect(decl(mark, 'forced-color-adjust')).toBe('none');
+    expect(decl(mark, 'background')).toBe('CanvasText');
+  });
+
   it('reduced motion stills the thumb and the bubble', () => {
     const body = inMedia('(prefers-reduced-motion: reduce)', '.bit-slider__thumb');
     expect(decl(body, 'transition')).toBe('none');
@@ -195,6 +265,11 @@ describe.each(MODES)('%s: Slider contrast', (_name, isDark, map) => {
 
   it('the yellow current block stands out from the lit primary blocks', () => {
     expect(contrastRatio(color('warning'), color('primary'))).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  it("the unit tab's text is readable on primary-soft, and the marks stand out from the page and a surface", () => {
+    expect(contrastRatio(color('text'), color('primary-soft'))).toBeGreaterThanOrEqual(AA_TEXT);
+    for (const behind of ['surface', 'bg']) expect(contrastRatio(color('line'), color(behind)), behind).toBeGreaterThanOrEqual(AA_NON_TEXT);
   });
 
   it("the round bubble's text is readable on its inverse chip", () => {

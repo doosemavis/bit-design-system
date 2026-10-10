@@ -396,6 +396,356 @@ describe('Slider', () => {
     });
   });
 
+  describe('smooth, the default', () => {
+    /** Lay the track out 224px wide from x = 0 under a 24px thumb, so the thumb's middle travels 12..212. */
+    function layOutTrack(container: HTMLElement) {
+      const rect = (left: number, width: number) => () => ({ left, right: left + width, top: 0, bottom: 24, width, height: 24, x: left, y: 0, toJSON: () => ({}) });
+      container.querySelector<HTMLElement>('.bit-slider__track')!.getBoundingClientRect = rect(0, 224);
+      container.querySelector<HTMLElement>('.bit-slider__thumb')!.getBoundingClientRect = rect(0, 24);
+    }
+
+    it.each(['square', 'round'] as const)('%s: the thumb glides under the pointer, and settles on the step when the pointer lifts', (variant) => {
+      const onValueChange = vi.fn();
+      const { container } = render(<Slider aria-label="x" variant={variant} step={10} defaultValue={40} onValueChange={onValueChange} />);
+      layOutTrack(container);
+      const input = screen.getByRole('slider');
+      fireEvent.pointerDown(input, { clientX: 99 });
+      expect(fill(container)).toBe('0.435');
+      // The browser moves the input itself, a whole step at a time.
+      fireEvent.change(input, { target: { value: '40' } });
+      expect(onValueChange).not.toHaveBeenCalled();
+      fireEvent.pointerMove(window, { clientX: 120 });
+      expect(fill(container)).toBe('0.54');
+      fireEvent.change(input, { target: { value: '50' } });
+      expect(onValueChange).toHaveBeenCalledTimes(1);
+      expect(onValueChange).toHaveBeenCalledWith(50);
+      expect(fill(container)).toBe('0.54');
+      fireEvent.pointerUp(window);
+      expect(fill(container)).toBe('0.5');
+      expect(input).toHaveValue('50');
+    });
+
+    it('the round bubble and the input say the snapped value while the thumb glides', () => {
+      const { container } = render(<Slider aria-label="x" variant="round" step={10} defaultValue={40} formatValue={(v) => `${v}%`} />);
+      layOutTrack(container);
+      const input = screen.getByRole('slider');
+      fireEvent.pointerDown(input, { clientX: 120 });
+      fireEvent.change(input, { target: { value: '50' } });
+      expect(container.querySelector('.bit-slider__bubble')).toHaveTextContent('50%');
+      expect(input).toHaveAttribute('aria-valuetext', '50%');
+      expect(input).toHaveValue('50');
+    });
+
+    it('keys and forms move by whole steps: the native input keeps its step, so only a pointer glides', () => {
+      const { container } = render(
+        <form data-testid="form">
+          <Slider aria-label="x" name="volume" step={10} defaultValue={40} />
+        </form>,
+      );
+      const input = screen.getByRole('slider');
+      expect(input).toHaveAttribute('step', '10');
+      // An arrow key fires change with the next step, and the thumb goes straight there.
+      fireEvent.change(input, { target: { value: '50' } });
+      expect(container.querySelector<HTMLElement>('.bit-slider')!.style.getPropertyValue('--_bit-slider-fill')).toBe('0.5');
+      expect(new FormData(screen.getByTestId('form') as HTMLFormElement).get('volume')).toBe('50');
+    });
+
+    it('right to left, the pointer is measured from the right', () => {
+      const { container } = render(<Slider aria-label="x" />);
+      layOutTrack(container);
+      const real = window.getComputedStyle;
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => ({ ...real(el), direction: 'rtl' }) as CSSStyleDeclaration);
+      fireEvent.pointerDown(screen.getByRole('slider'), { clientX: 162 });
+      expect(fill(container)).toBe('0.25');
+    });
+
+    it('notched, read-only and a track not laid out never glide', () => {
+      const cases = [{ notched: true }, { readOnly: true }];
+      for (const props of cases) {
+        const { container, unmount } = render(<Slider aria-label="x" step={10} defaultValue={40} {...props} />);
+        layOutTrack(container);
+        fireEvent.pointerDown(screen.getByRole('slider'), { clientX: 120 });
+        expect(fill(container)).toBe('0.4');
+        unmount();
+      }
+      const { container } = render(<Slider aria-label="x" step={10} defaultValue={40} />);
+      fireEvent.pointerDown(screen.getByRole('slider'), { clientX: 120 });
+      expect(fill(container)).toBe('0.4');
+    });
+  });
+
+  describe('notched', () => {
+    const at = (container: HTMLElement) =>
+      [...container.querySelectorAll<HTMLElement>('.bit-slider__notch')].map((mark) => mark.style.getPropertyValue('--_bit-slider-at'));
+
+    it('marks the root data-notched and draws a mark per step under the track, hidden from screen readers', () => {
+      const { container } = render(<Slider aria-label="Difficulty" notched min={1} max={5} defaultValue={3} />);
+      expect(root(container)).toHaveAttribute('data-notched', '');
+      const marks = container.querySelector('.bit-slider__notches')!;
+      expect(marks).toHaveAttribute('aria-hidden', 'true');
+      expect(marks.previousElementSibling).toHaveClass('bit-slider__thumb');
+      expect(at(container)).toEqual(['0', '0.25', '0.5', '0.75', '1']);
+    });
+
+    it('marks only the steps it can reach', () => {
+      const { container } = render(<Slider aria-label="x" notched max={10} step={3} />);
+      expect(at(container)).toEqual(['0', '0.3', '0.6', '0.9']);
+    });
+
+    it('round is notched the same way', () => {
+      const { container } = render(<Slider aria-label="x" variant="round" notched max={100} step={10} />);
+      expect(container.querySelectorAll('.bit-slider__notch')).toHaveLength(11);
+    });
+
+    it('draws 20 marks at most; with more steps it draws none and warns in development', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const { container, rerender } = render(<Slider aria-label="x" notched max={19} />);
+      expect(container.querySelectorAll('.bit-slider__notch')).toHaveLength(20);
+      expect(warn).not.toHaveBeenCalled();
+      rerender(<Slider aria-label="x" notched max={100} />);
+      expect(container.querySelector('.bit-slider__notches')).toBeNull();
+      expect(root(container)).toHaveAttribute('data-notched', '');
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('0 to 100 by 1 is 101 marks'));
+    });
+
+    it('without notched there are no marks and no data-notched', () => {
+      const { container } = render(<Slider aria-label="x" max={10} />);
+      expect(root(container)).not.toHaveAttribute('data-notched');
+      expect(container.querySelector('.bit-slider__notches')).toBeNull();
+    });
+  });
+
+  describe('numberInput', () => {
+    const box = () => screen.getByRole('spinbutton');
+
+    it('adds a number box after the range parts and marks the root data-number-input', () => {
+      const { container } = render(<Slider aria-label="Volume" numberInput defaultValue={40} />);
+      expect(root(container)).toHaveAttribute('data-number-input', '');
+      expect(root(container).lastElementChild).toHaveClass('bit-slider__box');
+      expect(box()).toHaveAttribute('type', 'number');
+      expect(box()).toHaveClass('bit-input', 'bit-slider__number');
+      expect(box()).toHaveValue(40);
+      expect(box()).toHaveAttribute('min', '0');
+      expect(box()).toHaveAttribute('max', '100');
+      expect(box()).toHaveAttribute('step', '1');
+    });
+
+    it('is as wide as the longest value, in characters', () => {
+      const { container, rerender } = render(<Slider aria-label="x" numberInput />);
+      const width = () => container.querySelector<HTMLElement>('.bit-slider__box')!.style.getPropertyValue('--_bit-slider-chars');
+      expect(width()).toBe('3');
+      rerender(<Slider aria-label="x" numberInput min={-100} max={0} step={0.5} />);
+      expect(width()).toBe('6');
+    });
+
+    it('takes the slider’s name: aria-label, aria-labelledby, or the Field’s label', () => {
+      const { unmount } = render(<Slider aria-label="Volume" numberInput />);
+      expect(screen.getByRole('spinbutton', { name: 'Volume' })).toBeInTheDocument();
+      unmount();
+      const second = render(
+        <>
+          <span id="t">Treble</span>
+          <Slider aria-labelledby="t" numberInput />
+        </>,
+      );
+      expect(screen.getByRole('spinbutton', { name: 'Treble' })).toBeInTheDocument();
+      second.unmount();
+      render(
+        <Field label="Brightness" hint="Screen only." error="Too bright.">
+          <Slider numberInput defaultValue={90} />
+        </Field>,
+      );
+      expect(screen.getByRole('slider', { name: 'Brightness' })).toBeInTheDocument();
+      expect(screen.getByRole('spinbutton', { name: 'Brightness' })).toHaveAccessibleDescription('Screen only. Too bright.');
+      expect(box()).toHaveAttribute('aria-invalid', 'true');
+    });
+
+    it('has no name, so the form gets the value once, from the range input', () => {
+      render(
+        <form data-testid="form">
+          <Slider aria-label="x" name="volume" numberInput defaultValue={30} />
+        </form>,
+      );
+      expect(box()).not.toHaveAttribute('name');
+      expect(new FormData(screen.getByTestId('form') as HTMLFormElement).getAll('volume')).toEqual(['30']);
+    });
+
+    it('follows the slider: a drag or a key updates the box', () => {
+      render(<Slider aria-label="x" numberInput defaultValue={30} />);
+      fireEvent.change(screen.getByRole('slider'), { target: { value: '64' } });
+      expect(box()).toHaveValue(64);
+    });
+
+    it('typing a number in range moves the slider as you type, through onChange and onValueChange', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      const onValueChange = vi.fn();
+      const { container } = render(<Slider aria-label="x" numberInput defaultValue={30} onChange={onChange} onValueChange={onValueChange} />);
+      await user.clear(box());
+      await user.type(box(), '72');
+      expect(screen.getByRole('slider')).toHaveValue('72');
+      expect(fill(container)).toBe('0.72');
+      expect(onValueChange.mock.calls).toEqual([[7], [72]]);
+      expect(onChange).toHaveBeenCalledTimes(2);
+    });
+
+    it('a number out of range waits; Enter or leaving the box pulls it into range and onto a step', async () => {
+      const user = userEvent.setup();
+      const onValueChange = vi.fn();
+      render(<Slider aria-label="x" numberInput step={10} defaultValue={30} onValueChange={onValueChange} />);
+      await user.clear(box());
+      await user.type(box(), '150');
+      // "15" was in range, so the slider went to its step, 20; "150" isn't, so it waits there.
+      expect(screen.getByRole('slider')).toHaveValue('20');
+      expect(box()).toHaveValue(150);
+      onValueChange.mockClear();
+      await user.type(box(), '{Enter}');
+      expect(box()).toHaveValue(100);
+      expect(screen.getByRole('slider')).toHaveValue('100');
+      expect(onValueChange.mock.calls).toEqual([[100]]);
+      await user.type(box(), '{Enter}');
+      expect(onValueChange).toHaveBeenCalledTimes(1);
+      await user.clear(box());
+      await user.type(box(), '-20');
+      await user.tab();
+      expect(box()).toHaveValue(0);
+      expect(screen.getByRole('slider')).toHaveValue('0');
+      await user.clear(box());
+      await user.type(box(), '37{Enter}');
+      expect(box()).toHaveValue(40);
+      expect(screen.getByRole('slider')).toHaveValue('40');
+    });
+
+    it('an emptied box goes back to the current value', async () => {
+      const user = userEvent.setup();
+      const onValueChange = vi.fn();
+      render(<Slider aria-label="x" numberInput defaultValue={30} onValueChange={onValueChange} />);
+      await user.clear(box());
+      expect(box()).toHaveValue(null);
+      await user.tab();
+      expect(box()).toHaveValue(30);
+      expect(screen.getByRole('slider')).toHaveValue('30');
+      expect(onValueChange).not.toHaveBeenCalled();
+    });
+
+    it('works with a parent that keeps the value in state', async () => {
+      const user = userEvent.setup();
+      function Controlled() {
+        const [volume, setVolume] = useState(40);
+        return (
+          <>
+            <Slider aria-label="Volume" numberInput value={volume} onValueChange={setVolume} />
+            <output>{volume}</output>
+          </>
+        );
+      }
+      render(<Controlled />);
+      await user.clear(box());
+      await user.type(box(), '55');
+      expect(screen.getByRole('status')).toHaveTextContent('55');
+      // The box still has focus: a change from elsewhere replaces what was typed.
+      fireEvent.change(screen.getByRole('slider'), { target: { value: '12' } });
+      expect(box()).toHaveValue(12);
+    });
+
+    it('disabled, read-only and invalid reach the box', () => {
+      const { rerender } = render(<Slider aria-label="x" numberInput disabled />);
+      expect(box()).toBeDisabled();
+      rerender(<Slider aria-label="x" numberInput readOnly />);
+      expect(box()).toHaveAttribute('readonly');
+      rerender(<Slider aria-label="x" numberInput invalid />);
+      expect(box()).toHaveAttribute('aria-invalid', 'true');
+    });
+
+    describe('step buttons', () => {
+      const buttons = (container: HTMLElement) => [...container.querySelectorAll<HTMLButtonElement>('.bit-slider__step')];
+
+      it('two stacked buttons at the box’s end, out of the Tab order and hidden from screen readers', async () => {
+        const user = userEvent.setup();
+        const { container } = render(<Slider aria-label="x" numberInput />);
+        const [up, down] = buttons(container);
+        expect(up).toHaveAttribute('data-direction', 'up');
+        expect(down).toHaveAttribute('data-direction', 'down');
+        for (const button of [up, down]) {
+          expect(button).toHaveAttribute('type', 'button');
+          expect(button).toHaveAttribute('tabindex', '-1');
+          expect(button!.closest('[aria-hidden="true"]')).toHaveClass('bit-slider__steps');
+          expect(button!.querySelector('svg.bit-icon')).not.toBeNull();
+        }
+        await user.tab();
+        await user.tab();
+        expect(box()).toHaveFocus();
+        await user.tab();
+        expect(document.body).toHaveFocus();
+      });
+
+      it('each press moves one step and calls onValueChange, kept between min and max', async () => {
+        const user = userEvent.setup();
+        const onValueChange = vi.fn();
+        const { container } = render(<Slider aria-label="x" numberInput min={0} max={20} step={5} defaultValue={15} onValueChange={onValueChange} />);
+        const [up, down] = buttons(container);
+        await user.click(up!);
+        expect(screen.getByRole('slider')).toHaveValue('20');
+        expect(box()).toHaveValue(20);
+        await user.click(up!);
+        expect(onValueChange.mock.calls).toEqual([[20]]);
+        await user.click(down!);
+        await user.click(down!);
+        expect(box()).toHaveValue(10);
+        expect(onValueChange.mock.calls).toEqual([[20], [15], [10]]);
+        for (let i = 0; i < 4; i += 1) await user.click(down!);
+        expect(box()).toHaveValue(0);
+      });
+
+      it('a press doesn’t take focus from where it was', async () => {
+        const user = userEvent.setup();
+        const { container } = render(<Slider aria-label="x" numberInput defaultValue={5} />);
+        act(() => box().focus());
+        await user.click(buttons(container)[0]!);
+        expect(box()).toHaveFocus();
+        expect(box()).toHaveValue(6);
+      });
+
+      it('disabled and read-only: the buttons are disabled and a press changes nothing', () => {
+        for (const locked of [{ disabled: true }, { readOnly: true }]) {
+          const onValueChange = vi.fn();
+          const { container, unmount } = render(<Slider aria-label="x" numberInput defaultValue={5} onValueChange={onValueChange} {...locked} />);
+          for (const button of buttons(container)) {
+            expect(button).toBeDisabled();
+            fireEvent.click(button);
+          }
+          expect(screen.getByRole('slider')).toHaveValue('5');
+          expect(onValueChange).not.toHaveBeenCalled();
+          unmount();
+        }
+      });
+    });
+
+    it('unit: a tab after the box, which describes it, so "%" is read with the number', () => {
+      const { container } = render(<Slider aria-label="Volume" numberInput unit="%" aria-describedby="help" />);
+      const unit = container.querySelector('.bit-slider__unit')!;
+      expect(unit).toHaveTextContent('%');
+      expect(unit.previousElementSibling).toHaveClass('bit-slider__spin');
+      expect(box()).toHaveAttribute('aria-describedby', expect.stringContaining(unit.id));
+    });
+
+    it('without numberInput, unit draws nothing', () => {
+      const { container } = render(<Slider aria-label="x" unit="%" />);
+      expect(container.querySelector('.bit-slider__box')).toBeNull();
+      expect(container.querySelector('.bit-slider__unit')).toBeNull();
+    });
+
+    it('blocks ignores numberInput and notched, and warns in development about the box', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const { container } = render(<Slider aria-label="x" variant="blocks" max={10} numberInput unit="%" notched />);
+      expect(screen.queryByRole('spinbutton')).toBeNull();
+      expect(root(container)).not.toHaveAttribute('data-number-input');
+      expect(root(container)).not.toHaveAttribute('data-notched');
+      expect(container.querySelector('.bit-slider__notches')).toBeNull();
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('numberInput'));
+    });
+  });
+
   it('warns in development when it has no name, and not inside a Field or with a label', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { unmount } = render(<Slider />);
@@ -424,6 +774,15 @@ describe('Slider', () => {
     ['read-only', { readOnly: true }],
     ['disabled', { disabled: true }],
     ['round, focused', { variant: 'round' as const, autoFocus: true }],
+  ])('%s has no accessibility violations', async (_name, props) => {
+    const { container } = render(<Slider aria-label="Volume" {...props} />);
+    await expectNoA11yViolations(container);
+  });
+
+  it.each([
+    ['notched', { notched: true, max: 10 }],
+    ['a number box with a unit', { numberInput: true, unit: '%' }],
+    ['round, a disabled number box', { variant: 'round' as const, numberInput: true, disabled: true }],
   ])('%s has no accessibility violations', async (_name, props) => {
     const { container } = render(<Slider aria-label="Volume" {...props} />);
     await expectNoA11yViolations(container);

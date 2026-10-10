@@ -1,6 +1,7 @@
 import type { PointerEvent, RefObject } from 'react';
 import { element } from '../../system/toClasses';
 import { blockAt, litBlocks } from './sliderMath';
+import { setInputValue } from './setInputValue';
 
 interface SliderBlocksProps {
   count: number;
@@ -12,18 +13,6 @@ interface SliderBlocksProps {
   /** The value block k (0 to count) stands for. */
   valueAt: (block: number) => number;
   onDragStart: () => void;
-}
-
-/**
- * Hand a new value to the range input as the browser would: set it, then fire input and change, so React's
- * onChange and any native listener run. Nothing fires when the value is the same.
- */
-function setInputValue(input: HTMLInputElement, next: number): void {
-  const text = String(next);
-  if (input.value === text) return;
-  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, text);
-  input.dispatchEvent(new Event('input', { bubbles: true }));
-  input.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 /**

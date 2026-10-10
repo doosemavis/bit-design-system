@@ -1,6 +1,9 @@
 /** The most blocks the blocks variant draws. More steps than this share blocks. */
 export const MAX_BLOCKS = 20;
 
+/** The most marks notched draws. With more steps than fit, it draws none. */
+export const MAX_NOTCHES = 20;
+
 /** Decimal places in a number, so step arithmetic can round away float noise (0.1 + 0.2). */
 function decimals(n: number): number {
   const text = String(n);
@@ -66,4 +69,40 @@ export function blockAt(clientX: number, { first, last, rtl }: BlockEdges, count
   if (span === 0) return 0;
   const along = rtl ? start - clientX : clientX - start;
   return Math.min(Math.max(Math.ceil((along / span) * count), 0), count);
+}
+
+/** A track on screen, the drawn thumb's width, and whether it runs right to left. */
+export interface TrackEdges {
+  left: number;
+  right: number;
+  thumb: number;
+  rtl: boolean;
+}
+
+/**
+ * How far along the track a pointer is, 0 to 1, as the thumb's middle travels it: from half a thumb in at the
+ * start to half a thumb in at the end, so the thumb sits under the pointer. Null when the thumb has no room to
+ * travel (the track isn't laid out).
+ */
+export function fractionAt(clientX: number, { left, right, thumb, rtl }: TrackEdges): number | null {
+  const travel = right - left - thumb;
+  if (travel <= 0) return null;
+  const along = rtl ? right - thumb / 2 - clientX : clientX - left - thumb / 2;
+  return Math.min(Math.max(along / travel, 0), 1);
+}
+
+/**
+ * Where notched draws a mark: at min and at every step after it, up to the last step at or under max, each as
+ * far along as the thumb would be there. None when that is more than MAX_NOTCHES marks.
+ */
+export function notchFractions(min: number, max: number, step: number): number[] {
+  const count = stepCount(min, max, step) + 1;
+  if (count > MAX_NOTCHES) return [];
+  return Array.from({ length: count }, (_, index) => Number(fractionOf(min + index * step, min, max).toFixed(6)));
+}
+
+/** Characters in the longest value, with the decimals the step and min give: the number box is this wide. */
+export function valueChars(min: number, max: number, step: number): number {
+  const places = Math.max(decimals(step > 0 ? step : 1), decimals(min));
+  return Math.max(min.toFixed(places).length, max.toFixed(places).length);
 }

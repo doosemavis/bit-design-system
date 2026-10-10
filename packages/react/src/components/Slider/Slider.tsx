@@ -5,10 +5,12 @@ import { COLORS, SIZES } from '../../system/axes';
 import type { Color, Size } from '../../system/axes';
 import { element, toClasses } from '../../system/toClasses';
 import { composeRefs } from '../../system/Slot';
-import { useFieldControl } from '../Field/FieldContext';
-import { MAX_BLOCKS, blockCount, fractionOf, snapValue, stepCount } from './sliderMath';
+import { useFieldControl, useFieldLabelId } from '../Field/FieldContext';
+import { MAX_BLOCKS, MAX_NOTCHES, blockCount, fractionOf, notchFractions, snapValue, stepCount, valueChars } from './sliderMath';
 import { useSliderValue } from './useSliderValue';
+import { useDrag } from './useDrag';
 import { SliderBlocks } from './SliderBlocks';
+import { SliderNumber } from './SliderNumber';
 
 const variants = ['square', 'blocks', 'round'] as const;
 const colors = COLORS;
@@ -29,8 +31,23 @@ export interface SliderProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color
   min?: number;
   /** Highest value. Default: 100. */
   max?: number;
-  /** The gap between values. Default: 1. blocks draws one block per step, 20 at most. */
+  /**
+   * The gap between values. Default: 1. The value is always a whole step; while it is dragged the thumb glides
+   * under the pointer, then settles on the step when the pointer lifts. blocks draws one block per step, 20 at most.
+   */
   step?: number;
+  /**
+   * Snaps the thumb to each step while it is dragged, and draws a small mark under the track at each step, 20 at
+   * most. square and round only: blocks always snaps. Rendered as `data-notched`.
+   */
+  notched?: boolean;
+  /**
+   * A number box after the track, which follows the slider and sets it. It takes the slider's name; a form gets the
+   * value once, from the slider. square and round only. Rendered as `data-number-input`.
+   */
+  numberInput?: boolean;
+  /** A unit for the number box, shown in a tab on its end and read with it: "%", "px", "°". Needs numberInput. */
+  unit?: string;
   /** The look: a square thumb, a health bar of blocks, or a round thumb with a value bubble. Class: `bit-{variant}`. */
   variant?: SliderVariant;
   /** Thumb, track and block size. Class: `bit-{size}`. */
@@ -57,27 +74,12 @@ function decorated<T extends string>(allowed: readonly T[], value: T, className:
   return allowed.find((candidate) => supplied.includes(`${PREFIX}-${candidate}`)) ?? value;
 }
 
-/** True while a pointer is down on the slider, until it lifts anywhere on the page. */
-function useDragging(): [boolean, () => void] {
-  const [dragging, setDragging] = useState(false);
-  useEffect(() => {
-    if (!dragging) return undefined;
-    const end = () => setDragging(false);
-    window.addEventListener('pointerup', end);
-    window.addEventListener('pointercancel', end);
-    return () => {
-      window.removeEventListener('pointerup', end);
-      window.removeEventListener('pointercancel', end);
-    };
-  }, [dragging]);
-  return [dragging, () => setDragging(true)];
-}
-
 /**
  * A slider: a native `<input type="range">`, see-through, over the parts that draw it, so the arrow keys, Home,
  * End, Page Up and Page Down, forms and screen readers work as the browser makes them. Inside a Field it takes the
  * Field's id, hint and error. The ref, id, name, form and aria-* props go to the input; className and the rest
- * go to the root.
+ * go to the root. A drag glides the drawn thumb under the pointer while the input keeps whole steps; notched snaps
+ * it instead and marks each step, and numberInput adds a number box after the track.
  */
 export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
   {
@@ -88,6 +90,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
     min = 0,
     max = 100,
     step = 1,
+    notched = false,
+    numberInput = false,
+    unit,
     variant = 'square',
     size = 'md',
     color = 'primary',
@@ -111,18 +116,24 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
   },
   ref,
 ) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const setRef = useMemo(() => composeRefs(ref, inputRef), [ref]);
   const field = useFieldControl({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }, invalid);
+  const fieldLabelId = useFieldLabelId();
   const { current, keep } = useSliderValue({ value, defaultValue, min, max, step, inputRef, form });
-  const [dragging, startDragging] = useDragging();
   const [focused, setFocused] = useState(false);
   const shown = decorated(variants, variant, className);
+  // blocks are a row of steps already: notched and the number box are for square and round.
+  const isNotched = notched && shown !== 'blocks';
+  const hasBox = numberInput && shown !== 'blocks';
+  const { dragging, glide, start: startDragging } = useDrag(rootRef, shown !== 'blocks' && !notched);
   const canChange = !disabled && !readOnly;
-  const fraction = fractionOf(current, min, max);
+  const fraction = glide ?? fractionOf(current, min, max);
   const text = formatValue ? formatValue(current) : String(current);
   const steps = stepCount(min, max, step);
   const count = blockCount(min, max, step);
+  const notches = isNotched ? notchFractions(min, max, step) : [];
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'production' || ariaLabel || ariaLabelledby || inputRef.current!.labels?.length) return;
@@ -136,6 +147,19 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
         `is ${steps} steps, so blocks are shared: give it a coarser step.`,
     );
   }, [shown, steps, min, max, step]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' || !isNotched || steps + 1 <= MAX_NOTCHES) return;
+    console.warn(
+      `[bit] bit-slider notched draws a mark per step, ${MAX_NOTCHES} at most. ${min} to ${max} by ${step} is ` +
+        `${steps + 1} marks, so it draws none: give it a coarser step.`,
+    );
+  }, [isNotched, steps, min, max, step]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' || !numberInput || shown !== 'blocks') return;
+    console.warn('[bit] bit-slider variant="blocks" has no number box, so numberInput is ignored. Use square or round.');
+  }, [numberInput, shown]);
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     // Read-only: React puts the input back to the current value, so it never moves.
@@ -158,6 +182,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
         className,
       )}
       data-dragging={dragging ? '' : undefined}
+      data-notched={isNotched ? '' : undefined}
+      data-number-input={hasBox ? '' : undefined}
+      ref={rootRef}
       style={{ ...style, '--_bit-slider-fill': Number(fraction.toFixed(4)) } as CSSProperties}
       {...rest}
     >
@@ -183,8 +210,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
         aria-describedby={field['aria-describedby']}
         aria-invalid={field['aria-invalid']}
         onChange={handleChange}
-        onPointerDown={() => {
-          if (canChange) startDragging();
+        onPointerDown={(event) => {
+          if (canChange) startDragging(event.clientX);
         }}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
@@ -209,8 +236,33 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
               </span>
             ) : null}
           </span>
+          {notches.length > 0 ? (
+            <span className={element('slider', 'notches')} aria-hidden="true">
+              {notches.map((at) => (
+                <span key={at} className={element('slider', 'notch')} style={{ '--_bit-slider-at': at } as CSSProperties} />
+              ))}
+            </span>
+          ) : null}
         </>
       )}
+      {hasBox ? (
+        <SliderNumber
+          value={current}
+          min={min}
+          max={max}
+          step={step}
+          chars={valueChars(min, max, step)}
+          unit={unit}
+          disabled={disabled}
+          readOnly={readOnly}
+          inputRef={inputRef}
+          label={
+            ariaLabelledby || (!ariaLabel && fieldLabelId) ? { 'aria-labelledby': ariaLabelledby || fieldLabelId } : { 'aria-label': ariaLabel }
+          }
+          describedBy={field['aria-describedby']}
+          invalid={field['aria-invalid']}
+        />
+      ) : null}
     </div>
   );
 });
