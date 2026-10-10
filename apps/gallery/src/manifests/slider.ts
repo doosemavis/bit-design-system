@@ -24,7 +24,8 @@ export const slider: Manifest = {
   slug: 'slider',
   group: 'forms',
   component: Slider,
-  description: 'Pick a number on a range by dragging or with the arrow keys. A real range input, drawn three ways: a square thumb, a health bar of blocks, or a round thumb with a value bubble.',
+  description:
+    'Pick a number on a range by dragging or with the arrow keys. A real range input, drawn three ways: a square thumb, a health bar of blocks, or a round thumb with a value bubble. Add notches or a number box when the exact value matters.',
   related: ['input', 'segmentedcontrol', 'field'],
   controls: [
     { kind: 'axis', prop: 'variant', values: ['square', 'blocks', 'round'], default: 'square' },
@@ -33,6 +34,9 @@ export const slider: Manifest = {
     { kind: 'number', prop: 'rangeMin', label: 'min', default: 0, min: 0, max: 50, step: 1, virtual: true },
     { kind: 'number', prop: 'rangeMax', label: 'max', default: 10, min: 1, max: 100, step: 1, virtual: true },
     { kind: 'number', prop: 'rangeStep', label: 'step', default: 1, min: 1, max: 10, step: 1, virtual: true },
+    { kind: 'boolean', prop: 'notched', default: false },
+    { kind: 'boolean', prop: 'numberInput', default: false },
+    { kind: 'text', prop: 'unit', default: '' },
     { kind: 'boolean', prop: 'invalid', default: false },
     { kind: 'boolean', prop: 'readOnly', default: false },
     { kind: 'boolean', prop: 'disabled', default: false },
@@ -44,17 +48,18 @@ export const slider: Manifest = {
     { label: 'Blocks', state: { variant: 'blocks' } },
     { label: 'Round', state: { variant: 'round' } },
     { label: '0 to 100 by 10', state: { rangeMax: '100', rangeStep: '10' } },
-    { label: 'Read-only', state: { readOnly: true } },
-    { label: 'Large', state: { size: 'lg' } },
+    { label: 'Notched', state: { notched: true } },
+    { label: 'Number box', state: { numberInput: true, unit: '%' } },
   ],
   // The drawn fill follows the value through React, so the markup alone doesn't move.
   interactive: true,
   docs: {
-    badges: ['Native <input type="range">', 'Three looks', 'Joins a Field'],
+    badges: ['Native <input type="range">', 'Three looks', 'Smooth or notched', 'Joins a Field'],
     usage: {
       do: [
         'Use a Slider for a value where about right is right: volume, brightness, a rough budget.',
-        'Put it in a Field so it has a visible label, and show the number beside it when the exact value matters.',
+        'Put it in a Field so it has a visible label. Add numberInput when the exact value matters, so people can see it and type it.',
+        'Use notched when only a few values make sense (zoom 50% to 200% by 25): the thumb jumps between marks.',
         'Use blocks for a small count on a coarse step (lives, 0 to 10, 0 to 100 by 10): one block per step, 20 at most.',
         'Give formatValue when the number needs a unit ("40%"), so screen readers and the round bubble say it.',
       ],
@@ -80,7 +85,27 @@ export const slider: Manifest = {
       { name: 'onChange', type: '(event: ChangeEvent<HTMLInputElement>) => void', description: 'The native change event of the range input. It runs before onValueChange.' },
       { name: 'min', type: 'number', default: '0', description: 'Lowest value.' },
       { name: 'max', type: 'number', default: '100', description: 'Highest value.' },
-      { name: 'step', type: 'number', default: '1', description: 'The gap between values. A value is snapped to a step, as the native input snaps it. blocks draws one block per step, 20 at most.' },
+      {
+        name: 'step',
+        type: 'number',
+        default: '1',
+        description:
+          'The gap between values. The value is always a whole step. While you drag, the thumb glides under the pointer, then settles on the step when you let go. The keys move one step. blocks draws one block per step, 20 at most.',
+      },
+      {
+        name: 'notched',
+        type: 'boolean',
+        default: 'false',
+        description: 'The thumb jumps from step to step, and a small mark sits under each step, 20 at most. square and round only. Rendered as data-notched.',
+      },
+      {
+        name: 'numberInput',
+        type: 'boolean',
+        default: 'false',
+        description:
+          'A number box after the track. It follows the slider, and typing a number moves it. Enter or leaving the box pulls the number into range and onto a step. square and round only. Rendered as data-number-input.',
+      },
+      { name: 'unit', type: 'string', description: 'A unit for the number box, shown in a purple tab on its end: "%", "px", "°". Needs numberInput.' },
       {
         name: 'formatValue',
         type: '(value: number) => string',
@@ -105,6 +130,8 @@ export const slider: Manifest = {
       'A real <input type="range">, so screen readers say "slider" with its value, and the arrow keys step it, Page Up and Page Down jump, and Home and End go to min and max.',
       'Inside a Field the label names it and the hint and error describe it. On its own, give it an aria-label or aria-labelledby; it warns in development without one.',
       'formatValue gives the value in words ("40%", "3 of 5 lives") as aria-valuetext. The round bubble is hidden from screen readers, because the input already says the value.',
+      'While you drag, the thumb glides but the value moves in whole steps, so screen readers and forms only get whole steps. The notched marks are hidden from screen readers.',
+      'The number box is a native number input with the slider\'s label, so screen readers hear "Volume" for both. Up and Down step it. Its two step buttons are hidden from screen readers and skipped by Tab, since the keys do the same. The unit is read as its description.',
       'The thumb (or the blocks frame) shows the focus ring. Read-only keeps focus and says aria-readonly; disabled leaves the Tab order.',
       'In forced-colors mode (Windows high contrast) the fill and lit blocks keep the system highlight, the thumb a button face, and an invalid track a double edge. Right to left, it fills from the right.',
     ],

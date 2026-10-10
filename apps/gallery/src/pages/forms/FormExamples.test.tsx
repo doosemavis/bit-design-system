@@ -10,7 +10,7 @@ import { expectNoA11yViolations } from '../../test/a11y';
 describe.each([
   ['CheckboxExamples', CheckboxExamples, ['Select all', 'Agree in a form', 'Show a setting that can’t change here']],
   ['RadioGroupExamples', RadioGroupExamples, ['A required choice in a Field', 'Radio children', 'Show a choice that can’t change here']],
-  ['SliderExamples', SliderExamples, ['Volume in a Field', 'Lives, as a health bar', 'Brightness with a value bubble', 'Show a setting that can’t change here']],
+  ['SliderExamples', SliderExamples, ['Volume with a number box', 'Lives, as a health bar', 'Brightness with a value bubble', 'Zoom, in notches', 'Show a setting that can’t change here']],
   ['TextareaExamples', TextareaExamples, ['A message in a Field', 'Count what is left', 'Show text that can’t be edited here']],
 ] as const)('%s', (_name, Examples, titles) => {
   it('shows its use cases, each a live sample in a Box beside its code', async () => {
@@ -72,13 +72,22 @@ describe('RadioGroup examples', () => {
 });
 
 describe('Slider examples', () => {
-  it('the volume beside the slider follows it, and the Field names it', () => {
+  it('the volume box follows the slider, the Field names both, and the unit tab describes the box', () => {
     render(<SliderExamples />);
     const volume = screen.getByRole('slider', { name: 'Volume' });
+    const box = screen.getByRole('spinbutton', { name: 'Volume' });
     expect(volume).toHaveAccessibleDescription('Music and effects.');
+    expect(box).toHaveAccessibleDescription('Music and effects. %');
     fireEvent.change(volume, { target: { value: '55' } });
-    expect(screen.getByText('55%')).toBeInTheDocument();
+    expect(box).toHaveValue(55);
     expect(volume).toHaveAttribute('aria-valuetext', '55%');
+  });
+
+  it('zoom is notched: a mark at each of its seven steps', () => {
+    render(<SliderExamples />);
+    const zoom = screen.getByRole('slider', { name: 'Zoom' });
+    expect(zoom.parentElement).toHaveAttribute('data-notched', '');
+    expect(zoom.parentElement!.querySelectorAll('.bit-slider__notch')).toHaveLength(7);
   });
 
   it('the lives bar draws five blocks with three lit, and read-only stays put', () => {
@@ -90,6 +99,6 @@ describe('Slider examples', () => {
     const locked = screen.getByRole('slider', { name: 'Difficulty' });
     fireEvent.change(locked, { target: { value: '2' } });
     expect(locked).toHaveValue('7');
-    expect(container.querySelectorAll('.bit-slider')).toHaveLength(4);
+    expect(container.querySelectorAll('.bit-slider')).toHaveLength(5);
   });
 });

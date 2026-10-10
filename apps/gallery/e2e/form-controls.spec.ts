@@ -28,6 +28,66 @@ test('Checkbox: the label toggles it, the box shows the ring on keyboard focus, 
   await expect(readOnly).toBeChecked();
 });
 
+test('Slider: a drag glides the thumb under the pointer and settles on a step when it lifts; notched jumps between steps', async ({ page }) => {
+  const stage = page.locator('.gallery-preview__stage');
+  const root = stage.locator('.bit-slider');
+  const fill = () => root.evaluate((el) => Number((el as HTMLElement).style.getPropertyValue('--_bit-slider-fill')));
+  /** Press at 20% along the track, drag to 43%, and return the fill while still dragging. */
+  async function dragTo43() {
+    await root.scrollIntoViewIfNeeded();
+    const track = (await stage.locator('.bit-slider__track').boundingBox())!;
+    const thumb = (await stage.locator('.bit-slider__thumb').boundingBox())!;
+    const at = (fraction: number) => track.x + thumb.width / 2 + fraction * (track.width - thumb.width);
+    const y = track.y + track.height / 2;
+    await page.mouse.move(at(0.2), y);
+    await page.mouse.down();
+    await page.mouse.move(at(0.43), y, { steps: 4 });
+    return fill();
+  }
+
+  await page.goto('#/components/slider?rangeMax=100&rangeStep=10');
+  expect(Math.abs((await dragTo43()) - 0.43)).toBeLessThan(0.01);
+  await expect(stage.getByRole('slider')).toHaveValue('40');
+  await page.mouse.up();
+  expect(await fill()).toBe(0.4);
+
+  await page.goto('#/components/slider?rangeMax=100&rangeStep=10&notched=1');
+  await expect(stage.locator('.bit-slider__notch')).toHaveCount(11);
+  expect(await dragTo43()).toBe(0.4);
+  await page.mouse.up();
+});
+
+test('Slider: the number box follows the slider, sets it as you type, steps with its keys and buttons, and clamps on Enter', async ({ page }) => {
+  await page.goto('#/components/slider?numberInput=1&unit=%25');
+  const stage = page.locator('.gallery-preview__stage');
+  const slider = stage.getByRole('slider', { name: 'Volume' });
+  const box = stage.getByRole('spinbutton', { name: 'Volume' });
+  await expect(box).toHaveValue('6');
+  await expect(box).toHaveCSS('text-align', 'center');
+  await expect(box).toHaveCSS('appearance', 'textfield');
+  await slider.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(box).toHaveValue('7');
+  await box.fill('3');
+  await expect(slider).toHaveValue('3');
+  await page.keyboard.press('ArrowUp');
+  await expect(slider).toHaveValue('4');
+  await stage.locator('.bit-slider__step[data-direction="up"]').click();
+  await expect(slider).toHaveValue('5');
+  await expect(box).toBeFocused();
+  await box.fill('50');
+  await page.keyboard.press('Enter');
+  await expect(box).toHaveValue('10');
+  await expect(slider).toHaveValue('10');
+  // The digits sit in the middle of the box, step buttons and all.
+  const [field, digits] = await Promise.all([box.boundingBox(), box.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { start: parseFloat(style.paddingLeft), end: parseFloat(style.paddingRight) };
+  })]);
+  expect(field!.width).toBeGreaterThan(0);
+  expect(digits.start).toBe(digits.end);
+});
+
 test('Select: read-only shows its choice but never opens', async ({ page }) => {
   await page.goto('#/components/select?readOnly=1');
   const trigger = page.locator('.gallery-preview__stage').getByRole('combobox');

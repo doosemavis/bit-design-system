@@ -1,34 +1,20 @@
-import { useState } from 'react';
-import { Field, Slider, Stack, Text } from '@bit-ds/react';
+import { Field, Slider } from '@bit-ds/react';
 import { ExampleList } from '../../ui/ExampleCard';
 import type { Example } from '../../ui/ExampleCard';
 
-/** Volume in a Field, with the number shown beside the slider. */
-function Volume() {
-  const [volume, setVolume] = useState(40);
-  return (
-    <Field label="Volume" hint="Music and effects.">
-      <Stack direction="row" align="center" gap={16}>
-        <Slider value={volume} onValueChange={setVolume} formatValue={(v) => `${v}%`} />
-        <Text weight="bold">{volume}%</Text>
-      </Stack>
-    </Field>
-  );
-}
-
 const EXAMPLES: readonly Example[] = [
   {
-    title: 'Volume in a Field',
-    when: "The Field's label names the slider and its hint describes it. Show the number beside it when people care about the exact value.",
-    sample: <Volume />,
-    code: `const [volume, setVolume] = useState(40);
-
-<Field label="Volume" hint="Music and effects.">
-  <Stack direction="row" align="center" gap={16}>
-    <Slider value={volume} onValueChange={setVolume} formatValue={(v) => \`\${v}%\`} />
-    <Text weight="bold">{volume}%</Text>
-  </Stack>
+    title: 'Volume with a number box',
+    when: 'numberInput shows the exact value beside the track, and people can type it. unit adds a tab for what the number counts.',
+    sample: (
+      <Field label="Volume" hint="Music and effects.">
+        <Slider numberInput unit="%" defaultValue={40} formatValue={(v) => `${v}%`} />
+      </Field>
+    ),
+    code: `<Field label="Volume" hint="Music and effects.">
+  <Slider numberInput unit="%" defaultValue={40} formatValue={(v) => \`\${v}%\`} />
 </Field>`,
+    note: 'The box takes the Field\'s label, so screen readers hear "Volume" for both. It has no name of its own: a form gets the value once, from the slider. blocks has no number box.',
   },
   {
     title: 'Lives, as a health bar',
@@ -64,6 +50,27 @@ const EXAMPLES: readonly Example[] = [
     note: 'The bubble is hidden from screen readers: formatValue gives the input the same words as aria-valuetext, so they hear "70%", not "70".',
   },
   {
+    title: 'Zoom, in notches',
+    when: 'notched makes the thumb jump from step to step and marks each one, for a range with only a few sensible values.',
+    sample: (
+      <Field label="Zoom">
+        <Slider variant="round" notched min={50} max={200} step={25} defaultValue={100} formatValue={(v) => `${v}%`} />
+      </Field>
+    ),
+    code: `<Field label="Zoom">
+  <Slider
+    variant="round"
+    notched
+    min={50}
+    max={200}
+    step={25}
+    defaultValue={100}
+    formatValue={(v) => \`\${v}%\`}
+  />
+</Field>`,
+    note: 'notched draws a mark per step, 20 at most. With more steps (0 to 100 by 1) the marks would run together, so it draws none and warns in development. Without notched the thumb glides and settles on a step when you let go.',
+  },
+  {
     title: 'Show a setting that can’t change here',
     when: 'readOnly keeps the slider at full strength and in the Tab order, with dashed edges, but a drag or a key does nothing.',
     sample: (
@@ -77,7 +84,7 @@ const EXAMPLES: readonly Example[] = [
   },
 ];
 
-/** The Slider page's Examples: volume in a Field, lives as blocks, a round brightness bubble, and read-only. */
+/** The Slider page's Examples: volume with a number box, lives as blocks, a round brightness bubble, notched zoom, and read-only. */
 export function SliderExamples() {
   return <ExampleList examples={EXAMPLES} />;
 }
