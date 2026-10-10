@@ -54,8 +54,8 @@ const FONTS: readonly { face: string; name: string; use: string; quotes: readonl
     face: 'pixel',
     name: 'Press Start 2P',
     quotes: [
-      'ALL YOUR BASE ARE BELONG TO US.',
-      'A WINNER IS YOU',
+      'INSERT COIN TO CONTINUE',
+      'HIGH SCORE! ENTER YOUR INITIALS',
     ],
     use: 'Badges, table headers and small labels.',
     inUse: (
@@ -69,8 +69,8 @@ const FONTS: readonly { face: string; name: string; use: string; quotes: readonl
     face: 'mono',
     name: 'JetBrains Mono',
     quotes: [
-      'War. War never changes.',
-      'I am Error.',
+      'You are in a maze of twisty little passages, all alike.',
+      'It is pitch black. You are likely to be eaten by a grue.',
     ],
     use: 'Code and CodeBlock.',
     inUse: <Code>npm i @bit-ds/react</Code>,
