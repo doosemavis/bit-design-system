@@ -61,13 +61,14 @@ describe('Sidebar', () => {
     expect(screen.getByRole('link', { name: 'Spacing' })).toHaveAttribute('href', '/spacing');
   });
 
-  it('Start here comes first, with Overview, Getting started, Versions and Release notes, in that order (the one section not sorted)', () => {
+  it('Start here comes first, with Overview, Getting started, Versions, Accessibility and Release notes, in that order (the one section not sorted)', () => {
     renderSidebar(NAV);
     expect(groupTitles()[0]).toHaveTextContent('Start here');
-    expect(linksUnder('Start here')).toEqual(['Overview', 'Getting started', 'Versions', 'Release notes']);
+    expect(linksUnder('Start here')).toEqual(['Overview', 'Getting started', 'Versions', 'Accessibility', 'Release notes']);
     expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', '/');
     expect(screen.getByRole('link', { name: 'Getting started' })).toHaveAttribute('href', '/getting-started');
     expect(screen.getByRole('link', { name: 'Versions' })).toHaveAttribute('href', '/versions');
+    expect(screen.getByRole('link', { name: 'Accessibility' })).toHaveAttribute('href', '/accessibility');
     expect(screen.getByRole('link', { name: 'Release notes' })).toHaveAttribute('href', '/release-notes');
   });
 

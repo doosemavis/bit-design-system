@@ -14,6 +14,7 @@ const TypographyPage = lazy(() => import('./pages/TypographyPage').then((m) => (
 const SpacingPage = lazy(() => import('./pages/SpacingPage').then((m) => ({ default: m.SpacingPage })));
 const GettingStartedPage = lazy(() => import('./pages/GettingStartedPage').then((m) => ({ default: m.GettingStartedPage })));
 const VersionsPage = lazy(() => import('./pages/VersionsPage').then((m) => ({ default: m.VersionsPage })));
+const AccessibilityPage = lazy(() => import('./pages/AccessibilityPage').then((m) => ({ default: m.AccessibilityPage })));
 const ReleaseNotesPage = lazy(() => import('./pages/ReleaseNotesPage').then((m) => ({ default: m.ReleaseNotesPage })));
 const ComponentRoute = lazy(() => import('./pages/ComponentRoute').then((m) => ({ default: m.ComponentRoute })));
 const LogoRoute = lazy(() => import('./pages/ComponentRoute').then((m) => ({ default: m.LogoRoute })));
@@ -49,6 +50,7 @@ export function buildRoutes(): RouteObject[] {
             { index: true, element: <HomePage /> },
             lazyPage('getting-started', <GettingStartedPage />, <PageLoading name="Getting started" />),
             lazyPage('versions', <VersionsPage />, <PageLoading name="Versions" />),
+            lazyPage('accessibility', <AccessibilityPage />, <PageLoading name="Accessibility" />),
             lazyPage('release-notes', <ReleaseNotesPage />, <PageLoading name="Release notes" />),
             lazyPage('tokens', <TokensPage />, <PageLoading name="Tokens" />),
             lazyPage('typography', <TypographyPage />, <PageLoading name="Typography" />),

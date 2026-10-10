@@ -1,16 +1,6 @@
-import { useId } from 'react';
-import type { ReactNode } from 'react';
-import { Alert, Box, Card, CardBody, CardHeader, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
-
-interface Example {
-  title: string;
-  /** One line on when to reach for it. */
-  when: ReactNode;
-  sample: ReactNode;
-  code: string;
-  /** The why, in the primary note, for the one example that needs it. */
-  note?: ReactNode;
-}
+import { Heading, Text } from '@bit-ds/react';
+import { ExampleList } from '../../ui/ExampleCard';
+import type { Example } from '../../ui/ExampleCard';
 
 const EXAMPLES: readonly Example[] = [
   {
@@ -112,46 +102,7 @@ const EXAMPLES: readonly Example[] = [
   },
 ];
 
-function ExampleCard({ title, when, sample, code, note }: Example) {
-  const titleId = useId();
-  return (
-    <Card role="article" aria-labelledby={titleId}>
-      {/* The header's bottom border divides the title and its line from the example. */}
-      <CardHeader>
-        <Stack gap={4}>
-          <Heading size={26} id={titleId}>
-            {title}
-          </Heading>
-          <Text color="neutral">{when}</Text>
-        </Stack>
-      </CardHeader>
-      <CardBody>
-        <Stack gap={12}>
-          <div className="gallery-example__body">
-            <Box padding={16} className="gallery-example__sample">
-              {sample}
-            </Box>
-            <CodeBlock code={code} language="jsx" label={`${title} code`} />
-          </div>
-          {note ? (
-            <Alert color="primary" role="note">
-              {note}
-            </Alert>
-          ) : null}
-        </Stack>
-      </CardBody>
-    </Card>
-  );
-}
-
 /** The Text page's Examples: the common jobs for Text, each live beside its code, then Text against Heading. */
 export function TextExamples() {
-  return (
-    // 32px between cards, twice the gap inside one, so each example reads as its own block.
-    <Stack gap={32}>
-      {EXAMPLES.map((example) => (
-        <ExampleCard key={example.title} {...example} />
-      ))}
-    </Stack>
-  );
+  return <ExampleList examples={EXAMPLES} />;
 }

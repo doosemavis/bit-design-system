@@ -24,6 +24,7 @@ const UNSORTED_NAV: readonly NavItem[] = [
   { group: 'Start here', label: 'Overview', to: '/' },
   { group: 'Start here', label: 'Getting started', to: '/getting-started' },
   { group: 'Start here', label: 'Versions', to: '/versions' },
+  { group: 'Start here', label: 'Accessibility', to: '/accessibility' },
   { group: 'Start here', label: 'Release notes', to: '/release-notes' },
   { group: 'Foundations', label: 'Tokens', to: '/tokens' },
   { group: 'Foundations', label: 'Typography', to: '/typography' },

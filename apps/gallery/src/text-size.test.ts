@@ -25,6 +25,8 @@ const SMALL_TEXT_ALLOWED: Readonly<Record<string, readonly string[]>> = {
   'pages/TypographyPage.tsx': ['size: 14', 'size={14', 'size={14', 'size={14', 'size={14'],
   // The Text page's "Hint or caption" example shows the 14px caption: the live sample and its code.
   'pages/text/TextExamples.tsx': ['size={14', 'size={14'],
+  // The Accessibility page's "captions at 14" example shows a 14px caption: the live sample and its code.
+  'pages/accessibility/a11yExamples.tsx': ['size={14', 'size={14'],
   // A token row's value: muted detail beside the token's name, at the caption size, so the longest (the inset
   // shadow) stays on one line on a phone.
   'pages/tokens/TokenRow.tsx': ['size={14'],

@@ -46,6 +46,7 @@ describe('PageError', () => {
       '(index)',
       'getting-started',
       'versions',
+      'accessibility',
       'release-notes',
       'tokens',
       'typography',

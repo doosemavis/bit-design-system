@@ -382,6 +382,11 @@ html {
   justify-content: flex-start;
 }
 
+/* The Accessibility page's Built in cards: wider than the default grid's, so each paragraph has room. */
+.gallery-grid--a11y {
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}
+
 /* The four font cards: two by two, so none sits alone on a row; one column on a phone. */
 .gallery-grid--fonts {
   grid-template-columns: repeat(2, minmax(0, 1fr));
