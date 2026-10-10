@@ -26,7 +26,10 @@ interface HeaderProps {
   narrow: boolean;
 }
 
-/** The ref goes on the Menu button, so closing the sheet with Escape can hand focus back to it. */
+/**
+ * The ref goes on the Menu button, so closing the sheet with Escape can hand focus back to it. While the sheet is
+ * open the button says Close; focus stays on it, and the sheet's links come next in the Tab order.
+ */
 export const Header = forwardRef<HTMLButtonElement, HeaderProps>(function Header({ menuOpen, onToggleMenu, narrow }, ref) {
   return (
     <header className="gallery-header">
@@ -39,7 +42,7 @@ export const Header = forwardRef<HTMLButtonElement, HeaderProps>(function Header
         aria-controls="gallery-nav"
         onClick={onToggleMenu}
       >
-        Menu
+        {menuOpen ? 'Close' : 'Menu'}
       </Button>
       <Link asChild color="neutral" className="gallery-header__brand">
         <RouterLink to="/" aria-label="bit Design System, gallery home">

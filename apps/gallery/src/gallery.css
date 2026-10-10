@@ -10,9 +10,14 @@
 
 html {
   scroll-behavior: smooth;
+  /* The header stays at the top, so every jump (a section bar link, a "#" link, the skip link, a release in the
+     rail) stops below it, with a little room. */
+  scroll-padding-top: calc(var(--_gallery-header-height) + var(--bit-space-16px));
 }
 
 /* ---------- shell ---------- */
+/* The header stays at the top while the page scrolls, and the sidebar beside main stays put too, scrolling its
+   own list (as tall as the window under the header). */
 .gallery-shell {
   min-height: 100vh;
   display: grid;
@@ -42,6 +47,9 @@ html {
 
 .gallery-header {
   grid-area: header;
+  position: sticky;
+  top: 0;
+  z-index: 6;
   display: flex;
   align-items: center;
   gap: var(--bit-space-12px);
@@ -75,6 +83,12 @@ html {
 
 .gallery-sidebar {
   grid-area: sidebar;
+  position: sticky;
+  top: var(--_gallery-header-height);
+  align-self: start;
+  box-sizing: border-box;
+  height: calc(100vh - var(--_gallery-header-height));
+  height: calc(100dvh - var(--_gallery-header-height));
   padding: var(--_gallery-gutter);
   border-right: var(--bit-border-width) solid var(--bit-color-line);
   background: var(--bit-color-surface);
@@ -201,8 +215,10 @@ html {
       "main";
   }
 
+  /* A 44px touch target, inside the 56px header. */
   .gallery-header__menu {
     display: inline-flex;
+    min-height: 44px;
   }
 
   .gallery-sidebar {
@@ -210,6 +226,7 @@ html {
     position: fixed;
     inset: var(--_gallery-header-height) 0 0 0;
     z-index: 5;
+    height: auto;
   }
 
   .gallery-sidebar[data-open] {
@@ -1029,7 +1046,7 @@ html {
 
 .gallery-rail {
   position: sticky;
-  top: var(--bit-space-16px);
+  top: calc(var(--_gallery-header-height) + var(--bit-space-16px));
 }
 
 /* Each version is a full-width row: bold version left, muted date right. The chosen one takes a line border and

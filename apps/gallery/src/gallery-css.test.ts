@@ -381,4 +381,38 @@ describe('gallery.css is layout only, apart from the documented exceptions', () 
   it('every paint declaration has an exception', () => expect(result.unlisted).toEqual([]));
   it('no exception is stale', () => expect(result.stale).toEqual([]));
   it('every exception says why', () => expect(result.unexplained).toEqual([]));
+
+  describe('sticky shell', () => {
+    it('the header stays at the top while the page scrolls, above the phone sheet', () => {
+      const header = ruleIn(galleryCss, '.gallery-header')!;
+      expect(header).toContain('position: sticky;');
+      expect(header).toContain('top: 0;');
+      expect(header).toMatch(/z-index: (\d+);/);
+      const sheet = ruleIn(mediaBody('(max-width: 720px)'), '.gallery-sidebar')!;
+      expect(Number(/z-index: (\d+);/.exec(header)![1])).toBeGreaterThan(Number(/z-index: (\d+);/.exec(sheet)![1]));
+    });
+
+    it('the sidebar sticks under the header, as tall as the window below it, and scrolls its own list', () => {
+      const sidebar = ruleIn(galleryCss, '.gallery-sidebar')!;
+      expect(sidebar).toContain('position: sticky;');
+      expect(sidebar).toContain('top: var(--_gallery-header-height);');
+      expect(sidebar).toContain('align-self: start;');
+      expect(sidebar).toContain('height: calc(100dvh - var(--_gallery-header-height));');
+      expect(sidebar).toContain('overflow-y: auto;');
+    });
+
+    it('every in-page jump stops below the header', () => {
+      expect(ruleIn(galleryCss, 'html')).toContain('scroll-padding-top: calc(var(--_gallery-header-height) + var(--bit-space-16px));');
+      expect(ruleIn(galleryCss, '.gallery-rail')).toContain('top: calc(var(--_gallery-header-height) + var(--bit-space-16px));');
+    });
+
+    it('on a phone the Menu button is a 44px touch target and the sheet fills the window under the header', () => {
+      const narrow = mediaBody('(max-width: 720px)');
+      expect(ruleIn(narrow, '.gallery-header__menu')).toContain('min-height: 44px;');
+      const sheet = ruleIn(narrow, '.gallery-sidebar')!;
+      expect(sheet).toContain('position: fixed;');
+      expect(sheet).toContain('inset: var(--_gallery-header-height) 0 0 0;');
+      expect(sheet).toContain('height: auto;');
+    });
+  });
 });
