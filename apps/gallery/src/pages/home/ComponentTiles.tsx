@@ -70,7 +70,7 @@ const COMPACT: Readonly<Record<string, () => ReactNode>> = {
   ),
 };
 
-const previewOf = (manifest: Manifest): ReactNode => COMPACT[manifest.slug]?.() ?? renderManifest(manifest, defaultState(manifest));
+const previewOf = (manifest: Manifest): ReactNode => COMPACT[manifest.slug]?.() ?? renderManifest(manifest, defaultState(manifest), { sample: true });
 
 /**
  * A live preview on top, the name and → below; the whole tile is one Link. The preview is inert: it shows

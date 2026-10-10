@@ -42,6 +42,7 @@ export const field: Manifest = {
   name: 'Field',
   slug: 'field',
   group: 'forms',
+  related: ['input', 'select', 'textarea', 'checkbox'],
   component: Field,
   description: 'A label, an optional hint and an error around one form control. It wires the ids, so screen readers read them.',
   controls: [

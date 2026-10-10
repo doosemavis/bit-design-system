@@ -10,16 +10,22 @@
 
 html {
   scroll-behavior: smooth;
+  /* The header stays at the top, so every jump (a section bar link, a "#" link, the skip link, a release in the
+     rail) stops below it, with a little room. */
+  scroll-padding-top: calc(var(--_gallery-header-height) + var(--bit-space-16px));
 }
 
-/* Thin scrollbars on the page and the gallery's own scroll areas. bit sets them only on its own components. */
+/* Thin scrollbars on the page and the gallery's own scroll areas. bit sets them only on its own components. The
+   sidebar shows none (below). */
 html,
 .gallery-presets,
-.gallery-sidebar {
+.gallery-search__results {
   scrollbar-width: thin;
 }
 
 /* ---------- shell ---------- */
+/* The header stays at the top while the page scrolls, and the sidebar beside main stays put too, scrolling its
+   own list (as tall as the window under the header). */
 .gallery-shell {
   min-height: 100vh;
   display: grid;
@@ -49,6 +55,9 @@ html,
 
 .gallery-header {
   grid-area: header;
+  position: sticky;
+  top: 0;
+  z-index: 6;
   display: flex;
   align-items: center;
   gap: var(--bit-space-12px);
@@ -64,6 +73,14 @@ html,
 .gallery-header__brand {
   display: inline-flex;
   text-decoration: none;
+}
+
+/* The vertical rule between the logo and the version picker, as tall as the header's controls. */
+.gallery-header__divider {
+  align-self: center;
+  width: 0;
+  height: var(--bit-control-height-sm);
+  border-inline-start: 2px solid var(--bit-color-line);
 }
 
 .gallery-header__tools {
@@ -82,6 +99,12 @@ html,
 
 .gallery-sidebar {
   grid-area: sidebar;
+  position: sticky;
+  top: var(--_gallery-header-height);
+  align-self: start;
+  box-sizing: border-box;
+  height: calc(100vh - var(--_gallery-header-height));
+  height: calc(100dvh - var(--_gallery-header-height));
   padding: var(--_gallery-gutter);
   border-right: var(--bit-border-width) solid var(--bit-color-line);
   background: var(--bit-color-surface);
@@ -170,6 +193,12 @@ html,
   margin-top: var(--bit-space-24px);
 }
 
+/* At phone width the Search button heads the sheet, full width, above the groups. */
+.gallery-sidebar__header {
+  display: grid;
+  margin-bottom: var(--bit-space-24px);
+}
+
 .gallery-main {
   grid-area: main;
   padding: var(--bit-space-32px) var(--_gallery-gutter);
@@ -208,8 +237,10 @@ html,
       "main";
   }
 
+  /* A 44px touch target, inside the 56px header. */
   .gallery-header__menu {
     display: inline-flex;
+    min-height: 44px;
   }
 
   .gallery-sidebar {
@@ -217,6 +248,10 @@ html,
     position: fixed;
     inset: var(--_gallery-header-height) 0 0 0;
     z-index: 5;
+    /* Between its insets: no set height, and no start alignment (an absolutely placed box with align-self: start
+       takes its content's height and runs past the window). */
+    height: auto;
+    align-self: auto;
   }
 
   .gallery-sidebar[data-open] {
@@ -255,11 +290,13 @@ html,
 
 /* ---------- preview ---------- */
 /* The preview half of the playground card: the bar, then the stage. The stage takes the spare height, so it
-   reaches the card's floor however many controls stand beside it. */
+   reaches the card's floor however many controls stand beside it. It is a size container, so its bar can wrap
+   the presets by its own width. */
 .gallery-preview {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  container-type: inline-size;
 }
 
 /* The preview bar and the controls bar are one header strip across the card: one height, one paint, one
@@ -520,14 +557,14 @@ html,
   flex: none;
 }
 
-/* The presets row and the sidebar scroll on their own background: a transparent track and a solid accent
+/* The presets row and the search results scroll on their own background: a transparent track and a solid accent
    thumb, the same slim shape as the CodeBlock's (the transparent border stays part of the grab area, and
    nothing changes on hover). Forced colors draw their own scrollbars. */
 @media not (forced-colors: active) {
   .gallery-presets::-webkit-scrollbar { height: 14px; }
-  .gallery-sidebar::-webkit-scrollbar { width: 14px; }
-  .gallery-presets::-webkit-scrollbar-track, .gallery-sidebar::-webkit-scrollbar-track { background: transparent; }
-  .gallery-presets::-webkit-scrollbar-thumb, .gallery-sidebar::-webkit-scrollbar-thumb {
+  .gallery-search__results::-webkit-scrollbar { width: 14px; }
+  .gallery-presets::-webkit-scrollbar-track, .gallery-search__results::-webkit-scrollbar-track { background: transparent; }
+  .gallery-presets::-webkit-scrollbar-thumb, .gallery-search__results::-webkit-scrollbar-thumb {
     background: var(--bit-color-accent);
     background-clip: padding-box;
     border: 3px solid transparent;
@@ -537,8 +574,18 @@ html,
      override ::-webkit-scrollbar.
      Where the pseudo-elements work, hand the scrollbar back to them. */
   @supports selector(::-webkit-scrollbar) {
-    .gallery-presets, .gallery-sidebar { scrollbar-color: auto; scrollbar-width: auto; }
+    .gallery-presets, .gallery-search__results { scrollbar-color: auto; scrollbar-width: auto; }
   }
+}
+
+/* The sidebar scrolls (wheel, touch, keyboard, and a focused link scrolls into view) but shows no scrollbar: the
+   list of pages is the menu, and a bar beside it only adds noise. */
+.gallery-sidebar {
+  scrollbar-width: none;
+}
+
+.gallery-sidebar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Short code (a prop name, a default, a class, one member of a union type) stays on one line in the Props
@@ -582,9 +629,11 @@ html,
   }
 }
 
-/* Under 720px the presets get their own full-width row under the title and the Checkerboard switch (sharing
-   one row left them about 95px at 390px). The row still scrolls sideways, keeping the focus-ring padding above. */
-@media (max-width: 720px) {
+/* When the preview half is under 40rem the presets get their own full-width row under the title and the
+   Checkerboard switch: sharing one row left them about 95px on a phone and 14px on a tablet, where the controls
+   take a column beside the preview. The preview is a size container (see .gallery-preview), so this follows the
+   room the bar really has, not the window. The row still scrolls sideways, keeping the focus-ring padding above. */
+@container (max-width: 40rem) {
   .gallery-preview__bar {
     flex-wrap: wrap;
   }
@@ -640,6 +689,35 @@ html,
   height: 4px;
   border-radius: 2px;
   background: var(--bit-color-accent);
+}
+
+/* A section's title row: the h2, then its "#" deep link, on the title's baseline. */
+.gallery-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--bit-space-8px);
+}
+
+/* The "#" shows on hover of its title row and while it has keyboard focus. Hidden, it still takes its place,
+   so nothing moves when it appears. Screens with no hover (touch) always show it. No underline: it is a mark,
+   not a word; bit Link's hover chip still shows. */
+.gallery-anchor.bit-link {
+  padding-inline: var(--bit-space-4px);
+  border-radius: var(--bit-radius-6px);
+  text-decoration: none;
+  opacity: 0;
+}
+
+.gallery-section-head:hover .gallery-anchor.bit-link,
+.gallery-anchor.bit-link:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .gallery-anchor.bit-link {
+    opacity: 1;
+  }
 }
 
 /* ---------- examples ---------- */
@@ -1004,7 +1082,7 @@ html,
 
 .gallery-rail {
   position: sticky;
-  top: var(--bit-space-16px);
+  top: calc(var(--_gallery-header-height) + var(--bit-space-16px));
 }
 
 /* Each version is a full-width row: bold version left, muted date right. The chosen one takes a line border and
@@ -1034,4 +1112,135 @@ html,
   .gallery-rail {
     position: static;
   }
+}
+
+/* ---------- search ---------- */
+/* The search dialog keeps its top edge where it opened while the results grow and shrink under it (a dialog
+   centered on its current height would jump with every key). */
+.gallery-search.bit-dialog {
+  /* Centered at its full size (680px tall with every result showing), so it sits evenly in the window and doesn't
+     jump as results come and go; at least 16px from the top on a short screen. */
+  margin-top: max(var(--bit-space-16px), calc((100dvh - 680px) / 2));
+}
+
+/* The footer band: the title bar's purple and contrast text, with the line above it, as the bar has below. */
+.gallery-search__footer.bit-dialog__footer {
+  justify-content: flex-start;
+  padding: var(--bit-space-8px) var(--bit-space-16px);
+  color: var(--bit-color-primary-contrast);
+  background: var(--bit-color-primary);
+  border-top: var(--bit-border-width) solid var(--bit-color-line);
+}
+
+.gallery-search__footer .bit-text {
+  color: inherit;
+}
+
+/* 100px wider than Dialog's lg (560px), for longer prop types. Dialog's max-width still keeps it inside a phone. */
+.gallery-search.bit-dialog.bit-lg {
+  width: calc(560px + 100px);
+}
+
+/* The results under the query box: a list that scrolls inside the dialog once it is taller than half the window. */
+.gallery-search__results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--bit-space-4px);
+  /* 100px taller than it started (24rem, or half the window on a short screen), so more results show at once. */
+  max-height: min(calc(24rem + 100px), calc(50dvh + 100px));
+  overflow-y: auto;
+  /* The list reaches into the dialog body's right padding, so its 14px scrollbar sits on the dialog's edge rather
+     than 16px in from it. The 2px left over keeps the results' right edge in line with the search box. */
+  margin-inline-end: calc(-1 * var(--bit-space-16px));
+  padding-inline-end: 2px;
+}
+
+/* The list fills the body's right padding, which would let the body scroll sideways by that much. It only ever
+   scrolls down. */
+.gallery-search .bit-dialog__body {
+  overflow-x: hidden;
+}
+
+/* One result: its name and kind, then one line of detail. The active one (keyboard or pointer) takes the line
+   border and soft fill of the Release notes rail's chosen row; the others keep a transparent border, so nothing
+   shifts. */
+.gallery-search__option {
+  display: grid;
+  gap: var(--bit-space-4px);
+  min-width: 0;
+  padding: var(--bit-space-8px) 10px;
+  border: 2px solid transparent;
+  border-radius: var(--bit-radius-10px);
+  cursor: pointer;
+}
+
+.gallery-search__option[aria-selected="true"] {
+  border-color: var(--bit-color-line);
+  background: var(--bit-color-primary-soft);
+}
+
+/* The detail stays one line, cut with an ellipsis, so every result is the same height. */
+.gallery-search__detail {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------- link cards: previous / next and related ---------- */
+/* A Card that is one link: the name's ::after covers the card, so the whole card clicks, and the focus ring goes
+   around the card, as on the Overview's tiles. */
+.gallery-link-card {
+  position: relative;
+}
+
+.gallery-link-card[data-align="end"] {
+  text-align: end;
+}
+
+.gallery-link-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.gallery-link-card:has(.gallery-link-card__link:focus-visible) {
+  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
+  outline-offset: var(--bit-focus-ring-offset);
+}
+
+.gallery-link-card__link:focus-visible {
+  outline: none;
+}
+
+/* The foot of every page: Previous on the left, Next on the right (on the right even alone), one column on a
+   phone. 128px above it, the same break as between sections. */
+.gallery-pager {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bit-space-16px);
+  margin-top: calc(2 * var(--bit-space-64px));
+}
+
+.gallery-pager__next {
+  grid-column: 2;
+  display: grid;
+}
+
+@media (max-width: 720px) {
+  .gallery-pager {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gallery-pager__next {
+    grid-column: auto;
+  }
+}
+
+/* Related components: as many 16rem cards as fit, three on a desktop, one on a phone. */
+.gallery-related {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
+  gap: var(--bit-space-16px);
 }

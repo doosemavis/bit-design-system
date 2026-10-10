@@ -5,6 +5,7 @@ import { CheckboxExamples } from '../pages/forms/CheckboxExamples';
 export const checkbox: Manifest = {
   name: 'Checkbox',
   slug: 'checkbox',
+  related: ['switch', 'radiogroup', 'field'],
   group: 'forms',
   component: Checkbox,
   description: 'A tick box for a yes or no that is part of a form. A real checkbox: click the label or press Space.',

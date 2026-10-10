@@ -5,6 +5,7 @@ import { BitThemeExamples } from '../pages/theme/BitThemeExamples';
 export const bitTheme: Manifest = {
   name: 'BitTheme',
   slug: 'bittheme',
+  related: ['modetoggle', 'card'],
   group: 'components',
   component: BitTheme,
   description:

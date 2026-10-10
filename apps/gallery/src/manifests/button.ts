@@ -5,6 +5,7 @@ export const button: Manifest = {
   name: 'Button',
   slug: 'button',
   group: 'components',
+  related: ['iconbutton', 'link'],
   component: Button,
   description: 'The primary action. Three axes, two booleans, and asChild for links.',
   controls: [

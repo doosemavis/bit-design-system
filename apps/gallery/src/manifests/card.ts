@@ -5,6 +5,7 @@ export const card: Manifest = {
   name: 'Card',
   slug: 'card',
   group: 'components',
+  related: ['stack', 'box', 'table'],
   component: Card,
   description: 'A surface with header, body, and footer parts. The parts are their own exports.',
   controls: [

@@ -14,6 +14,7 @@ export const iconButton: Manifest = {
   name: 'IconButton',
   slug: 'iconbutton',
   group: 'components',
+  related: ['button', 'icon', 'tooltip'],
   component: IconButton,
   description: 'A square button with one icon. Its label is the name screen readers hear; a tooltip can show it on hover.',
   controls: [

@@ -27,6 +27,13 @@
   cursor: pointer;
 }
 
+/* Icon only: each option is a square as tall as the control, with the icon centered. */
+.bit-mode-toggle[data-icon-only] .bit-mode-toggle__option {
+  justify-content: center;
+  width: calc(var(--_bit-size-height) - 2 * var(--bit-border-width));
+  padding: 0;
+}
+
 .bit-mode-toggle__option:hover:not([aria-pressed="true"]) {
   background: var(--bit-color-neutral-soft);
 }

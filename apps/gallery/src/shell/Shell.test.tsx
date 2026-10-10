@@ -57,9 +57,16 @@ describe('Shell', () => {
     renderAt('/');
     const button = await screen.findByRole('button', { name: 'Menu' });
     expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(button).toHaveAttribute('aria-controls', 'gallery-nav');
     await userEvent.click(button);
     expect(button).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('navigation', { name: 'Gallery' })).toHaveAttribute('data-open', '');
+    // Open, it says Close and keeps focus, so the next Tab goes into the sheet.
+    expect(button).toHaveAccessibleName('Close');
+    expect(button).toHaveFocus();
+    await userEvent.click(button);
+    expect(button).toHaveAccessibleName('Menu');
+    expect(button).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('Escape closes the sheet and hands focus back to Menu', async () => {

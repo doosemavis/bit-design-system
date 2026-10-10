@@ -27,8 +27,12 @@ function choicesFrom(file: VersionsFile, ownPath: string, ownChoice: Choice): Ch
   return choices.some((choice) => choice.value === ownPath) ? choices : [...choices, ownChoice];
 }
 
-/** Version picker. Changing it goes to the same page in that copy; with nothing to pick from it is disabled. */
-export function VersionSelect() {
+/**
+ * Version picker. Changing it goes to the same page in that copy; with nothing to pick from it is disabled.
+ * In the header it has no visible label (the divider after the logo sets it apart) and is named "Version" for
+ * screen readers; in the phone sheet it keeps its visible label.
+ */
+export function VersionSelect({ labelHidden = false }: { labelHidden?: boolean }) {
   const { status, file, currentLine, ownPath } = useVersions();
 
   // index.html already sets the attribute, so version-banner.js never races the mount; this keeps it
@@ -47,20 +51,26 @@ export function VersionSelect() {
   else if (choices && choices.length < 2) title = 'Only one release line so far';
   const disabled = !choices || choices.length < 2;
 
-  return (
+  const select = (
+    <Select
+      size="sm"
+      aria-label={labelHidden ? 'Version' : undefined}
+      options={options}
+      value={ownPath}
+      disabled={disabled}
+      title={title}
+      onValueChange={(next) => {
+        // Only a path versions.json listed (and isVersionsFile vetted) is ever followed.
+        const entry = file?.lines.find((line) => line.path === next);
+        if (entry) window.location.assign(urlForLine(entry.path, window.location.hash));
+      }}
+    />
+  );
+  return labelHidden ? (
+    <div className="gallery-version">{select}</div>
+  ) : (
     <Field label="Version" className="gallery-version">
-      <Select
-        size="sm"
-        options={options}
-        value={ownPath}
-        disabled={disabled}
-        title={title}
-        onValueChange={(next) => {
-          // Only a path versions.json listed (and isVersionsFile vetted) is ever followed.
-          const entry = file?.lines.find((line) => line.path === next);
-          if (entry) window.location.assign(urlForLine(entry.path, window.location.hash));
-        }}
-      />
+      {select}
     </Field>
   );
 }

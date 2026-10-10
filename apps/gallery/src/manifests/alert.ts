@@ -17,6 +17,7 @@ export const alert: Manifest = {
   name: 'Alert',
   slug: 'alert',
   group: 'components',
+  related: ['dialog', 'badge'],
   component: Alert,
   description: 'A message with an optional heading. Outline uses the soft background; solid fills. Each color but neutral leads with its own icon.',
   controls: [

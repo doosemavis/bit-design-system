@@ -8,6 +8,7 @@ export const box: Manifest = {
   name: 'Box',
   slug: 'box',
   group: 'components',
+  related: ['stack', 'card'],
   component: Box,
   description:
     'Padding and margin on the space scale, for one element. When props overlap, the most specific wins: a side beats an axis beats all four. The gallery draws the dashed outline, so you can see the space.',

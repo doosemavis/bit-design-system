@@ -51,6 +51,6 @@ describe('importedProps', () => {
   });
 
   it('the extra section sits after Variants and before Usage', () => {
-    expect(componentSections(hooked).map((s) => s.title)).toEqual(['Playground', 'Variants', 'Extra', 'Usage', 'Props', 'Accessibility']);
+    expect(componentSections(hooked).map((s) => s.title)).toEqual(['Playground', 'Variants', 'Extra', 'Usage', 'Props', 'Accessibility', 'Related']);
   });
 });

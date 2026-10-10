@@ -39,6 +39,7 @@ export const tabs: Manifest = {
   name: 'Tabs',
   slug: 'tabs',
   group: 'components',
+  related: ['segmentedcontrol'],
   component: Tabs,
   description: 'Tabs that plug in like game cartridges: choose one and it seats into the slot, powers up, and shows its panel.',
   controls: [

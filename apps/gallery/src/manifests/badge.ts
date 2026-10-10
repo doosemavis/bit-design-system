@@ -5,6 +5,7 @@ export const badge: Manifest = {
   name: 'Badge',
   slug: 'badge',
   group: 'components',
+  related: ['icon'],
   component: Badge,
   description: 'A small label. Solid or outline, three sizes, pill or square.',
   controls: [

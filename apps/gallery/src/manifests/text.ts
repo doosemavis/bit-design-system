@@ -15,6 +15,7 @@ export const text: Manifest = {
   name: 'Text',
   slug: 'text',
   group: 'components',
+  related: ['heading', 'code'],
   component: Text,
   description: 'Body copy, labels and captions. size is the look, in px. A Text inside another Text renders inline. For titles, use Heading.',
   controls: [

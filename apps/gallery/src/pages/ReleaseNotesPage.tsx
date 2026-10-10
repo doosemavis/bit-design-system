@@ -3,6 +3,7 @@ import { SegmentedControl, Stack, Text } from '@bit-ds/react';
 import { RELEASES } from '../content/changelog';
 import type { ChangeKind } from '../content/changelog';
 import { PageHeader } from '../ui/PageHeader';
+import { releaseStatus, useLatestVersion } from '../shell/latestVersion';
 import { scrollToSection } from '../ui/scrollToSection';
 import { ReleaseCard } from './release-notes/ReleaseCard';
 import { VersionRail } from './release-notes/VersionRail';
@@ -22,6 +23,8 @@ export function ReleaseNotesPage() {
   // Choices made while a kind is chosen live apart from the All view, and start over with each new filter.
   const [filteredOpened, setFilteredOpened] = useState<Readonly<Record<string, boolean>>>({});
   const [chosen, setChosen] = useState<string | undefined>(undefined);
+  // Latest is the newest published release (versions.json), not the top of CHANGELOG, which can run ahead of its tag.
+  const latest = useLatestVersion();
   const kind = filter === ALL ? null : (filter as ChangeKind);
   const shown = kind ? RELEASES.filter((r) => (r.sections[kind]?.length ?? 0) > 0) : RELEASES;
   const current = shown.some((r) => r.version === chosen) ? chosen : shown[0]?.version;
@@ -58,7 +61,7 @@ export function ReleaseNotesPage() {
               <ReleaseCard
                 key={release.version}
                 {...release}
-                latest={release.version === RELEASES[0]?.version}
+                status={releaseStatus(release.version, latest)}
                 open={isOpen(release.version, RELEASES.indexOf(release))}
                 only={kind}
                 onToggle={() => setOpen(release.version, !isOpen(release.version, RELEASES.indexOf(release)))}

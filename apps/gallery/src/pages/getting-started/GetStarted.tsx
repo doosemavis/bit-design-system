@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { Badge, Button, Card, CardBody, Code, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
 import { SECTION_CLASS, SECTION_TITLE_CLASS } from '../../ui/PageSection';
-import { BUILD_VERSION } from '../../buildVersion';
+import { SectionHead } from '../../ui/SectionAnchor';
+import { useLatestVersion } from '../../shell/latestVersion';
 import { InstallCommand } from '../../content/InstallCommand';
 import { GLOBAL_CSS_IMPORTS, STYLE_IMPORTS } from '../../content/styleImports';
 
@@ -38,14 +39,22 @@ interface StepProps {
  * One numbered step of Getting started: its title is a level-2 heading on that page. The number and heading sit
  * above a Card that frames the rest, so every step looks the same.
  */
+/** A step's h2 id, for its "#" link: `step-install`, `step-next-steps`. */
+export const stepId = (title: string) => `step-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+
 export function Step({ n, title, aside, help, children }: StepProps) {
+  const id = stepId(title);
   return (
     <Stack gap={16} data-step={n} className={SECTION_CLASS}>
       <Stack direction="row" gap={8} align="center" wrap>
         <Badge color="warning" shape="square">
           {String(n)}
         </Badge>
-        <Heading className={SECTION_TITLE_CLASS}>{title}</Heading>
+        <SectionHead id={id} title={title}>
+          <Heading id={id} tabIndex={-1} className={SECTION_TITLE_CLASS}>
+            {title}
+          </Heading>
+        </SectionHead>
         {aside}
       </Stack>
       <Card>
@@ -65,6 +74,8 @@ export function Step({ n, title, aside, help, children }: StepProps) {
  * component. A fragment, so every step is a sibling in the page's Stack and gets the same section break.
  */
 export function GetStarted() {
+  // The version `install` gets: the latest published one, as the header and Versions page show it.
+  const latest = useLatestVersion();
   return (
     <>
       <Step
@@ -72,7 +83,7 @@ export function GetStarted() {
         title="Install"
         aside={
           <Badge variant="outline" shape="square">
-            {`v${BUILD_VERSION}`}
+            {`v${latest}`}
           </Badge>
         }
         help="Add the React package with your package manager."

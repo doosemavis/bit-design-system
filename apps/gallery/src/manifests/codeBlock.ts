@@ -8,6 +8,7 @@ export const codeBlock: Manifest = {
   name: 'CodeBlock',
   slug: 'codeblock',
   group: 'components',
+  related: ['code'],
   component: CodeBlock,
   description: 'A dark code panel with editor colors, a language label and a Copy button. JSX, TSX, TypeScript, HTML, CSS and shell.',
   controls: [

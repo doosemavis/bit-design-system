@@ -14,9 +14,9 @@ const galleryCss = readFileSync(new URL('./gallery.css', import.meta.url), 'utf8
 const declared = new Set([...theme.matchAll(/(--bit-[a-zA-Z0-9-]+)\s*:/g)].map((m) => m[1]!));
 const reads = [...galleryCss.matchAll(/var\((--bit-[a-zA-Z0-9-]+)/g)].map((m) => m[1]!);
 
-/** The bodies of every `@media <query> { … }` block, braces matched, joined into one string. */
-function mediaBody(query: string): string {
-  const head = `@media ${query} {`;
+/** The bodies of every `@media <query> { … }` block (or another at-rule's), braces matched, joined into one string. */
+function mediaBody(query: string, atRule = '@media'): string {
+  const head = `${atRule} ${query} {`;
   const bodies: string[] = [];
   let at = galleryCss.indexOf(head);
   while (at !== -1) {
@@ -157,11 +157,11 @@ describe('gallery.css', () => {
     expect(titles).toContain('text-transform: uppercase;');
   });
 
-  it('the presets row and the sidebar scroll in the accent on their own background, with no hover change', () => {
+  it('the presets row and the search results scroll in the accent on their own background, with no hover change; the sidebar hides its bar', () => {
     const body = mediaBody('not (forced-colors: active)');
     expect(ruleIn(body, '.gallery-presets::-webkit-scrollbar')).toContain('height: 14px;');
-    expect(ruleIn(body, '.gallery-sidebar::-webkit-scrollbar')).toContain('width: 14px;');
-    const both = (part: string) => `.gallery-presets::-webkit-scrollbar-${part}, .gallery-sidebar::-webkit-scrollbar-${part}`;
+    expect(ruleIn(body, '.gallery-search__results::-webkit-scrollbar')).toContain('width: 14px;');
+    const both = (part: string) => `.gallery-presets::-webkit-scrollbar-${part}, .gallery-search__results::-webkit-scrollbar-${part}`;
     expect(ruleIn(body, both('track'))).toContain('background: transparent;');
     const thumb = ruleIn(body, both('thumb'))!;
     expect(thumb).toContain('background: var(--bit-color-accent);');
@@ -171,9 +171,12 @@ describe('gallery.css', () => {
     expect(thumb).not.toContain('box-shadow');
     expect(galleryCss).not.toContain('::-webkit-scrollbar-thumb:hover');
     // Chrome 121+ ignores the pseudo-elements while reset.css's standard properties are not auto.
-    const reset = /@supports selector\(::-webkit-scrollbar\) \{\s*\.gallery-presets, \.gallery-sidebar \{([^}]*)\}/.exec(body)![1]!;
+    const reset = /@supports selector\(::-webkit-scrollbar\) \{\s*\.gallery-presets, \.gallery-search__results \{([^}]*)\}/.exec(body)![1]!;
     expect(reset).toContain('scrollbar-color: auto;');
     expect(reset).toContain('scrollbar-width: auto;');
+    // The sidebar still scrolls, with no bar.
+    expect(galleryCss).toMatch(/\.gallery-sidebar \{\s*scrollbar-width: none;\s*\}/);
+    expect(galleryCss).toMatch(/\.gallery-sidebar::-webkit-scrollbar \{\s*display: none;\s*\}/);
   });
 
   it('the presets scroll sideways in one row instead of widening the page', () => {
@@ -189,9 +192,11 @@ describe('gallery.css', () => {
     expect(presets).toContain('margin: calc(-1 * var(--bit-space-4px));');
   });
 
-  it('below 720px the presets take their own full-width row under the title and the Checkerboard switch', () => {
-    // At 390px the bar's one row left the presets about 95px, so "Danger outline" never fully showed.
-    const narrow = mediaBody('(max-width: 720px)');
+  it('when the preview half is under 40rem, the presets take their own full-width row under the title and the switch', () => {
+    // At 390px the bar's one row left the presets about 95px; at 834px, beside the controls column, about 14px.
+    // A container query follows the preview's own width, which a media query can't see.
+    expect(ruleIn(galleryCss, '.gallery-preview')).toContain('container-type: inline-size;');
+    const narrow = mediaBody('(max-width: 40rem)', '@container');
     expect(ruleIn(narrow, '.gallery-preview__bar')).toContain('flex-wrap: wrap;');
     const presets = ruleIn(narrow, '.gallery-presets');
     expect(presets).toContain('order: 1;');
@@ -379,4 +384,39 @@ describe('gallery.css is layout only, apart from the documented exceptions', () 
   it('every paint declaration has an exception', () => expect(result.unlisted).toEqual([]));
   it('no exception is stale', () => expect(result.stale).toEqual([]));
   it('every exception says why', () => expect(result.unexplained).toEqual([]));
+
+  describe('sticky shell', () => {
+    it('the header stays at the top while the page scrolls, above the phone sheet', () => {
+      const header = ruleIn(galleryCss, '.gallery-header')!;
+      expect(header).toContain('position: sticky;');
+      expect(header).toContain('top: 0;');
+      expect(header).toMatch(/z-index: (\d+);/);
+      const sheet = ruleIn(mediaBody('(max-width: 720px)'), '.gallery-sidebar')!;
+      expect(Number(/z-index: (\d+);/.exec(header)![1])).toBeGreaterThan(Number(/z-index: (\d+);/.exec(sheet)![1]));
+    });
+
+    it('the sidebar sticks under the header, as tall as the window below it, and scrolls its own list', () => {
+      const sidebar = ruleIn(galleryCss, '.gallery-sidebar')!;
+      expect(sidebar).toContain('position: sticky;');
+      expect(sidebar).toContain('top: var(--_gallery-header-height);');
+      expect(sidebar).toContain('align-self: start;');
+      expect(sidebar).toContain('height: calc(100dvh - var(--_gallery-header-height));');
+      expect(sidebar).toContain('overflow-y: auto;');
+    });
+
+    it('every in-page jump stops below the header', () => {
+      expect(ruleIn(galleryCss, 'html')).toContain('scroll-padding-top: calc(var(--_gallery-header-height) + var(--bit-space-16px));');
+      expect(ruleIn(galleryCss, '.gallery-rail')).toContain('top: calc(var(--_gallery-header-height) + var(--bit-space-16px));');
+    });
+
+    it('on a phone the Menu button is a 44px touch target and the sheet fills the window under the header', () => {
+      const narrow = mediaBody('(max-width: 720px)');
+      expect(ruleIn(narrow, '.gallery-header__menu')).toContain('min-height: 44px;');
+      const sheet = ruleIn(narrow, '.gallery-sidebar')!;
+      expect(sheet).toContain('position: fixed;');
+      expect(sheet).toContain('inset: var(--_gallery-header-height) 0 0 0;');
+      expect(sheet).toContain('height: auto;');
+      expect(sheet).toContain('align-self: auto;');
+    });
+  });
 });

@@ -48,6 +48,6 @@ describe('Icon manifest', () => {
   });
 
   it('has the All icons section after Variants', () => {
-    expect(componentSections(icon).map((s) => s.title)).toEqual(['Playground', 'Variants', 'All icons', 'Usage', 'Props', 'Accessibility']);
+    expect(componentSections(icon).map((s) => s.title)).toEqual(['Playground', 'Variants', 'All icons', 'Usage', 'Props', 'Accessibility', 'Related']);
   });
 });

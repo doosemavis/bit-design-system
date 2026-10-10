@@ -2,6 +2,7 @@ import { Fragment } from 'react';
 import type { ReactNode } from 'react';
 import { Alert, Box, Card, CardBody, Code, Table, TableBody, TableCell, TableHead, TableRow, Text } from '@bit-ds/react';
 import type { AxisControl, Manifest, ManifestDocs, PropDoc } from '../../manifests/types';
+import { renderInline } from '../../ui/renderInline';
 
 /** Do and Don't: soft success and soft danger, read as notes rather than live status. */
 export function UsageLists({ usage }: { usage: ManifestDocs['usage'] }) {
@@ -10,14 +11,14 @@ export function UsageLists({ usage }: { usage: ManifestDocs['usage'] }) {
       <Alert color="success" title="Do" role="note">
         <ul className="gallery-bullets">
           {usage.do.map((line) => (
-            <li key={line}>{line}</li>
+            <li key={line}>{renderInline(line)}</li>
           ))}
         </ul>
       </Alert>
       <Alert color="danger" title="Don't" role="note">
         <ul className="gallery-bullets">
           {usage.dont.map((line) => (
-            <li key={line}>{line}</li>
+            <li key={line}>{renderInline(line)}</li>
           ))}
         </ul>
       </Alert>
@@ -77,7 +78,7 @@ export const PROP_COLUMNS: readonly PropColumn[] = [
     cell: (prop) => (prop.className === undefined ? <None /> : <Code>{prop.className}</Code>),
     className: 'gallery-nowrap',
   },
-  { header: 'Description', cell: (prop) => prop.description, className: 'gallery-props__description' },
+  { header: 'Description', cell: (prop) => renderInline(prop.description), className: 'gallery-props__description' },
 ];
 
 /**
@@ -135,7 +136,7 @@ export function A11yList({ lines }: { lines: readonly string[] }) {
       <CardBody>
         <ul className="gallery-bullets">
           {lines.map((line) => (
-            <li key={line}>{line}</li>
+            <li key={line}>{renderInline(line)}</li>
           ))}
         </ul>
       </CardBody>

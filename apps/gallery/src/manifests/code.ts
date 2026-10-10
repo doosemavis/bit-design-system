@@ -5,6 +5,7 @@ export const code: Manifest = {
   name: 'Code',
   slug: 'code',
   group: 'components',
+  related: ['text', 'codeblock'],
   component: Code,
   description: 'Inline code: a small mono chip inside running text, in its own color: light violet in light mode, yellow in dark.',
   controls: [],

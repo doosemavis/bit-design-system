@@ -22,7 +22,7 @@ export function Playground({ manifest, controls }: PlaygroundProps) {
     <div className="gallery-playground">
       <Card className="gallery-playground__top">
         <Preview label={`${manifest.name} preview`} presets={<Presets manifest={manifest} state={state} onApply={apply} />}>
-          {renderManifest(manifest, state)}
+          {renderManifest(manifest, state, { sample: true })}
         </Preview>
         <ControlsPanel manifest={manifest} state={state} onChange={setProp} onReset={reset} />
       </Card>

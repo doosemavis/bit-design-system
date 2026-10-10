@@ -37,6 +37,7 @@ export const select: Manifest = {
   name: 'Select',
   slug: 'select',
   group: 'forms',
+  related: ['input', 'field', 'segmentedcontrol'],
   component: Select,
   description:
     'Picks one option, or several with `multiple`, from a list that bit draws itself, so it slides down in the bit theme and looks the same in every browser.',
