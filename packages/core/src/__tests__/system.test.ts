@@ -348,7 +348,9 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
       '.bit-button:is(.bit-solid, .bit-outline)[aria-disabled="true"]:focus-visible::after,\n' +
       '.bit-switch__input:focus-visible + .bit-switch__track::after,\n' +
       '.bit-checkbox__input:focus-visible + .bit-checkbox__box::after,\n' +
-      '.bit-radio__input:focus-visible + .bit-radio__dot::after';
+      '.bit-radio__input:focus-visible + .bit-radio__dot::after,\n' +
+      '.bit-slider__input:focus-visible ~ .bit-slider__thumb::after,\n' +
+      '.bit-slider__input:focus-visible ~ .bit-slider__blocks::after';
     const button = readCss('components/button.css');
     const track = readCss('components/switch.css');
 

@@ -57,6 +57,9 @@ export type { RadioGroupProps, RadioProps, RadioOption } from './components/Radi
 export { Textarea } from './components/Textarea/Textarea';
 export type { TextareaProps } from './components/Textarea/Textarea';
 
+export { Slider } from './components/Slider/Slider';
+export type { SliderProps, SliderVariant } from './components/Slider/Slider';
+
 export { Link } from './components/Link/Link';
 export type { LinkProps } from './components/Link/Link';
 

@@ -27,6 +27,10 @@ const EXEMPT: Readonly<Record<string, { sizes: readonly string[]; why: string }>
     sizes: ['11px'],
     why: "The Purple bar's links (owner pick C) are Dialog's title type: the pixel font reads large, so 11px, as Dialog. The pill's links are 14px or more.",
   },
+  'slider.css': {
+    sizes: ['11px'],
+    why: "The round Slider's value bubble is the pixel font, which reads large, at Dialog's 11px; it is hidden from screen readers, which read the input's value.",
+  },
   'text.css': {
     sizes: ['var(--bit-text-11px)', 'var(--bit-text-13px)', 'var(--bit-text-15px)'],
     why: 'Deprecated data-size 11, 13 and 15 (removed in 0.2.0). Their tokens alias 14 and 16, so they render at the floor or above.',
