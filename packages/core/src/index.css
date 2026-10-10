@@ -31,6 +31,7 @@
 @import "./components/checkbox.css" layer(bit.components);
 @import "./components/radio.css" layer(bit.components);
 @import "./components/textarea.css" layer(bit.components);
+@import "./components/slider.css" layer(bit.components);
 @import "./components/link.css" layer(bit.components);
 @import "./components/code.css" layer(bit.components);
 @import "./components/code-block.css" layer(bit.components);

@@ -1,0 +1,302 @@
+/* Slider: a native <input type="range">, see-through, laid over the parts that draw it, so keys, forms and
+   screen readers are the browser's own. React sets --_bit-slider-fill (0 to 1) on the root, and the fill and
+   thumb read it. square and round draw a track, a fill up to the thumb, and the thumb; blocks draws a framed
+   row of blocks, like a health bar. The ring is drawn on the thumb (or the blocks frame) by system/reset.css,
+   and their hard shadow moves under it (system/focus.css). */
+.bit-slider {
+  --_bit-slider-fill: 0;
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  min-inline-size: 8rem;
+  block-size: var(--_bit-slider-thumb);
+}
+
+/* Thumb and track heights. A track's height is inside its border. */
+.bit-slider.bit-sm {
+  --_bit-slider-thumb: 20px;
+  --_bit-slider-track: 6px;
+  --_bit-slider-block: 12px;
+  --_bit-slider-gap: 3px;
+}
+
+.bit-slider.bit-md {
+  --_bit-slider-thumb: 24px;
+  --_bit-slider-track: 8px;
+  --_bit-slider-block: 16px;
+  --_bit-slider-gap: 4px;
+}
+
+.bit-slider.bit-lg {
+  --_bit-slider-thumb: 28px;
+  --_bit-slider-track: 10px;
+  --_bit-slider-block: 20px;
+  --_bit-slider-gap: 4px;
+}
+
+/* round: a slimmer track and a smaller thumb. */
+.bit-slider.bit-round.bit-sm {
+  --_bit-slider-thumb: 18px;
+  --_bit-slider-track: 4px;
+}
+
+.bit-slider.bit-round.bit-md {
+  --_bit-slider-thumb: 22px;
+  --_bit-slider-track: 6px;
+}
+
+.bit-slider.bit-round.bit-lg {
+  --_bit-slider-thumb: 26px;
+  --_bit-slider-track: 8px;
+}
+
+/* The input covers the slider and takes every click and drag, unseen. */
+.bit-slider__input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  background: transparent;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* The native thumb is the drawn thumb's size, so a click or a drag lands where the drawn one sits. One rule
+   per engine: a selector one browser doesn't know drops the whole rule. */
+.bit-slider__input::-webkit-slider-thumb {
+  appearance: none;
+  width: var(--_bit-slider-thumb);
+  height: var(--_bit-slider-thumb);
+}
+
+.bit-slider__input::-moz-range-thumb {
+  width: var(--_bit-slider-thumb);
+  height: var(--_bit-slider-thumb);
+  border: 0;
+}
+
+.bit-slider__track,
+.bit-slider__fill {
+  position: absolute;
+  inset-block-start: calc(50% - var(--_bit-slider-track) / 2 - var(--bit-border-width));
+  block-size: calc(var(--_bit-slider-track) + 2 * var(--bit-border-width));
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-full);
+  pointer-events: none;
+}
+
+.bit-slider__track {
+  inset-inline: 0;
+  background: var(--bit-color-neutral-soft);
+}
+
+/* The fill runs from the start to the middle of the thumb, in the color role. */
+.bit-slider__fill {
+  inset-inline-start: 0;
+  inline-size: calc(var(--_bit-slider-thumb) / 2 + var(--_bit-slider-fill) * (100% - var(--_bit-slider-thumb)));
+  background: var(--_bit-color);
+}
+
+/* The thumb moves by inset-inline-start, so RTL fills from the right. square: a small button. */
+.bit-slider__thumb {
+  position: absolute;
+  inset-block-start: calc(50% - var(--_bit-slider-thumb) / 2);
+  inset-inline-start: calc(var(--_bit-slider-fill) * (100% - var(--_bit-slider-thumb)));
+  inline-size: var(--_bit-slider-thumb);
+  block-size: var(--_bit-slider-thumb);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-6px);
+  box-shadow: var(--bit-shadow-sm);
+  pointer-events: none;
+  transition:
+    background-color var(--bit-duration-fast),
+    translate var(--bit-duration-fast);
+  --_bit-lift: var(--bit-shadow-sm);
+  --_bit-lift-radius: var(--bit-radius-6px);
+}
+
+/* round: a thumb in the color role. */
+.bit-slider.bit-round .bit-slider__thumb {
+  background: var(--_bit-color);
+  border-radius: var(--bit-radius-full);
+  --_bit-lift-radius: var(--bit-radius-full);
+}
+
+.bit-slider__input:hover:not(:disabled):not([aria-readonly="true"]) ~ .bit-slider__thumb {
+  background: var(--bit-color-neutral-soft);
+}
+
+.bit-slider.bit-round .bit-slider__input:hover:not(:disabled):not([aria-readonly="true"]) ~ .bit-slider__thumb {
+  background: var(--_bit-color-hover);
+}
+
+/* Dragging: the thumb sinks like a pressed button and drops its shadow. */
+.bit-slider__input:active:not(:disabled):not([aria-readonly="true"]) ~ .bit-slider__thumb,
+.bit-slider[data-dragging] .bit-slider__thumb {
+  translate: var(--bit-press-offset) var(--bit-press-offset);
+  box-shadow: none;
+  --_bit-lift: none;
+}
+
+.bit-slider__input:focus-visible ~ .bit-slider__thumb {
+  box-shadow: none;
+}
+
+/* round: the value in a small inverse chip above the thumb, while it is focused or dragged. It sits inside
+   the thumb, so it is hidden from screen readers with it; the input says the value. */
+.bit-slider__bubble {
+  position: absolute;
+  inset-block-end: calc(100% + var(--bit-space-8px));
+  left: 50%;
+  translate: -50% 0;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--bit-radius-6px);
+  background: var(--bit-color-text);
+  color: var(--bit-color-bg);
+  font-family: var(--bit-font-pixel);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity var(--bit-duration-fast);
+}
+
+.bit-slider__bubble[data-open] {
+  opacity: 1;
+}
+
+/* blocks: a health bar. One block per step, lit in the color role up to the value; the block at the value is
+   warning yellow, edged in the line color. Blocks take clicks themselves (Slider.tsx), so a click on a block
+   picks that block; the input below only takes keys. */
+.bit-slider.bit-blocks {
+  block-size: auto;
+}
+
+.bit-slider.bit-blocks .bit-slider__input {
+  pointer-events: none;
+}
+
+.bit-slider__blocks {
+  position: relative;
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: var(--_bit-slider-gap);
+  padding: var(--_bit-slider-gap);
+  background: var(--bit-color-neutral-soft);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-6px);
+  box-shadow: var(--bit-shadow-sm);
+  cursor: pointer;
+  touch-action: pan-y;
+  --_bit-lift: var(--bit-shadow-sm);
+  --_bit-lift-radius: var(--bit-radius-6px);
+}
+
+.bit-slider__input:focus-visible ~ .bit-slider__blocks {
+  box-shadow: none;
+}
+
+/* The transparent border shows only in forced colors, where it outlines each block. */
+.bit-slider__block {
+  block-size: var(--_bit-slider-block);
+  background: var(--bit-color-surface);
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+
+.bit-slider__input:not(:disabled):not([aria-readonly="true"]) ~ .bit-slider__blocks:hover .bit-slider__block:not([data-state]) {
+  background: var(--_bit-color-soft);
+}
+
+.bit-slider__block[data-state="on"] {
+  background: var(--_bit-color);
+}
+
+.bit-slider__block[data-state="current"] {
+  background: var(--bit-color-warning);
+  box-shadow: 0 0 0 2px var(--bit-color-line);
+}
+
+/* states are attributes and pseudo-classes, never classes */
+.bit-slider__input[aria-invalid="true"] ~ :is(.bit-slider__track, .bit-slider__blocks) {
+  border-color: var(--bit-color-danger);
+}
+
+/* Read-only: it shows the value and keeps focus, but can't change. Dashed edges and no shadow, never faded. */
+.bit-slider__input[aria-readonly="true"] ~ :is(.bit-slider__track, .bit-slider__fill, .bit-slider__thumb, .bit-slider__blocks) {
+  border-style: dashed;
+}
+
+.bit-slider__input[aria-readonly="true"] ~ :is(.bit-slider__thumb, .bit-slider__blocks) {
+  box-shadow: none;
+  --_bit-lift: none;
+}
+
+.bit-slider__input[aria-readonly="true"],
+.bit-slider__input[aria-readonly="true"] ~ .bit-slider__blocks {
+  cursor: default;
+}
+
+.bit-slider:has(> .bit-slider__input:disabled) {
+  opacity: 0.5;
+}
+
+.bit-slider__input:disabled,
+.bit-slider__input:disabled ~ .bit-slider__blocks {
+  cursor: not-allowed;
+}
+
+/* Forced colors drop fills and shadows: the fill and the lit blocks take the system highlight, the thumb a
+   button face, the block at the value the text color, and invalid a double edge, since the danger color is
+   replaced too. */
+@media (forced-colors: active) {
+  .bit-slider__fill,
+  .bit-slider__block[data-state="on"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    border-color: CanvasText;
+  }
+
+  .bit-slider__thumb,
+  .bit-slider.bit-round .bit-slider__thumb {
+    forced-color-adjust: none;
+    background: ButtonFace;
+    border-color: ButtonText;
+    box-shadow: none;
+    --_bit-lift: none;
+  }
+
+  .bit-slider__block[data-state="current"] {
+    forced-color-adjust: none;
+    background: CanvasText;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .bit-slider__bubble {
+    border-color: CanvasText;
+  }
+
+  .bit-slider:has(> .bit-slider__input:disabled) :is(.bit-slider__fill, .bit-slider__block[data-state]) {
+    background: GrayText;
+  }
+
+  .bit-slider__input[aria-invalid="true"] ~ :is(.bit-slider__track, .bit-slider__blocks) {
+    border-style: double;
+  }
+}
+
+/* Reduced motion: the thumb changes and the bubble shows at once. */
+@media (prefers-reduced-motion: reduce) {
+  .bit-slider__thumb,
+  .bit-slider__bubble {
+    transition: none;
+  }
+}
