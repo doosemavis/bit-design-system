@@ -1102,6 +1102,11 @@ html {
   margin-top: min(12dvh, 6rem);
 }
 
+/* 100px wider than Dialog's lg (560px), for longer prop types. Dialog's max-width still keeps it inside a phone. */
+.gallery-search.bit-dialog.bit-lg {
+  width: calc(560px + 100px);
+}
+
 /* The results under the query box: a list that scrolls inside the dialog once it is taller than half the window. */
 .gallery-search__results {
   list-style: none;
@@ -1109,7 +1114,8 @@ html {
   padding: 0;
   display: grid;
   gap: var(--bit-space-4px);
-  max-height: min(24rem, 50dvh);
+  /* 100px taller than it started (24rem, or half the window on a short screen), so more results show at once. */
+  max-height: min(calc(24rem + 100px), calc(50dvh + 100px));
   overflow-y: auto;
   /* The list reaches into the dialog body's right padding, so its 14px scrollbar sits on the dialog's edge rather
      than 16px in from it. The 2px left over keeps the results' right edge in line with the search box. */
