@@ -1,4 +1,4 @@
-import { boardBox, drawBanner, drawSprite, fillBoard } from '../draw';
+import { BOARD_INSET, boardBox, drawBanner, drawSprite, fillBoard } from '../draw';
 import type { Size } from '../draw';
 import type { Palette } from '../palette';
 import { CAT, CHEESE, RAT } from '../sprites';
@@ -20,7 +20,7 @@ export function cheeseBanner(state: CheeseState, touch: boolean): string[] {
 export function paintCheese(ctx: CanvasRenderingContext2D, size: Size, palette: Palette, state: CheeseState, touch: boolean): void {
   fillBoard(ctx, size, palette);
   const { maze } = state;
-  const { x, y, cell } = boardBox(size, maze.cols, maze.rows, 3);
+  const { x, y, cell } = boardBox(size, maze.cols, maze.rows, BOARD_INSET);
   const wall = Math.max(2, Math.round(cell / 7));
   const pad = Math.max(1, Math.round(cell / 8));
   const sprite = (p: { x: number; y: number }) => ({ x: x + p.x * cell + pad, y: y + p.y * cell + pad, size: cell - 2 * pad });

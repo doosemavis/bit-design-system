@@ -46,7 +46,7 @@ export function ArcadePanel({ game, onBack }: ArcadePanelProps) {
   };
   return (
     <div className="gallery-arcade" onKeyDown={onKeyDown}>
-      <Stack gap={16}>
+      <Stack gap={16} className="gallery-arcade__stack">
         <Button variant="outline" color="neutral" size="sm" className="gallery-arcade__back" onClick={onBack}>
           <Icon icon={iconArrowBack} size="sm" />
           Back to menu

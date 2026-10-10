@@ -38,6 +38,8 @@ export interface CheeseState {
   readonly seed: number;
   readonly slow: boolean;
   readonly event: CheeseEvent | null;
+  /** The board's height over its width (1 to 3): each new maze is this much taller than wide. */
+  readonly aspect: number;
 }
 
 export const START_LIVES = 3;
@@ -45,12 +47,26 @@ export const CAT_FROM_LEVEL = 4;
 /** Within this many steps (by path) the cat chases; farther off it wanders. */
 export const CAT_SIGHT = 8;
 const MAX_SIZE = 14;
+export const MIN_ASPECT = 1;
+export const MAX_ASPECT = 3;
 
-/** Level 1 is 7 by 7; each level adds a row and a column, up to 14 by 14. */
+/** Level 1 is 7 columns wide; each level adds a column, up to 14. */
 export const mazeSize = (level: number): number => Math.min(6 + level, MAX_SIZE);
 
-/** Seconds for a maze, more for a bigger one: 30s for 7 by 7, 88s for 14 by 14. */
-export const levelMsFor = (size: number): number => Math.round(10 + size * size * 0.4) * 1000;
+/** A level's maze: mazeSize columns, and as many rows as the board's shape calls for (square at aspect 1). */
+export function mazeShape(level: number, aspect: number): { cols: number; rows: number } {
+  const cols = mazeSize(level);
+  return { cols, rows: Math.round(cols * Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, aspect))) };
+}
+
+/** A board's shape, height over width, kept between 1 and 3 and rounded to a tenth so small resizes don't count. */
+export function aspectFor(width: number, height: number): number {
+  if (width <= 0 || height <= 0) return MIN_ASPECT;
+  return Math.round(Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, height / width)) * 10) / 10;
+}
+
+/** Seconds for a maze, more for a bigger one: 30s for 7 by 7 (49 cells), plus 0.4s for each cell more. */
+export const levelMsFor = (cols: number, rows: number = cols): number => Math.round(10 + cols * rows * 0.4) * 1000;
 
 /** The cat's pace: 720ms a step at level 4, 40ms quicker each level, never under 380ms. Slow mode is 1.5 times that. */
 export function catStepMs(level: number, slow = false): number {
@@ -79,17 +95,19 @@ interface Carry {
   readonly gameSeed: number;
   readonly seed: number;
   readonly event: CheeseEvent | null;
+  readonly aspect: number;
 }
 
 /** A fresh maze for `level`, the rat top left, the cheese at the far end of the maze, and the cat from level 4. */
 export function buildLevel(level: number, carry: Carry): CheeseState {
-  const size = mazeSize(level);
-  const maze = generateMaze(size, size, mixSeed(carry.gameSeed, level));
+  const { cols, rows } = mazeShape(level, carry.aspect);
+  const maze = generateMaze(cols, rows, mixSeed(carry.gameSeed, level));
   const start = { x: 0, y: 0 };
   const cheese = farthestCell(maze, start);
   const spawn = level >= CAT_FROM_LEVEL ? catSpawn(maze, start, cheese) : null;
-  const levelMs = levelMsFor(size);
+  const levelMs = levelMsFor(cols, rows);
   return {
+    aspect: carry.aspect,
     lives: carry.lives,
     score: carry.score,
     slow: carry.slow,
@@ -109,8 +127,28 @@ export function buildLevel(level: number, carry: Carry): CheeseState {
   };
 }
 
-export function createCheeseRun({ seed, slow = false, level = 1 }: { seed: number; slow?: boolean; level?: number }): CheeseState {
-  return buildLevel(level, { lives: START_LIVES, score: 0, slow, gameSeed: seed, seed, event: null });
+export function createCheeseRun({
+  seed,
+  slow = false,
+  level = 1,
+  aspect = MIN_ASPECT,
+}: {
+  seed: number;
+  slow?: boolean;
+  level?: number;
+  aspect?: number;
+}): CheeseState {
+  return buildLevel(level, { lives: START_LIVES, score: 0, slow, gameSeed: seed, seed, event: null, aspect });
+}
+
+/**
+ * The board changed shape. A maze nobody has set foot in yet (a new game, or the level after a clear) is
+ * rebuilt in the new shape at once; a maze in play keeps its own, and the next level takes the new shape.
+ */
+export function reshape(state: CheeseState, aspect: number): CheeseState {
+  if (aspect === state.aspect) return state;
+  const untouched = state.status === 'ready' && (state.event === null || state.event.kind === 'cleared');
+  return untouched ? buildLevel(state.level, { ...state, aspect }) : { ...state, aspect };
 }
 
 /**
@@ -200,6 +238,7 @@ export type CheeseAction =
   | { type: 'togglePause' }
   | { type: 'pause' }
   | { type: 'slow'; slow: boolean }
+  | { type: 'shape'; aspect: number }
   | { type: 'restart'; seed: number };
 
 export function cheeseReducer(state: CheeseState, action: CheeseAction): CheeseState {
@@ -214,7 +253,9 @@ export function cheeseReducer(state: CheeseState, action: CheeseAction): CheeseS
       return pause(state);
     case 'slow':
       return state.slow === action.slow ? state : { ...state, slow: action.slow };
+    case 'shape':
+      return reshape(state, action.aspect);
     case 'restart':
-      return createCheeseRun({ seed: action.seed, slow: state.slow });
+      return createCheeseRun({ seed: action.seed, slow: state.slow, aspect: state.aspect });
   }
 }

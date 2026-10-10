@@ -214,3 +214,76 @@ describe('the Arcade on a phone', () => {
     expect(pauseButton(region)).toBeEnabled();
   });
 });
+
+describe('How to play', () => {
+  it('is a closed disclosure under the controls; the board is still described by it while closed', async () => {
+    renderAt('/');
+    const { user, board, region } = await openGame('Cheese Run');
+    const toggle = within(region).getByRole('button', { name: 'How to play' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    const text = within(region).getByText(/Arrow keys or WASD move the rat/);
+    expect(text).not.toBeVisible();
+    expect(board).toHaveAccessibleDescription(/Arrow keys or WASD move the rat a cell at a time to the cheese\./);
+    // It comes after the board and its buttons, so opening it never moves the board.
+    expect(board.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(text).toBeVisible();
+  });
+});
+
+describe('boards that fill the sidebar', () => {
+  /** A ResizeObserver that reports whatever size the test sets, to every board it watches. */
+  function stubResizeObserver() {
+    const watchers = new Set<{ cb: ResizeObserverCallback; el: Element }>();
+    class FakeResizeObserver {
+      private readonly cb: ResizeObserverCallback;
+      constructor(cb: ResizeObserverCallback) {
+        this.cb = cb;
+      }
+      observe(el: Element) {
+        watchers.add({ cb: this.cb, el });
+      }
+      unobserve() {}
+      disconnect() {
+        for (const w of watchers) if (w.cb === this.cb) watchers.delete(w);
+      }
+    }
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    return (width: number, height: number) =>
+      act(() => {
+        for (const { cb, el } of [...watchers]) {
+          if (!el.classList.contains('gallery-game__board')) continue;
+          cb([{ contentRect: { width, height } } as ResizeObserverEntry], {} as ResizeObserver);
+        }
+      });
+  }
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('Snake takes as many rows as the height holds, but a game in play keeps its grid until the next game', async () => {
+    const report = stubResizeObserver();
+    renderAt('/');
+    const { user, board, region } = await openGame('Snake');
+    report(183, 520);
+    expect(board).toHaveAttribute('data-grid', '15x46');
+    await user.keyboard('{ArrowUp}');
+    report(183, 300);
+    expect(board).toHaveAttribute('data-grid', '15x46');
+    expect(pauseButton(region)).toHaveTextContent('Pause');
+    await user.click(within(region).getByRole('button', { name: 'Restart' }));
+    expect(board).toHaveAttribute('data-grid', '15x26');
+  });
+
+  it('Cheese Run’s maze is taller than wide on a tall board, and a resize mid-level waits for the next maze', async () => {
+    const report = stubResizeObserver();
+    renderAt('/');
+    const { user, board, region } = await openGame('Cheese Run');
+    report(183, 520);
+    expect(board).toHaveAttribute('data-grid', '7x20');
+    await user.keyboard('{ArrowRight}{ArrowDown}');
+    report(300, 300);
+    expect(board).toHaveAttribute('data-grid', '7x20');
+    // 7 by 20 is 140 cells: 10s plus 0.4s a cell.
+    expect(within(region).getByText('Time 66')).toBeInTheDocument();
+  });
+});

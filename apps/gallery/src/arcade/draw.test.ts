@@ -48,14 +48,14 @@ describe('boardBox', () => {
 });
 
 describe('banners', () => {
-  it('pick the largest 8px step that fits, in the pixel face, centered', () => {
+  it('pick the largest 8px step that fits (16 at most), in the pixel face, centered', () => {
     const { ctx, calls } = recordingContext();
     drawBanner(ctx, SIZE, PALETTE, ['PAUSED']);
     const text = calls.filter((c) => c.op === 'fillText');
     expect(text).toHaveLength(1);
     expect(text[0]!.args.slice(0, 2)).toEqual(['PAUSED', 90]);
     expect(text[0]!.fillStyle).toBe('text');
-    expect(ctx.font).toBe('24px PixelFace');
+    expect(ctx.font).toBe('16px PixelFace');
   });
 
   it('sit along the bottom when asked, and draw nothing with no lines', () => {

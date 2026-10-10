@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   advance,
+  aspectFor,
   CAT_FROM_LEVEL,
   CAT_SIGHT,
   catStep,
@@ -9,9 +10,11 @@ import {
   clearBonus,
   createCheeseRun,
   levelMsFor,
+  mazeShape,
   mazeSize,
   move,
   pause,
+  reshape,
   START_LIVES,
   togglePause,
 } from './engine';
@@ -203,5 +206,63 @@ describe('cheeseReducer', () => {
     expect(cheeseReducer(slow, { type: 'slow', slow: true })).toBe(slow);
     const fresh = cheeseReducer({ ...slow, score: 500, level: 6 }, { type: 'restart', seed: 2 });
     expect(fresh).toMatchObject({ level: 1, score: 0, slow: true, status: 'ready', lives: START_LIVES });
+  });
+});
+
+describe('Cheese Run on a tall board', () => {
+  it('aspectFor reads the board as height over width, 1 to 3, to a tenth', () => {
+    expect(aspectFor(183, 520)).toBe(2.8);
+    expect(aspectFor(333, 316)).toBe(1);
+    expect(aspectFor(100, 900)).toBe(3);
+    expect(aspectFor(0, 0)).toBe(1);
+  });
+
+  it('mazeShape keeps the per-level growth in columns and stretches the rows to the shape', () => {
+    expect(mazeShape(1, 1)).toEqual({ cols: 7, rows: 7 });
+    expect(mazeShape(1, 2.8)).toEqual({ cols: 7, rows: 20 });
+    expect(mazeShape(8, 3)).toEqual({ cols: 14, rows: 42 });
+    expect(mazeShape(2, 9)).toEqual({ cols: 8, rows: 24 });
+  });
+
+  it('a tall level is a perfect maze with the cheese at its far end, and more cells mean more time', () => {
+    const state = createCheeseRun({ seed: 12, aspect: 2.5 });
+    const { cols, rows } = state.maze;
+    expect([cols, rows]).toEqual([7, 18]);
+    const dist = distancesFrom(state.maze, state.rat);
+    expect(dist.every((d) => d >= 0)).toBe(true);
+    expect(dist[state.cheese.y * cols + state.cheese.x]).toBe(Math.max(...dist));
+    expect(state.levelMs).toBe(levelMsFor(7, 18));
+    expect(levelMsFor(7, 18)).toBeGreaterThan(levelMsFor(7));
+  });
+
+  it('a tall level from 4 puts the cat in a corner of the tall maze, and clearing a level keeps the shape', () => {
+    const state = createCheeseRun({ seed: 3, level: CAT_FROM_LEVEL, aspect: 2 });
+    const { cols, rows } = state.maze;
+    expect(rows).toBe(cols * 2);
+    const corners = [
+      { x: cols - 1, y: 0 },
+      { x: 0, y: rows - 1 },
+      { x: cols - 1, y: rows - 1 },
+    ];
+    expect(corners).toContainEqual(state.cat!.pos);
+    const next = runToCheese(createCheeseRun({ seed: 5, aspect: 2 }));
+    expect([next.maze.cols, next.maze.rows]).toEqual([8, 16]);
+  });
+
+  it('reshapes an untouched maze at once; a maze in play (or after a lost life) keeps its shape until the next level', () => {
+    const fresh = createCheeseRun({ seed: 2 });
+    expect(reshape(fresh, 1)).toBe(fresh);
+    const tall = reshape(fresh, 2);
+    expect(tall.maze.rows).toBe(14);
+    const running = move(tall, 'right');
+    const kept = reshape(running, 3);
+    expect(kept.maze).toBe(running.maze);
+    expect(kept.aspect).toBe(3);
+    const lost = advance(running, running.timeLeftMs);
+    expect(reshape(lost, 1).maze).toBe(lost.maze);
+    const cleared = runToCheese(tall);
+    expect(reshape(cleared, 1).maze.rows).toBe(8);
+    expect(cheeseReducer(running, { type: 'shape', aspect: 2 })).toBe(running);
+    expect(cheeseReducer(kept, { type: 'restart', seed: 4 }).maze.rows).toBe(21);
   });
 });

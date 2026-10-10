@@ -112,6 +112,34 @@ test('forced colors: the board paints in the system Canvas color', async ({ page
   expect(corner).toEqual(system);
 });
 
+/** The board's grid as [columns, rows], from its data-grid. */
+const gridOf = async (board: Locator) => (await board.getAttribute('data-grid'))!.split('x').map(Number) as [number, number];
+
+test('the boards fill the sidebar’s height: taller than wide, and a resize mid-game keeps the grid until the next game', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('#/');
+  const snake = await openGame(page, 'Snake');
+  const box = (await snake.board.boundingBox())!;
+  expect(box.height).toBeGreaterThan(450);
+  expect(box.height).toBeGreaterThan(2 * box.width);
+  await expect.poll(async () => (await gridOf(snake.board))[1]).toBeGreaterThan(40);
+  const before = await gridOf(snake.board);
+  // The instructions are folded away under the controls.
+  await expect(snake.region.getByRole('button', { name: 'How to play' })).toHaveAttribute('aria-expanded', 'false');
+  await page.keyboard.press('ArrowUp');
+  await page.setViewportSize({ width: 1440, height: 800 });
+  await expect.poll(async () => (await snake.board.boundingBox())!.height).toBeLessThan(box.height);
+  expect(await gridOf(snake.board)).toEqual(before);
+  await expect(snake.region.getByRole('button', { name: 'Pause' })).toBeEnabled();
+  await snake.region.getByRole('button', { name: 'Restart' }).click();
+  await expect.poll(async () => (await gridOf(snake.board))[1]).toBeLessThan(before[1]);
+
+  await snake.region.getByRole('button', { name: 'Back to menu' }).click();
+  const cheese = await openGame(page, 'Cheese Run');
+  // At 1440x800 Cheese Run's taller HUD (five badges) leaves a board under twice as tall as wide: a 7 by 13 maze.
+  await expect.poll(async () => (await gridOf(cheese.board))[1]).toBeGreaterThan(1.5 * (await gridOf(cheese.board))[0]);
+});
+
 test.describe('phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 
@@ -129,6 +157,8 @@ test.describe('phone', () => {
       expect(size.width).toBeGreaterThanOrEqual(44);
       expect(size.height).toBeGreaterThanOrEqual(44);
     }
+    // The board takes the sheet's height above the arrows: the whole game fits with nothing to scroll.
+    expect(await region.evaluate((sheet) => sheet.scrollHeight - sheet.clientHeight)).toBeLessThanOrEqual(1);
     await region.getByRole('button', { name: 'Right' }).tap();
     await region.getByRole('button', { name: 'Down' }).tap();
     await expect(region.getByRole('button', { name: 'Pause' })).toBeEnabled();

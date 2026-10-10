@@ -4,9 +4,10 @@ import { GameFrame, useTouchControls } from '../GameFrame';
 import { readBest, saveBest } from '../bestScore';
 import { newSeed } from '../random';
 import { useBoardCanvas } from '../useBoardCanvas';
+import { BOARD_INSET } from '../draw';
 import { useFixedStep } from '../useFixedStep';
 import { useMediaQuery } from '../../ui/useMediaQuery';
-import { createSnake, snakeReducer, stepMs } from './engine';
+import { createSnake, rowsFor, snakeReducer, stepMs } from './engine';
 import { paintSnake } from './draw';
 import { snakeMessage } from './messages';
 
@@ -52,6 +53,8 @@ export default function SnakeGame() {
       slow={slow}
       onSlowChange={setSlowChoice}
       touch={touch}
+      grid={{ cols: state.cols, rows: state.rows }}
+      onBoardSize={({ width, height }) => dispatch({ type: 'resize', rows: rowsFor(width - 2 * BOARD_INSET, height - 2 * BOARD_INSET, state.cols) })}
     />
   );
 }

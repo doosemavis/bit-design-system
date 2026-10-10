@@ -19,10 +19,15 @@ export interface SnakeState {
   readonly status: SnakeStatus;
   /** Where the food goes next comes from this seed, so a game replays exactly. */
   readonly seed: number;
+  /** The rows the board has room for now. A game in play keeps its own; the next one uses these. */
+  readonly nextRows: number;
 }
 
 export const SNAKE_COLS = 15;
 export const SNAKE_ROWS = 15;
+/** The tallest and shortest boards: the sidebar's height decides between them. */
+export const MIN_ROWS = 10;
+export const MAX_ROWS = 48;
 const START_LENGTH = 3;
 const MAX_QUEUE = 2;
 
@@ -39,13 +44,33 @@ export function placeFood(body: readonly Point[], cols: number, rows: number, se
   return { food: free[pick.value]!, seed: pick.seed };
 }
 
+/**
+ * How many rows fit a grid area `width` by `height` pixels with `cols` square, whole-pixel cells across (as the
+ * painter draws them): the board's height follows the space, between MIN_ROWS and MAX_ROWS. An unmeasured board
+ * (0 by 0) gets the square default.
+ */
+export function rowsFor(width: number, height: number, cols = SNAKE_COLS): number {
+  const cell = Math.floor(width / cols);
+  if (cell <= 0 || height <= 0) return SNAKE_ROWS;
+  return Math.min(MAX_ROWS, Math.max(MIN_ROWS, Math.floor(height / cell)));
+}
+
 /** A new game: a three-cell snake in the middle row, heading right, and one piece of food. */
 export function createSnake({ seed, cols = SNAKE_COLS, rows = SNAKE_ROWS }: { seed: number; cols?: number; rows?: number }): SnakeState {
   const y = Math.floor(rows / 2);
   const head = Math.floor(cols / 3) + START_LENGTH - 1;
   const body = Array.from({ length: START_LENGTH }, (_, i) => ({ x: head - i, y }));
   const placed = placeFood(body, cols, rows, seed);
-  return { cols, rows, body, dir: 'right', queue: [], food: placed.food, score: 0, status: 'ready', seed: placed.seed };
+  return { cols, rows, body, dir: 'right', queue: [], food: placed.food, score: 0, status: 'ready', seed: placed.seed, nextRows: rows };
+}
+
+/**
+ * The board has room for `rows` now. A game nobody has started takes them at once; a game in play (or over)
+ * keeps its grid, and the next game gets the new one.
+ */
+export function resize(state: SnakeState, rows: number): SnakeState {
+  if (state.status === 'ready') return rows === state.rows ? state : createSnake({ seed: state.seed, cols: state.cols, rows });
+  return rows === state.nextRows ? state : { ...state, nextRows: rows };
 }
 
 /**
@@ -111,6 +136,7 @@ export type SnakeAction =
   | { type: 'tick' }
   | { type: 'togglePause' }
   | { type: 'pause' }
+  | { type: 'resize'; rows: number }
   | { type: 'restart'; seed: number };
 
 export function snakeReducer(state: SnakeState, action: SnakeAction): SnakeState {
@@ -123,7 +149,9 @@ export function snakeReducer(state: SnakeState, action: SnakeAction): SnakeState
       return togglePause(state);
     case 'pause':
       return pause(state);
+    case 'resize':
+      return resize(state, action.rows);
     case 'restart':
-      return createSnake({ seed: action.seed, cols: state.cols, rows: state.rows });
+      return createSnake({ seed: action.seed, cols: state.cols, rows: state.nextRows });
   }
 }

@@ -1,4 +1,4 @@
-import { boardBox, drawBanner, drawSprite, fillBoard } from '../draw';
+import { BOARD_INSET, boardBox, drawBanner, drawSprite, fillBoard } from '../draw';
 import type { Size } from '../draw';
 import type { Palette } from '../palette';
 import { GEM } from '../sprites';
@@ -24,7 +24,7 @@ const EYES: Readonly<Record<Dir, readonly [number, number, number, number]>> = {
 /** The board: a faint checker, the frame, the gem, the snake (head with eyes), and the banner. */
 export function paintSnake(ctx: CanvasRenderingContext2D, size: Size, palette: Palette, state: SnakeState, touch: boolean): void {
   fillBoard(ctx, size, palette);
-  const { x, y, cell } = boardBox(size, state.cols, state.rows, 3);
+  const { x, y, cell } = boardBox(size, state.cols, state.rows, BOARD_INSET);
   ctx.globalAlpha = 0.07;
   ctx.fillStyle = palette.line;
   for (let row = 0; row < state.rows; row += 1) {

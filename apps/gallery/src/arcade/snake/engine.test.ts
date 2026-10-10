@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSnake, pause, placeFood, snakeReducer, stepMs, tick, togglePause, turn } from './engine';
+import { createSnake, MAX_ROWS, MIN_ROWS, pause, placeFood, resize, rowsFor, SNAKE_ROWS, snakeReducer, stepMs, tick, togglePause, turn } from './engine';
 import type { SnakeState } from './engine';
 import { keyToDir } from '../grid';
 
@@ -140,5 +140,40 @@ describe('keyToDir', () => {
     expect(keyToDir('D')).toBe('right');
     expect(keyToDir('x')).toBeNull();
     expect(keyToDir('Enter')).toBeNull();
+  });
+});
+
+describe('Snake on a tall board', () => {
+  it('rowsFor fits whole-pixel square cells to the height, between the minimum and maximum', () => {
+    expect(rowsFor(180, 520)).toBe(43); // 12px cells
+    expect(rowsFor(177, 514)).toBe(46); // 11px cells
+    expect(rowsFor(180, 60)).toBe(MIN_ROWS);
+    expect(rowsFor(180, 5000)).toBe(MAX_ROWS);
+    expect(rowsFor(0, 0)).toBe(SNAKE_ROWS);
+    expect(rowsFor(10, 400)).toBe(SNAKE_ROWS);
+  });
+
+  it('starts mid-height on a grid with more rows than columns, and dies on the bottom wall, not at row 15', () => {
+    const tall = createSnake({ seed: 4, cols: 15, rows: 40 });
+    expect(tall.body[0]).toEqual({ x: 7, y: 20 });
+    let state = turn(tall, 'down');
+    for (let i = 0; i < 19; i += 1) state = { ...tick(state), food: null };
+    expect(state.status).toBe('running');
+    expect(state.body[0]).toEqual({ x: 7, y: 39 });
+    expect(tick(state).status).toBe('over');
+  });
+
+  it('a game nobody has started takes a new height at once; a game in play keeps its grid until the next game', () => {
+    const ready = createSnake({ seed: 4 });
+    expect(resize(ready, 15)).toBe(ready);
+    const tall = resize(ready, 30);
+    expect([tall.rows, tall.status]).toEqual([30, 'ready']);
+    const running = turn(tall, 'up');
+    const later = resize(running, 20);
+    expect(later.rows).toBe(30);
+    expect(later.nextRows).toBe(20);
+    expect(resize(later, 20)).toBe(later);
+    expect(snakeReducer(later, { type: 'resize', rows: 20 })).toBe(later);
+    expect(snakeReducer(later, { type: 'restart', seed: 1 }).rows).toBe(20);
   });
 });

@@ -14,6 +14,8 @@ describe('generateMaze', () => {
     [10, 10, 42],
     [14, 14, -7],
     [5, 9, 123456],
+    [7, 18, 3],
+    [14, 42, 99],
   ])('%ix%i (seed %i) is a perfect maze: every cell reachable, one path between any two (a tree)', (cols, rows, seed) => {
     const maze = generateMaze(cols, rows, seed);
     expect(maze.cells).toHaveLength(cols * rows);

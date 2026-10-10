@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { FocusEvent, KeyboardEvent, PointerEvent, MouseEvent, ReactNode, RefCallback } from 'react';
 import {
   Button,
@@ -17,6 +17,7 @@ import {
 import type { IconData } from '@bit-ds/react';
 import { keyToDir } from './grid';
 import { NARROW_QUERY, useMediaQuery } from '../ui/useMediaQuery';
+import { Disclosure } from '../ui/Disclosure';
 import type { Dir } from './grid';
 
 export type GameStatus = 'ready' | 'running' | 'paused' | 'over';
@@ -40,6 +41,10 @@ export interface GameFrameProps {
   onSlowChange: (slow: boolean) => void;
   /** Shows the on-screen arrows: a phone, or any touch screen. */
   touch: boolean;
+  /** The grid in play, as columns by rows, for the board's data-grid. */
+  grid: { cols: number; rows: number };
+  /** The board's size in CSS pixels, whenever it changes: the game fits its grid to it. */
+  onBoardSize: (size: { width: number; height: number }) => void;
 }
 
 const PAD: readonly { dir: Dir; label: string; icon: IconData }[] = [
@@ -104,6 +109,22 @@ export function useTouchControls(): boolean {
   return narrow || coarse;
 }
 
+/** Reports the board's content size on mount and on every resize (where ResizeObserver exists). */
+function useBoardSize(board: HTMLElement | null, onSize: (size: { width: number; height: number }) => void): void {
+  const latest = useRef(onSize);
+  useEffect(() => {
+    latest.current = onSize;
+  });
+  useEffect(() => {
+    if (!board || typeof ResizeObserver !== 'function') return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) latest.current({ width: entry.contentRect.width, height: entry.contentRect.height });
+    });
+    observer.observe(board);
+    return () => observer.disconnect();
+  }, [board]);
+}
+
 /** Pause when the tab is hidden. */
 function useHiddenPause(onLeave: () => void): void {
   const latest = useRef(onLeave);
@@ -123,11 +144,17 @@ function useHiddenPause(onLeave: () => void): void {
 export function GameFrame(props: GameFrameProps) {
   const { title, hud, canvasRef, howToMove, message, status, onTogglePause, onRestart, onLeave, slow, onSlowChange, touch } = props;
   const board = useRef<HTMLDivElement>(null);
+  const [boardElement, setBoardElement] = useState<HTMLDivElement | null>(null);
   const helpId = useId();
   useHiddenPause(onLeave);
+  useBoardSize(boardElement, props.onBoardSize);
   useEffect(() => {
     board.current?.focus();
   }, []);
+  const boardRef = (element: HTMLDivElement | null) => {
+    board.current = element;
+    setBoardElement(element);
+  };
 
   const onBlur = (event: FocusEvent<HTMLDivElement>) => {
     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onLeave();
@@ -143,17 +170,18 @@ export function GameFrame(props: GameFrameProps) {
     <Card className="gallery-game" onBlur={onBlur}>
       <CardHeader className="gallery-game__title">{title}</CardHeader>
       <CardBody className="gallery-game__body">
-        <Stack gap={12}>
+        <Stack gap={12} className="gallery-game__stack">
           <Stack direction="row" gap={8} wrap className="gallery-game__hud">
             {hud}
           </Stack>
           <div
-            ref={board}
+            ref={boardRef}
             className="gallery-game__board"
             role="application"
             tabIndex={0}
             aria-label={`${title} board`}
             aria-describedby={helpId}
+            data-grid={`${props.grid.cols}x${props.grid.rows}`}
             onKeyDown={(event) => handleKey(event, props)}
           >
             <canvas ref={canvasRef} className="gallery-game__canvas" aria-hidden="true" />
@@ -170,9 +198,13 @@ export function GameFrame(props: GameFrameProps) {
           <Switch size="sm" checked={slow} onChange={(event) => onSlowChange(event.target.checked)}>
             Slow speed
           </Switch>
-          <Text id={helpId} color="neutral">
-            {`${howToMove} Space or P pauses. Esc pauses, then Esc again goes back.`}
-          </Text>
+          {/* Closed by default and under the controls, so the board gets the height and opening it never moves
+              the board. The text stays in the DOM while closed, so it still describes the board. */}
+          <Disclosure title="How to play">
+            <Text id={helpId} color="neutral">
+              {`${howToMove} Space or P pauses. Esc pauses, then Esc again goes back.`}
+            </Text>
+          </Disclosure>
           <Text role="status" className="gallery-game__status">
             {message}
           </Text>

@@ -6,7 +6,7 @@ import { newSeed } from '../random';
 import { useBoardCanvas } from '../useBoardCanvas';
 import { useFixedStep } from '../useFixedStep';
 import { useMediaQuery } from '../../ui/useMediaQuery';
-import { cheeseReducer, createCheeseRun } from './engine';
+import { aspectFor, cheeseReducer, createCheeseRun } from './engine';
 import { paintCheese } from './draw';
 import { cheeseMessage } from './messages';
 
@@ -62,6 +62,8 @@ export default function CheeseRunGame() {
       slow={state.slow}
       onSlowChange={(slow) => dispatch({ type: 'slow', slow })}
       touch={touch}
+      grid={{ cols: state.maze.cols, rows: state.maze.rows }}
+      onBoardSize={({ width, height }) => dispatch({ type: 'shape', aspect: aspectFor(width, height) })}
     />
   );
 }

@@ -1275,18 +1275,36 @@ html,
   color: var(--bit-color-primary-contrast);
 }
 
+/* While a game is open the panel fills the sidebar's height (the window under the header, or the phone sheet), and
+   the board takes whatever the Back button, HUD, arrows and controls leave: each column below grows into its parent
+   and never shrinks under its content. The game reads the board's size and fits its grid to it. */
+.gallery-arcade {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.gallery-arcade__stack,
+.gallery-game.bit-card,
+.gallery-game__stack {
+  flex: 1 0 auto;
+}
+
 /* The sidebar is narrow: a slim body gives the board the room. */
 .gallery-game__body.bit-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
   padding: var(--bit-space-8px);
 }
 
-/* The board is square and as wide as the card (up to 22rem in the phone sheet), centered. The canvas fills it. */
+/* At least 12rem tall, so a short window still gets a playable board (the sidebar scrolls instead). The canvas sits
+   over the board rather than in its flow, so its own size never feeds back into the measurement. */
 .gallery-game__board {
   position: relative;
   width: 100%;
-  max-width: 22rem;
-  aspect-ratio: 1;
-  margin-inline: auto;
+  flex: 1 0 12rem;
+  min-height: 12rem;
 }
 
 .gallery-game__board:focus-visible {
@@ -1295,6 +1313,8 @@ html,
 }
 
 .gallery-game__canvas {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;

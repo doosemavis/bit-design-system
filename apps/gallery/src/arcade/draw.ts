@@ -5,7 +5,10 @@ export interface Size {
   readonly height: number;
 }
 
-/** A square board of `cols` by `rows` cells, centered in the canvas, on whole pixels. */
+/** The space kept clear around a board's grid, for its frame. */
+export const BOARD_INSET = 3;
+
+/** A board of `cols` by `rows` square cells, centered in the canvas, on whole pixels. */
 export interface BoardBox {
   readonly x: number;
   readonly y: number;
@@ -47,9 +50,12 @@ export function drawSprite(
   });
 }
 
-/** The largest multiple of 8px (the pixel face's own grid) at which every line fits `maxWidth`; at least 8. */
+/** The largest banner text: big enough to read on a phone, small enough to leave most of the board in view. */
+const MAX_BANNER_PX = 16;
+
+/** The largest multiple of 8px (the pixel face's own grid), up to 16, at which every line fits `maxWidth`; at least 8. */
 function fitFont(ctx: CanvasRenderingContext2D, lines: readonly string[], font: string, maxWidth: number): number {
-  for (let px = 24; px > 8; px -= 8) {
+  for (let px = MAX_BANNER_PX; px > 8; px -= 8) {
     ctx.font = `${px}px ${font}`;
     if (lines.every((line) => ctx.measureText(line).width <= maxWidth)) return px;
   }
