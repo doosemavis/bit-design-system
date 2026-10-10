@@ -44,6 +44,36 @@ body {
   outline-offset: var(--bit-focus-ring-offset);
 }
 
+/* A control with a hard shadow: while it has keyboard focus, the shadow moves from under the control to under
+   the ring, so the gap between control and ring shows the background evenly on every side (owner pick A,
+   2026-10-10). The control drops its own shadow (button.css, switch.css), and this ::after, a box exactly the
+   ring's outer edge, casts it instead: an outer box-shadow paints only outside its own box, so the gap stays
+   see-through. Each control sets --_bit-lift (the shadow to move) and --_bit-lift-radius (its corner radius). */
+.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])::after,
+.bit-switch__input:focus-visible + .bit-switch__track::after {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * (var(--bit-border-width) + var(--bit-focus-ring-offset) + var(--bit-focus-ring-width)));
+  border-radius: calc(var(--_bit-lift-radius) + var(--bit-focus-ring-offset) + var(--bit-focus-ring-width));
+  box-shadow: var(--_bit-lift);
+  pointer-events: none;
+}
+
+/* Table's wrapper scrolls, which would clip ::after, so it paints the gap, ring and moved shadow as box-shadow
+   layers. The gap takes the color behind the table: the page, or a Card's surface. The outline stays, transparent,
+   so forced-colors mode (which drops box-shadow) still draws a ring. */
+.bit-table:not(.bit-flat):focus-visible {
+  outline-color: transparent;
+  box-shadow:
+    0 0 0 var(--bit-focus-ring-offset) var(--_bit-focus-gap, var(--bit-color-bg)),
+    0 0 0 calc(var(--bit-focus-ring-offset) + var(--bit-focus-ring-width)) var(--_bit-focus-ring, var(--bit-focus-ring-color)),
+    4px 4px 0 calc(var(--bit-focus-ring-offset) + var(--bit-focus-ring-width)) var(--bit-color-shadow);
+}
+
+.bit-card {
+  --_bit-focus-gap: var(--bit-color-surface);
+}
+
 /* Visually hidden inputs can't show a ring, so the part drawn beside them shows it: the same ring,
    from the same tokens. */
 .bit-switch__input:focus-visible + .bit-switch__track {
@@ -54,6 +84,12 @@ body {
 /* A segment is flush with its neighbours, so its ring sits inside it, 2px in from the edge. */
 .bit-segmented-control__input:focus-visible + .bit-segmented-control__label {
   outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
+  outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);
+}
+
+/* A ModeToggle option is flush with the pill's border, so a ring outside it would sit on that border with no
+   gap. Like a segment, its ring sits inside it, 2px in from the edge, the same gap all round. */
+.bit-mode-toggle__option:focus-visible {
   outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);
 }
 

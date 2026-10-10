@@ -34,4 +34,7 @@
 .bit-mode-toggle__option[aria-pressed="true"] {
   background: var(--bit-color-warning);
   color: var(--bit-color-warning-contrast);
+  /* The ring is drawn inside the option (reset.css), on this fill, so it takes the fill's contrast color:
+     the dark theme's yellow ring would vanish on the yellow fill. */
+  --_bit-focus-ring: var(--bit-color-warning-contrast);
 }

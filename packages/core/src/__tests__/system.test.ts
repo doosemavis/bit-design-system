@@ -281,6 +281,59 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
     );
   });
 
+  // Owner pick A (2026-10-10): on a control with a hard shadow, the shadow moves out under the ring, so the gap
+  // between control and ring is the same on every side instead of filling with shadow at the bottom-right.
+  describe('the shadow moves out under the ring', () => {
+    const lifted = '.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])::after,\n.bit-switch__input:focus-visible + .bit-switch__track::after';
+    const button = readCss('components/button.css');
+    const track = readCss('components/switch.css');
+
+    it("::after is a box exactly the ring's outer edge, casting the control's own shadow and catching no clicks", () => {
+      const body = block(reset, lifted)!;
+      expect(body).not.toBeNull();
+      expect(decl(body, 'content')).toBe('""');
+      expect(decl(body, 'position')).toBe('absolute');
+      expect(decl(body, 'inset')).toBe('calc(-1 * (var(--bit-border-width) + var(--bit-focus-ring-offset) + var(--bit-focus-ring-width)))');
+      expect(decl(body, 'border-radius')).toBe('calc(var(--_bit-lift-radius) + var(--bit-focus-ring-offset) + var(--bit-focus-ring-width))');
+      expect(decl(body, 'box-shadow')).toBe('var(--_bit-lift)');
+      expect(decl(body, 'pointer-events')).toBe('none');
+    });
+
+    it('a focused Button drops its own shadow; the moved one follows hover and press', () => {
+      const focused = block(button, '.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])')!;
+      expect(decl(focused, 'box-shadow')).toBe('none');
+      expect(decl(focused, 'position')).toBe('relative');
+      // After the hover and press rules, at their weight, so a focused, hovered button never shows two shadows.
+      expect(button.indexOf(':focus-visible:not(:disabled)')).toBeGreaterThan(button.indexOf('.bit-button.bit-ghost:active'));
+      // The lift is each variant's own resting shadow.
+      expect(button).toMatch(/\.bit-button \{\s*--_bit-lift: var\(--bit-shadow-md\);\s*--_bit-lift-radius: var\(--bit-radius-10px\);\s*\}/);
+      expect(button).toMatch(/\.bit-button\.bit-outline \{\s*--_bit-lift: 4px 4px 0 var\(--_bit-color-outline-shadow\);\s*\}/);
+      expect(button).toMatch(/\.bit-button\.bit-solid:hover:not\(:disabled\):not\(\[aria-disabled="true"\]\) \{\s*--_bit-lift: var\(--bit-shadow-sm\);\s*\}/);
+      expect(decl(block(button, '.bit-button:is(.bit-solid, .bit-outline):active:not(:disabled):not([aria-disabled="true"])')!, '--_bit-lift')).toBe('none');
+    });
+
+    it("a focused Switch's track drops its shadow, and the moved one is the track's", () => {
+      expect(decl(block(track, '.bit-switch__input:focus-visible + .bit-switch__track')!, 'box-shadow')).toBe('none');
+      expect(track).toContain('--_bit-lift: var(--bit-shadow-sm);');
+      expect(track).toContain('--_bit-lift-radius: var(--bit-radius-full);');
+    });
+
+    it("Table's scrolling wrapper paints gap, ring and moved shadow as box-shadow, keeping a transparent outline for forced colors", () => {
+      const body = block(reset, '.bit-table:not(.bit-flat):focus-visible')!;
+      expect(decl(body, 'outline-color')).toBe('transparent');
+      expect(body).toContain('0 0 0 var(--bit-focus-ring-offset) var(--_bit-focus-gap, var(--bit-color-bg))');
+      expect(body).toContain('4px 4px 0 calc(var(--bit-focus-ring-offset) + var(--bit-focus-ring-width)) var(--bit-color-shadow)');
+      expect(decl(block(reset, '.bit-card')!, '--_bit-focus-gap')).toBe('var(--bit-color-surface)');
+    });
+
+    it("a ModeToggle option's ring sits inside it, on the pressed fill in that fill's contrast color", () => {
+      expect(decl(block(reset, '.bit-mode-toggle__option:focus-visible')!, 'outline-offset')).toBe('calc(-1 * var(--bit-focus-ring-width) - 2px)');
+      expect(block(readCss('components/mode-toggle.css'), '.bit-mode-toggle__option[aria-pressed="true"]')).toContain(
+        '--_bit-focus-ring: var(--bit-color-warning-contrast);',
+      );
+    });
+  });
+
   it('programmatic focus targets (tabindex="-1", e.g. a page heading) show no ring', () => {
     expect(block(reset, ':is(h1, h2, h3, h4, h5, h6, main, section)[tabindex="-1"]:focus')).toContain(
       'outline: none;',

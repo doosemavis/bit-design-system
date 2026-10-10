@@ -72,6 +72,36 @@
   box-shadow: none;
 }
 
+/* Keyboard focus: the shadow moves out from under the button to under the focus ring, so the ring's gap is even
+   all round (reset.css casts it from ::after). --_bit-lift is the shadow to move: it follows hover and press,
+   so the moved shadow lands where the button's own would. These selectors match the hover and press rules'
+   weight and come after them, so a focused button never shows both shadows. */
+.bit-button {
+  --_bit-lift: var(--bit-shadow-md);
+  --_bit-lift-radius: var(--bit-radius-10px);
+}
+
+.bit-button.bit-outline {
+  --_bit-lift: 4px 4px 0 var(--_bit-color-outline-shadow);
+}
+
+.bit-button.bit-solid:hover:not(:disabled):not([aria-disabled="true"]) {
+  --_bit-lift: var(--bit-shadow-sm);
+}
+
+.bit-button.bit-outline:hover:not(:disabled):not([aria-disabled="true"]) {
+  --_bit-lift: 2px 2px 0 var(--_bit-color-outline-shadow);
+}
+
+.bit-button:is(.bit-solid, .bit-outline):active:not(:disabled):not([aria-disabled="true"]) {
+  --_bit-lift: none;
+}
+
+.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"]) {
+  position: relative;
+  box-shadow: none;
+}
+
 /* states are attributes, never classes */
 .bit-button:disabled,
 .bit-button[aria-disabled="true"] {
