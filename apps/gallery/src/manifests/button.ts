@@ -56,14 +56,14 @@ export const button: Manifest = {
         type: 'boolean',
         default: 'false',
         description:
-          'Shows a spinner and sets aria-busy. On a native button it also sets disabled, so it blocks clicks and leaves the Tab order. With asChild it sets aria-disabled, and the link stays focusable.',
+          'Shows a spinner and sets aria-busy and aria-disabled. It blocks clicks, Enter and Space, but the button keeps focus and stays in the Tab order, so a click that starts the work never drops focus to the page.',
       },
       {
         name: 'disabled',
         type: 'boolean',
         default: 'false',
         description:
-          "The native disabled attribute: it can't be clicked or focused. With asChild it becomes aria-disabled instead, because a link has no disabled attribute.",
+          "The native disabled attribute: it can't be clicked or focused. With asChild it becomes aria-disabled instead, because a link has no disabled attribute; clicks, Enter and Space are blocked, so the link isn't followed.",
       },
       {
         name: 'asChild',
@@ -75,7 +75,8 @@ export const button: Manifest = {
     ],
     a11y: [
       'Renders a native <button type="button">, so Enter and Space press it and it never submits a form by surprise.',
-      'loading sets aria-busy. On a native button it also sets disabled, which takes the button out of the Tab order. With asChild it sets aria-disabled instead, and the link stays in the Tab order. The label stays, so screen readers still announce the action.',
+      'loading sets aria-busy and aria-disabled but not disabled, so a focused button keeps focus while it works, and screen readers announce it as busy and unavailable. The label stays, so they still announce the action.',
+      'A disabled or loading Button with asChild stays in the Tab order (aria-disabled), and a click, Enter or Space does nothing: the link is not followed.',
       "The focus ring comes from reset.css, bit's base stylesheet, and nothing removes it.",
       'A Button with only an icon needs an aria-label.',
     ],

@@ -71,7 +71,8 @@ export const TabList = forwardRef<HTMLDivElement, TabListProps>(function TabList
     if (event.defaultPrevented) return;
     const all = enabledTabs();
     const at = all.indexOf(event.target as HTMLButtonElement);
-    const way = direction(event.key, listRef.current!.closest('[dir]')?.getAttribute('dir') === 'rtl');
+    // The computed direction, so CSS `direction: rtl` and `dir="auto"` count as well as a dir attribute.
+    const way = direction(event.key, getComputedStyle(listRef.current!).direction === 'rtl');
     if (at === -1 || !way) return;
     const index = { next: (at + 1) % all.length, previous: (at - 1 + all.length) % all.length, first: 0, last: all.length - 1 }[way];
     const target = all[index]!;

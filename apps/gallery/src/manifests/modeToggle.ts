@@ -5,7 +5,7 @@ export const modeToggle: Manifest = {
   name: 'ModeToggle',
   slug: 'modetoggle',
   group: 'components',
-  related: ['switch', 'segmentedcontrol'],
+  related: ['bittheme', 'switch', 'segmentedcontrol'],
   component: ModeToggle,
   description: 'The light/dark switch. It follows your system until you click, then remembers. Try it: it switches this whole site.',
   controls: [
@@ -17,12 +17,13 @@ export const modeToggle: Manifest = {
     usage: {
       do: [
         'Put one ModeToggle in your header. Every ModeToggle on the page shares one store, so they always agree.',
-        'Set data-mode="system" on <html> so the page follows the visitor\'s OS from the first paint, with no script.',
+        'Start the page in a mode with class="bit-theme-power-up bit-light" (or bit-dark) on <html>; a click writes the other class there and remembers it. The BitTheme page shows every form.',
+        'Or set data-mode="system" on <html> so the page follows the visitor\'s OS from the first paint, with no script, until they pick.',
         "Switch from code: colorMode.set('dark'), colorMode.toggle() or colorMode.set('system'). It works from any file, not just React.",
       ],
       dont: [
         'Build your own light/dark switch beside it. Call useColorMode() when you need the mode in code.',
-        "Use it to switch themes. Light and dark are modes of one theme; themes are separate CSS files.",
+        'Use it to switch themes. power-up is the theme; light and dark are its modes, and other themes are separate CSS files (bit-theme-<name>).',
       ],
     },
     props: [
@@ -43,7 +44,7 @@ export const modeToggle: Manifest = {
     a11y: [
       'A labelled group of two real buttons, Light and Dark; the current one has aria-pressed="true", which screen readers announce as "pressed".',
       'With iconOnly the words go, but each button keeps its name (aria-label Light or Dark), and the icons are hidden from screen readers.',
-      "It follows the visitor's system setting until they click, then remembers their choice.",
+      "It follows the visitor's system setting until they click, then remembers their choice and writes bit-light or bit-dark (and data-mode) on <html>.",
     ],
   },
   interactive: true,

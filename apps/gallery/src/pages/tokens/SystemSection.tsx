@@ -25,12 +25,12 @@ function Swatch({ token }: { token: string }) {
   return <span className="gallery-swatch" style={{ background: `var(${token})` }} />;
 }
 
-/** Everything else a theme sets: motion, two text colors, the logo, and the code syntax colors. */
+/** Everything else: motion, two text colors, the logo's fixed colors (the same in every theme), and the code syntax colors. */
 export function SystemSection({ values }: { values: TokenValues }) {
   const value = (token: string) => values.values.get(token) ?? '';
   return (
     <Stack gap={12}>
-      <SectionLead>Everything else a theme sets: motion, two text colors, the logo, and code syntax.</SectionLead>
+      <SectionLead>Everything else: motion, two text colors, code syntax, and the logo's colors, which are the same in every theme.</SectionLead>
       <TokenGrid>
         <TokenCard name="motion">
           <TokenRows>

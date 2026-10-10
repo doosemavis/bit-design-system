@@ -57,6 +57,7 @@ export const select: Manifest = {
     { kind: 'text', prop: 'aria-label', default: 'Color', label: 'aria-label' },
     { kind: 'text', prop: 'placeholder', default: 'Pick colors', alwaysPrint: true },
     { kind: 'boolean', prop: 'invalid', default: false },
+    { kind: 'boolean', prop: 'readOnly', default: false },
     { kind: 'boolean', prop: 'disabled', default: false },
   ],
   deriveProps: (state) => ({
@@ -148,6 +149,13 @@ export const select: Manifest = {
         description: 'Marks the choice wrong: aria-invalid="true" (a flag that tells screen readers the choice is wrong) and a danger border.',
       },
       {
+        name: 'readOnly',
+        type: 'boolean',
+        default: 'false',
+        description:
+          'Shows the choice at full strength, stays in the Tab order and submits it, but never opens, so it cannot change. Rendered as aria-readonly, with a dashed edge and no chevron. Like a read-only native input, it is not checked for required.',
+      },
+      {
         name: 'disabled',
         type: 'boolean',
         default: 'false',
@@ -162,6 +170,7 @@ export const select: Manifest = {
       'Enter or Space chooses the active option and closes the list; Alt+ArrowUp chooses the active option and closes it too. Escape closes it without choosing. Tab chooses the active option, closes the list and moves on.',
       'Screen readers announce the combobox by its name (the Field label, or aria-label), then the chosen option, and read each option as it becomes active. The list takes the same name.',
       "Inside a Field it takes the Field's id, hint and error.",
+      'readOnly sets aria-readonly, so screen readers say the choice can be read but not changed; it keeps focus, unlike disabled.',
       "A required Select that is empty blocks the form's submit like a native one: the browser shows its own message at the Select and focus moves to it. Escape closes only the list, not a dialog around it, and the list closes when focus leaves.",
       'In forced-colors mode (Windows high contrast), the active option is ringed in the system highlight color and the chosen option is filled with it, so the two never look alike. An invalid select shows a thick 10px start edge instead of the red border. With multiple, the checkbox is drawn in system colors and fills with the highlight color when chosen.',
       'With multiple, the list is marked aria-multiselectable and each option says whether it is chosen. Enter, Space or a click toggles the active option and the list stays open; Escape, Tab, Alt+ArrowUp or a click outside closes it without changing anything.',

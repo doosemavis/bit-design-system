@@ -24,6 +24,13 @@
   border-color: var(--bit-color-danger);
 }
 
+/* Read-only: readable and selectable at full strength, but plainly not editable: a dashed edge, no recess. */
+.bit-input[readonly] {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+}
+
 .bit-input:disabled {
   opacity: 0.5;
   cursor: not-allowed;

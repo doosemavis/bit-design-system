@@ -37,6 +37,8 @@ const componentNames = Object.keys(lib).filter(
  */
 const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
   Input: { children: undefined },
+  Textarea: { children: undefined },
+  RadioGroup: { legend: 'x', options: [{ value: 'x', label: 'x' }], children: undefined },
   Icon: { icon: lib.iconFavorite, children: undefined },
   IconButton: { icon: lib.iconDelete, label: 'x', children: undefined },
   Tooltip: { content: 'x', children: <button type="button">x</button> },
@@ -66,6 +68,7 @@ const PARENTS: Record<string, { wrap: (part: ReactElement) => ReactElement; root
   TabList: { wrap: (part) => <lib.Tabs>{part}</lib.Tabs>, root: '[role="tablist"]' },
   Tab: { wrap: (part) => <lib.Tabs><lib.TabList aria-label="x">{part}</lib.TabList></lib.Tabs>, root: '[role="tab"]' },
   TabPanel: { wrap: (part) => <lib.Tabs>{part}</lib.Tabs>, root: '[role="tabpanel"]' },
+  Radio: { wrap: (part) => <lib.RadioGroup legend="x">{part}</lib.RadioGroup>, root: '.bit-radio' },
 };
 
 /**
@@ -74,6 +77,10 @@ const PARENTS: Record<string, { wrap: (part: ReactElement) => ReactElement; root
  */
 const ROOT_CLASS_OVERRIDES: Record<string, string> = {
   Table: 'bit-table',
+  // Radio starts RadioGroup's name, but the group is its own block (bit-radio-group) and Radio its own (bit-radio).
+  RadioGroup: 'bit-radio-group',
+  // Text starts Textarea's name, but a Textarea is not a part of Text.
+  Textarea: 'bit-textarea',
   IconButton: 'bit-iconButton',
   Tabs: 'bit-tabs',
   TabList: 'bit-tabs__list',
@@ -99,11 +106,12 @@ describe('public index', () => {
     expect(componentNames.sort()).toEqual(
       [
         'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
-        'Field', 'Input', 'Select', 'Switch', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
+        'Field', 'Input', 'Select', 'Switch', 'Checkbox', 'RadioGroup', 'Radio', 'Textarea', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
         'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
         'Tabs', 'TabList', 'Tab', 'TabPanel',
         'Heading', 'Box', 'Icon', 'IconButton', 'Tooltip',
         'Dialog', 'DialogHeader', 'DialogBody', 'DialogFooter', 'DialogClose',
+        'BitTheme',
       ].sort(),
     );
   });
@@ -132,11 +140,16 @@ describe('public index', () => {
     expect(lib.HEADING_SIZES.map(lib.headingTag)).toEqual(['h6', 'h5', 'h4', 'h3', 'h3', 'h3', 'h2', 'h2', 'h2', 'h2', 'h1', 'h1', 'h1']);
   });
 
-  it('exports SEMANTIC_TOKENS, the 114 tier-2 token names every theme declares, from @bit-ds/core', () => {
-    expect(lib.SEMANTIC_TOKENS).toHaveLength(114);
+  it('exports SEMANTIC_TOKENS, the 109 tier-2 token names every theme declares, from @bit-ds/core', () => {
+    expect(lib.SEMANTIC_TOKENS).toHaveLength(109);
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-color-primary');
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-space-64px');
     expect(lib.SEMANTIC_TOKENS.every((name) => name.startsWith('--bit-'))).toBe(true);
+  });
+
+  it('exports BRAND_TOKENS, the five logo colors styles.css declares once for every theme', () => {
+    expect(lib.BRAND_TOKENS).toEqual(['--bit-logo-coin', '--bit-logo-coin-light', '--bit-logo-coin-shade', '--bit-logo-coin-deep', '--bit-logo-violet']);
+    expect(lib.BRAND_TOKENS.some((name) => lib.SEMANTIC_TOKENS.includes(name))).toBe(false);
   });
 
   it.each(componentNames.filter((name) => !BUTTON_ALIASES.includes(name)))('%s renders the root class the naming rule predicts', (name) => {

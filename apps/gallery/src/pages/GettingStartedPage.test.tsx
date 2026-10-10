@@ -77,6 +77,7 @@ describe('GettingStartedPage', () => {
       '2. Then use your component like any other, for example in src/App.tsx:',
       'In index.html',
       'In any file',
+      'For part of the page',
     ]);
   });
 
@@ -251,7 +252,7 @@ describe('GettingStartedPage', () => {
     it('has the help text and a live ModeToggle in a start-aligned Stack', async () => {
       await open();
       expect(
-        within(main()).getByText(/^Pick the default in your .*, then switch it from anywhere with .*\. Try the toggle\.$/),
+        within(main()).getByText(/^Pick the default in your .*, then switch it from anywhere with .*\. Try the toggle\. .*gives one part of the page its own mode\.$/),
       ).toBeInTheDocument();
       const toggle = within(main()).getByRole('group', { name: 'Color mode' });
       expect(toggle.parentElement).toHaveClass('bit-stack');
@@ -261,7 +262,13 @@ describe('GettingStartedPage', () => {
     it('shows the index.html line and the colorMode snippet', async () => {
       await open();
       expect(screen.getByRole('region', { name: 'index.html' }).textContent).toBe(
-        '<html lang="en" data-mode="system">  <!-- or "light" / "dark" -->',
+        [
+          '<!-- Name the theme and the mode -->',
+          '<html lang="en" class="bit-theme-power-up bit-light">  <!-- or bit-dark -->',
+          '',
+          "<!-- Or follow the visitor's OS until they pick -->",
+          '<html lang="en" class="bit-theme-power-up" data-mode="system">',
+        ].join('\n'),
       );
       expect(screen.getByRole('region', { name: 'Any file' }).textContent).toBe(
         [
@@ -279,12 +286,25 @@ describe('GettingStartedPage', () => {
       for (const [caption, region, code] of [
         ['In index.html', 'index.html', 'index.html'],
         ['In any file', 'Any file', null],
+        ['For part of the page', 'Part of the page', null],
       ] as const) {
         const text = subheading(caption);
         expect(text).toHaveClass('bit-text');
         if (code) expect(within(text).getByText(code)).toHaveClass('bit-code');
         expect(text.nextElementSibling!.contains(screen.getByRole('region', { name: region }))).toBe(true);
       }
+    });
+
+    it('shows BitTheme for part of the page, with a live dark sample and a note on painting the background', async () => {
+      await open();
+      expect(screen.getByRole('region', { name: 'Part of the page' }).textContent).toContain('<BitTheme mode="dark">');
+      const sample = main().querySelector('.bit-theme')!;
+      expect(sample).toHaveClass('bit-theme', 'bit-dark');
+      expect(within(sample as HTMLElement).getByRole('button', { name: 'Save' })).toBeInTheDocument();
+      const note = within(main()).getByRole('note');
+      expect(note).toHaveClass('bit-alert', 'bit-primary', 'bit-outline');
+      expect(note).toHaveTextContent('paints its own background');
+      expect(within(note).getByRole('link', { name: 'BitTheme page' })).toHaveAttribute('href', expect.stringContaining('/components/bittheme'));
     });
 
     it('the optional disclosure starts closed, then opens to the snippet and the COLOR_MODE_SCRIPT note', async () => {

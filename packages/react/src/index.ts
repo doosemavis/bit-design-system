@@ -1,4 +1,4 @@
-export { PREFIX, SEMANTIC_TOKENS } from '@bit-ds/core/tokens';
+export { PREFIX, SEMANTIC_TOKENS, BRAND_TOKENS } from '@bit-ds/core/tokens';
 export { COLORS, SIZES, TEXT_SIZES, DEPRECATED_TEXT_SIZES, HEADING_SIZES, SPACE_STEPS, VARIANTS, headingTag } from './system/axes';
 export type { Color, Size, TextSize, DeprecatedTextSize, HeadingTag, SpaceStep, Variant } from './system/axes';
 
@@ -48,6 +48,15 @@ export type { SelectProps, SelectMultipleProps, SelectOption } from './component
 export { Switch } from './components/Switch/Switch';
 export type { SwitchProps } from './components/Switch/Switch';
 
+export { Checkbox } from './components/Checkbox/Checkbox';
+export type { CheckboxProps } from './components/Checkbox/Checkbox';
+
+export { RadioGroup, Radio } from './components/RadioGroup/RadioGroup';
+export type { RadioGroupProps, RadioProps, RadioOption } from './components/RadioGroup/RadioGroup';
+
+export { Textarea } from './components/Textarea/Textarea';
+export type { TextareaProps } from './components/Textarea/Textarea';
+
 export { Link } from './components/Link/Link';
 export type { LinkProps } from './components/Link/Link';
 
@@ -79,6 +88,9 @@ export { BitLogo } from './logo/BitLogo';
 export type { BitLogoProps } from './logo/BitLogo';
 export { ERAS, LOGO_ERA_STORAGE_KEY } from './logo/logoEra';
 export type { Era } from './logo/logoEra';
+
+export { BitTheme } from './components/BitTheme/BitTheme';
+export type { BitThemeProps } from './components/BitTheme/BitTheme';
 
 export { colorMode, ColorModeService, useColorMode, COLOR_MODES, COLOR_MODE_STORAGE_KEY, COLOR_MODE_SCRIPT } from './mode/colorMode';
 export type { ColorMode, ColorModePreference } from './mode/colorMode';

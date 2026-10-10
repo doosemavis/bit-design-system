@@ -27,6 +27,9 @@ test('buildIcons writes one const and one CSS rule per icon, and groups in list 
   assert.match(css, /Material Symbols Sharp 700 \(@material-symbols\/svg-700 0\.47\.6\), Apache License 2\.0/);
   const rule = /^\.bit-icon-[a-z0-9-]+\{--_bit-icon:url\("data:image\/svg\+xml,[^"]+"\);--_bit-icon-fill:url\("data:image\/svg\+xml,[^"]+"\)\}$/gm;
   assert.equal((css.match(rule) ?? []).length, 2);
+  // Layered like styles.css, with the same order statement first, so it holds whichever file loads first.
+  assert.match(css, /\n@layer bit\.reset, bit\.tokens, bit\.components;\n@layer bit\.components \{\n\.bit-icon-add\{/);
+  assert.match(css, /\}\n\}\n$/);
   assert.doesNotMatch(ts, /Fill\b|-fill'/);
   assert.doesNotMatch(css, /\.bit-icon-[a-z0-9-]*-fill\{/);
 });

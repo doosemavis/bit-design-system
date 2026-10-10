@@ -15,6 +15,14 @@ html {
   scroll-padding-top: calc(var(--_gallery-header-height) + var(--bit-space-16px));
 }
 
+/* Thin scrollbars on the page and the gallery's own scroll areas. bit sets them only on its own components. The
+   sidebar shows none (below). */
+html,
+.gallery-presets,
+.gallery-search__results {
+  scrollbar-width: thin;
+}
+
 /* ---------- shell ---------- */
 /* The header stays at the top while the page scrolls, and the sidebar beside main stays put too, scrolling its
    own list (as tall as the window under the header). */
@@ -562,7 +570,8 @@ html {
     border: 3px solid transparent;
     border-radius: var(--bit-radius-10px);
   }
-  /* reset.css sets the standard scrollbar-color and scrollbar-width, which Chrome 121+ lets override ::-webkit-scrollbar.
+  /* bit's reset.css sets the standard scrollbar-color and the rule above sets scrollbar-width, which Chrome 121+ lets
+     override ::-webkit-scrollbar.
      Where the pseudo-elements work, hand the scrollbar back to them. */
   @supports selector(::-webkit-scrollbar) {
     .gallery-presets, .gallery-search__results { scrollbar-color: auto; scrollbar-width: auto; }

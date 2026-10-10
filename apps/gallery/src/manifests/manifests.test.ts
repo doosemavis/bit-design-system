@@ -309,7 +309,7 @@ describe('manifest contract', () => {
     for (const m of MANIFESTS) {
       if (m.docs.emptyChildrenError !== undefined) expect(typeof m.children, m.name).toBe('string');
     }
-    expect(MANIFESTS.filter((m) => m.docs.emptyChildrenError).map((m) => m.name)).toEqual(['Button', 'Link', 'Switch']);
+    expect(MANIFESTS.filter((m) => m.docs.emptyChildrenError).map((m) => m.name)).toEqual(['Button', 'Link', 'Checkbox', 'Switch']);
   });
 
   it('Button\'s empty-children error is the §E text', () => {
@@ -377,7 +377,7 @@ describe('manifest contract', () => {
   });
 
   it('the form controls are in the forms group', () => {
-    expect(MANIFESTS.filter((m) => m.group === 'forms').map((m) => m.name)).toEqual(['Field', 'Input', 'Select', 'Switch']);
+    expect(MANIFESTS.filter((m) => m.group === 'forms').map((m) => m.name)).toEqual(['Field', 'Input', 'Textarea', 'Select', 'Checkbox', 'RadioGroup', 'Switch']);
   });
 
   it('isHtmlElement follows JSX: lowercase is an HTML tag, PascalCase is a component', () => {

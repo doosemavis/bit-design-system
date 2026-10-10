@@ -1,0 +1,50 @@
+/* Textarea: Input's recessed look over several lines. It grows only when someone drags its corner, and only
+   downward. Text size and side padding from .bit-{size}; a size's single-line height is its minimum. */
+.bit-textarea {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: var(--_bit-size-height);
+  padding: var(--bit-space-8px) var(--_bit-size-padding);
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-normal);
+  line-height: var(--bit-leading-normal);
+  color: var(--bit-color-text);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+  box-shadow: var(--bit-shadow-inset);
+  resize: vertical;
+}
+
+.bit-textarea::placeholder {
+  color: var(--bit-color-text-muted);
+  opacity: 1;
+}
+
+/* states are attributes, never classes */
+.bit-textarea[aria-invalid="true"] {
+  border-color: var(--bit-color-danger);
+}
+
+/* Read-only: readable and selectable at full strength, but plainly not editable: a dashed edge, no recess. */
+.bit-textarea[readonly] {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+  resize: none;
+}
+
+.bit-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  resize: none;
+}
+
+/* Forced colours replace the danger border with the system text colour, so invalid needs a shape. */
+@media (forced-colors: active) {
+  .bit-textarea[aria-invalid="true"] {
+    border-inline-start-width: 10px;
+  }
+}

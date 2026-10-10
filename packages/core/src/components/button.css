@@ -97,7 +97,9 @@
   --_bit-lift: none;
 }
 
-.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"]) {
+/* A loading button (aria-disabled) keeps focus, so its shadow moves too. Hover and press skip it. */
+.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"]),
+.bit-button:is(.bit-solid, .bit-outline)[aria-disabled="true"]:focus-visible {
   position: relative;
   box-shadow: none;
 }
@@ -123,4 +125,35 @@
   border-right-color: transparent;
   border-radius: var(--bit-radius-full);
   animation: bit-spin 0.7s linear infinite;
+}
+
+/* Forced colors drop fills and shadows, which would leave solid and outline alike. Solid keeps a fill by
+   swapping the system button colors; outline and ghost take the system defaults (ghost has no border). */
+@media (forced-colors: active) {
+  .bit-button.bit-solid {
+    forced-color-adjust: none;
+    background: ButtonText;
+    color: ButtonFace;
+    border-color: ButtonText;
+    box-shadow: none;
+    --_bit-lift: none;
+    --_bit-focus-ring: Highlight;
+  }
+
+  .bit-button.bit-solid:disabled,
+  .bit-button.bit-solid[aria-disabled="true"] {
+    background: GrayText;
+    border-color: GrayText;
+  }
+}
+
+/* Reduced motion: hover and press change at once, and the loading arc stands still. */
+@media (prefers-reduced-motion: reduce) {
+  .bit-button {
+    transition: none;
+  }
+
+  .bit-button[data-loading]::before {
+    animation: none;
+  }
 }

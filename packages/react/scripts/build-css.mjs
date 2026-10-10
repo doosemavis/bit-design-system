@@ -4,10 +4,11 @@
 // Each theme's fonts are self-hosted: every url("./fonts/<file>.woff2") a theme names is copied from its
 // @fontsource devDependency into dist/themes/fonts/, with that family's SIL OFL 1.1 license as OFL-<id>.txt.
 import { build } from 'esbuild';
-import { copyFileSync, cpSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
+import { copyFileSync, cpSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withSystemMode } from './system-mode.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const coreSrc = resolve(here, '../../core/src');
@@ -21,9 +22,14 @@ await build({
   logLevel: 'info',
 });
 
+// Each theme ships with its system-mode copy of the dark block (system-mode.mjs), which the source leaves out.
 mkdirSync(resolve(dist, 'themes'), { recursive: true });
 cpSync(resolve(coreSrc, 'themes'), resolve(dist, 'themes'), { recursive: true });
-console.log('copied themes to dist/themes');
+for (const file of readdirSync(resolve(dist, 'themes')).filter((f) => f.endsWith('.css'))) {
+  const path = resolve(dist, 'themes', file);
+  writeFileSync(path, withSystemMode(readFileSync(path, 'utf8')));
+}
+console.log('copied themes to dist/themes, each with its data-mode="system" dark-OS block');
 
 // Icons: the opt-in class form ships as its own stylesheet, never inside styles.css. The artwork's
 // Apache 2.0 licence travels with it, as the fonts' OFL does.

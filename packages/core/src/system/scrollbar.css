@@ -4,6 +4,16 @@
    The transparent border slims the thumb, leaving an even strip of track around it, yet stays part of the
    grab area. The thumb does not change on hover, so the bar never looks bigger.
    Forced colors draw their own scrollbars, so none of this applies there. */
+/* scrollbar-width does not inherit, so each of bit's scroll areas (the four above and a Dialog's body) sets it.
+   bit never sets it anywhere else: your page's own scrollbars are yours. */
+.bit-code__pre,
+.bit-table,
+.bit-select__list,
+.bit-tabs__list,
+.bit-dialog__body {
+  scrollbar-width: thin;
+}
+
 @media not (forced-colors: active) {
   .bit-code__pre { --_bit-scroll-track: var(--bit-code-bg); }
   .bit-table,
@@ -31,7 +41,7 @@
     border-radius: var(--bit-radius-10px);
   }
 
-  /* reset.css sets the standard scrollbar-color and scrollbar-width, which Chrome 121+ lets override ::-webkit-scrollbar.
+  /* The standard scrollbar-color (from reset.css) and scrollbar-width (above), which Chrome 121+ lets override ::-webkit-scrollbar.
      Where the pseudo-elements work, hand the scrollbar back to them. */
   @supports selector(::-webkit-scrollbar) {
     .bit-code__pre,

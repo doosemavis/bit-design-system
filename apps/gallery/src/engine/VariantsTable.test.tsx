@@ -26,7 +26,7 @@ describe('VariantsTable', () => {
     const { container } = render(
       <VariantsTable manifest={button} axes={variantAxes(button)!} state={{ ...defaultState(button), size: 'lg', children: 'Go' }} />,
     );
-    const table = screen.getByRole('region', { name: 'Button variants' });
+    const table = screen.getByRole('table', { name: 'Button variants' });
     const cells = within(table).getAllByRole('button', { name: 'Go' });
     expect(cells).toHaveLength(5 * 3);
     expect(cells.every((c) => c.classList.contains('bit-lg'))).toBe(true);

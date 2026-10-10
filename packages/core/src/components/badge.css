@@ -59,3 +59,14 @@
 .bit-badge.bit-flat.bit-outline {
   box-shadow: none;
 }
+
+/* Forced colors drop the fill, so a solid badge swaps the system text and page colors; outline keeps its border. */
+@media (forced-colors: active) {
+  .bit-badge.bit-solid {
+    forced-color-adjust: none;
+    background: CanvasText;
+    color: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+}

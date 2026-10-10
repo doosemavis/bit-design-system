@@ -66,6 +66,11 @@ describe('parseColorFlows', () => {
     expect([...flowTokens(flows)]).toEqual(['--bit-color-bg', '--bit-color-primary', '--bit-color-accent', '--bit-code-text']);
   });
 
+  it('reads a theme whose rules sit in an @layer block, as the shipped themes do', () => {
+    const layered = `@layer bit.reset, bit.tokens, bit.components;\n@layer bit.tokens {\n${FIXTURE}\n}`;
+    expect(parseColorFlows(layered)).toEqual(flows);
+  });
+
   it('returns null when there is no theme to read (an empty string, or no light or dark block)', () => {
     expect(parseColorFlows('')).toBeNull();
     expect(parseColorFlows(':root { --bit-palette-a: #000000; }')).toBeNull();

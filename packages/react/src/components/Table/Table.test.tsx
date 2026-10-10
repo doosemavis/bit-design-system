@@ -156,22 +156,23 @@ describe('Table', () => {
     expect(container.firstElementChild).not.toHaveAttribute('role');
   });
 
-  it('aria-label makes the wrapper a region with that name, and names the table too', () => {
-    render(<PropsTable aria-label="Button props" />);
-    const region = screen.getByRole('region', { name: 'Button props' });
-    expect(region).toHaveClass('bit-table');
+  it('aria-label names the table while it fits, and the wrapper stays plain, so the name is read once', () => {
+    const { container } = render(<PropsTable aria-label="Button props" />);
     expect(screen.getByRole('table', { name: 'Button props' })).toBeInTheDocument();
+    expect(screen.queryByRole('region')).toBeNull();
+    expect(container.firstElementChild).not.toHaveAttribute('aria-label');
   });
 
   it('aria-labelledby does the same', () => {
-    render(
+    const { container } = render(
       <>
         <h2 id="props-heading">Props</h2>
         <PropsTable aria-labelledby="props-heading" />
       </>,
     );
-    expect(screen.getByRole('region', { name: 'Props' })).toHaveClass('bit-table');
     expect(screen.getByRole('table', { name: 'Props' })).toBeInTheDocument();
+    expect(screen.queryByRole('region')).toBeNull();
+    expect(container.querySelector('.bit-table')).not.toHaveAttribute('aria-labelledby');
   });
 
   it('rejects the legacy DOM color attribute on every part', () => {
@@ -255,7 +256,7 @@ describe('Table: Tab stop only when it scrolls', () => {
     expect(wrapper).not.toHaveAttribute('tabindex');
   });
 
-  it('a labelled table that overflows is focusable and a named region', () => {
+  it('a labelled table that overflows is focusable and a named region, and the table drops the name', () => {
     const { container } = render(<Table aria-label="Tokens"><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
     const wrapper = wrapperOf(container);
     setWidths(wrapper, 900, 300);
@@ -263,6 +264,8 @@ describe('Table: Tab stop only when it scrolls', () => {
     expect(wrapper).toHaveAttribute('tabindex', '0');
     expect(wrapper).toHaveAttribute('role', 'region');
     expect(wrapper).toHaveAccessibleName('Tokens');
+    expect(screen.getByRole('table')).not.toHaveAttribute('aria-label');
+    expect(screen.getByRole('table')).toHaveAccessibleName('');
   });
 
   it('an aria-labelledby table that overflows is focusable and a named region', () => {
@@ -277,16 +280,32 @@ describe('Table: Tab stop only when it scrolls', () => {
     act(() => observed!([], {} as ResizeObserver));
     expect(wrapper).toHaveAttribute('tabindex', '0');
     expect(screen.getByRole('region', { name: 'Token list' })).toBe(wrapper);
+    expect(screen.getByRole('table')).not.toHaveAttribute('aria-labelledby');
   });
 
-  it('a labelled table is always a named region, focusable only when it scrolls', () => {
+  it('the name moves to the region when the table starts to scroll, and back to the table when it fits', () => {
     const { container } = render(<Table aria-label="Tokens"><TableBody><TableRow><TableCell>a</TableCell></TableRow></TableBody></Table>);
     const wrapper = wrapperOf(container);
     setWidths(wrapper, 300, 300);
     act(() => observed!([], {} as ResizeObserver));
-    expect(wrapper).toHaveAttribute('role', 'region');
-    expect(wrapper).toHaveAccessibleName('Tokens');
+    expect(wrapper).not.toHaveAttribute('role');
     expect(wrapper).not.toHaveAttribute('tabindex');
+    expect(screen.getByRole('table', { name: 'Tokens' })).toBeInTheDocument();
+    setWidths(wrapper, 900, 300);
+    act(() => observed!([], {} as ResizeObserver));
+    expect(screen.getByRole('region', { name: 'Tokens' })).toBe(wrapper);
+    expect(screen.getByRole('table')).toHaveAccessibleName('');
+    setWidths(wrapper, 300, 300);
+    act(() => observed!([], {} as ResizeObserver));
+    expect(screen.queryByRole('region')).toBeNull();
+    expect(screen.getByRole('table', { name: 'Tokens' })).toBeInTheDocument();
+  });
+
+  it('a scrolling labelled table has no accessibility violations', async () => {
+    const { container } = render(<PropsTable aria-label="Button props" />);
+    setWidths(wrapperOf(container), 900, 300);
+    act(() => observed!([], {} as ResizeObserver));
+    await expectNoA11yViolations(container);
   });
 
   it('without ResizeObserver it measures once on mount', () => {

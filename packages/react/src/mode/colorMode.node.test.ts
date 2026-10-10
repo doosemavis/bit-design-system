@@ -31,7 +31,7 @@ describe('colorMode without a window (SSR, node)', () => {
     colorMode.onChange(listener);
     // A window appears later (for example after hydration). The listener from the server must not fire.
     vi.stubGlobal('window', { localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} } });
-    vi.stubGlobal('document', { documentElement: { dataset: {} } });
+    vi.stubGlobal('document', { documentElement: { dataset: {}, classList: { contains: () => false, toggle: () => false } } });
     colorMode.set('dark');
     expect(colorMode.mode).toBe('dark');
     expect(listener).not.toHaveBeenCalled();

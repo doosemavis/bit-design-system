@@ -43,7 +43,7 @@ const BUILT_IN: readonly { title: string; body: ReactNode }[] = [
   },
   {
     title: 'Reduced motion',
-    body: "With Reduce motion on, bit's stylesheet stops CSS animations and transitions across the page: Dialog, Tabs, Select, Tooltip and Spinner change at once.",
+    body: "With Reduce motion on, bit's components stop their own motion: Dialog, Tabs, Select, Tooltip, Spinner, Switch and Button change at once. bit leaves the rest of your page alone, so give your own animations the same media query.",
   },
   {
     title: 'High contrast',
@@ -64,6 +64,8 @@ const KEYS: readonly { component: string; keys: string }[] = [
   { component: 'Button', keys: 'Enter or Space presses it.' },
   { component: 'Link', keys: 'Enter follows it.' },
   { component: 'Switch', keys: 'Space turns it on or off.' },
+  { component: 'Checkbox', keys: 'Space ticks or clears it.' },
+  { component: 'RadioGroup', keys: 'Tab enters and leaves the group in one stop; the arrow keys move the choice.' },
   { component: 'SegmentedControl', keys: 'Tab enters and leaves the group in one stop; the arrow keys move the choice.' },
   {
     component: 'Select',

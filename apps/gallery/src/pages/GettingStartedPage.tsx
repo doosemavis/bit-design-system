@@ -1,10 +1,21 @@
-import { COLOR_MODE_STORAGE_KEY, Code, CodeBlock, Link, ModeToggle, Stack, Text } from '@bit-ds/react';
+import { Alert, BitTheme, Box, Button, COLOR_MODE_STORAGE_KEY, Code, CodeBlock, Link, ModeToggle, Stack, Text } from '@bit-ds/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Disclosure } from '../ui/Disclosure';
 import { PageHeader } from '../ui/PageHeader';
 import { GetStarted, Step } from './getting-started/GetStarted';
 
-const HTML_EXAMPLE = '<html lang="en" data-mode="system">  <!-- or "light" / "dark" -->';
+const HTML_EXAMPLE = `<!-- Name the theme and the mode -->
+<html lang="en" class="bit-theme-power-up bit-light">  <!-- or bit-dark -->
+
+<!-- Or follow the visitor's OS until they pick -->
+<html lang="en" class="bit-theme-power-up" data-mode="system">`;
+
+const SUBTREE_EXAMPLE = `import { BitTheme } from '@bit-ds/react';
+
+<BitTheme mode="dark">
+  <Text>A dark corner of a light page.</Text>
+  <Button>Save</Button>
+</BitTheme>`;
 
 const COLOR_MODE_EXAMPLE = `import { colorMode } from '@bit-ds/react';
 
@@ -41,7 +52,7 @@ export function GettingStartedPage() {
         help={
           <>
             Pick the default in your <Code>index.html</Code>, then switch it from anywhere with <Code>colorMode</Code>. Try the
-            toggle.
+            toggle. <Code>BitTheme</Code> gives one part of the page its own mode.
           </>
         }
       >
@@ -60,6 +71,28 @@ export function GettingStartedPage() {
             In any file
           </Text>
           <CodeBlock code={COLOR_MODE_EXAMPLE} language="jsx" label="Any file" />
+        </Stack>
+        <Stack gap={8}>
+          <Text weight="bold" className="gallery-caption">
+            For part of the page
+          </Text>
+          <CodeBlock code={SUBTREE_EXAMPLE} language="jsx" label="Part of the page" />
+          <BitTheme mode="dark" className="gallery-split__result">
+            <Box padding={16}>
+              <Stack direction="row" gap={12} align="center" wrap>
+                <Text>A dark corner of a light page.</Text>
+                <Button>Save</Button>
+              </Stack>
+            </Box>
+          </BitTheme>
+          <Alert color="primary" variant="outline" role="note" icon={false}>
+            A subtree with its own mode paints its own background; <Code>BitTheme</Code> does it for you. Without React,
+            put the same classes on any element: <Code>class=&quot;bit-theme bit-dark&quot;</Code>. The{' '}
+            <Link asChild>
+              <RouterLink to="/components/bittheme">BitTheme page</RouterLink>
+            </Link>{' '}
+            has every form: the whole app, following the OS, a scoped part, switching from code, and the data- attributes.
+          </Alert>
         </Stack>
         <Disclosure title="Optional: use a saved choice before the page draws">
           <Stack gap={8}>

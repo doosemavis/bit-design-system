@@ -14,7 +14,7 @@ export interface FieldProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color'
   error?: ReactNode;
   /** Shows a "*" (hidden from screen readers) and passes `required` to the control. */
   required?: boolean;
-  /** Exactly one Input or Select. */
+  /** Exactly one control: Input, Textarea, Select, Checkbox, Switch or RadioGroup. */
   children: ReactElement;
 }
 
@@ -24,9 +24,14 @@ function ownId(children: ReactNode): string | undefined {
   return typeof children.props.id === 'string' ? children.props.id : undefined;
 }
 
+/** True for a group of controls (RadioGroup), which its label names by id: a `for` can't point at a fieldset. */
+function isGroup(children: ReactNode): boolean {
+  return isValidElement(children) && (children.type as { bitFieldGroup?: boolean }).bitFieldGroup === true;
+}
+
 /**
- * A label, an optional hint and an optional error around one Input or Select. The ids are shared
- * through context, so the control wires itself: no cloneElement.
+ * A label, an optional hint and an optional error around one control. The ids are shared through context, so
+ * the control wires itself: no cloneElement.
  */
 export const Field = forwardRef<HTMLDivElement, FieldProps>(function Field(
   { label, hint, error, required, className, children, ...rest },
@@ -46,7 +51,7 @@ export const Field = forwardRef<HTMLDivElement, FieldProps>(function Field(
 
   return (
     <div ref={ref} className={toClasses('field', [], className)} {...dropLegacyColor(rest)}>
-      <label className={element('field', 'label')} id={labelId} htmlFor={id}>
+      <label className={element('field', 'label')} id={labelId} htmlFor={isGroup(children) ? undefined : id}>
         {label}
         {required ? (
           <span className={element('field', 'required')} aria-hidden="true">

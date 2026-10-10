@@ -43,8 +43,8 @@ describe('Accessibility page', () => {
     await renderAccessibility();
     const table = screen.getByRole('table', { name: 'Keys by component' });
     const links = within(table).getAllByRole('link');
-    expect(links.map((l) => l.textContent)).toEqual(['Button', 'Link', 'Switch', 'SegmentedControl', 'Select', 'Tabs', 'Dialog', 'Tooltip', 'CodeBlock']);
-    expect(links[3]).toHaveAttribute('href', expect.stringContaining('/components/segmentedcontrol'));
+    expect(links.map((l) => l.textContent)).toEqual(['Button', 'Link', 'Switch', 'Checkbox', 'RadioGroup', 'SegmentedControl', 'Select', 'Tabs', 'Dialog', 'Tooltip', 'CodeBlock']);
+    expect(links[5]).toHaveAttribute('href', expect.stringContaining('/components/segmentedcontrol'));
   });
 
   it.each([
@@ -63,7 +63,7 @@ describe('Accessibility page', () => {
       ],
     ],
     ['Color and vision', ['Say it in words, not just color', 'Keep reading text at 16, captions at 14', 'Respect the light or dark choice']],
-    ['Motion', ['Check Reduce motion for movement in JavaScript']],
+    ['Motion', ['Stop your own animations with a media query', 'Check Reduce motion for movement in JavaScript']],
   ])('%s: each example pairs a live sample, framed in a Box, with its code', async (section, titles) => {
     await renderAccessibility();
     const examples = within(screen.getByRole('region', { name: section })).getAllByRole('article');

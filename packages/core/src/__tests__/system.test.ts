@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { SEMANTIC_TOKENS, SIZES, COLORS } from '../tokens';
-import { OUTLINE_DECLARATION, block, decl, listCss, readCss, resolveVar, rulesFor, themeModes, withoutBlocks } from './css';
+import { BRAND_TOKENS, SEMANTIC_TOKENS, SIZES, COLORS } from '../tokens';
+import { OUTLINE_DECLARATION, block, decl, listCss, parseCustomProps, readCss, resolveVar, rulesFor, styleRules, themeModes, withoutBlocks } from './css';
 
 /**
  * The only places a component may read --bit-color-ink, by file and exact selector. Everything else
@@ -65,18 +65,43 @@ describe('system/motion.css', () => {
 
 describe('index.css', () => {
   const css = readCss('index.css');
+  /** Every `@import "<path>" layer(<layer>);` in order. */
+  const imports = [...css.matchAll(/^@import "([^"]+)"(?: layer\(([\w.]+)\))?;$/gm)].map((m) => ({ path: m[1]!, layer: m[2] }));
+
+  it('declares the layer order before anything else, so it holds whichever bit file loads first', () => {
+    const code = css.replace(/\/\*[\s\S]*?\*\//g, '').trim();
+    expect(code.startsWith('@layer bit.reset, bit.tokens, bit.components;')).toBe(true);
+  });
+
   it('imports every system file, in order, before any component file', () => {
-    for (const name of ['reset', 'colors', 'sizes', 'motion']) {
-      expect(css).toContain(`@import "./system/${name}.css";`);
-    }
-    const systemEnd = css.lastIndexOf('./system/');
-    const firstComponent = css.indexOf('./components/');
+    const paths = imports.map((i) => i.path);
+    for (const file of listCss('system')) expect(paths).toContain(`./system/${file}`);
+    const systemEnd = paths.map((p) => p.startsWith('./system/')).lastIndexOf(true);
+    const firstComponent = paths.findIndex((p) => p.startsWith('./components/'));
     expect(firstComponent).toBeGreaterThan(systemEnd);
   });
+
   it('imports every file in components/', () => {
     for (const file of listCss('components')) {
-      expect(css).toContain(`@import "./components/${file}";`);
+      expect(imports.map((i) => i.path)).toContain(`./components/${file}`);
     }
+  });
+
+  it('puts every import in a layer: reset.css in bit.reset, the logo colors in bit.tokens, everything else in bit.components', () => {
+    expect(imports.length).toBe(css.match(/@import/g)!.length);
+    const LAYERS: Record<string, string> = { './system/reset.css': 'bit.reset', './system/brand.css': 'bit.tokens' };
+    for (const { path, layer } of imports) expect(layer, path).toBe(LAYERS[path] ?? 'bit.components');
+  });
+});
+
+describe('the themes declare the same layer order and keep their tokens in bit.tokens', () => {
+  it.each(listCss('themes'))('%s', (file) => {
+    const css = readCss(`themes/${file}`);
+    const code = css.replace(/\/\*[\s\S]*?\*\//g, '').trim();
+    expect(code.startsWith('@layer bit.reset, bit.tokens, bit.components;')).toBe(true);
+    const rules = styleRules(css);
+    expect(rules.length).toBeGreaterThan(0);
+    expect(rules.filter((rule) => rule.layer !== 'bit.tokens').map((rule) => rule.selector)).toEqual([]);
   });
 });
 
@@ -93,10 +118,11 @@ describe('components/*.css conventions', () => {
   for (const file of listCss('components')) {
     const css = readCss(`components/${file}`);
 
-    it(`${file}: every var(--bit-…) it reads is a semantic token`, () => {
+    it(`${file}: every var(--bit-…) it reads is a semantic token (or, for the logo, a brand color)`, () => {
       const reads = [...css.matchAll(/var\((--bit-[a-zA-Z0-9-]+)/g)].map((m) => m[1]!);
+      const allowed = file === 'logo.css' ? [...SEMANTIC_TOKENS, ...BRAND_TOKENS] : SEMANTIC_TOKENS;
       for (const name of reads) {
-        expect(SEMANTIC_TOKENS).toContain(name);
+        expect(allowed).toContain(name);
       }
     });
 
@@ -122,17 +148,23 @@ describe('system/reset.css browser surfaces (amendments §C)', () => {
     expect(body).toContain('color: var(--bit-color-ink);');
   });
 
-  it('the root and any mode element set text, a primary caret, and a line-on-neutral-soft scrollbar', () => {
-    const root = block(css, ':root,\n[data-mode="light"],\n[data-mode="dark"],\n[data-mode="system"]');
+  const ROOTS = ':root,\n.bit-light,\n.bit-dark,\n[data-mode="light"],\n[data-mode="dark"],\n[data-mode="system"],\n[data-theme],\n[class*="bit-theme-"]';
+
+  it('the root, any mode element and any theme element set text, a primary caret, and a line-on-neutral-soft scrollbar', () => {
+    const root = block(css, ROOTS);
     expect(root).not.toBeNull();
     expect(root).toContain('caret-color: var(--bit-color-primary);');
     expect(root).toContain('scrollbar-color: var(--bit-color-line) var(--bit-color-neutral-soft);');
     expect(root).toContain('color: var(--bit-color-text);');
-    expect(block(css, '*')).toContain('scrollbar-width: thin;');
+  });
+
+  it('sets no scrollbar-width on every element: the page and the host app keep their own scrollbars', () => {
+    expect(styleRules(css).filter((rule) => rule.selector === '*' && decl(rule.body, 'scrollbar-width') !== null)).toEqual([]);
+    expect(css).not.toContain('scrollbar-width');
   });
 
   it('a nested system subtree recomputes its text, caret and scrollbar too', () => {
-    expect(block(css, ':root,\n[data-mode="light"],\n[data-mode="dark"],\n[data-mode="system"]')).toContain('color: var(--bit-color-text);');
+    expect(block(css, ROOTS)).toContain('color: var(--bit-color-text);');
   });
 });
 
@@ -258,16 +290,37 @@ describe('themes/power-up.css (logo)', () => {
     expect(css).not.toContain('--bit-motion-power-up');
   });
 
-  it('the logo violet is a fixed brand colour, the palette violet in both modes (Amendment 3, C2)', () => {
-    const { light, dark } = themeModes(css);
-    expect(light.get('--bit-logo-violet')).toBe('var(--bit-palette-violet)');
-    expect(resolveVar(light, '--bit-logo-violet')).toBe('#7C3AED');
-    expect(dark.has('--bit-logo-violet')).toBe(false);
+  it('declares no logo color: those are brand colors, the same in every theme', () => {
+    expect(css).not.toContain('--bit-logo-');
+    expect(css).not.toContain('--bit-palette-coin');
+  });
+});
+
+describe('system/brand.css: the logo colors, declared once for every theme and mode', () => {
+  const css = readCss('system/brand.css');
+  const values = parseCustomProps(css);
+
+  it('declares exactly BRAND_TOKENS on :root, with their fixed values (Amendment 3, C2: the violet is the brand violet)', () => {
+    expect([...values.keys()]).toEqual([...BRAND_TOKENS]);
+    expect(Object.fromEntries(values)).toEqual({
+      '--bit-logo-coin': '#FFCC00',
+      '--bit-logo-coin-light': '#FFF3BF',
+      '--bit-logo-coin-shade': '#E0B000',
+      '--bit-logo-coin-deep': '#F5A623',
+      '--bit-logo-violet': '#7C3AED',
+    });
+    expect(styleRules(css).map((rule) => rule.selector)).toEqual([':root']);
+  });
+
+  it("the logo violet is the theme's violet today, so the logo looked the same before the move", () => {
+    expect(values.get('--bit-logo-violet')).toBe(resolveVar(themeModes(readCss('themes/power-up.css')).light, '--bit-palette-violet'));
   });
 });
 
 describe('focus ring (dark mode spec: one ring, no band)', () => {
   const reset = readCss('system/reset.css');
+  // Component focus rules: in the bit.components layer, so they still beat a component's own box-shadow.
+  const focus = readCss('system/focus.css');
 
   it('reset.css draws the ring from the three focus-ring tokens, unless a colored container overrides its color', () => {
     const body = rulesFor(reset, ':focus-visible');
@@ -290,12 +343,17 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
   // Owner pick A (2026-10-10): on a control with a hard shadow, the shadow moves out under the ring, so the gap
   // between control and ring is the same on every side instead of filling with shadow at the bottom-right.
   describe('the shadow moves out under the ring', () => {
-    const lifted = '.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])::after,\n.bit-switch__input:focus-visible + .bit-switch__track::after';
+    const lifted =
+      '.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])::after,\n' +
+      '.bit-button:is(.bit-solid, .bit-outline)[aria-disabled="true"]:focus-visible::after,\n' +
+      '.bit-switch__input:focus-visible + .bit-switch__track::after,\n' +
+      '.bit-checkbox__input:focus-visible + .bit-checkbox__box::after,\n' +
+      '.bit-radio__input:focus-visible + .bit-radio__dot::after';
     const button = readCss('components/button.css');
     const track = readCss('components/switch.css');
 
     it("::after is a box exactly the ring's outer edge, casting the control's own shadow and catching no clicks", () => {
-      const body = block(reset, lifted)!;
+      const body = block(focus, lifted)!;
       expect(body).not.toBeNull();
       expect(decl(body, 'content')).toBe('""');
       expect(decl(body, 'position')).toBe('absolute');
@@ -306,7 +364,7 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
     });
 
     it('a focused Button drops its own shadow; the moved one follows hover and press', () => {
-      const focused = block(button, '.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])')!;
+      const focused = rulesFor(button, '.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])')!;
       expect(decl(focused, 'box-shadow')).toBe('none');
       expect(decl(focused, 'position')).toBe('relative');
       // After the hover and press rules, at their weight, so a focused, hovered button never shows two shadows.
@@ -318,6 +376,12 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
       expect(decl(block(button, '.bit-button:is(.bit-solid, .bit-outline):active:not(:disabled):not([aria-disabled="true"])')!, '--_bit-lift')).toBe('none');
     });
 
+    it('a focused loading Button (aria-disabled, still focusable) moves its shadow the same way', () => {
+      const loading = rulesFor(button, '.bit-button:is(.bit-solid, .bit-outline)[aria-disabled="true"]:focus-visible')!;
+      expect(decl(loading, 'box-shadow')).toBe('none');
+      expect(decl(loading, 'position')).toBe('relative');
+    });
+
     it("a focused Switch's track drops its shadow, and the moved one is the track's", () => {
       expect(decl(block(track, '.bit-switch__input:focus-visible + .bit-switch__track')!, 'box-shadow')).toBe('none');
       expect(track).toContain('--_bit-lift: var(--bit-shadow-sm);');
@@ -325,11 +389,11 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
     });
 
     it("Table's scrolling wrapper paints gap, ring and moved shadow as box-shadow, keeping a transparent outline for forced colors", () => {
-      const body = block(reset, '.bit-table:not(.bit-flat):focus-visible')!;
+      const body = block(focus, '.bit-table:not(.bit-flat):focus-visible')!;
       expect(decl(body, 'outline-color')).toBe('transparent');
       expect(body).toContain('0 0 0 var(--bit-focus-ring-offset) var(--_bit-focus-gap, var(--bit-color-bg))');
       expect(body).toContain('4px 4px 0 calc(var(--bit-focus-ring-offset) + var(--bit-focus-ring-width)) var(--bit-color-shadow)');
-      expect(decl(block(reset, '.bit-card')!, '--_bit-focus-gap')).toBe('var(--bit-color-surface)');
+      expect(decl(block(focus, '.bit-card')!, '--_bit-focus-gap')).toBe('var(--bit-color-surface)');
     });
 
     it("a ModeToggle option's ring sits inside it, on the pressed fill in that fill's contrast color", () => {

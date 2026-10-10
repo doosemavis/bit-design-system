@@ -183,6 +183,32 @@ describe('Tabs: keyboard and pointer', () => {
     expect(tab('Overview')).toHaveFocus();
   });
 
+  it('reads the computed direction, so CSS direction: rtl swaps the arrows too', async () => {
+    const user = userEvent.setup();
+    render(
+      <div style={{ direction: 'rtl' }}>
+        <Demo defaultValue="overview" />
+      </div>,
+    );
+    act(() => tab('Overview').focus());
+    await user.keyboard('{ArrowLeft}');
+    expect(tab('Usage')).toHaveFocus();
+  });
+
+  it('a dir="ltr" inside a right-to-left page keeps the arrows as they are', async () => {
+    const user = userEvent.setup();
+    render(
+      <div dir="rtl">
+        <div dir="ltr">
+          <Demo defaultValue="overview" />
+        </div>
+      </div>,
+    );
+    act(() => tab('Overview').focus());
+    await user.keyboard('{ArrowRight}');
+    expect(tab('Usage')).toHaveFocus();
+  });
+
   it('a Tab click or keydown handler can opt out of choosing, and other keys do nothing in manual mode', async () => {
     const user = userEvent.setup();
     const onValueChange = vi.fn();

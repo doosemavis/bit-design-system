@@ -75,3 +75,13 @@ describe('Alert page: dismissible', () => {
     expect(alert.docs.a11y.join('\n')).toMatch(/move focus somewhere sensible/);
   });
 });
+
+describe('Alert page: icon', () => {
+  it('is on by default and not printed; unchecked, the code says icon={false} and the preview has no icon', () => {
+    const off = { ...defaultState(alert), color: 'danger', icon: false };
+    expect(toJsx(alert, { ...defaultState(alert), color: 'danger' })).not.toMatch(/icon/);
+    expect(toJsx(alert, off)).toContain('<Alert color="danger" title="Heads up" icon={false}>');
+    const { container } = render(renderManifest(alert, off));
+    expect(container.querySelector('.bit-alert__icon')).toBeNull();
+  });
+});

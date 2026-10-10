@@ -70,8 +70,32 @@ describe('components/alert.css', () => {
     });
   });
 
-  it('has no forced-colours rule, like Button: the browser keeps the border in a system colour and drops the shadow', () => {
+  describe('icon', () => {
+    it('with an icon, the panel is two columns: the icon, then the title and body', () => {
+      const grid = block(css, '.bit-alert:has(> .bit-alert__icon)')!;
+      expect(decl(grid, 'display')).toBe('grid');
+      expect(decl(grid, 'grid-template-columns')).toBe('auto minmax(0, 1fr)');
+      expect(decl(block(css, '.bit-alert:has(> .bit-alert__icon) > :is(.bit-alert__title, .bit-alert__body)')!, 'grid-column')).toBe('2');
+    });
+
+    it("is centred on the body's first line, and on the title line when there is a title, as the × is", () => {
+      expect(decl(block(css, '.bit-alert__icon')!, 'margin-block-start')).toBe(
+        'calc((var(--bit-text-16px) * var(--bit-leading-normal) - var(--_bit-icon-size)) / 2)',
+      );
+      expect(decl(block(css, '.bit-alert__icon:has(+ .bit-alert__title)')!, 'margin-block-start')).toBe(
+        'calc((var(--bit-text-18px) * var(--bit-leading-tight) - var(--_bit-icon-size)) / 2)',
+      );
+    });
+
+    it('takes the text color (no color of its own), so it reads on every fill and in forced colors', () => {
+      expect(decl(block(css, '.bit-alert__icon')!, 'color')).toBeNull();
+      expect(decl(block(css, '.bit-alert__icon')!, 'fill')).toBeNull();
+    });
+  });
+
+  // A solid Alert can't swap system colors as a solid Button does: its body holds links, buttons and code, which
+  // would keep their own colors. The severity icon carries the meaning that the fill carried.
+  it('has no forced-colors rule: the browser keeps the border in a system color, and the icon carries the severity', () => {
     expect(styleRules(css).filter((rule) => rule.media?.includes('forced-colors'))).toEqual([]);
-    expect(styleRules(button).filter((rule) => rule.media?.includes('forced-colors'))).toEqual([]);
   });
 });

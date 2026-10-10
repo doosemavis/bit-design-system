@@ -25,6 +25,29 @@
   box-shadow: 4px 4px 0 var(--_bit-color-outline-shadow);
 }
 
+/* With an icon: the icon gets its own column, and the title and body share the other. */
+.bit-alert:has(> .bit-alert__icon) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--bit-space-12px);
+  align-items: start;
+}
+
+.bit-alert:has(> .bit-alert__icon) > :is(.bit-alert__title, .bit-alert__body) {
+  grid-column: 2;
+}
+
+/* Drawn in the text color, filled, and centred on the body's first line (the page's normal leading). */
+.bit-alert__icon {
+  grid-row: 1;
+  margin-block-start: calc((var(--bit-text-16px) * var(--bit-leading-normal) - var(--_bit-icon-size)) / 2);
+}
+
+/* With a title, it centres on the title line instead. */
+.bit-alert__icon:has(+ .bit-alert__title) {
+  margin-block-start: calc((var(--bit-text-18px) * var(--bit-leading-tight) - var(--_bit-icon-size)) / 2);
+}
+
 .bit-alert__title {
   font-family: var(--bit-font-display);
   font-size: var(--bit-text-18px);

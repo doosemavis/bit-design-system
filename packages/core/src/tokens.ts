@@ -124,10 +124,12 @@ const inlineCodeTokens = [
 const codeTokens = [token('code', 'bg'), ...CODE_KINDS.map((kind) => token('code', kind)), ...inlineCodeTokens];
 
 /**
- * The BitLogo's coin golds and the violet of 64-bit's hard drop. Fixed brand colors, so a palette change
- * never recolors the logo.
+ * The BitLogo's coin golds and the violet of 64-bit's hard drop. Fixed brand colors, the same in every theme and
+ * mode, so they are declared once (system/brand.css, inside styles.css) and no theme declares them.
  */
-const logoTokens = ['coin', 'coin-light', 'coin-shade', 'coin-deep', 'violet'].map((part) => token('logo', part));
+export const BRAND_TOKENS: readonly string[] = ['coin', 'coin-light', 'coin-shade', 'coin-deep', 'violet'].map((part) =>
+  token('logo', part),
+);
 
 /**
  * The complete tier-2 token set. Every theme must declare every one of these.
@@ -144,7 +146,6 @@ export const SEMANTIC_TOKENS: readonly string[] = [
   ...motionTokens,
   ...focusTokens,
   ...codeTokens,
-  ...logoTokens,
 ];
 
 /**

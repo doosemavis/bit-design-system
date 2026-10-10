@@ -25,11 +25,11 @@ function ruleBody(css: string, pattern: RegExp, what: string): string {
   return m[1]!;
 }
 
-/** A token's literal value in light mode (the shared block) and dark mode (the shared block plus `[data-mode="dark"]`). */
+/** A token's literal value in light mode (the shared block) and dark mode (the shared block plus the dark block). */
 export function themeValue(name: string): { light: string; dark: string } {
   const css = readFileSync(THEME_PATH, 'utf8');
-  const shared = customProps(ruleBody(css, /:root,[^{]*\{([^}]*)\}/, 'shared :root'));
-  const darkOnly = customProps(ruleBody(css, /(?:^|\n)\[data-mode="dark"\]\s*\{([^}]*)\}/, '[data-mode="dark"]'));
+  const shared = customProps(ruleBody(css, /:where\(:root\),[^{]*\{([^}]*)\}/, 'shared :root'));
+  const darkOnly = customProps(ruleBody(css, /:where\(\.bit-dark, \[data-mode="dark"\]\),[^{]*\{([^}]*)\}/, 'dark'));
   const dark = new Map([...shared, ...darkOnly]);
   return { light: resolveVar(shared, name), dark: resolveVar(dark, name) };
 }

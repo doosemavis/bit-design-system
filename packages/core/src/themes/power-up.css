@@ -5,248 +5,213 @@
 
 /* Fonts ship with the theme (self-hosted, no third-party request): the @font-face rules are at the end of this file. */
 
-/* Any element that sets a mode (light or dark) re-declares the shared tokens, so tokens built from mode
-   tokens (the shadows) re-resolve there instead of inheriting the root's light values. */
-:root,
-[data-theme="power-up"],
-[data-mode="light"],
-[data-mode="dark"],
-[data-mode="system"] {
-  color-scheme: light;
-  /* ---------- tier 1: palette ---------- */
-  --bit-palette-violet: #7C3AED;
-  --bit-palette-violet-dark: #6527D4;
-  --bit-palette-violet-soft: #EBE1FD;
-  /* The light violet of dark-mode links and the inline Code chip: 7.95:1 on ink. */
-  --bit-palette-lilac: #B79BFF;
-  --bit-palette-yellow: #FFC800;
-  --bit-palette-yellow-dark: #F0B400;
-  --bit-palette-yellow-soft: #FFF1B8;
-  --bit-palette-green: #1FA34A;
-  /* The review approved #178C3E, but ink on it is 4.22:1 (under AA). #19943F is the closest darker shade that passes (4.65:1). */
-  --bit-palette-green-dark: #19943F;
-  --bit-palette-green-soft: #D3F1DD;
-  --bit-palette-red: #D91A1A;
-  --bit-palette-red-dark: #B81414;
-  --bit-palette-red-soft: #FBD5D5;
-  --bit-palette-ink: #151515;
-  --bit-palette-stone: #DCDED6;
-  --bit-palette-slate: #4A4A5E;
-  --bit-palette-steel: #5F6372;
-  --bit-palette-steel-hover: #4E5260;
-  --bit-palette-paper: #EEEFE9;
-  --bit-palette-white: #FFFFFF;
-  --bit-palette-coin: #FFCC00;
-  --bit-palette-coin-light: #FFF3BF;
-  --bit-palette-coin-shade: #E0B000;
-  --bit-palette-coin-deep: #F5A623;
+/* The tokens sit in the bit.tokens cascade layer, so any unlayered style in your app wins over them. The layer
+   order is declared here and again at the top of styles.css, so it holds whichever file you import first. */
+@layer bit.reset, bit.tokens, bit.components;
 
-  /* tier 1, dark mode ("Arcade Night") */
-  --bit-palette-night: #15151C;
-  --bit-palette-night-surface: #20202A;
-  --bit-palette-night-raised: #2B2B37;
-  --bit-palette-night-code: #0B0B10;
-  --bit-palette-chalk: #EDEBE4;
-  --bit-palette-chalk-muted: #A9A9BC;
-  --bit-palette-slate-line: #79798F;
-  --bit-palette-slate-shadow: #464658;
-  --bit-palette-violet-night: #2E2352;
-  --bit-palette-green-night: #173A25;
-  --bit-palette-yellow-night: #3B3212;
-  --bit-palette-red-night: #40191B;
-  --bit-palette-night-stripe: #353545;
-  --bit-palette-steel-light: #9A9EB0;
-  --bit-palette-steel-light-hover: #ADB1C2;
+/* Where the theme applies. Its class (bit-theme-power-up) or data-theme="power-up" applies it to an element and
+   everything inside; power-up is also the default on the page root when no theme is set. A mode (the bit-light
+   or bit-dark class, or data-mode) works on any element: the light block re-declares every token there, so
+   tokens built from mode tokens (the shadows) re-resolve in a dark subtree instead of keeping the root's values.
+   Specificity sorts out several themes on one page (the bit.tokens layer holds nothing else):
+   - :where() keeps the root default and the bare modes at zero, so any other theme's selectors beat them;
+   - a theme's class or attribute weighs one class, and so does a mode inside another theme
+     (:where(.bit-theme-<name>, [data-theme="<name>"]) :is(<modes>), which power-up, the default, doesn't need);
+   - a mode on the theme's own element weighs two, so it beats the theme around it.
+   Another theme copies these selectors with its own name, swapping the :where() defaults for that descendant form.
+   The build (packages/react/scripts/build-css.mjs) adds data-mode="system" on a dark OS, a copy of the dark
+   block, so it is written once here. */
+@layer bit.tokens {
+  :where(:root),
+  :where(.bit-light, .bit-dark, [data-mode="light"], [data-mode="dark"], [data-mode="system"]),
+  :is(.bit-theme-power-up, [data-theme="power-up"]),
+  :is(.bit-theme-power-up, [data-theme="power-up"]):is(.bit-light, .bit-dark, [data-mode="light"], [data-mode="dark"], [data-mode="system"]) {
+    color-scheme: light;
+    /* ---------- tier 1: palette ---------- */
+    --bit-palette-violet: #7C3AED;
+    --bit-palette-violet-dark: #6527D4;
+    --bit-palette-violet-soft: #EBE1FD;
+    /* The light violet of dark-mode links and the inline Code chip: 7.95:1 on ink. */
+    --bit-palette-lilac: #B79BFF;
+    --bit-palette-yellow: #FFC800;
+    --bit-palette-yellow-dark: #F0B400;
+    --bit-palette-yellow-soft: #FFF1B8;
+    --bit-palette-green: #1FA34A;
+    /* The review approved #178C3E, but ink on it is 4.22:1 (under AA). #19943F is the closest darker shade that passes (4.65:1). */
+    --bit-palette-green-dark: #19943F;
+    --bit-palette-green-soft: #D3F1DD;
+    --bit-palette-red: #D91A1A;
+    --bit-palette-red-dark: #B81414;
+    --bit-palette-red-soft: #FBD5D5;
+    --bit-palette-ink: #151515;
+    --bit-palette-stone: #DCDED6;
+    --bit-palette-slate: #4A4A5E;
+    --bit-palette-steel: #5F6372;
+    --bit-palette-steel-hover: #4E5260;
+    --bit-palette-paper: #EEEFE9;
+    --bit-palette-white: #FFFFFF;
 
-  /* ---------- tier 2: color ---------- */
-  --bit-color-bg: var(--bit-palette-paper);
-  --bit-color-surface: var(--bit-palette-white);
-  --bit-color-ink: var(--bit-palette-ink);
-  --bit-color-text: var(--bit-palette-ink);
-  --bit-color-text-muted: var(--bit-palette-slate);
-  --bit-color-selection: var(--bit-palette-yellow);
-  --bit-color-line: var(--bit-palette-ink);
-  --bit-color-shadow: var(--bit-palette-ink);
-  --bit-color-accent: var(--bit-palette-violet);
-  --bit-color-link: var(--bit-palette-violet);
-  --bit-color-link-visited: #5B2BB5;
-  --bit-color-code-text: var(--bit-palette-violet-dark);
-  /* The spec's var(--bit-color-danger) (#D91A1A) is 4.41:1 on the page; #D61A1A is the nearest red that passes (4.51:1). */
-  --bit-color-danger-text: #D61A1A;
-  --bit-color-knob: var(--bit-palette-white);
+    /* tier 1, dark mode ("Arcade Night") */
+    --bit-palette-night: #15151C;
+    --bit-palette-night-surface: #20202A;
+    --bit-palette-night-raised: #2B2B37;
+    --bit-palette-night-code: #0B0B10;
+    --bit-palette-chalk: #EDEBE4;
+    --bit-palette-chalk-muted: #A9A9BC;
+    --bit-palette-slate-line: #79798F;
+    --bit-palette-slate-shadow: #464658;
+    --bit-palette-violet-night: #2E2352;
+    --bit-palette-green-night: #173A25;
+    --bit-palette-yellow-night: #3B3212;
+    --bit-palette-red-night: #40191B;
+    --bit-palette-night-stripe: #353545;
+    --bit-palette-steel-light: #9A9EB0;
+    --bit-palette-steel-light-hover: #ADB1C2;
 
-  --bit-color-primary: var(--bit-palette-violet);
-  --bit-color-primary-contrast: var(--bit-palette-white);
-  --bit-color-primary-hover: var(--bit-palette-violet-dark);
-  --bit-color-primary-soft: var(--bit-palette-violet-soft);
+    /* ---------- tier 2: color ---------- */
+    --bit-color-bg: var(--bit-palette-paper);
+    --bit-color-surface: var(--bit-palette-white);
+    --bit-color-ink: var(--bit-palette-ink);
+    --bit-color-text: var(--bit-palette-ink);
+    --bit-color-text-muted: var(--bit-palette-slate);
+    --bit-color-selection: var(--bit-palette-yellow);
+    --bit-color-line: var(--bit-palette-ink);
+    --bit-color-shadow: var(--bit-palette-ink);
+    --bit-color-accent: var(--bit-palette-violet);
+    --bit-color-link: var(--bit-palette-violet);
+    --bit-color-link-visited: #5B2BB5;
+    --bit-color-code-text: var(--bit-palette-violet-dark);
+    /* The spec's var(--bit-color-danger) (#D91A1A) is 4.41:1 on the page; #D61A1A is the nearest red that passes (4.51:1). */
+    --bit-color-danger-text: #D61A1A;
+    --bit-color-knob: var(--bit-palette-white);
 
-  --bit-color-neutral: var(--bit-palette-steel);
-  --bit-color-neutral-contrast: var(--bit-palette-white);
-  --bit-color-neutral-hover: var(--bit-palette-steel-hover);
-  --bit-color-neutral-soft: var(--bit-palette-stone);
-  --bit-color-stripe: var(--bit-palette-stone);
+    --bit-color-primary: var(--bit-palette-violet);
+    --bit-color-primary-contrast: var(--bit-palette-white);
+    --bit-color-primary-hover: var(--bit-palette-violet-dark);
+    --bit-color-primary-soft: var(--bit-palette-violet-soft);
 
-  --bit-color-success: var(--bit-palette-green);
-  --bit-color-success-contrast: var(--bit-palette-ink);
-  --bit-color-success-hover: var(--bit-palette-green-dark);
-  --bit-color-success-soft: var(--bit-palette-green-soft);
+    --bit-color-neutral: var(--bit-palette-steel);
+    --bit-color-neutral-contrast: var(--bit-palette-white);
+    --bit-color-neutral-hover: var(--bit-palette-steel-hover);
+    --bit-color-neutral-soft: var(--bit-palette-stone);
+    --bit-color-stripe: var(--bit-palette-stone);
 
-  --bit-color-warning: var(--bit-palette-yellow);
-  --bit-color-warning-contrast: var(--bit-palette-ink);
-  --bit-color-warning-hover: var(--bit-palette-yellow-dark);
-  --bit-color-warning-soft: var(--bit-palette-yellow-soft);
+    --bit-color-success: var(--bit-palette-green);
+    --bit-color-success-contrast: var(--bit-palette-ink);
+    --bit-color-success-hover: var(--bit-palette-green-dark);
+    --bit-color-success-soft: var(--bit-palette-green-soft);
 
-  --bit-color-danger: var(--bit-palette-red);
-  --bit-color-danger-contrast: var(--bit-palette-white);
-  --bit-color-danger-hover: var(--bit-palette-red-dark);
-  --bit-color-danger-soft: var(--bit-palette-red-soft);
+    --bit-color-warning: var(--bit-palette-yellow);
+    --bit-color-warning-contrast: var(--bit-palette-ink);
+    --bit-color-warning-hover: var(--bit-palette-yellow-dark);
+    --bit-color-warning-soft: var(--bit-palette-yellow-soft);
 
-  /* ---------- tier 2: shape (where the retro look lives) ---------- */
-  --bit-border-width: 3px;
-  --bit-radius-6px: 6px;
-  --bit-radius-10px: 10px;
-  --bit-radius-14px: 14px;
-  --bit-radius-full: 999px;
-  --bit-shadow-sm: 2px 2px 0 var(--bit-color-shadow);
-  --bit-shadow-md: 4px 4px 0 var(--bit-color-shadow);
-  --bit-shadow-lg: 6px 6px 0 var(--bit-color-shadow);
-  --bit-shadow-inset: inset 3px 3px 0 rgba(21, 21, 21, 0.12);
+    --bit-color-danger: var(--bit-palette-red);
+    --bit-color-danger-contrast: var(--bit-palette-white);
+    --bit-color-danger-hover: var(--bit-palette-red-dark);
+    --bit-color-danger-soft: var(--bit-palette-red-soft);
 
-  /* ---------- tier 2: typography ---------- */
-  --bit-font-display: "Lilita One", "Arial Black", sans-serif;
-  --bit-font-body: "Nunito", "Segoe UI", sans-serif;
-  --bit-font-pixel: "Press Start 2P", monospace;
-  --bit-font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --bit-text-14px: 14px;
-  --bit-text-16px: 16px;
-  --bit-text-18px: 18px;
-  --bit-text-24px: 24px;
-  --bit-text-32px: 32px;
-  --bit-text-40px: 40px;
-  /* Deprecated in 0.1.8, removed in 0.2.0: the old odd sizes, now aliases of the even size each renders as. */
-  --bit-text-11px: var(--bit-text-14px);
-  --bit-text-13px: var(--bit-text-14px);
-  --bit-text-15px: var(--bit-text-16px);
-  /* Heading sizes: every 2px from 20 to 44. */
-  --bit-heading-20px: 20px;
-  --bit-heading-22px: 22px;
-  --bit-heading-24px: 24px;
-  --bit-heading-26px: 26px;
-  --bit-heading-28px: 28px;
-  --bit-heading-30px: 30px;
-  --bit-heading-32px: 32px;
-  --bit-heading-34px: 34px;
-  --bit-heading-36px: 36px;
-  --bit-heading-38px: 38px;
-  --bit-heading-40px: 40px;
-  --bit-heading-42px: 42px;
-  --bit-heading-44px: 44px;
-  --bit-leading-tight: 1.1;
-  --bit-leading-normal: 1.5;
-  --bit-weight-normal: 600;
-  --bit-weight-bold: 800;
+    /* ---------- tier 2: shape (where the retro look lives) ---------- */
+    --bit-border-width: 3px;
+    --bit-radius-6px: 6px;
+    --bit-radius-10px: 10px;
+    --bit-radius-14px: 14px;
+    --bit-radius-full: 999px;
+    --bit-shadow-sm: 2px 2px 0 var(--bit-color-shadow);
+    --bit-shadow-md: 4px 4px 0 var(--bit-color-shadow);
+    --bit-shadow-lg: 6px 6px 0 var(--bit-color-shadow);
+    --bit-shadow-inset: inset 3px 3px 0 rgba(21, 21, 21, 0.12);
 
-  /* ---------- tier 2: space ---------- */
-  --bit-space-4px: 4px;
-  --bit-space-8px: 8px;
-  --bit-space-12px: 12px;
-  --bit-space-16px: 16px;
-  --bit-space-24px: 24px;
-  --bit-space-32px: 32px;
-  --bit-space-48px: 48px;
-  --bit-space-64px: 64px;
+    /* ---------- tier 2: typography ---------- */
+    --bit-font-display: "Lilita One", "Arial Black", sans-serif;
+    --bit-font-body: "Nunito", "Segoe UI", sans-serif;
+    --bit-font-pixel: "Press Start 2P", monospace;
+    --bit-font-mono: "JetBrains Mono", ui-monospace, monospace;
+    --bit-text-14px: 14px;
+    --bit-text-16px: 16px;
+    --bit-text-18px: 18px;
+    --bit-text-24px: 24px;
+    --bit-text-32px: 32px;
+    --bit-text-40px: 40px;
+    /* Deprecated in 0.1.8, removed in 0.2.0: the old odd sizes, now aliases of the even size each renders as. */
+    --bit-text-11px: var(--bit-text-14px);
+    --bit-text-13px: var(--bit-text-14px);
+    --bit-text-15px: var(--bit-text-16px);
+    /* Heading sizes: every 2px from 20 to 44. */
+    --bit-heading-20px: 20px;
+    --bit-heading-22px: 22px;
+    --bit-heading-24px: 24px;
+    --bit-heading-26px: 26px;
+    --bit-heading-28px: 28px;
+    --bit-heading-30px: 30px;
+    --bit-heading-32px: 32px;
+    --bit-heading-34px: 34px;
+    --bit-heading-36px: 36px;
+    --bit-heading-38px: 38px;
+    --bit-heading-40px: 40px;
+    --bit-heading-42px: 42px;
+    --bit-heading-44px: 44px;
+    --bit-leading-tight: 1.1;
+    --bit-leading-normal: 1.5;
+    --bit-weight-normal: 600;
+    --bit-weight-bold: 800;
 
-  /* ---------- tier 2: controls ---------- */
-  --bit-control-height-sm: 32px;
-  --bit-control-height-md: 40px;
-  --bit-control-height-lg: 48px;
-  --bit-control-padding-sm: 10px;
-  --bit-control-padding-md: 14px;
-  --bit-control-padding-lg: 18px;
+    /* ---------- tier 2: space ---------- */
+    --bit-space-4px: 4px;
+    --bit-space-8px: 8px;
+    --bit-space-12px: 12px;
+    --bit-space-16px: 16px;
+    --bit-space-24px: 24px;
+    --bit-space-32px: 32px;
+    --bit-space-48px: 48px;
+    --bit-space-64px: 64px;
 
-  /* ---------- tier 2: motion ---------- */
-  --bit-press-offset: 2px;
-  --bit-duration-fast: 80ms;
-  --bit-duration-normal: 160ms;
+    /* ---------- tier 2: controls ---------- */
+    --bit-control-height-sm: 32px;
+    --bit-control-height-md: 40px;
+    --bit-control-height-lg: 48px;
+    --bit-control-padding-sm: 10px;
+    --bit-control-padding-md: 14px;
+    --bit-control-padding-lg: 18px;
 
-  /* ---------- tier 2: focus ---------- */
-  /* One ring, drawn by reset.css on :focus-visible. The gap shows the page between button and ring. */
-  --bit-focus-ring-color: var(--bit-palette-violet);
-  --bit-focus-ring-width: 2px;
-  --bit-focus-ring-offset: 2px;
+    /* ---------- tier 2: motion ---------- */
+    --bit-press-offset: 2px;
+    --bit-duration-fast: 80ms;
+    --bit-duration-normal: 160ms;
 
-  /* ---------- tier 2: code ("Ink night": every color is at least 5.6:1 on --bit-code-bg) ---------- */
-  --bit-code-bg: var(--bit-palette-ink);
-  --bit-code-text: #EDEBE4;
-  --bit-code-keyword: #C4A7FF;
-  --bit-code-string: #7EE2A0;
-  --bit-code-tag: #7CC7FF;
-  --bit-code-component: #FFD54A;
-  /* Orchid: attributes sit beside component names (yellow) and their string values (green), so they take a
-     cool violet-pink that stands apart from both, next to prop pink in the same family. */
-  --bit-code-attr: #EC8FFF;
-  --bit-code-punct: #A3A3AE;
-  --bit-code-comment: #8E8E9A;
-  --bit-code-number: #FF9F7A;
-  --bit-code-prop: #FF8FCB;
-  /* Inline Code: accent-coloured text on a dark pill with no visible border. Brand violet is 3.2:1 on ink,
-     so light mode uses the lighter violet that dark-mode links use (7.95:1). */
-  /* Light reads the CodeBlock background, so a --bit-code-bg override still restyles the pill. */
-  --bit-code-inline-bg: var(--bit-code-bg);
-  --bit-code-inline-bg-on-tint: var(--bit-code-inline-bg);
-  --bit-code-inline-text: var(--bit-palette-lilac);
-  --bit-code-inline-selection: var(--bit-palette-yellow);
+    /* ---------- tier 2: focus ---------- */
+    /* One ring, drawn by reset.css on :focus-visible. The gap shows the page between button and ring. */
+    --bit-focus-ring-color: var(--bit-palette-violet);
+    --bit-focus-ring-width: 2px;
+    --bit-focus-ring-offset: 2px;
 
-  /* ---------- tier 2: logo (fixed coin golds and violet; never primary or warning) ---------- */
-  --bit-logo-coin: var(--bit-palette-coin);
-  --bit-logo-coin-light: var(--bit-palette-coin-light);
-  --bit-logo-coin-shade: var(--bit-palette-coin-shade);
-  --bit-logo-coin-deep: var(--bit-palette-coin-deep);
-  --bit-logo-violet: var(--bit-palette-violet);
-}
+    /* ---------- tier 2: code ("Ink night": every color is at least 5.6:1 on --bit-code-bg) ---------- */
+    --bit-code-bg: var(--bit-palette-ink);
+    --bit-code-text: #EDEBE4;
+    --bit-code-keyword: #C4A7FF;
+    --bit-code-string: #7EE2A0;
+    --bit-code-tag: #7CC7FF;
+    --bit-code-component: #FFD54A;
+    /* Orchid: attributes sit beside component names (yellow) and their string values (green), so they take a
+       cool violet-pink that stands apart from both, next to prop pink in the same family. */
+    --bit-code-attr: #EC8FFF;
+    --bit-code-punct: #A3A3AE;
+    --bit-code-comment: #8E8E9A;
+    --bit-code-number: #FF9F7A;
+    --bit-code-prop: #FF8FCB;
+    /* Inline Code: accent-coloured text on a dark pill with no visible border. Brand violet is 3.2:1 on ink,
+       so light mode uses the lighter violet that dark-mode links use (7.95:1). */
+    /* Light reads the CodeBlock background, so a --bit-code-bg override still restyles the pill. */
+    --bit-code-inline-bg: var(--bit-code-bg);
+    --bit-code-inline-bg-on-tint: var(--bit-code-inline-bg);
+    --bit-code-inline-text: var(--bit-palette-lilac);
+    --bit-code-inline-selection: var(--bit-palette-yellow);
+  }
 
-/* Dark mode ("Arcade Night"). Overrides only the mode tokens (MODE_TOKENS in tokens.ts); every other
-   token is shared. Works on the root or on any element, so a subtree can be dark inside a light page. */
-[data-mode="dark"] {
-  color-scheme: dark;
-  --bit-color-bg: var(--bit-palette-night);
-  --bit-color-surface: var(--bit-palette-night-surface);
-  --bit-color-text: var(--bit-palette-chalk);
-  --bit-color-text-muted: var(--bit-palette-chalk-muted);
-  --bit-color-line: var(--bit-palette-slate-line);
-  --bit-color-shadow: var(--bit-palette-slate-shadow);
-  --bit-color-neutral: var(--bit-palette-steel-light);
-  --bit-color-neutral-contrast: var(--bit-palette-ink);
-  --bit-color-neutral-hover: var(--bit-palette-steel-light-hover);
-  --bit-color-neutral-soft: var(--bit-palette-night-raised);
-  --bit-color-stripe: var(--bit-palette-night-stripe);
-  --bit-color-primary-soft: var(--bit-palette-violet-night);
-  --bit-color-success-soft: var(--bit-palette-green-night);
-  --bit-color-warning-soft: var(--bit-palette-yellow-night);
-  --bit-color-danger-soft: var(--bit-palette-red-night);
-  --bit-shadow-inset: inset 3px 3px 0 rgba(0, 0, 0, 0.4);
-  --bit-code-bg: var(--bit-palette-night-code);
-  /* Raised: lighter than the page and the surface, so the borderless pill still reads as a chip. */
-  --bit-code-inline-bg: var(--bit-palette-night-raised);
-  /* Tinted surfaces sit close to night-raised, so there the pill takes the CodeBlock near-black. */
-  --bit-code-inline-bg-on-tint: var(--bit-palette-night-code);
-  --bit-code-inline-text: var(--bit-palette-yellow);
-  /* The text is yellow here, so selection switches to lilac (ink on it is 7.95:1). */
-  --bit-code-inline-selection: var(--bit-palette-lilac);
-  --bit-focus-ring-color: var(--bit-palette-yellow);
-  --bit-focus-ring-offset: 1px;
-  --bit-color-accent: var(--bit-palette-yellow);
-  --bit-color-link: var(--bit-palette-lilac);
-  /* The spec's #9B7FE6 is 4.45:1 on the hover highlight (primary-soft); #9D82E7 is the nearest that passes (4.59:1). */
-  --bit-color-link-visited: #9D82E7;
-  --bit-color-danger-text: #FF8A8A;
-  --bit-color-code-text: var(--bit-palette-yellow);
-}
-
-/* data-mode="system": follows the OS. Light on a light OS (the shared block above), dark on a dark OS.
-   Keep in step with [data-mode="dark"]; the parity test enforces it. */
-@media (prefers-color-scheme: dark) {
-  [data-mode="system"] {
+  /* Dark mode ("Arcade Night"). Overrides only the mode tokens (MODE_TOKENS in tokens.ts); every other
+     token is shared. Works on the root or on any element, so a subtree can be dark inside a light page. */
+  :where(.bit-dark, [data-mode="dark"]),
+  :is(.bit-theme-power-up, [data-theme="power-up"]):is(.bit-dark, [data-mode="dark"]) {
     color-scheme: dark;
     --bit-color-bg: var(--bit-palette-night);
     --bit-color-surface: var(--bit-palette-night-surface);

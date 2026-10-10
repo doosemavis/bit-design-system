@@ -1,0 +1,9 @@
+/* The BitLogo's brand colors: the coin golds and the violet of 64-bit's hard drop. They are the same in every
+   theme and mode, so they live here, once, instead of in each theme. In the bit.tokens layer, like a theme. */
+:root {
+  --bit-logo-coin: #FFCC00;
+  --bit-logo-coin-light: #FFF3BF;
+  --bit-logo-coin-shade: #E0B000;
+  --bit-logo-coin-deep: #F5A623;
+  --bit-logo-violet: #7C3AED;
+}

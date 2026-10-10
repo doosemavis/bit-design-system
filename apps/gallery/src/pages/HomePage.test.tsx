@@ -145,7 +145,7 @@ describe('HomePage', () => {
   it('the naming rule has five columns, and its Result column renders real Buttons', async () => {
     await open();
     expect(within(main()).getByRole('heading', { level: 2, name: 'The naming rule' })).toBeInTheDocument();
-    const table = screen.getByRole('region', { name: 'The naming rule' });
+    const table = screen.getByRole('table', { name: 'The naming rule' });
     expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual([
       'You write (prop)',
       'Or write (className)',
@@ -166,7 +166,7 @@ describe('HomePage', () => {
 
   it('the naming-rule codes never wrap mid-word: the table scrolls sideways instead', async () => {
     await open();
-    expect(screen.getByRole('region', { name: 'The naming rule' })).toHaveClass('bit-table', 'gallery-naming');
+    expect(screen.getByRole('table', { name: 'The naming rule' }).parentElement).toHaveClass('bit-table', 'gallery-naming');
     // home/homeCss.test.ts pins the nowrap rule this class turns on.
   });
 });

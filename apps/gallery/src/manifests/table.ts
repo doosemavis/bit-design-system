@@ -68,7 +68,7 @@ export const table: Manifest = {
       {
         name: 'aria-label',
         type: 'string',
-        description: "Names the table and its scroll area, which then becomes a named region: a landmark screen readers can list and jump to. To name it with a visible heading instead, use aria-labelledby with that heading's id.",
+        description: "Names the table. While the table is too wide and scrolls, the name moves to the scroll area, which becomes a named region: a landmark screen readers can list and jump to. Either way it is read once. To name it with a visible heading instead, use aria-labelledby with that heading's id.",
       },
       {
         name: 'children',
@@ -78,7 +78,7 @@ export const table: Manifest = {
     ],
     a11y: [
       'A native <table>, so screen readers announce rows, columns and the head cell for each value.',
-      'The scroll wrapper is focusable only when the table is too wide and scrolls; otherwise it adds no extra keyboard stop. With an aria-label or aria-labelledby it is a named region. Without a name it has no role, so name any table that may scroll.',
+      'The scroll wrapper is focusable only when the table is too wide and scrolls; otherwise it adds no extra keyboard stop. While it scrolls, an aria-label or aria-labelledby names it as a region (the stop focus lands on); the rest of the time the name stays on the table. The name is never on both, so it is read once. Without a name the wrapper has no role, so name any table that may scroll.',
     ],
   },
 };
