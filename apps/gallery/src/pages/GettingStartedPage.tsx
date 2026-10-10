@@ -30,62 +30,60 @@ const NEXT_STEPS = [
 /** Five steps from nothing to a styled component, in light and dark. */
 export function GettingStartedPage() {
   return (
-    <Stack gap={32}>
+    <Stack gap={64}>
       <PageHeader title="Getting started">
         <Text size={18}>Install the package, add the styles once, and use your first component.</Text>
       </PageHeader>
-      <Stack gap={24}>
-        <GetStarted />
-        <Step
-          n={4}
-          title="Light and dark"
-          help={
-            <>
-              Pick the default in your <Code>index.html</Code>, then switch it from anywhere with <Code>colorMode</Code>. Try the
-              toggle.
-            </>
-          }
-        >
-          {/* The step's Stack stretches its children; this keeps the toggle at its own size. */}
-          <Stack align="start">
-            <ModeToggle />
-          </Stack>
+      <GetStarted />
+      <Step
+        n={4}
+        title="Light and dark"
+        help={
+          <>
+            Pick the default in your <Code>index.html</Code>, then switch it from anywhere with <Code>colorMode</Code>. Try the
+            toggle.
+          </>
+        }
+      >
+        {/* The step's Stack stretches its children; this keeps the toggle at its own size. */}
+        <Stack align="start">
+          <ModeToggle />
+        </Stack>
+        <Stack gap={8}>
+          <Text weight="bold" className="gallery-caption">
+            In <Code>index.html</Code>
+          </Text>
+          <CodeBlock code={HTML_EXAMPLE} language="html" label="index.html" />
+        </Stack>
+        <Stack gap={8}>
+          <Text weight="bold" className="gallery-caption">
+            In any file
+          </Text>
+          <CodeBlock code={COLOR_MODE_EXAMPLE} language="jsx" label="Any file" />
+        </Stack>
+        <Disclosure title="Optional: use a saved choice before the page draws">
           <Stack gap={8}>
-            <Text weight="bold" className="gallery-caption">
-              In <Code>index.html</Code>
+            <Text>
+              Without this, a returning visitor's saved choice applies once your app loads. This script applies it earlier.{' '}
+              <Code>COLOR_MODE_SCRIPT</Code> is the same thing as a string, for frameworks that render <Code>&lt;head&gt;</Code> in
+              React.
             </Text>
-            <CodeBlock code={HTML_EXAMPLE} language="html" label="index.html" />
+            <CodeBlock code={SAVED_CHOICE_EXAMPLE} language="html" label="Saved-choice script" />
           </Stack>
-          <Stack gap={8}>
-            <Text weight="bold" className="gallery-caption">
-              In any file
+        </Disclosure>
+      </Step>
+      <Step n={5} title="Next steps" help="Where to go from here.">
+        <Stack gap={8}>
+          {NEXT_STEPS.map((step) => (
+            <Text key={step.label}>
+              <Link asChild>
+                <RouterLink to={step.to}>{step.label}</RouterLink>
+              </Link>{' '}
+              {step.note}
             </Text>
-            <CodeBlock code={COLOR_MODE_EXAMPLE} language="jsx" label="Any file" />
-          </Stack>
-          <Disclosure title="Optional: use a saved choice before the page draws">
-            <Stack gap={8}>
-              <Text>
-                Without this, a returning visitor's saved choice applies once your app loads. This script applies it earlier.{' '}
-                <Code>COLOR_MODE_SCRIPT</Code> is the same thing as a string, for frameworks that render <Code>&lt;head&gt;</Code> in
-                React.
-              </Text>
-              <CodeBlock code={SAVED_CHOICE_EXAMPLE} language="html" label="Saved-choice script" />
-            </Stack>
-          </Disclosure>
-        </Step>
-        <Step n={5} title="Next steps" help="Where to go from here.">
-          <Stack gap={8}>
-            {NEXT_STEPS.map((step) => (
-              <Text key={step.label}>
-                <Link asChild>
-                  <RouterLink to={step.to}>{step.label}</RouterLink>
-                </Link>{' '}
-                {step.note}
-              </Text>
-            ))}
-          </Stack>
-        </Step>
-      </Stack>
+          ))}
+        </Stack>
+      </Step>
     </Stack>
   );
 }

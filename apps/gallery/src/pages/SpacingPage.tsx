@@ -15,6 +15,7 @@ import {
   TableRow,
   Text,
 } from '@bit-ds/react';
+import { PageSection } from '../ui/PageSection';
 
 const STACK_EXAMPLE = `<Stack direction="row" gap={16}>
   <Badge>One</Badge>
@@ -126,7 +127,7 @@ function BoxProps() {
 /** Foundations: the space scale, when to reach for Stack or Box, and Box's props. Built only from bit components. */
 export function SpacingPage() {
   return (
-    <Stack gap={32}>
+    <Stack gap={64}>
       <Stack gap={8}>
         <Heading size={40}>Spacing</Heading>
         <Text size={18}>
@@ -134,22 +135,19 @@ export function SpacingPage() {
           apart, and <Code>Box</Code> pads and offsets a single thing.
         </Text>
       </Stack>
-      <Stack gap={12}>
-        <Heading>The scale</Heading>
+      <PageSection id="spacing-scale" title="The scale" landmark={false}>
         <Ruler />
-      </Stack>
-      <Stack gap={12}>
-        <Heading>Stack or Box?</Heading>
+      </PageSection>
+      <PageSection id="spacing-stack-or-box" title="Stack or Box?" landmark={false}>
         <StackOrBox />
-      </Stack>
-      <Stack gap={12}>
-        <Heading>Box props</Heading>
+      </PageSection>
+      <PageSection id="spacing-box-props" title="Box props" landmark={false}>
         <BoxProps />
         <Text color="neutral">
           When props overlap, the most specific wins: <Code>paddingTop</Code> beats <Code>paddingY</Code>, which beats{' '}
           <Code>padding</Code>.
         </Text>
-      </Stack>
+      </PageSection>
     </Stack>
   );
 }

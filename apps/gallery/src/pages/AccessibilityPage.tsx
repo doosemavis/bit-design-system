@@ -132,7 +132,7 @@ function Keyboard() {
 /** How bit handles accessibility, the keys each component answers to, worked examples, and a pre-ship checklist. */
 export function AccessibilityPage() {
   return (
-    <Stack gap={32}>
+    <Stack gap={64}>
       <PageHeader title="Accessibility">
         <Text size={18}>
           bit is built so the people using your app can read it, see where they are, and use it with a keyboard, a

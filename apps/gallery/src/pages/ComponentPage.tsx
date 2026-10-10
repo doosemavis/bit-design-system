@@ -19,7 +19,7 @@ export function ComponentPage({ manifest }: ComponentPageProps) {
   const axes = variantAxes(manifest);
   const tip = classTip(manifest);
   return (
-    <Stack gap={32}>
+    <Stack gap={64}>
       <Stack gap={16}>
         <ComponentHeader manifest={manifest} />
         <SectionBar sections={componentSections(manifest)} />

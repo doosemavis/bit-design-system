@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Badge, Button, Card, CardBody, Code, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
+import { SECTION_CLASS, SECTION_TITLE_CLASS } from '../../ui/PageSection';
 import { BUILD_VERSION } from '../../buildVersion';
 import { InstallCommand } from '../../content/InstallCommand';
 import { GLOBAL_CSS_IMPORTS, STYLE_IMPORTS } from '../../content/styleImports';
@@ -39,12 +40,12 @@ interface StepProps {
  */
 export function Step({ n, title, aside, help, children }: StepProps) {
   return (
-    <Stack gap={8} data-step={n}>
+    <Stack gap={16} data-step={n} className={SECTION_CLASS}>
       <Stack direction="row" gap={8} align="center" wrap>
         <Badge color="warning" shape="square">
           {String(n)}
         </Badge>
-        <Heading>{title}</Heading>
+        <Heading className={SECTION_TITLE_CLASS}>{title}</Heading>
         {aside}
       </Stack>
       <Card>
@@ -59,10 +60,13 @@ export function Step({ n, title, aside, help, children }: StepProps) {
   );
 }
 
-/** The first three numbered steps (the Getting started page adds two): install, add the styles once, use a component. */
+/**
+ * The first three numbered steps (the Getting started page adds two): install, add the styles once, use a
+ * component. A fragment, so every step is a sibling in the page's Stack and gets the same section break.
+ */
 export function GetStarted() {
   return (
-    <Stack gap={24}>
+    <>
       <Step
         n={1}
         title="Install"
@@ -177,6 +181,6 @@ export function GetStarted() {
           </Stack>
         </Stack>
       </Step>
-    </Stack>
+    </>
   );
 }

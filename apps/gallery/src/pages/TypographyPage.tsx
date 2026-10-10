@@ -19,6 +19,7 @@ import {
   Text,
 } from '@bit-ds/react';
 import type { HeadingSize, TextProps } from '@bit-ds/react';
+import { PageSection } from '../ui/PageSection';
 
 /**
  * power-up's four fonts. Each sample is two lines from retro games, set in the font through
@@ -303,7 +304,7 @@ function DoAndDont() {
 /** Foundations: the fonts, the heading sizes and the Text sizes. Built only from bit components. */
 export function TypographyPage() {
   return (
-    <Stack gap={32}>
+    <Stack gap={64}>
       <Stack gap={8}>
         <Heading size={40}>Typography</Heading>
         <Text size={18}>
@@ -311,34 +312,29 @@ export function TypographyPage() {
           they're in the page outline, and <Code>Text</Code> for everything else.
         </Text>
       </Stack>
-      <Stack gap={12}>
-        <Heading>Fonts</Heading>
+      <PageSection id="typo-fonts" title="Fonts" landmark={false}>
         <Fonts />
-      </Stack>
-      <Stack gap={12}>
-        <Heading>Headings</Heading>
+      </PageSection>
+      <PageSection id="typo-headings" title="Headings" landmark={false}>
         <Text>
           Every 2px from 20 to 44, all in the display font. The size picks the tag (h1 to h6) that screen readers and
           search engines read, so bigger titles always rank higher.
         </Text>
         <HeadingSizes />
-      </Stack>
-      <Stack gap={12}>
-        <Heading>Text sizes</Heading>
+      </PageSection>
+      <PageSection id="typo-text-sizes" title="Text sizes" landmark={false}>
         <TextSizes />
-      </Stack>
-      <Stack gap={12}>
-        <Heading>Text styles</Heading>
+      </PageSection>
+      <PageSection id="typo-text-styles" title="Text styles" landmark={false}>
         <Text>
           Bold, italic, underline and strikethrough, each a prop on Text. They combine, and a Text inside a sentence
           stays inline.
         </Text>
         <TextStyles />
-      </Stack>
-      <Stack gap={12}>
-        <Heading>Do and Don't</Heading>
+      </PageSection>
+      <PageSection id="typo-do-dont" title="Do and Don't" landmark={false}>
         <DoAndDont />
-      </Stack>
+      </PageSection>
     </Stack>
   );
 }
