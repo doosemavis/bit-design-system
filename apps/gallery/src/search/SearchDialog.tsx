@@ -4,6 +4,8 @@ import { Badge, Dialog, DialogBody, DialogFooter, DialogHeader, Input, Stack, Te
 import type { BadgeProps } from '@bit-ds/react';
 import { useNavigate } from 'react-router-dom';
 import { MANIFESTS } from '../manifests';
+import { GAMES } from '../arcade/games';
+import type { GameId } from '../arcade/games';
 import { NAV } from '../shell/Sidebar';
 import { focusRouteTarget, sectionIdOf } from '../shell/useFocusHeading';
 import { renderInline } from '../ui/renderInline';
@@ -11,7 +13,7 @@ import { buildSearchIndex, searchEntries } from './searchIndex';
 import type { SearchEntry } from './searchIndex';
 
 /** Every page and every component prop, built once: the docs don't change while the page is open. */
-const INDEX = buildSearchIndex(NAV, MANIFESTS);
+const INDEX = buildSearchIndex(NAV, MANIFESTS, GAMES);
 
 /** A result's badge names its sidebar section, one color per section, so a result reads like the menu it's in. */
 const GROUP_COLOR: Readonly<Record<string, BadgeProps['color']>> = {
@@ -20,6 +22,7 @@ const GROUP_COLOR: Readonly<Record<string, BadgeProps['color']>> = {
   Components: 'primary',
   Forms: 'success',
   Brand: 'danger',
+  Arcade: 'primary',
 };
 
 /** The next active index for an arrow key, wrapping at both ends; null for any other key. */
@@ -122,6 +125,8 @@ function SearchPanel({ onGo, hintId }: SearchPanelProps) {
 interface SearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Opens an Arcade game in the sidebar. */
+  onPlay?: (game: GameId) => void;
 }
 
 /**
@@ -130,11 +135,17 @@ interface SearchDialogProps {
  * once (the page changes behind the folding dialog); focus moves to that page, or that section, once the dialog
  * has closed and the page can take it.
  */
-export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
+export function SearchDialog({ open, onOpenChange, onPlay }: SearchDialogProps) {
   const navigate = useNavigate();
   const dialogRef = useRef<HTMLDialogElement>(null);
   // Where focus goes once the dialog has closed: a section id, '' for the page's h1, null for nowhere new.
   const focusAfterClose = useRef<string | null>(null);
+  // A game chosen here opens once the dialog has closed and handed focus back, so the game's board can take it.
+  const playAfterClose = useRef<GameId | null>(null);
+  const play = useRef(onPlay);
+  useEffect(() => {
+    play.current = onPlay;
+  });
   const [mounted, setMounted] = useState(open);
   const [session, setSession] = useState(0);
   const [seenOpen, setSeenOpen] = useState(open);
@@ -152,8 +163,11 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     let stop = () => {};
     const onClose = () => {
       const target = focusAfterClose.current;
+      const game = playAfterClose.current;
       focusAfterClose.current = null;
+      playAfterClose.current = null;
       if (target !== null) stop = focusRouteTarget(target, true);
+      if (game !== null) play.current?.(game);
     };
     dialog.addEventListener('close', onClose);
     return () => {
@@ -163,6 +177,11 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   }, [mounted]);
 
   function go(entry: SearchEntry) {
+    if (entry.game) {
+      playAfterClose.current = entry.game;
+      onOpenChange(false);
+      return;
+    }
     const [, hash = ''] = entry.to.split('#');
     focusAfterClose.current = sectionIdOf(hash ? `#${hash}` : '');
     onOpenChange(false);

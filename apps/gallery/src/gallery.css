@@ -1262,3 +1262,94 @@ html,
   grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
   gap: var(--bit-space-16px);
 }
+
+/* ---------- Arcade ---------- */
+/* The Arcade's items are Buttons (they open a game in the sidebar and go nowhere), dressed as the sidebar's links:
+   full width, start-aligned, the links' padding, size, line height, corner and hover, and no press offset. */
+.gallery-sidebar__game.bit-button {
+  display: flex;
+  width: 100%;
+  height: auto;
+  justify-content: flex-start;
+  padding: var(--bit-space-4px) var(--bit-space-8px);
+  border-radius: var(--bit-radius-6px);
+  font-size: var(--bit-text-16px);
+  line-height: var(--bit-leading-normal);
+}
+
+.gallery-sidebar__game.bit-button:hover:not(:disabled) {
+  transform: none;
+  background: var(--bit-color-primary-soft);
+}
+
+/* The game panel: a Card. Its title strip is the pixel face in a purple band, like a Dialog's title bar. */
+.gallery-game__title.bit-card__header {
+  padding: var(--bit-space-12px);
+  font-family: var(--bit-font-pixel);
+  font-size: var(--bit-text-14px);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--bit-color-primary);
+  color: var(--bit-color-primary-contrast);
+}
+
+/* While a game is open the panel fills the sidebar's height (the window under the header, or the phone sheet), and
+   the board takes whatever the Back button, HUD, arrows and controls leave: each column below grows into its parent
+   and never shrinks under its content. The game reads the board's size and fits its grid to it. */
+.gallery-arcade {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.gallery-arcade__stack,
+.gallery-game.bit-card,
+.gallery-game__stack {
+  flex: 1 0 auto;
+}
+
+/* The sidebar is narrow: a slim body gives the board the room. */
+.gallery-game__body.bit-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  padding: var(--bit-space-8px);
+}
+
+/* At least 12rem tall, so a short window still gets a playable board (the sidebar scrolls instead). The canvas sits
+   over the board rather than in its flow, so its own size never feeds back into the measurement. */
+.gallery-game__board {
+  position: relative;
+  width: 100%;
+  flex: 1 0 12rem;
+  min-height: 12rem;
+}
+
+.gallery-game__board:focus-visible {
+  outline: var(--bit-focus-ring-width) solid var(--bit-focus-ring-color);
+  outline-offset: var(--bit-focus-ring-offset);
+}
+
+.gallery-game__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The on-screen arrows, in a plus: Up on top, Left, Down and Right below. Each is 48px, over the 44px target. */
+.gallery-game__pad {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  grid-template-areas:
+    ". up ."
+    "left down right";
+  justify-content: center;
+  gap: var(--bit-space-8px);
+}
+
+.gallery-game__pad-up { grid-area: up; }
+.gallery-game__pad-left { grid-area: left; }
+.gallery-game__pad-down { grid-area: down; }
+.gallery-game__pad-right { grid-area: right; }

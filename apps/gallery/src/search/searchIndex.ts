@@ -1,9 +1,10 @@
 import { routeFor } from '../manifests';
 import type { Manifest } from '../manifests';
 import { SECTIONS } from '../pages/component/sections';
+import type { GameId } from '../arcade/games';
 
-/** What a result is: a docs page, a component page, or one prop on a component page. */
-export type SearchKind = 'page' | 'component' | 'prop';
+/** What a result is: a docs page, a component page, one prop on a component page, or an Arcade game. */
+export type SearchKind = 'page' | 'component' | 'prop' | 'game';
 
 export interface SearchEntry {
   /** Unique across the index, so a result can be an option id. */
@@ -15,8 +16,10 @@ export interface SearchEntry {
   title: string;
   /** The line under it: "Page" for a docs page, a component's description, a prop's component and type. */
   detail: string;
-  /** Where Enter goes: the page, or a component's Props section for a prop. */
+  /** Where Enter goes: the page, or a component's Props section for a prop. Empty for a game. */
   to: string;
+  /** A game opens in the sidebar instead of going anywhere. */
+  game?: GameId;
   /** Lower-cased text the query is matched against. */
   text: string;
 }
@@ -69,18 +72,39 @@ function propEntries(manifest: Manifest, group: string): SearchEntry[] {
   }));
 }
 
+/** One Arcade game, as GAMES lists it. */
+interface GameLink {
+  id: GameId;
+  label: string;
+  blurb: string;
+}
+
+function gameEntry(game: GameLink): SearchEntry {
+  return {
+    id: idFor('game', game.id),
+    kind: 'game',
+    group: 'Arcade',
+    title: game.label,
+    detail: `Game · ${game.blurb}`,
+    to: '',
+    game: game.id,
+    text: lower(game.label, 'arcade game play', game.blurb),
+  };
+}
+
 /**
- * Every page in sidebar order (Start here, Foundations, the components, Brand), then every component's props in
- * the same order. A page whose route is a manifest's is a component entry, described by its manifest.
+ * Every page in sidebar order (Start here, Foundations, the components, Brand), then the Arcade's games, then
+ * every component's props in the same order. A page whose route is a manifest's is a component entry, described
+ * by its manifest.
  */
-export function buildSearchIndex(nav: readonly PageLink[], manifests: readonly Manifest[]): SearchEntry[] {
+export function buildSearchIndex(nav: readonly PageLink[], manifests: readonly Manifest[], games: readonly GameLink[] = []): SearchEntry[] {
   const byRoute = new Map(manifests.map((manifest) => [routeFor(manifest), manifest]));
   const pages = nav.map((link) => pageEntry(link, byRoute.get(link.to)));
   const props = nav.flatMap((link) => {
     const manifest = byRoute.get(link.to);
     return manifest ? propEntries(manifest, link.group) : [];
   });
-  return [...pages, ...props];
+  return [...pages, ...games.map(gameEntry), ...props];
 }
 
 /** How well an entry's title meets the query: whole, its start, a word's start, anywhere, or only its other text. */
@@ -93,10 +117,10 @@ function titleScore(title: string, query: string): number {
 }
 
 /** Pages and components rank above props when they match as well, so "button" finds the Button page first. */
-const KIND_RANK: Record<SearchKind, number> = { component: 0, page: 0, prop: 1 };
+const KIND_RANK: Record<SearchKind, number> = { component: 0, page: 0, game: 0, prop: 1 };
 
-/** The default list with no query: every page, in sidebar order. */
-export const EMPTY_QUERY_KINDS: readonly SearchKind[] = ['page', 'component'];
+/** The default list with no query: every page and game, in sidebar order. */
+export const EMPTY_QUERY_KINDS: readonly SearchKind[] = ['page', 'component', 'game'];
 
 /**
  * The entries that hold every word of the query (in any order, anywhere in their text), best first: by how well
