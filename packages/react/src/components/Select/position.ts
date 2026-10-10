@@ -17,7 +17,7 @@ interface Size {
   height: number;
 }
 
-export interface ListboxPlacement {
+interface ListboxPlacement {
   placement: 'top' | 'bottom';
   top: number;
   left: number;

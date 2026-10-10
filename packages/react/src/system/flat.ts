@@ -1,5 +1,7 @@
+import { PREFIX } from '@bit-ds/core/tokens';
+
 /** The class that drops a component's hard shadow. */
-export const FLAT_CLASS = 'bit-flat';
+const FLAT_CLASS = `${PREFIX}-flat`;
 
 /**
  * The className to render for a `flat` prop: the caller's className, with `bit-flat` added unless it is

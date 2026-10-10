@@ -1,7 +1,7 @@
 import { Link, Stack, Text } from '@bit-ds/react';
 import { releaseAnchor } from './kinds';
 
-export interface RailEntry {
+interface RailEntry {
   version: string;
   date: string;
 }

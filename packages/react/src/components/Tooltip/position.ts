@@ -6,7 +6,7 @@ export const TOOLTIP_EDGE = 8;
 interface TriggerBox { top: number; bottom: number; left: number; width: number }
 interface Size { width: number; height: number }
 
-export interface TooltipPlacement {
+interface TooltipPlacement {
   placement: 'top' | 'bottom';
   top: number;
   left: number;
