@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { VISUALLY_HIDDEN, block, readCss } from '../css';
+import { VISUALLY_HIDDEN, block, readCss, rulesFor } from '../css';
 
 describe('components/segmented-control.css', () => {
   const css = readCss('components/segmented-control.css');
@@ -103,7 +103,7 @@ describe('components/segmented-control.css', () => {
 
 describe('system/reset.css (SegmentedControl ring)', () => {
   it('draws the one ring inside the focused segment', () => {
-    const body = block(readCss('system/reset.css'), '.bit-segmented-control__input:focus-visible + .bit-segmented-control__label')!;
+    const body = rulesFor(readCss('system/reset.css'), '.bit-segmented-control__input:focus-visible + .bit-segmented-control__label')!;
     expect(body).toContain('outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));');
     expect(body).toContain('outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);');
   });

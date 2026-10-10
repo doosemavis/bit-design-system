@@ -1,12 +1,14 @@
 /**
- * Every route that is not a component page, with the name of its h1. The route smokes run axe on each of
- * these and on every manifest's route: routes.test.tsx in light, routes.dark.test.tsx in dark. Both read
- * this one list, so light and dark cannot drift apart.
+ * Every route that is not a component page, with the name of its h1. The route smoke (routes.test.tsx) checks
+ * each heading and runs axe on each of these and on every manifest's route. jsdom loads no CSS, so the markup is
+ * the same in either mode: routes.dark.test.tsx checks only the dark-mode state, and the real dark colors are
+ * covered by core's per-mode contrast tests and the e2e axe run.
  */
 export const PAGE_ROUTES = [
   ['/', 'bit Design System'],
   ['/getting-started', 'Getting started'],
   ['/versions', 'Versions'],
+  ['/accessibility', 'Accessibility'],
   ['/release-notes', 'Release notes'],
   ['/tokens', 'Tokens'],
   ['/typography', 'Typography'],

@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import type { HTMLAttributes } from 'react';
-import { COLORS } from '../../system/axes';
+import { COLORS, SIZES } from '../../system/axes';
 import type { Color } from '../../system/axes';
 import { withFlat } from '../../system/flat';
 import { dataValue, toClasses } from '../../system/toClasses';
@@ -8,7 +8,7 @@ import { dataValue, toClasses } from '../../system/toClasses';
 /** Badge supports a subset of the global axes. Add a value here and a rule in core/components/badge.css. */
 const colors = COLORS;
 const variants = ['solid', 'outline'] as const;
-const sizes = ['sm', 'md', 'lg'] as const;
+const sizes = SIZES;
 /** Not a global axis, so it renders as a data attribute rather than a class. */
 const shapes = ['pill', 'square'] as const;
 
@@ -16,7 +16,7 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   /** Color role. Class: `bit-{color}`. */
   color?: Color;
   variant?: (typeof variants)[number];
-  /** `lg` is the readable badge: body font, 15px bold. `sm` and `md` use the pixel font. */
+  /** `lg` is the readable badge: body font, 16px bold. `sm` and `md` use the pixel font. */
   size?: (typeof sizes)[number];
   /** Drops the hard shadow for a flat look. Class: `bit-flat`, so `className="bit-flat"` does the same. */
   flat?: boolean;

@@ -2,14 +2,14 @@ import { within } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 
 /** The listbox a bit Select's trigger (role combobox) controls. */
-export function listboxOf(trigger: HTMLElement): HTMLElement {
+function listboxOf(trigger: HTMLElement): HTMLElement {
   const list = document.getElementById(trigger.getAttribute('aria-controls') ?? '');
   if (!list) throw new Error('The trigger controls no listbox');
   return list;
 }
 
 /** Every option row of a bit Select, open or closed (a closed list is hidden, so rows are asked for with hidden: true). */
-export function optionsOf(trigger: HTMLElement): HTMLElement[] {
+function optionsOf(trigger: HTMLElement): HTMLElement[] {
   return within(listboxOf(trigger)).getAllByRole('option', { hidden: true });
 }
 

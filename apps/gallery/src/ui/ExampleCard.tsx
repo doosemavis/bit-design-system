@@ -16,7 +16,7 @@ export interface Example {
   note?: ReactNode;
 }
 
-export function ExampleCard({ title, when, sample, code, language = 'jsx', note }: Example) {
+function ExampleCard({ title, when, sample, code, language = 'jsx', note }: Example) {
   const titleId = useId();
   return (
     <Card role="article" aria-labelledby={titleId}>

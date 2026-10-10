@@ -17,7 +17,7 @@ export interface SelectValueArgs {
   form: string | undefined;
 }
 
-export interface SelectValue {
+interface SelectValue {
   /** The chosen options' indexes, in option order. Values no option has are left out. At most one in single mode. */
   chosen: readonly number[];
   /** Single mode: make the option at `index` the value. Nothing happens when it already is, or there is no such option. */

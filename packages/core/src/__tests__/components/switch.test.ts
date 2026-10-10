@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { VISUALLY_HIDDEN, block, readCss } from '../css';
+import { VISUALLY_HIDDEN, block, readCss, rulesFor } from '../css';
 
 describe('components/switch.css', () => {
   const css = readCss('components/switch.css');
@@ -58,7 +58,7 @@ describe('components/switch.css', () => {
 
 describe('system/reset.css (Switch ring)', () => {
   it('draws the one focus ring on the track when the hidden input has keyboard focus', () => {
-    const body = block(readCss('system/reset.css'), '.bit-switch__input:focus-visible + .bit-switch__track')!;
+    const body = rulesFor(readCss('system/reset.css'), '.bit-switch__input:focus-visible + .bit-switch__track')!;
     expect(body).toContain('outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));');
     expect(body).toContain('outline-offset: var(--bit-focus-ring-offset);');
   });

@@ -89,6 +89,34 @@ export function block(css: string, selector: string): string | null {
   return m ? m[1]! : null;
 }
 
+/** A selector list split at its top-level commas (a comma inside `:is(…)` or `:not(…)` stays), each one trimmed. */
+function splitSelectors(list: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < list.length; i++) {
+    if (list[i] === '(') depth++;
+    else if (list[i] === ')') depth--;
+    else if (list[i] === ',' && depth === 0) {
+      parts.push(list.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+  return [...parts, list.slice(start).trim()];
+}
+
+/**
+ * The declarations that apply to `selector` from top-level rules (outside any at-rule): every rule whose
+ * selector list includes it, alone or grouped with others, joined in source order. Null when none does.
+ */
+export function rulesFor(css: string, selector: string): string | null {
+  const wanted = selector.replace(/\s+/g, ' ');
+  const bodies = styleRules(css)
+    .filter((rule) => rule.media === null && splitSelectors(rule.selector).includes(wanted))
+    .map((rule) => rule.body);
+  return bodies.length === 0 ? null : bodies.join('\n');
+}
+
 /** Return the value of `prop` in a block body (not a prefixed or longer property), or null. */
 export function decl(body: string, prop: string): string | null {
   const m = new RegExp(`(?<![-\\w])${prop}\\s*:\\s*([^;]+);`).exec(body);

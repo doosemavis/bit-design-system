@@ -17,8 +17,10 @@ import {
   TableHead,
   TableRow,
   Text,
+  headingTag,
 } from '@bit-ds/react';
-import type { HeadingSize, TextProps } from '@bit-ds/react';
+import type { TextProps } from '@bit-ds/react';
+import { PageHeader } from '../ui/PageHeader';
 import { PageSection } from '../ui/PageSection';
 
 /**
@@ -77,14 +79,6 @@ const FONTS: readonly { face: string; name: string; use: string; quotes: readonl
     inUse: <Code>npm i @bit-ds/react</Code>,
   },
 ];
-
-/** The tag each heading size renders, as Heading picks it: 40 and up h1, 32 to 38 h2, 26 to 30 h3, 24 h4, 22 h5, 20 h6. */
-function tagOf(size: HeadingSize): string {
-  if (size >= 40) return 'h1';
-  if (size >= 32) return 'h2';
-  if (size >= 26) return 'h3';
-  return { 24: 'h4', 22: 'h5', 20: 'h6' }[size as 24 | 22 | 20];
-}
 
 /** What each tag is for, as the sample text of its rows. */
 const TAG_EXAMPLE: Readonly<Record<string, string>> = {
@@ -199,7 +193,7 @@ function Fonts() {
 
 /** How many sizes render each tag, so a tag's cell spans all its rows. */
 const TAG_ROWS: Readonly<Record<string, number>> = HEADINGS.reduce<Record<string, number>>(
-  (counts, size) => ({ ...counts, [tagOf(size)]: (counts[tagOf(size)] ?? 0) + 1 }),
+  (counts, size) => ({ ...counts, [headingTag(size)]: (counts[headingTag(size)] ?? 0) + 1 }),
   {},
 );
 
@@ -213,8 +207,8 @@ function HeadingSizes() {
       <HeadRow values={['Size', 'Tag']} />
       <TableBody>
         {HEADINGS.map((size, i) => {
-          const tag = tagOf(size);
-          const firstOfTag = i === 0 || tagOf(HEADINGS[i - 1]!) !== tag;
+          const tag = headingTag(size);
+          const firstOfTag = i === 0 || headingTag(HEADINGS[i - 1]!) !== tag;
           return (
             <TableRow key={size} data-tag={tag}>
               <TableCell>
@@ -305,13 +299,12 @@ function DoAndDont() {
 export function TypographyPage() {
   return (
     <Stack gap={64}>
-      <Stack gap={8}>
-        <Heading size={40}>Typography</Heading>
+      <PageHeader title="Typography">
         <Text size={18}>
           Four fonts and two scales, each set with <Code>size</Code> in px. Use <Code>Heading</Code> for titles, so
           they're in the page outline, and <Code>Text</Code> for everything else.
         </Text>
-      </Stack>
+      </PageHeader>
       <PageSection id="typo-fonts" title="Fonts" landmark={false}>
         <Fonts />
       </PageSection>

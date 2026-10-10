@@ -4,7 +4,7 @@ import { COLOR_MODE_STORAGE_KEY } from '@bit-ds/react';
 /** The two color modes every mode-aware spec runs under. */
 export const MODES = ['light', 'dark'] as const;
 
-export type SeedMode = (typeof MODES)[number];
+type SeedMode = (typeof MODES)[number];
 
 /** Save a color-mode choice before the page loads, as the toggle would have, so the first paint is in that mode. */
 export async function seedColorMode(page: Page, mode: SeedMode): Promise<void> {

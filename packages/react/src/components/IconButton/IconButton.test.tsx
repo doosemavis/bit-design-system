@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { IconButton } from './IconButton';
 import { iconDelete } from '../../icons/icons.generated';
 import { COLORS, SIZES, VARIANTS } from '../../system/axes';
+import { expectNoA11yViolations } from '../../test/a11y';
 
 describe('IconButton', () => {
   it('is a type="button" named by its label, square neutral outline md by default, with a decorative icon', () => {
@@ -72,5 +73,13 @@ describe('IconButton', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
     expect(ref.current).toBe(screen.getByRole('button'));
     expect(screen.getByRole('button')).toHaveClass('extra');
+  });
+
+  it('has no accessibility violations, at rest or showing its tooltip', async () => {
+    const { container } = render(<IconButton icon={iconDelete} label="Delete" tooltip="Delete" color="danger" variant="solid" />);
+    await expectNoA11yViolations(container);
+    fireEvent.pointerEnter(screen.getByRole('button', { name: 'Delete' }));
+    expect(screen.getByRole('tooltip', { hidden: true })).toBeVisible();
+    await expectNoA11yViolations(container);
   });
 });

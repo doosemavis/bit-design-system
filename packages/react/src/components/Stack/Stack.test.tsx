@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Stack } from './Stack';
 import { SPACE_STEPS } from '../../system/axes';
+import { expectNoA11yViolations } from '../../test/a11y';
 
 describe('Stack', () => {
   afterEach(() => vi.restoreAllMocks());
@@ -66,5 +67,18 @@ describe('Stack', () => {
       </Stack>,
     );
     expect(screen.getByTestId('s')).not.toHaveAttribute('color');
+  });
+
+  it('has no accessibility violations, as a column or a row', async () => {
+    const { container } = render(
+      <Stack gap={16}>
+        <p>One</p>
+        <Stack direction="row" gap={8}>
+          <button type="button">Two</button>
+          <button type="button">Three</button>
+        </Stack>
+      </Stack>,
+    );
+    await expectNoA11yViolations(container);
   });
 });

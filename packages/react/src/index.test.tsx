@@ -129,6 +129,7 @@ describe('public index', () => {
     expect(lib.TEXT_SIZES).toEqual([14, 16, 18, 24, 32, 40]);
     expect(lib.HEADING_SIZES).toEqual([20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44]);
     expect(lib.SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
+    expect(lib.HEADING_SIZES.map(lib.headingTag)).toEqual(['h6', 'h5', 'h4', 'h3', 'h3', 'h3', 'h2', 'h2', 'h2', 'h2', 'h1', 'h1', 'h1']);
   });
 
   it('exports SEMANTIC_TOKENS, the 114 tier-2 token names every theme declares, from @bit-ds/core', () => {

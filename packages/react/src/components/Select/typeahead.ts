@@ -2,7 +2,7 @@
 export const TYPEAHEAD_MS = 500;
 
 /** What has been typed so far, lower-cased, and when the last key came. */
-export interface TypeaheadBuffer {
+interface TypeaheadBuffer {
   text: string;
   at: number;
 }

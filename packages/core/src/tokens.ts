@@ -28,7 +28,7 @@ export const HEADING_SIZES = [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44
 export const SPACE_STEPS = [4, 8, 12, 16, 24, 32, 48, 64] as const;
 /** Corner radii in px, as `--bit-radius-{n}px`. `--bit-radius-full` (the pill) names a shape, not a size. */
 const RADII = [6, 10, 14] as const;
-/** Syntax-color kinds for code. CodeBlock's tokenizer (PR2) emits these; each reads `--bit-code-{kind}`. */
+/** Syntax-color kinds for code. CodeBlock's tokenizer emits these; each reads `--bit-code-{kind}`. */
 export const CODE_KINDS = ['text', 'keyword', 'string', 'tag', 'component', 'attr', 'punct', 'comment', 'number', 'prop'] as const;
 
 export type Color = (typeof COLORS)[number];
@@ -37,7 +37,22 @@ export type TextSize = (typeof TEXT_SIZES)[number];
 /** @deprecated 11, 13 and 15: use 14 or 16. Removed in 0.2.0. */
 export type DeprecatedTextSize = (typeof DEPRECATED_TEXT_SIZES)[number];
 export type HeadingSize = (typeof HEADING_SIZES)[number];
+/** The heading tags a Heading size can render. */
+export type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 export type SpaceStep = (typeof SPACE_STEPS)[number];
+
+/**
+ * The tag a Heading size renders: 40 and up h1, 32 to 38 h2, 26 to 30 h3, 24 h4, 22 h5, 20 h6. Heading uses it,
+ * and so does the gallery's Typography page, so the two never disagree.
+ */
+export function headingTag(size: HeadingSize): HeadingTag {
+  if (size >= 40) return 'h1';
+  if (size >= 32) return 'h2';
+  if (size >= 26) return 'h3';
+  if (size === 24) return 'h4';
+  if (size === 22) return 'h5';
+  return 'h6';
+}
 
 const token = (category: string, ...parts: (string | number)[]) =>
   `--${PREFIX}-${[category, ...parts].join('-')}`;
@@ -49,10 +64,10 @@ const colorRoleTokens = ['bg', 'surface', 'ink', 'text', 'text-muted', 'selectio
 );
 
 /**
- * PR2 roles: the accent (CodeBlock's border and bar rule), link text, field error text, the Switch thumb when on, Table stripes, and Code text inside a Table.
+ * Component roles: the accent (CodeBlock's border and bar rule), link text, field error text, the Switch thumb when on, Table stripes, and Code text inside a Table.
  * Each has one job, so a theme can tune it without moving primary, danger or the surfaces.
  */
-const pr2ColorTokens = ['accent', 'link', 'link-visited', 'danger-text', 'knob', 'stripe', 'code-text'].map((role) => token('color', role));
+const componentColorTokens = ['accent', 'link', 'link-visited', 'danger-text', 'knob', 'stripe', 'code-text'].map((role) => token('color', role));
 
 const colorTokens = COLORS.flatMap((color) => [
   token('color', color),
@@ -120,7 +135,7 @@ const logoTokens = ['coin', 'coin-light', 'coin-shade', 'coin-deep', 'violet'].m
  */
 export const SEMANTIC_TOKENS: readonly string[] = [
   ...colorRoleTokens,
-  ...pr2ColorTokens,
+  ...componentColorTokens,
   ...colorTokens,
   ...shapeTokens,
   ...typeTokens,

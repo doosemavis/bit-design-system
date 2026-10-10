@@ -6,6 +6,7 @@ import {
   Code,
   CodeBlock,
   COLOR_MODES,
+  COLORS,
   Icon,
   ICON_GROUPS,
   iconBolt,
@@ -95,7 +96,8 @@ function StartCard({ name, to, link, children }: { name: string; to: string; lin
   );
 }
 
-const SWATCHES = ['primary', 'neutral', 'success', 'warning', 'danger', 'text'] as const;
+/** The five color roles, then the text color. */
+const SWATCHES = [...COLORS, 'text'] as const;
 const SAMPLE_ICONS = [iconFavorite, iconBolt, iconHome, iconSearch, iconPalette, iconCelebration];
 
 /** Three ways on: install it, see the tokens, browse the icons. */

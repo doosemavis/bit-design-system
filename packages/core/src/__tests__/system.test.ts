@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { SEMANTIC_TOKENS, SIZES, COLORS } from '../tokens';
-import { OUTLINE_DECLARATION, block, decl, listCss, readCss, resolveVar, themeModes, withoutBlocks } from './css';
+import { OUTLINE_DECLARATION, block, decl, listCss, readCss, resolveVar, rulesFor, themeModes, withoutBlocks } from './css';
 
 /**
  * The only places a component may read --bit-color-ink, by file and exact selector. Everything else
@@ -270,9 +270,15 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
   const reset = readCss('system/reset.css');
 
   it('reset.css draws the ring from the three focus-ring tokens, unless a colored container overrides its color', () => {
-    const body = block(reset, ':focus-visible');
+    const body = rulesFor(reset, ':focus-visible');
     expect(body).toContain('outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));');
     expect(body).toContain('outline-offset: var(--bit-focus-ring-offset);');
+  });
+
+  it('reset.css writes the ring and the inside offset once each, shared by every selector that draws them', () => {
+    const count = (text: string) => reset.split(text).length - 1;
+    expect(count('outline: var(--bit-focus-ring-width) solid')).toBe(1);
+    expect(count('outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);')).toBe(1);
   });
 
   it('a solid alert draws rings inside it in its contrast color, so they stay visible on the fill', () => {
@@ -327,7 +333,7 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
     });
 
     it("a ModeToggle option's ring sits inside it, on the pressed fill in that fill's contrast color", () => {
-      expect(decl(block(reset, '.bit-mode-toggle__option:focus-visible')!, 'outline-offset')).toBe('calc(-1 * var(--bit-focus-ring-width) - 2px)');
+      expect(decl(rulesFor(reset, '.bit-mode-toggle__option:focus-visible')!, 'outline-offset')).toBe('calc(-1 * var(--bit-focus-ring-width) - 2px)');
       expect(block(readCss('components/mode-toggle.css'), '.bit-mode-toggle__option[aria-pressed="true"]')).toContain(
         '--_bit-focus-ring: var(--bit-color-warning-contrast);',
       );

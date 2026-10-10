@@ -38,10 +38,30 @@ body {
 
 /* Focus: one ring on everything, which no component sets or overrides. Color, width and gap come
    from the theme (violet 2px/2px in light, yellow 2px/1px in dark). Containers with a colored fill
-   set --_bit-focus-ring so rings inside them stay visible. */
-:focus-visible {
+   set --_bit-focus-ring so rings inside them stay visible.
+   Visually hidden inputs can't show a ring, so the part drawn beside them shows it (the Switch track, a
+   segment's label), and a Tab shows it on its label (see below): the same ring, from the same tokens. */
+:focus-visible,
+.bit-switch__input:focus-visible + .bit-switch__track,
+.bit-segmented-control__input:focus-visible + .bit-segmented-control__label,
+.bit-tabs__tab:focus-visible > .bit-tabs__label {
   outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
+}
+
+:focus-visible,
+.bit-switch__input:focus-visible + .bit-switch__track {
   outline-offset: var(--bit-focus-ring-offset);
+}
+
+/* Rings that sit inside their element, 2px in from the edge, the same gap all round:
+   - a segment is flush with its neighbours;
+   - a ModeToggle option is flush with the pill's border, so a ring outside it would sit on that border with no gap;
+   - CodeBlock's scrollable pre sits inside a panel with overflow: hidden, which would clip a ring drawn outside
+     it, so the ring goes onto the code background. */
+.bit-segmented-control__input:focus-visible + .bit-segmented-control__label,
+.bit-mode-toggle__option:focus-visible,
+.bit-code__pre:focus-visible {
+  outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);
 }
 
 /* A control with a hard shadow: while it has keyboard focus, the shadow moves from under the control to under
@@ -74,41 +94,15 @@ body {
   --_bit-focus-gap: var(--bit-color-surface);
 }
 
-/* Visually hidden inputs can't show a ring, so the part drawn beside them shows it: the same ring,
-   from the same tokens. */
-.bit-switch__input:focus-visible + .bit-switch__track {
-  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
-  outline-offset: var(--bit-focus-ring-offset);
-}
-
-/* A segment is flush with its neighbours, so its ring sits inside it, 2px in from the edge. */
-.bit-segmented-control__input:focus-visible + .bit-segmented-control__label {
-  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
-  outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);
-}
-
-/* A ModeToggle option is flush with the pill's border, so a ring outside it would sit on that border with no
-   gap. Like a segment, its ring sits inside it, 2px in from the edge, the same gap all round. */
-.bit-mode-toggle__option:focus-visible {
-  outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);
-}
-
 /* Tabs: the cartridge's notch (clip-path) cuts off any outline outside it, so the ring goes on the label, inside. */
 .bit-tabs__tab:focus-visible {
   outline: none;
 }
 
 .bit-tabs__tab:focus-visible > .bit-tabs__label {
-  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
   /* The ring is drawn around the label, inside the cartridge: the tab's padding (12px) puts its top edge
      (12 - 4 - 2 = 6px) just under the 6px notch, which would clip the usual outside offset. */
   outline-offset: var(--bit-space-4px);
-}
-
-/* CodeBlock's scrollable pre sits inside a panel with overflow: hidden, which would clip a ring drawn
-   outside it. Pull the ring 2px inside the pre instead, onto the code background. */
-.bit-code__pre:focus-visible {
-  outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);
 }
 
 /* Programmatic focus targets (a page heading or section focused after navigation, the main
