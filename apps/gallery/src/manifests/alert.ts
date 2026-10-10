@@ -18,17 +18,19 @@ export const alert: Manifest = {
   slug: 'alert',
   group: 'components',
   component: Alert,
-  description: 'A message with an optional heading. Outline uses the soft background; solid fills.',
+  description: 'A message with an optional heading. Outline uses the soft background; solid fills. Each color but neutral leads with its own icon.',
   controls: [
     { kind: 'axis', prop: 'color', values: COLORS, default: 'neutral' },
     { kind: 'axis', prop: 'variant', values: ['solid', 'outline'], default: 'outline' },
     { kind: 'text', prop: 'title', default: 'Heads up', alwaysPrint: true },
+    { kind: 'boolean', prop: 'icon', default: true },
     { kind: 'boolean', prop: 'dismissible', default: false, virtual: true },
   ],
   children: 'Your changes were saved.',
   presets: [
     { label: 'Danger solid', state: { color: 'danger', variant: 'solid', title: 'Something broke' } },
     { label: 'No title', state: { title: '' } },
+    { label: 'Success', state: { color: 'success', title: 'Saved' } },
   ],
   // Dismissible: the preview passes onDismiss (the × hides it, and a Button brings it back); the code keeps it in state.
   demo: {
@@ -44,7 +46,7 @@ export const alert: Manifest = {
   },
   interactive: dismissible,
   docs: {
-    badges: ['role="status"', 'Title in the display face'],
+    badges: ['role="status"', 'Title in the display face', 'Severity icon'],
     usage: {
       do: [
         'Say what happened and what to do next: "Saved. You can close this tab."',
@@ -77,6 +79,13 @@ export const alert: Manifest = {
         description: "The alert's own heading, in the display face. It is not the native title tooltip.",
       },
       {
+        name: 'icon',
+        type: 'boolean | IconData',
+        default: 'true',
+        description:
+          "The leading icon. true shows the color's own: info for primary, a check for success, a warning sign for warning, an error mark for danger; neutral has none. false hides it, and an icon export (iconCelebration) replaces it.",
+      },
+      {
         name: 'role',
         type: 'string',
         default: "'status'",
@@ -101,6 +110,7 @@ export const alert: Manifest = {
       'role="status" by default, so screen readers announce it politely when it appears, without moving focus.',
       'Use role="alert" only for errors that need attention now: it interrupts whatever is being read.',
       "The title is styled text, not a heading, so it doesn't change the page outline.",
+      'The icon shows the severity without relying on color, which matters in forced-colors mode (Windows high contrast) and for color-blind readers. It is hidden from screen readers: say the severity in the title or text ("Payment failed").',
       'With onDismiss, the × is a real button named "Dismiss" (dismissLabel changes it); the × glyph itself is hidden from screen readers.',
       'Dismissing is your app\'s job: remove the Alert in onDismiss. The × had focus, so move focus somewhere sensible (the next control or heading), or keyboard users are left on nothing.',
     ],
