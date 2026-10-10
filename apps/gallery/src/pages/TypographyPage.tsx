@@ -188,26 +188,44 @@ function Fonts() {
   );
 }
 
-/** Each sample is a real Heading, so it shows the real look. role="presentation" keeps it out of the page outline. */
+/** How many sizes render each tag, so a tag's cell spans all its rows. */
+const TAG_ROWS: Readonly<Record<string, number>> = HEADINGS.reduce<Record<string, number>>(
+  (counts, size) => ({ ...counts, [tagOf(size)]: (counts[tagOf(size)] ?? 0) + 1 }),
+  {},
+);
+
+/**
+ * Each sample is a real Heading, so it shows the real look. role="presentation" keeps it out of the page outline.
+ * A tag's cell spans every size that renders it, with a bracket that groups those sizes.
+ */
 function HeadingSizes() {
   return (
     <Table aria-label="Headings">
       <HeadRow values={['Size', 'Tag']} />
       <TableBody>
-        {HEADINGS.map((size) => (
-          <TableRow key={size}>
-            <TableCell>
-              <Heading size={size} role="presentation">
-                {TAG_EXAMPLE[tagOf(size)]}
-              </Heading>
-            </TableCell>
-            <ValueCell>{String(size)}</ValueCell>
-            <ValueCell>{tagOf(size)}</ValueCell>
-            <TableCell>
-              <Code>{`<Heading size={${size}}>`}</Code>
-            </TableCell>
-          </TableRow>
-        ))}
+        {HEADINGS.map((size, i) => {
+          const tag = tagOf(size);
+          const firstOfTag = i === 0 || tagOf(HEADINGS[i - 1]!) !== tag;
+          return (
+            <TableRow key={size} data-tag={tag}>
+              <TableCell>
+                <Heading size={size} role="presentation">
+                  {TAG_EXAMPLE[tag]}
+                </Heading>
+              </TableCell>
+              <ValueCell>{String(size)}</ValueCell>
+              {firstOfTag ? (
+                <TableCell rowSpan={TAG_ROWS[tag]} className="gallery-cell-center gallery-tag-group">
+                  <span className="gallery-tag-group__bracket" aria-hidden="true" />
+                  <Text weight="bold">{tag}</Text>
+                </TableCell>
+              ) : null}
+              <TableCell>
+                <Code>{`<Heading size={${size}}>`}</Code>
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

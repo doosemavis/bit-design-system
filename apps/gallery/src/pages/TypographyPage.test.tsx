@@ -100,23 +100,39 @@ describe('Typography page', () => {
     expect(cellTexts(rows[sampleRow]!).slice(1, -1)).toEqual(values);
     for (const row of [table.querySelector('.bit-table__head .bit-table__row')!, ...rows]) {
       const centered = [...row.querySelectorAll('.bit-table__cell')].map((cell) => cell.classList.contains('gallery-cell-center'));
-      // Example and Code stay left; every value column between them is centered.
-      expect(centered).toEqual(head.map((_, i) => i > 0 && i < head.length - 1));
+      // Example and Code stay left; every value column between them is centered. (A Headings row under the first
+      // of its tag has no Tag cell: the first row's spans it.)
+      expect(centered).toEqual(centered.map((_, i) => i > 0 && i < centered.length - 1));
     }
   });
 
-  it("every Headings row's size has a rule in heading.css, its tag is the sample's, and its code is size only", async () => {
+  it("every Headings row's size has a rule in heading.css, its sample renders its tag, and its code is size only", async () => {
     // Not new URL(..., import.meta.url): under jsdom Vite rewrites that to an http: URL; ?raw CSS comes back empty.
     const css = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../../../packages/core/src/components/heading.css'), 'utf8');
     await renderTypography();
     const table = screen.getByRole('table', { name: 'Headings' });
-    for (const row of table.querySelectorAll('.bit-table__body .bit-table__row')) {
-      const [, size, tag, code] = cellTexts(row);
+    for (const row of table.querySelectorAll<HTMLElement>('.bit-table__body .bit-table__row')) {
+      const cells = cellTexts(row);
+      const [size, code] = [cells[1], cells.at(-1)];
       expect(css, `${size}: a data-size rule`).toContain(`.bit-heading[data-size="${size}"]`);
       const sample = row.querySelector('.bit-heading')!;
-      expect(sample.tagName.toLowerCase(), `${size} tag`).toBe(tag);
+      expect(sample.tagName.toLowerCase(), `${size} tag`).toBe(row.dataset.tag);
       expect(sample).toHaveAttribute('data-size', size);
       expect(code, `${size} code`).toBe(`<Heading size={${size}}>`);
+    }
+  });
+
+  it('groups the sizes by tag: one Tag cell per tag spans all its rows, with a bracket beside them', async () => {
+    await renderTypography();
+    const table = screen.getByRole('table', { name: 'Headings' });
+    const groups = [...table.querySelectorAll<HTMLTableCellElement>('.gallery-tag-group')];
+    expect(groups.map((cell) => `${cell.textContent} ${cell.rowSpan}`)).toEqual(['h1 3', 'h2 4', 'h3 3', 'h4 1', 'h5 1', 'h6 1']);
+    for (const cell of groups) {
+      expect(cell.querySelector('.gallery-tag-group__bracket')).toHaveAttribute('aria-hidden', 'true');
+      // The rows it spans all render its tag.
+      const rows = [...table.querySelectorAll<HTMLElement>(`.bit-table__body .bit-table__row[data-tag="${cell.textContent}"]`)];
+      expect(rows).toHaveLength(cell.rowSpan);
+      expect(rows[0]).toContainElement(cell);
     }
   });
 
