@@ -32,7 +32,7 @@ Versions and release notes: [all versions](https://doosemavis.github.io/bit-desi
 - [Icons](#icons)
 - [Components](#components)
 - [Utilities](#utilities)
-- [Themes](#themes) · [Light and dark](#light-and-dark)
+- [Themes](#themes) · [Light and dark](#light-and-dark) · [Part of the page](#part-of-the-page) · [Your CSS wins](#your-css-wins)
 - [Fonts](#fonts)
 - [Links](#links)
 - [Contributing](#contributing)
@@ -220,23 +220,31 @@ const { state, label, copy } = useCopyToClipboard(command);
 
 <p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
-A theme is one CSS file that fills in every semantic token. Switch with an attribute:
+A theme is one CSS file that fills in every semantic token. power-up applies to the whole page by default. To name a theme, put its class (or `data-theme`) on `<html>` or on any element:
 
 ```html
-<html data-theme="power-up">
+<html class="bit-theme-power-up">
 ```
+
+`data-theme="power-up"` does the same. Each theme is scoped to its class, so a second theme file can sit beside the first and theme just one part of the page.
 
 ### Light and dark
 
 <p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
-Set the theme and the mode on `<html>`:
+Set the mode on `<html>` with a class:
 
 ```html
-<html data-theme="power-up" data-mode="system">
+<html class="bit-dark bit-theme-power-up">
 ```
 
-`data-mode` is `light`, `dark` or `system`. `system` follows the visitor's OS in CSS alone, so there's no flash and no script. To change the mode from any file, use the `colorMode` service: `colorMode.set('dark')`, `colorMode.toggle()`, and `colorMode.mode` for what's showing.
+`bit-light` and `bit-dark` pick a mode. `data-mode="light"`, `"dark"` and `"system"` still work, and `data-mode="system"` follows the visitor's OS in CSS alone, so there's no flash and no script:
+
+```html
+<html data-mode="system">
+```
+
+To change the mode from any file, use the `colorMode` service: `colorMode.set('dark')`, `colorMode.toggle()`, and `colorMode.mode` for what's showing. It writes both `data-mode` and the matching `bit-light` or `bit-dark` class on `<html>` (no class for `system`).
 
 The color mode script is optional. You only need it when visitors can save a choice (with `<ModeToggle />` or `colorMode.set`) and you want that choice before the first paint. Put it inline in `<head>`, before your CSS:
 
@@ -248,13 +256,39 @@ import { COLOR_MODE_SCRIPT } from '@bit-ds/react';
 </head>
 ```
 
-It applies a saved choice; with none it sets `system` when `<html>` has no `data-mode`.
+It applies a saved choice as `data-mode` and its class; with none it sets `system` when `<html>` has neither a `data-mode` nor a mode class.
 
 - A strict Content Security Policy needs a hash or nonce for the inline script.
-- SSR frameworks need `suppressHydrationWarning` on `<html>`, because the script sets `data-mode` before React hydrates.
+- SSR frameworks need `suppressHydrationWarning` on `<html>`, because the script sets `data-mode` and the class before React hydrates.
 - `useColorMode()` returns `{ mode, setMode }`. `<ModeToggle />` is a ready-made light/dark switch. Neither needs a provider.
-- A subtree can be dark inside a light page with `data-mode="dark"`, but it paints its own background: give it `background: var(--bit-color-bg)`.
-- A `data-mode` hard-coded in your HTML wins until the visitor toggles.
+- A `data-mode` or mode class hard-coded in your HTML wins until the visitor toggles.
+
+### Part of the page
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
+`BitTheme` themes a subtree: a dark sidebar on a light page, or a second theme you have loaded.
+
+```tsx
+import { BitTheme } from '@bit-ds/react';
+
+<BitTheme mode="dark" asChild>
+  <aside>…</aside>
+</BitTheme>
+```
+
+It renders a `<div class="bit-theme bit-dark">` (or puts the classes on its child with `asChild`) and paints it in the theme's page color. `theme="power-up"` adds `bit-theme-power-up`. Without React, write the classes yourself. A subtree with its own mode or theme paints its own background; `bit-theme` does that for you.
+
+- A theme starts its subtree in its light mode: give it a mode to make it dark.
+- Put a mode on the BitTheme itself, or anywhere inside a theme that sits in the default page. A mode deep inside a theme that is itself inside another non-default theme follows whichever theme file loads last.
+
+### Your CSS wins
+
+<p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
+
+bit's CSS sits in cascade layers, `@layer bit.reset, bit.tokens, bit.components`, declared at the top of `styles.css`, every theme and `icons.css`, so the order holds whichever you import first. Any style of yours outside a layer beats bit's, whatever its specificity: `button { padding: 0 }` now overrides Button's padding. If your app puts its own CSS in layers, declare your layer order once, with `bit` where you want it.
+
+bit's own rules touch only bit's classes, apart from `reset.css` (box-sizing, the page's text color and background, `::selection`, and the focus ring), which sits in the lowest layer for you to override. bit sets no scrollbar width and no motion outside its components: each component stops its own animation under Reduce motion, so give your own animations the same `@media (prefers-reduced-motion: reduce)` query.
 
 ## Fonts
 

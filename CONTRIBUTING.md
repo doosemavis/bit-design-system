@@ -28,7 +28,7 @@ Every change follows the same shape: write the failing test, make it pass, add t
 
 ## Add a component
 
-1. `packages/core/src/components/<name>.css`: styles that read only semantic `--bit-*` tokens (never `--bit-palette-*`) and the private `--_bit-color-*` / `--_bit-size-*` variables. Add `@import "./components/<name>.css";` to `packages/core/src/index.css` (the system test fails if you forget).
+1. `packages/core/src/components/<name>.css`: styles that read only semantic `--bit-*` tokens (never `--bit-palette-*`) and the private `--_bit-color-*` / `--_bit-size-*` variables. Add `@import "./components/<name>.css" layer(bit.components);` to `packages/core/src/index.css` (the system test fails if you forget, or leave out the layer).
 2. `packages/react/src/components/<Name>/<Name>.test.tsx`: copy `Button.test.tsx`, keep the same checks (root class, decorators, className last, ref, a11y).
 3. `packages/react/src/components/<Name>/<Name>.tsx`: `forwardRef`, a `const` per supported axis at the top, `toClasses('<kebab-name>', axes, className)`, spread `...rest` on the root.
 4. A gallery page: `apps/gallery/src/manifests/<name>.ts`, listed in `MANIFESTS` in `apps/gallery/src/manifests/index.ts`. Add the component (and any parts a manifest's `children` names) to `COMPONENTS` in `registry.ts`. Every manifest needs a `docs` block: `badges`, at least one `usage.do` and one `usage.dont`, a `props` row for every control with `className: 'bit-{color}'` (or `'bit-{variant}'`, `'bit-{size}'`) on each axis prop, and at least one `a11y` line. The contract test in `manifests.test.ts` checks each row's default and values against its control. Set `interactive: true` when the component's markup needs React to work (ModeToggle, CodeBlock); its page then offers React code only. To give it a large Home tile, add its slug to `HEADLINERS` in `apps/gallery/src/pages/home/ComponentTiles.tsx`; for a compact tile's icon, add it to `GLYPHS` there.
@@ -47,13 +47,42 @@ Add it to that component's `const` (for example `variants`) and add a `.bit-<com
 1. Four tokens in every theme: `--bit-color-<color>`, `-contrast`, `-hover`, `-soft`.
 2. One rule in `packages/core/src/system/colors.css`.
 3. Add the word to `COLORS` in `packages/core/src/tokens.ts`.
-4. Add its dark `-soft` value to each theme's `[data-mode="dark"]` block and to `MODE_TOKENS` in `tokens.ts`.
+4. Add its dark `-soft` value to each theme's dark block and to `MODE_TOKENS` in `tokens.ts`.
 
 The contrast test verifies the new color's text is readable on its fill.
 
 ## Add a theme
 
-Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1 palette and any tier-2 values, keep every token name. A theme also needs a `[data-mode="dark"]` rule that declares exactly the tokens in `MODE_TOKENS` (`packages/core/src/tokens.ts`). Add it to `THEMES` in `apps/gallery/src/shell/themes.ts`, after adding its CSS import in `apps/gallery/src/main.tsx`. Run `pnpm --filter @bit-ds/core test`. The test fails if any token is missing or any color fails WCAG AA contrast.
+Copy `packages/core/src/themes/power-up.css` to `<theme>.css`, change the tier-1 palette and any tier-2 values, keep every token name (`SEMANTIC_TOKENS` in `packages/core/src/tokens.ts`). The logo's colors (`BRAND_TOKENS`) are not theme tokens: `system/brand.css` declares them once for every theme.
+
+Keep the file's shape, with your theme's name in place of `power-up`:
+
+```css
+@layer bit.reset, bit.tokens, bit.components;
+
+@layer bit.tokens {
+  /* Light: every token. */
+  :is(.bit-theme-retro, [data-theme="retro"]),
+  :where(.bit-theme-retro, [data-theme="retro"]) :is(.bit-light, .bit-dark, [data-mode="light"], [data-mode="dark"], [data-mode="system"]),
+  :is(.bit-theme-retro, [data-theme="retro"]):is(.bit-light, .bit-dark, [data-mode="light"], [data-mode="dark"], [data-mode="system"]) {
+    color-scheme: light;
+    /* … */
+  }
+
+  /* Dark: exactly the tokens in MODE_TOKENS. */
+  :where(.bit-theme-retro, [data-theme="retro"]) :is(.bit-dark, [data-mode="dark"]),
+  :is(.bit-theme-retro, [data-theme="retro"]):is(.bit-dark, [data-mode="dark"]) {
+    color-scheme: dark;
+    /* … */
+  }
+}
+```
+
+- The theme's own class (`bit-theme-<name>`) and `data-theme` apply it; the descendant form re-declares the tokens on a mode element inside it, so a dark subtree re-resolves the shadows. power-up, the default, uses `:where(:root)` and bare `:where()` modes instead of the descendant form; only the default theme does.
+- Write the dark block once. Don't write a `@media (prefers-color-scheme: dark)` copy for `data-mode="system"`: the build (`packages/react/scripts/system-mode.mjs`) adds it to the shipped file, and fails if the theme already has one.
+- Put `@font-face` rules after the layer block, outside it.
+
+Add it to `THEMES` in `apps/gallery/src/shell/themes.ts`, after adding its CSS import in `apps/gallery/src/main.tsx`. Run `pnpm --filter @bit-ds/core test`. The test fails if any token is missing, the selectors don't follow the shape, or any color fails WCAG AA contrast.
 
 Fonts are self-hosted, never loaded from a font service. A theme's `@font-face` rules point at `./fonts/<id>-<subset>-<weight>-normal.woff2`, one rule per weight and subset with that subset's `unicode-range`. Ship every subset the family's `@fontsource` package has (its `unicode.json`), in that file's order (latin last, so it wins the code points subsets share), so text in any script Google Fonts served keeps the face. Those paths resolve only in the build: `packages/react/scripts/build-css.mjs` copies each file a theme names from an `@fontsource/<id>` devDependency of `@bit-ds/react` (exact version) into `dist/themes/fonts/`, checks the `unicode-range` against the package's, and adds the family's license as `OFL-<id>.txt`. A new family needs its `@fontsource` package and an entry in `packages/react/scripts/expected-fonts.mjs`. `fonts.test.ts`, `pnpm verify` and `pnpm smoke` fail on any remote `@import` or `url()`.
 
