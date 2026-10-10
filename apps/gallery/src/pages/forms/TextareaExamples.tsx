@@ -1,19 +1,9 @@
-import { useState } from 'react';
 import { Field, Textarea } from '@bit-ds/react';
 import { ExampleList } from '../../ui/ExampleCard';
 import type { Example } from '../../ui/ExampleCard';
 
-const LIMIT = 200;
-
-/** A message box whose hint counts down the characters left. */
-function CountedMessage() {
-  const [text, setText] = useState('');
-  return (
-    <Field label="Feedback" hint={`${LIMIT - text.length} characters left.`}>
-      <Textarea rows={4} maxLength={LIMIT} value={text} onChange={(event) => setText(event.target.value)} />
-    </Field>
-  );
-}
+/** 120 of 140 characters: six more turn the count to warning, twenty more reach the limit. */
+const BIO = 'Speedrunner and pixel artist. I collect old cartridges, fix handhelds, and write about the games that taught me to read.';
 
 const EXAMPLES: readonly Example[] = [
   {
@@ -29,11 +19,28 @@ const EXAMPLES: readonly Example[] = [
 </Field>`,
   },
   {
-    title: 'Count what is left',
-    when: 'With maxLength, say how much room is left in the hint, which screen readers read as the description.',
-    sample: <CountedMessage />,
-    code: `<Field label="Feedback" hint={\`\${200 - text.length} characters left.\`}>
-  <Textarea rows={4} maxLength={200} value={text} onChange={(e) => setText(e.target.value)} />
+    title: 'Bio with a character limit',
+    when: 'With maxLength and showCount, the count sits on the hint’s row and reads "120 / 140". It turns warning with 10% left and danger at the limit.',
+    sample: (
+      <Field label="Bio" hint="A line or two about you.">
+        <Textarea maxLength={140} showCount defaultValue={BIO} />
+      </Field>
+    ),
+    code: `<Field label="Bio" hint="A line or two about you.">
+  <Textarea maxLength={140} showCount defaultValue={bio} />
+</Field>`,
+    note: 'maxLength is a hard limit: typing and pasting stop at 140. Screen readers hear "Up to 140 characters" with the hint, then the count only at 20 left, 10 left and the limit, never on every key.',
+  },
+  {
+    title: 'Notes with a running count',
+    when: 'Without maxLength, showCount just counts: "42 characters". Nothing turns warning, and nothing stops the typing.',
+    sample: (
+      <Field label="Notes">
+        <Textarea rows={4} showCount placeholder="Anything we should know?" />
+      </Field>
+    ),
+    code: `<Field label="Notes">
+  <Textarea rows={4} showCount placeholder="Anything we should know?" />
 </Field>`,
   },
   {
@@ -50,7 +57,7 @@ const EXAMPLES: readonly Example[] = [
   },
 ];
 
-/** The Textarea page's Examples: a message in a Field, a character count, and read-only text. */
+/** The Textarea page's Examples: a message in a Field, a counted bio and notes, and read-only text. */
 export function TextareaExamples() {
   return <ExampleList examples={EXAMPLES} />;
 }

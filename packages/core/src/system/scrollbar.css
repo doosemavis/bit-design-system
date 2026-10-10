@@ -1,15 +1,17 @@
-/* The scrollbar on every bit scroll area: the CodeBlock panel, the Table, the Select list and the Tab list.
-   A solid thumb in the accent on a track each area picks through --_bit-scroll-track: the CodeBlock's own
-   dark, the surface under a Table or Select list, and no track under the Tab list, which sits on the page.
+/* The scrollbar on every bit scroll area: the CodeBlock panel, the Table, the Select list, the Tab list and the
+   Textarea. A solid thumb in the accent on a track each area picks through --_bit-scroll-track: the CodeBlock's
+   own dark, the surface under a Table, a Select list or a Textarea's text, and no track under the Tab list, which
+   sits on the page.
    The transparent border slims the thumb, leaving an even strip of track around it, yet stays part of the
    grab area. The thumb does not change on hover, so the bar never looks bigger.
    Forced colors draw their own scrollbars, so none of this applies there. */
-/* scrollbar-width does not inherit, so each of bit's scroll areas (the four above and a Dialog's body) sets it.
+/* scrollbar-width does not inherit, so each of bit's scroll areas (the five above and a Dialog's body) sets it.
    bit never sets it anywhere else: your page's own scrollbars are yours. */
 .bit-code__pre,
 .bit-table,
 .bit-select__list,
 .bit-tabs__list,
+.bit-textarea,
 .bit-dialog__body {
   scrollbar-width: thin;
 }
@@ -17,24 +19,35 @@
 @media not (forced-colors: active) {
   .bit-code__pre { --_bit-scroll-track: var(--bit-code-bg); }
   .bit-table,
-  .bit-select__list { --_bit-scroll-track: var(--bit-color-surface); }
-  .bit-tabs__list { --_bit-scroll-track: transparent; }
+  .bit-select__list,
+  .bit-textarea { --_bit-scroll-track: var(--bit-color-surface); }
+  .bit-tabs__list,
+  .bit-textarea[readonly] { --_bit-scroll-track: transparent; }
 
-  /* The CodeBlock, Table and Tab list scroll sideways, so their bars are sized by height; the Select list scrolls down. */
+  /* The CodeBlock, Table and Tab list scroll sideways, so their bars are sized by height; the Select list and the
+     Textarea scroll down. */
   .bit-code__pre::-webkit-scrollbar,
   .bit-table::-webkit-scrollbar,
   .bit-tabs__list::-webkit-scrollbar { height: 14px; }
-  .bit-select__list::-webkit-scrollbar { width: 14px; }
+  .bit-select__list::-webkit-scrollbar,
+  .bit-textarea::-webkit-scrollbar { width: 14px; }
 
   .bit-code__pre::-webkit-scrollbar-track,
   .bit-table::-webkit-scrollbar-track,
   .bit-select__list::-webkit-scrollbar-track,
-  .bit-tabs__list::-webkit-scrollbar-track { background: var(--_bit-scroll-track); }
+  .bit-tabs__list::-webkit-scrollbar-track,
+  .bit-textarea::-webkit-scrollbar-track { background: var(--_bit-scroll-track); }
+
+  /* The Textarea's bar runs inside its rounded border, so the track takes the border's inner curve and never
+     pokes past it. The corner under the bar holds the resize grip: no block of color there. */
+  .bit-textarea::-webkit-scrollbar-track { border-radius: calc(var(--bit-radius-10px) - var(--bit-border-width)); }
+  .bit-textarea::-webkit-scrollbar-corner { background: transparent; }
 
   .bit-code__pre::-webkit-scrollbar-thumb,
   .bit-table::-webkit-scrollbar-thumb,
   .bit-select__list::-webkit-scrollbar-thumb,
-  .bit-tabs__list::-webkit-scrollbar-thumb {
+  .bit-tabs__list::-webkit-scrollbar-thumb,
+  .bit-textarea::-webkit-scrollbar-thumb {
     background: var(--bit-color-accent);
     background-clip: padding-box;
     border: 3px solid transparent;
@@ -47,12 +60,14 @@
     .bit-code__pre,
     .bit-table,
     .bit-select__list,
-    .bit-tabs__list { scrollbar-color: auto; scrollbar-width: auto; }
+    .bit-tabs__list,
+    .bit-textarea { scrollbar-color: auto; scrollbar-width: auto; }
   }
   @supports not selector(::-webkit-scrollbar) {
     .bit-code__pre,
     .bit-table,
     .bit-select__list,
-    .bit-tabs__list { scrollbar-color: var(--bit-color-accent) var(--_bit-scroll-track); scrollbar-width: thin; }
+    .bit-tabs__list,
+    .bit-textarea { scrollbar-color: var(--bit-color-accent) var(--_bit-scroll-track); scrollbar-width: thin; }
   }
 }

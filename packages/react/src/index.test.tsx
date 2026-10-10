@@ -149,8 +149,8 @@ describe('public index', () => {
     expect(lib.HEADING_SIZES.map(lib.headingTag)).toEqual(['h6', 'h5', 'h4', 'h3', 'h3', 'h3', 'h2', 'h2', 'h2', 'h2', 'h1', 'h1', 'h1']);
   });
 
-  it('exports SEMANTIC_TOKENS, the 109 tier-2 token names every theme declares, from @bit-ds/core', () => {
-    expect(lib.SEMANTIC_TOKENS).toHaveLength(109);
+  it('exports SEMANTIC_TOKENS, the 110 tier-2 token names every theme declares, from @bit-ds/core', () => {
+    expect(lib.SEMANTIC_TOKENS).toHaveLength(110);
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-color-primary');
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-space-64px');
     expect(lib.SEMANTIC_TOKENS.every((name) => name.startsWith('--bit-'))).toBe(true);

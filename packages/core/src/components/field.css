@@ -29,3 +29,26 @@
   font-weight: var(--bit-weight-bold);
   color: var(--bit-color-danger-text);
 }
+
+/* A Textarea with showCount puts its count right after the box. The Field then becomes a two-column grid so the
+   hint keeps the left of the row under the box and the count takes the right. Dense packing lets the hint, which
+   comes after the count, fill the cell beside it; everything else spans the row. */
+.bit-field:has(> .bit-textarea__count) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-auto-flow: row dense;
+  column-gap: var(--bit-space-12px);
+}
+
+.bit-field:has(> .bit-textarea__count) > * {
+  grid-column: 1 / -1;
+}
+
+.bit-field:has(> .bit-textarea__count) > .bit-field__hint {
+  grid-column: 1;
+}
+
+.bit-field:has(> .bit-textarea__count) > .bit-textarea__count {
+  grid-column: 2;
+  margin-block-start: 0;
+}
