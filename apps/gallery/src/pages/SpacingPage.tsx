@@ -60,7 +60,7 @@ function StackOrBox() {
       <Card>
         <CardBody>
           <Stack gap={12}>
-            <Heading level={3} size={4}>
+            <Heading level={3} size={15}>
               Stack: space between things
             </Heading>
             <Stack direction="row" gap={16}>
@@ -75,7 +75,7 @@ function StackOrBox() {
       <Card>
         <CardBody>
           <Stack gap={12}>
-            <Heading level={3} size={4}>
+            <Heading level={3} size={15}>
               Box: space around one thing
             </Heading>
             {/* A row, so the Box hugs its Badge instead of stretching across the card. */}

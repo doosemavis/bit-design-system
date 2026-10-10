@@ -1,12 +1,15 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { Heading } from './Heading';
 import { expectNoA11yViolations } from '../../test/a11y';
+import { resetDeprecationWarnings } from '../../system/warnDeprecated';
 
 const LEVELS = [1, 2, 3, 4, 5, 6] as const;
+const HEADING_SIZES = [13, 15, 18, 24, 32] as const;
 
 describe('Heading', () => {
+  beforeEach(() => resetDeprecationWarnings());
   afterEach(() => vi.restoreAllMocks());
 
   it.each(LEVELS)('level={%i} renders that heading tag, looking like that level', (level) => {
@@ -17,14 +20,61 @@ describe('Heading', () => {
     expect(heading).toHaveAttribute('data-level', String(level));
   });
 
-  it('size changes the look and keeps the tag: an h2 that looks like an h3', () => {
+  it.each(HEADING_SIZES)('size={%i} sets the px size and keeps the level: tag and face', (size) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     render(
-      <Heading level={2} size={3}>
+      <Heading level={2} size={size}>
         Section
       </Heading>,
     );
     const heading = screen.getByRole('heading', { level: 2, name: 'Section' });
-    expect(heading).toHaveAttribute('data-level', '3');
+    expect(heading).toHaveAttribute('data-level', '2');
+    expect(heading).toHaveAttribute('data-size', String(size));
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('with no size there is no data-size: the level sets the px size', () => {
+    render(<Heading level={3}>Title</Heading>);
+    expect(screen.getByRole('heading', { level: 3 })).not.toHaveAttribute('data-size');
+  });
+
+  it.each([
+    [1, 32],
+    [2, 24],
+    [3, 18],
+    [4, 15],
+    [5, 13],
+    [6, 13],
+  ] as const)(
+    'size={%i} (a level, the old form) keeps its old look and warns once to use size={%i} (removed in 0.2.0)',
+    (old, px) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <>
+          <Heading level={2} size={old}>
+            a
+          </Heading>
+          <Heading level={2} size={old}>
+            b
+          </Heading>
+        </>,
+      );
+      const heading = screen.getByRole('heading', { name: 'a' });
+      expect(heading.tagName).toBe('H2');
+      expect(heading).toHaveAttribute('data-level', String(old));
+      expect(heading).not.toHaveAttribute('data-size');
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(
+        `[bit] Heading size={${old}} is deprecated: size is now in px (13, 15, 18, 24, 32). Use size={${px}}. It will be removed in 0.2.0.`,
+      );
+    },
+  );
+
+  it('size="3" from untyped JS or MDX is the old form too', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(<Heading level={2} size={'3' as never}>Title</Heading>);
+    expect(screen.getByRole('heading', { level: 2 })).toHaveAttribute('data-level', '3');
+    expect(warn.mock.calls[0]?.[0]).toContain('Heading size={3} is deprecated');
   });
 
   it('drops an unknown level with a warning and falls back to an h2 with no data-level', () => {
@@ -37,22 +87,33 @@ describe('Heading', () => {
     expect(warn.mock.calls[0]?.[0]).toContain('level="7"');
   });
 
-  it('an unknown level with a valid size still takes the size as its look', () => {
+  it('an unknown level with a valid size is an h2 at that size', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     // @ts-expect-error 0 is not a heading level
-    render(<Heading level={0} size={4}>Title</Heading>);
-    expect(screen.getByRole('heading', { level: 2 })).toHaveAttribute('data-level', '4');
+    render(<Heading level={0} size={18}>Title</Heading>);
+    const heading = screen.getByRole('heading', { level: 2 });
+    expect(heading).not.toHaveAttribute('data-level');
+    expect(heading).toHaveAttribute('data-size', '18');
     expect(warn).toHaveBeenCalledTimes(1);
   });
 
-  it('drops an unknown size with a warning and keeps the tag', () => {
+  it('drops an unknown size with a warning and keeps the level look', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     // @ts-expect-error "lg" is not a heading size
     render(<Heading level={3} size="lg">Title</Heading>);
     const heading = screen.getByRole('heading', { level: 3 });
-    expect(heading).not.toHaveAttribute('data-level');
+    expect(heading).toHaveAttribute('data-level', '3');
+    expect(heading).not.toHaveAttribute('data-size');
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn.mock.calls[0]?.[0]).toContain('size="lg"');
+  });
+
+  it('drops 11, the deprecated Text size, since a heading never goes under 13px', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // @ts-expect-error 11 is not a heading size
+    render(<Heading level={5} size={11}>Title</Heading>);
+    expect(screen.getByRole('heading', { level: 5 })).not.toHaveAttribute('data-size');
+    expect(warn.mock.calls[0]?.[0]).toContain('size="11"');
   });
 
   it('a missing level (an untyped caller) is an h2 and warns, like a typo would', () => {

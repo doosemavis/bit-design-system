@@ -1,4 +1,5 @@
-/* Heading: the tag comes from level, the look from data-level (size ?? level). No margin: Stack and Box
+/* Heading: the tag and the look come from level (data-level); data-size (the size prop, in px) then sets
+   only the font size. The deprecated size={1..6} still sets data-level to that level. No margin: Stack and Box
    do the spacing. With no data-level (or an unknown one) a heading looks like level 2. Every level sets
    all five type properties, so none inherits another level's letter-spacing or weight. Display levels
    use weight 400: the display face ships one weight, so anything heavier would be a synthesized bold. */
@@ -60,3 +61,11 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+/* size={px}: only the font size. The face, weight, line height and letter spacing stay the level's. After
+   the level rules, so at the same specificity the size wins by order. */
+.bit-heading[data-size="13"] { font-size: var(--bit-text-13px); }
+.bit-heading[data-size="15"] { font-size: var(--bit-text-15px); }
+.bit-heading[data-size="18"] { font-size: var(--bit-text-18px); }
+.bit-heading[data-size="24"] { font-size: var(--bit-text-24px); }
+.bit-heading[data-size="32"] { font-size: var(--bit-text-32px); }

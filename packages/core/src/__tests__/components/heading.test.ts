@@ -42,6 +42,19 @@ describe('components/heading.css', () => {
     expect(decl(block(css, '.bit-heading')!, 'text-transform')).toBeNull();
   });
 
+  it.each([13, 15, 18, 24, 32])('data-size="%i" sets only the font size, so the face stays the level\'s', (px) => {
+    const body = block(css, `.bit-heading[data-size="${px}"]`)!;
+    expect(body).not.toBeNull();
+    expect(decl(body, 'font-size')).toBe(`var(--bit-text-${px}px)`);
+    for (const prop of TYPE_PROPS.filter((p) => p !== 'font-size')) expect(decl(body, prop), prop).toBeNull();
+  });
+
+  it('every data-size rule comes after every data-level rule, so the size wins at the same specificity', () => {
+    const lastLevel = Math.max(...[1, 2, 3, 4, 5, 6].map((n) => css.indexOf(`.bit-heading[data-level="${n}"]`)));
+    const firstSize = Math.min(...[13, 15, 18, 24, 32].map((n) => css.indexOf(`.bit-heading[data-size="${n}"]`)));
+    expect(firstSize).toBeGreaterThan(lastLevel);
+  });
+
   it('with no data-level, the base rule is the h2 look', () => {
     const root = block(css, '.bit-heading')!;
     for (const prop of TYPE_PROPS) expect(decl(root, prop), prop).toBe(LEVELS[2][prop]);

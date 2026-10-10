@@ -205,8 +205,13 @@ describe('manifest contract', () => {
     expect(toJsx(heading, defaultState(heading))).toBe(
       "import { Heading } from '@bit-ds/react';\n\n<Heading level={2}>Build with bit</Heading>",
     );
-    const preset = heading.presets!.find((p) => p.label === 'h2 that looks like h3')!;
-    expect(toJsx(heading, { ...defaultState(heading), ...preset.state } as ControlState)).toContain('<Heading level={2} size={3}>Build with bit</Heading>');
+    const preset = heading.presets!.find((p) => p.label === 'h2 at 18px')!;
+    expect(toJsx(heading, { ...defaultState(heading), ...preset.state } as ControlState)).toContain('<Heading level={2} size={18}>Build with bit</Heading>');
+  });
+
+  it('Heading size offers the px sizes, never the deprecated levels', () => {
+    const size = heading.controls.find((c) => c.prop === 'size')!;
+    expect(size.kind === 'select' && size.values).toEqual(['none', '13', '15', '18', '24', '32']);
   });
 
   it('Box prints its padding and leaves the other spacing props off until chosen; 0 prints as 0', () => {
