@@ -133,17 +133,20 @@ function Keyboard() {
 export function AccessibilityPage() {
   return (
     <Stack gap={64}>
-      <PageHeader title="Accessibility">
-        <Text size={18}>
-          bit is built so the people using your app can read it, see where they are, and use it with a keyboard, a
-          screen reader or high contrast. It aims for{' '}
-          <Link href="https://www.w3.org/WAI/WCAG22/quickref/" target="_blank" rel="noreferrer">
-            WCAG 2.2 level AA
-          </Link>
-          . The components handle what they can; the words, names and page structure are yours.
-        </Text>
+      {/* The header and section bar as one block, as on component pages, so the bar spans the page's width. */}
+      <Stack gap={16}>
+        <PageHeader title="Accessibility">
+          <Text size={18}>
+            bit is built so the people using your app can read it, see where they are, and use it with a keyboard, a
+            screen reader or high contrast. It aims for{' '}
+            <Link href="https://www.w3.org/WAI/WCAG22/quickref/" target="_blank" rel="noreferrer">
+              WCAG 2.2 level AA
+            </Link>
+            . The components handle what they can; the words, names and page structure are yours.
+          </Text>
+        </PageHeader>
         <SectionBar sections={SECTIONS} />
-      </PageHeader>
+      </Stack>
       <PageSection {...SECTIONS[0]}>
         <Text>What every app that uses bit gets, with no setup.</Text>
         <BuiltIn />
