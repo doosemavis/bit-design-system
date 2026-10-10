@@ -5,6 +5,7 @@ import { Icon } from './Icon';
 import { Button } from '../Button/Button';
 import { iconDelete, iconFavorite } from '../../icons/icons.generated';
 import { COLORS, SIZES } from '../../system/axes';
+import { expectNoA11yViolations } from '../../test/a11y';
 
 const svg = (container: HTMLElement) => container.querySelector('svg')!;
 
@@ -109,5 +110,15 @@ describe('Icon', () => {
       </Button>,
     );
     expect(svg(container).getAttribute('class')).toBe('bit-icon bit-md bit-icon-favorite');
+  });
+
+  it('has no accessibility violations, decorative or labelled, outline or filled', async () => {
+    const { container } = render(
+      <p>
+        <Icon icon={iconFavorite} /> Liked
+        <Icon icon={iconDelete} label="Deleted" color="danger" iconFilled />
+      </p>,
+    );
+    await expectNoA11yViolations(container);
   });
 });

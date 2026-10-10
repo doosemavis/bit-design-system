@@ -3,6 +3,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Tooltip } from './Tooltip';
 import { Button } from '../Button/Button';
+import { expectNoA11yViolations } from '../../test/a11y';
 
 afterEach(() => vi.useRealTimers());
 const bubble = () => screen.getByRole('tooltip', { hidden: true });
@@ -129,5 +130,13 @@ describe('Tooltip', () => {
       expect(bubble()).toHaveAttribute('data-placement');
       expect(bubble()).toHaveTextContent('a much longer hint');
     });
+  });
+
+  it('has no accessibility violations, closed or open', async () => {
+    const { container } = render(<Tooltip content="Copy link"><Button>Share</Button></Tooltip>);
+    await expectNoA11yViolations(container);
+    fireEvent.pointerEnter(screen.getByRole('button'));
+    expect(bubble()).toBeVisible();
+    await expectNoA11yViolations(container);
   });
 });
