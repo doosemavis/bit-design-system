@@ -89,7 +89,7 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-sidebar__link.bit-link.bit-neutral:hover', property: 'background', reason: 'frame: sidebar link hover' },
   { selector: '.gallery-sidebar__link.bit-link.bit-neutral[aria-current="page"], .gallery-sidebar__link.bit-link.bit-neutral[aria-current="page"]:hover, .gallery-sidebar__link.bit-link.bit-neutral[aria-current="page"]:visited', property: 'background', reason: 'frame: sidebar active page' },
   { selector: '.gallery-sidebar__link.bit-link.bit-neutral[aria-current="page"], .gallery-sidebar__link.bit-link.bit-neutral[aria-current="page"]:hover, .gallery-sidebar__link.bit-link.bit-neutral[aria-current="page"]:visited', property: 'color', reason: 'frame: sidebar active page' },
-  { selector: '.gallery-main:focus, .gallery-main [tabindex="-1"]:focus', property: 'outline', reason: 'focus: no ring on the main area, which only takes focus from the skip link and route changes' },
+  { selector: '.gallery-main:focus, .gallery-main [tabindex="-1"]:not([role="menuitem"], [role="menu"]):focus', property: 'outline', reason: 'focus: no ring on the main area, which only takes focus from the skip link and route changes' },
   { selector: '.gallery-link-list', property: 'list-style', reason: 'frame: no bullets on the link list' },
   { selector: '.gallery-facts', property: 'list-style', reason: 'frame: no bullets on the Overview facts list' },
   { selector: '.gallery-fact__count', property: 'font-family', reason: 'Overview fact: the count in the pixel face' },

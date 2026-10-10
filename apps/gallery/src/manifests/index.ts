@@ -28,9 +28,11 @@ import { tabs } from './tabs';
 import { icon } from './icon';
 import { iconButton } from './iconButton';
 import { tooltip } from './tooltip';
+import { menu } from './menu';
+import { navbar } from './navbar';
 
 /** Sidebar order within each group (Components, then Forms, then Brand). */
-export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, box, text, heading, spinner, modeToggle, bitTheme, link, code, codeBlock, segmentedControl, table, dialog, tabs, icon, iconButton, tooltip, field, input, textarea, select, checkbox, radioGroup, switchManifest, bitLogo];
+export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, box, text, heading, spinner, modeToggle, bitTheme, link, code, codeBlock, segmentedControl, table, dialog, tabs, icon, iconButton, tooltip, menu, navbar, field, input, textarea, select, checkbox, radioGroup, switchManifest, bitLogo];
 
 export function findManifest(slug: string): Manifest | undefined {
   return MANIFESTS.find((m) => m.slug === slug);

@@ -95,8 +95,10 @@ describe('gallery.css', () => {
     );
   });
 
-  it('script-moved focus on main and on tabIndex -1 targets draws no ring; real controls keep theirs', () => {
-    expect(galleryCss).toMatch(/\.gallery-main:focus,\s*\.gallery-main \[tabindex="-1"\]:focus \{\s*outline: none;\s*\}/);
+  it('script-moved focus on main and on tabIndex -1 targets draws no ring; real controls keep theirs, a Menu\'s items too', () => {
+    expect(galleryCss).toMatch(
+      /\.gallery-main:focus,\s*\.gallery-main \[tabindex="-1"\]:not\(\[role="menuitem"\], \[role="menu"\]\):focus \{\s*outline: none;\s*\}/,
+    );
   });
 
   it('the Matrix is gone: Variants is a bit Table', () => {

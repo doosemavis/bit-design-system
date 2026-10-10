@@ -6,6 +6,7 @@ import { button } from '../manifests/button';
 import { card } from '../manifests/card';
 import { spinner } from '../manifests/spinner';
 import { stack } from '../manifests/stack';
+import { navbar } from '../manifests/navbar';
 import { expectNoA11yViolations } from '../test/a11y';
 
 describe('variantAxes', () => {
@@ -42,5 +43,16 @@ describe('VariantsTable', () => {
     expect(screen.queryAllByRole('rowheader')).toEqual([]);
     expect(container.querySelectorAll('tbody tr')).toHaveLength(1);
     expect(container.querySelectorAll('tbody .bit-card')).toHaveLength(2);
+  });
+
+  it("variantsLayout 'stack' draws one row per value under a row header (Navbar's two looks, one above the other)", async () => {
+    const { container } = render(<VariantsTable manifest={navbar} axes={variantAxes(navbar)!} state={{ ...defaultState(navbar), collapse: 'never' }} />);
+    expect(screen.getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['variant', 'sample']);
+    expect(screen.getAllByRole('rowheader').map((th) => th.textContent)).toEqual(['pill', 'bar']);
+    const rows = container.querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]!.querySelector('.bit-navbar.bit-pill')).not.toBeNull();
+    expect(rows[1]!.querySelector('.bit-navbar.bit-bar')).not.toBeNull();
+    await expectNoA11yViolations(container);
   });
 });
