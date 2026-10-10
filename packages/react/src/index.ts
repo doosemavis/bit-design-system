@@ -48,6 +48,15 @@ export type { SelectProps, SelectMultipleProps, SelectOption } from './component
 export { Switch } from './components/Switch/Switch';
 export type { SwitchProps } from './components/Switch/Switch';
 
+export { Checkbox } from './components/Checkbox/Checkbox';
+export type { CheckboxProps } from './components/Checkbox/Checkbox';
+
+export { RadioGroup, Radio } from './components/RadioGroup/RadioGroup';
+export type { RadioGroupProps, RadioProps, RadioOption } from './components/RadioGroup/RadioGroup';
+
+export { Textarea } from './components/Textarea/Textarea';
+export type { TextareaProps } from './components/Textarea/Textarea';
+
 export { Link } from './components/Link/Link';
 export type { LinkProps } from './components/Link/Link';
 

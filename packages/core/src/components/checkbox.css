@@ -1,0 +1,159 @@
+/* Checkbox: a real checkbox, visually hidden, inside a label that draws the box beside it, as Switch draws its
+   track. Checked fills the box with primary and draws a tick; indeterminate draws a bar instead. The ring is
+   drawn on the box by system/reset.css, and the box's hard shadow moves under it (system/focus.css), so the
+   tick is ::before. Box sizes follow the icon scale (16, 20, 24px); the label reads the control text size. */
+.bit-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--bit-space-8px);
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-normal);
+  line-height: var(--bit-leading-normal);
+  color: var(--bit-color-text);
+  cursor: pointer;
+}
+
+.bit-checkbox.bit-sm {
+  --_bit-checkbox-size: 16px;
+  --_bit-checkbox-tick-width: 4px;
+  --_bit-checkbox-tick-height: 8px;
+  --_bit-checkbox-stroke: 2px;
+}
+
+.bit-checkbox.bit-md {
+  --_bit-checkbox-size: 20px;
+  --_bit-checkbox-tick-width: 5px;
+  --_bit-checkbox-tick-height: 10px;
+  --_bit-checkbox-stroke: 3px;
+}
+
+.bit-checkbox.bit-lg {
+  --_bit-checkbox-size: 24px;
+  --_bit-checkbox-tick-width: 6px;
+  --_bit-checkbox-tick-height: 12px;
+  --_bit-checkbox-stroke: 3px;
+}
+
+.bit-checkbox__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Centred on the label's first line, so a label that wraps keeps the box at its top. */
+.bit-checkbox__box {
+  position: relative;
+  flex: none;
+  width: var(--_bit-checkbox-size);
+  height: var(--_bit-checkbox-size);
+  margin-block-start: calc((var(--_bit-size-text) * var(--bit-leading-normal) - var(--_bit-checkbox-size)) / 2);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-6px);
+  box-shadow: var(--bit-shadow-sm);
+  transition: background-color var(--bit-duration-fast);
+  --_bit-lift: var(--bit-shadow-sm);
+  --_bit-lift-radius: var(--bit-radius-6px);
+}
+
+.bit-checkbox__input:focus-visible + .bit-checkbox__box {
+  box-shadow: none;
+}
+
+.bit-checkbox:hover .bit-checkbox__input:not(:checked):not(:indeterminate):not(:disabled):not([aria-readonly="true"]) + .bit-checkbox__box {
+  background: var(--bit-color-neutral-soft);
+}
+
+/* states are attributes and pseudo-classes, never classes */
+.bit-checkbox__input:is(:checked, :indeterminate) + .bit-checkbox__box {
+  background: var(--bit-color-primary);
+}
+
+/* The tick: two borders of a narrow box turned 45°, nudged up so it sits optically centred. */
+.bit-checkbox__input:checked + .bit-checkbox__box::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--_bit-checkbox-tick-width);
+  height: var(--_bit-checkbox-tick-height);
+  border: solid var(--bit-color-primary-contrast);
+  border-width: 0 var(--_bit-checkbox-stroke) var(--_bit-checkbox-stroke) 0;
+  transform: translate(-50%, -60%) rotate(45deg);
+}
+
+/* Indeterminate (some, not all): a bar, whatever checked says. */
+.bit-checkbox__input:indeterminate + .bit-checkbox__box::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 20%;
+  right: 20%;
+  width: auto;
+  height: var(--_bit-checkbox-stroke);
+  border: 0;
+  background: var(--bit-color-primary-contrast);
+  transform: translateY(-50%);
+}
+
+.bit-checkbox__input[aria-invalid="true"] + .bit-checkbox__box {
+  border-color: var(--bit-color-danger);
+}
+
+/* Read-only: it shows its state and keeps focus, but can't change. A dashed edge and no shadow, never faded. */
+.bit-checkbox__input[aria-readonly="true"] + .bit-checkbox__box {
+  border-style: dashed;
+  box-shadow: none;
+  --_bit-lift: none;
+}
+
+.bit-checkbox:has(.bit-checkbox__input[aria-readonly="true"]) {
+  cursor: default;
+}
+
+.bit-checkbox__input:disabled + .bit-checkbox__box,
+.bit-checkbox__input:disabled ~ .bit-checkbox__label {
+  opacity: 0.5;
+}
+
+.bit-checkbox:has(.bit-checkbox__input:disabled) {
+  cursor: not-allowed;
+}
+
+/* Forced colors drop the fill: a checked box takes the system highlight, its mark the highlight text, and an
+   invalid box a double edge, since the danger color is replaced too. */
+@media (forced-colors: active) {
+  .bit-checkbox__input:is(:checked, :indeterminate) + .bit-checkbox__box {
+    forced-color-adjust: none;
+    background: Highlight;
+    border-color: Highlight;
+    box-shadow: none;
+    --_bit-lift: none;
+  }
+
+  .bit-checkbox__input:checked + .bit-checkbox__box::before {
+    border-color: HighlightText;
+  }
+
+  .bit-checkbox__input:indeterminate + .bit-checkbox__box::before {
+    background: HighlightText;
+  }
+
+  .bit-checkbox__input[aria-invalid="true"] + .bit-checkbox__box {
+    border-style: double;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bit-checkbox__box {
+    transition: none;
+  }
+}

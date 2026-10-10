@@ -28,6 +28,9 @@
 @import "./components/input.css" layer(bit.components);
 @import "./components/select.css" layer(bit.components);
 @import "./components/switch.css" layer(bit.components);
+@import "./components/checkbox.css" layer(bit.components);
+@import "./components/radio.css" layer(bit.components);
+@import "./components/textarea.css" layer(bit.components);
 @import "./components/link.css" layer(bit.components);
 @import "./components/code.css" layer(bit.components);
 @import "./components/code-block.css" layer(bit.components);

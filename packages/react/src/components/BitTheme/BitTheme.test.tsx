@@ -35,6 +35,16 @@ describe('BitTheme', () => {
     warn.mockRestore();
   });
 
+  it('stays quiet about a bad theme name in production', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.stubEnv('NODE_ENV', 'production');
+    const { container } = render(<BitTheme theme="Power Up!">Hi</BitTheme>);
+    vi.unstubAllEnvs();
+    expect(container.firstElementChild!.className).toBe('bit-theme');
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
   it('drops an unknown mode, as every axis does', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     // @ts-expect-error system is not a BitTheme mode

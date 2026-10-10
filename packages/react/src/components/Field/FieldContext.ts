@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-/** What a Field tells the one Input or Select inside it. Private: not exported from the package. */
+/** What a Field tells the one control inside it. Private: not exported from the package. */
 export interface FieldContextValue {
   id: string;
   /** The label's id, so a control with a popup (Select's listbox) can be named by the same label. */

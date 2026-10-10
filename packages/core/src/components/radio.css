@@ -1,0 +1,158 @@
+/* RadioGroup and Radio: real radios in a fieldset, each visually hidden inside a label that draws a round dot
+   beside it, so the arrow keys move the choice and Tab enters and leaves the group in one stop. Chosen fills
+   the dot with primary and draws a centre dot. Ring and moved shadow as Checkbox (system/reset.css and
+   system/focus.css). Dot sizes follow the icon scale (16, 20, 24px); labels read the control text size. */
+.bit-radio-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--bit-color-text);
+}
+
+.bit-radio-group__legend {
+  padding: 0;
+  margin-bottom: var(--bit-space-8px);
+  font-family: var(--bit-font-body);
+  font-size: var(--bit-text-16px);
+  font-weight: var(--bit-weight-bold);
+  line-height: var(--bit-leading-tight);
+}
+
+.bit-radio-group__legend[data-hidden],
+.bit-radio__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.bit-radio-group__options {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--bit-space-8px);
+}
+
+/* The group's size reaches every Radio in it: the dot here, the text size through .bit-{size}. */
+.bit-radio-group.bit-sm {
+  --_bit-radio-size: 16px;
+}
+
+.bit-radio-group.bit-md {
+  --_bit-radio-size: 20px;
+}
+
+.bit-radio-group.bit-lg {
+  --_bit-radio-size: 24px;
+}
+
+.bit-radio {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--bit-space-8px);
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-normal);
+  line-height: var(--bit-leading-normal);
+  color: var(--bit-color-text);
+  cursor: pointer;
+}
+
+/* Centred on the label's first line, so a label that wraps keeps the dot at its top. */
+.bit-radio__dot {
+  position: relative;
+  flex: none;
+  width: var(--_bit-radio-size);
+  height: var(--_bit-radio-size);
+  margin-block-start: calc((var(--_bit-size-text) * var(--bit-leading-normal) - var(--_bit-radio-size)) / 2);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-full);
+  box-shadow: var(--bit-shadow-sm);
+  transition: background-color var(--bit-duration-fast);
+  --_bit-lift: var(--bit-shadow-sm);
+  --_bit-lift-radius: var(--bit-radius-full);
+}
+
+.bit-radio__input:focus-visible + .bit-radio__dot {
+  box-shadow: none;
+}
+
+.bit-radio-group:not([aria-readonly="true"]) .bit-radio:hover .bit-radio__input:not(:checked):not(:disabled) + .bit-radio__dot {
+  background: var(--bit-color-neutral-soft);
+}
+
+/* states are attributes and pseudo-classes, never classes */
+.bit-radio__input:checked + .bit-radio__dot {
+  background: var(--bit-color-primary);
+}
+
+/* The centre dot, a third of the dot's width. */
+.bit-radio__input:checked + .bit-radio__dot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: calc(var(--_bit-radio-size) / 3);
+  height: calc(var(--_bit-radio-size) / 3);
+  border-radius: var(--bit-radius-full);
+  background: var(--bit-color-primary-contrast);
+}
+
+/* Invalid and read-only are the group's (aria-invalid, aria-readonly on the radiogroup), so every dot shows them. */
+.bit-radio-group[aria-invalid="true"] .bit-radio__dot {
+  border-color: var(--bit-color-danger);
+}
+
+/* Read-only: the choice shows and keeps focus, but can't change. A dashed edge and no shadow, never faded. */
+.bit-radio-group[aria-readonly="true"] .bit-radio__dot {
+  border-style: dashed;
+  box-shadow: none;
+  --_bit-lift: none;
+}
+
+.bit-radio-group[aria-readonly="true"] .bit-radio {
+  cursor: default;
+}
+
+.bit-radio__input:disabled + .bit-radio__dot,
+.bit-radio__input:disabled ~ .bit-radio__label {
+  opacity: 0.5;
+}
+
+.bit-radio:has(.bit-radio__input:disabled) {
+  cursor: not-allowed;
+}
+
+/* Forced colors drop the fill: the chosen dot takes the system highlight and its centre the highlight text,
+   and an invalid dot a double edge, since the danger color is replaced too. */
+@media (forced-colors: active) {
+  .bit-radio__input:checked + .bit-radio__dot {
+    forced-color-adjust: none;
+    background: Highlight;
+    border-color: Highlight;
+    box-shadow: none;
+    --_bit-lift: none;
+  }
+
+  .bit-radio__input:checked + .bit-radio__dot::before {
+    background: HighlightText;
+  }
+
+  .bit-radio-group[aria-invalid="true"] .bit-radio__dot {
+    border-style: double;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bit-radio__dot {
+    transition: none;
+  }
+}
