@@ -151,8 +151,9 @@ describe('Snake, played', () => {
     renderAt('/');
     const { user, region } = await openGame('Snake');
     await user.keyboard('{ArrowDown}');
-    // The snake starts on the middle row of 15; heading down, the ninth step leaves the board.
-    for (let frame = 0; frame <= 10; frame += 1) {
+    // Heading down from the middle row, the snake leaves the board within a board's height of steps. The board
+    // sizes itself to the sidebar, so run frames until the game ends (a cap keeps a broken game from looping).
+    for (let frame = 0; frame <= 200 && !/Game over/.test(liveLine(region).textContent ?? ''); frame += 1) {
       const run = queue;
       queue = [];
       act(() => run.forEach((cb) => cb(frame * 200)));
