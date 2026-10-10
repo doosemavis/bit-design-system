@@ -64,6 +64,8 @@ const KEYS: readonly { component: string; keys: string }[] = [
   { component: 'Button', keys: 'Enter or Space presses it.' },
   { component: 'Link', keys: 'Enter follows it.' },
   { component: 'Switch', keys: 'Space turns it on or off.' },
+  { component: 'Checkbox', keys: 'Space ticks or clears it.' },
+  { component: 'RadioGroup', keys: 'Tab enters and leaves the group in one stop; the arrow keys move the choice.' },
   { component: 'SegmentedControl', keys: 'Tab enters and leaves the group in one stop; the arrow keys move the choice.' },
   {
     component: 'Select',

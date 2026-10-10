@@ -43,8 +43,8 @@ describe('Accessibility page', () => {
     await renderAccessibility();
     const table = screen.getByRole('table', { name: 'Keys by component' });
     const links = within(table).getAllByRole('link');
-    expect(links.map((l) => l.textContent)).toEqual(['Button', 'Link', 'Switch', 'SegmentedControl', 'Select', 'Tabs', 'Dialog', 'Tooltip', 'CodeBlock']);
-    expect(links[3]).toHaveAttribute('href', expect.stringContaining('/components/segmentedcontrol'));
+    expect(links.map((l) => l.textContent)).toEqual(['Button', 'Link', 'Switch', 'Checkbox', 'RadioGroup', 'SegmentedControl', 'Select', 'Tabs', 'Dialog', 'Tooltip', 'CodeBlock']);
+    expect(links[5]).toHaveAttribute('href', expect.stringContaining('/components/segmentedcontrol'));
   });
 
   it.each([

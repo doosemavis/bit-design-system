@@ -13,11 +13,13 @@ export const input: Manifest = {
     { kind: 'text', prop: 'aria-label', default: 'Email', label: 'aria-label' },
     { kind: 'text', prop: 'placeholder', default: 'you@example.com', alwaysPrint: true },
     { kind: 'boolean', prop: 'invalid', default: false },
+    { kind: 'boolean', prop: 'readOnly', default: false },
     { kind: 'boolean', prop: 'disabled', default: false },
   ],
   presets: [
     { label: 'Invalid', state: { invalid: true } },
     { label: 'Search', state: { type: 'search', 'aria-label': 'Search', placeholder: 'Search components' } },
+    { label: 'Read-only', state: { readOnly: true } },
     { label: 'Disabled', state: { disabled: true } },
   ],
   docs: {
@@ -47,11 +49,18 @@ export const input: Manifest = {
         default: 'false',
         description: 'Marks the value wrong: aria-invalid="true" (a flag that tells screen readers the value is wrong) and a danger border. A Field with an error does the same.',
       },
+      {
+        name: 'readOnly',
+        type: 'boolean',
+        default: 'false',
+        description: 'The native readonly attribute: the value can be read, selected and copied at full strength, and is submitted, but not edited. A dashed edge, no recess.',
+      },
       { name: 'disabled', type: 'boolean', default: 'false', description: "The native disabled attribute: it can't be edited or focused." },
     ],
     a11y: [
       'A real <input>, so typing, autofill and the keyboard work as browsers intend.',
       "Inside a Field it takes the Field's id, hint and error, so screen readers read all three.",
+      'A read-only input stays in the Tab order and screen readers say it is read-only; a disabled one is skipped.',
       'In forced-colors mode (Windows high contrast), the system replaces the red border color, so an invalid input shows a thick 10px start edge instead.',
     ],
   },

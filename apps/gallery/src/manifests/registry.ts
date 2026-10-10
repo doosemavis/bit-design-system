@@ -10,6 +10,7 @@ import {
   CardBody,
   CardFooter,
   CardHeader,
+  Checkbox,
   Code,
   CodeBlock,
   Dialog,
@@ -23,6 +24,8 @@ import {
   IconButton,
   Input,
   Link,
+  Radio,
+  RadioGroup,
   SegmentedControl,
   Select,
   Spinner,
@@ -38,6 +41,7 @@ import {
   TableRow,
   Tabs,
   Text,
+  Textarea,
   Tooltip,
 } from '@bit-ds/react';
 
@@ -54,6 +58,7 @@ export const COMPONENTS: Record<string, ComponentType<any>> = {
   CardBody,
   CardFooter,
   CardHeader,
+  Checkbox,
   Code,
   CodeBlock,
   Dialog,
@@ -67,6 +72,8 @@ export const COMPONENTS: Record<string, ComponentType<any>> = {
   IconButton,
   Input,
   Link,
+  Radio,
+  RadioGroup,
   SegmentedControl,
   Select,
   Spinner,
@@ -82,6 +89,7 @@ export const COMPONENTS: Record<string, ComponentType<any>> = {
   TableRow,
   Tabs,
   Text,
+  Textarea,
   Tooltip,
 };
 
