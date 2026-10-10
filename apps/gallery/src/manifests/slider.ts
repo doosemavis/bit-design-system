@@ -36,7 +36,14 @@ export const slider: Manifest = {
     { kind: 'number', prop: 'rangeStep', label: 'step', default: 1, min: 1, max: 10, step: 1, virtual: true },
     { kind: 'boolean', prop: 'notched', default: false },
     { kind: 'boolean', prop: 'numberInput', default: false },
-    { kind: 'text', prop: 'unit', default: '' },
+    {
+      kind: 'select',
+      prop: 'unit',
+      values: ['none', '%', '$', '¢', '°', '€', '£', 'px'],
+      default: 'none',
+      hint: '$, € and £ sit before the number; the rest after it.',
+      lock: (state) => (state.numberInput ? undefined : 'The unit sits beside the number box: turn on numberInput first.'),
+    },
     { kind: 'boolean', prop: 'invalid', default: false },
     { kind: 'boolean', prop: 'readOnly', default: false },
     { kind: 'boolean', prop: 'disabled', default: false },
@@ -105,7 +112,16 @@ export const slider: Manifest = {
         description:
           'A number box after the track. It follows the slider, and typing a number moves it. Enter or leaving the box pulls the number into range and onto a step. square and round only. Rendered as data-number-input.',
       },
-      { name: 'unit', type: 'string', description: 'A unit for the number box, shown in a purple tab on its end: "%", "px", "°". Needs numberInput.' },
+      {
+        name: 'unit',
+        type: "'%' | '$' | '¢' | '°' | '€' | '£' | 'px' | string",
+        description: 'A unit for the number box, in a purple tab beside it. A currency sign ($, €, £, ¥, ₹, ₩) goes before the number; anything else ("%", "¢", "°", "px") after it. Needs numberInput.',
+      },
+      {
+        name: 'unitPosition',
+        type: "'start' | 'end'",
+        description: 'Which side the unit goes on, when its sign\'s usual side is wrong for your readers (5 € in French). Rendered as data-unit on the box.',
+      },
       {
         name: 'formatValue',
         type: '(value: number) => string',

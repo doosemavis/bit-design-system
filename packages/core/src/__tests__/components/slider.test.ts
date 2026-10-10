@@ -198,15 +198,31 @@ describe('components/slider.css', () => {
     expect(decl(block(css, '.bit-slider__step:disabled')!, 'cursor')).toBe('not-allowed');
   });
 
-  it('unit: a primary-soft tab on the box’s end, rounded at its end; the box’s end corners go square', () => {
+  it('unit: a primary-soft tab beside the box, rounded on its outer side only', () => {
     const unit = block(css, '.bit-slider__unit')!;
     expect(decl(unit, 'background')).toBe('var(--bit-color-primary-soft)');
     expect(decl(unit, 'border')).toBe('var(--bit-border-width) solid var(--bit-color-line)');
-    expect(decl(unit, 'border-inline-start')).toBe('0');
-    expect(decl(unit, 'border-end-end-radius')).toBe('var(--bit-radius-10px)');
-    const square = block(css, '.bit-slider__box:has(> .bit-slider__unit) :is(.bit-input.bit-slider__number, .bit-slider__steps)')!;
-    expect(decl(square, 'border-start-end-radius')).toBe('0');
-    expect(decl(square, 'border-end-end-radius')).toBe('0');
+    expect(decl(unit, 'border-radius')).toBe('var(--bit-radius-10px)');
+  });
+
+  it('unit after the number (data-unit="end"): the tab drops its start border and corners, the box its end corners', () => {
+    const tab = block(css, '.bit-slider__box[data-unit="end"] .bit-slider__unit')!;
+    expect(decl(tab, 'border-inline-start')).toBe('0');
+    expect(decl(tab, 'border-start-start-radius')).toBe('0');
+    expect(decl(tab, 'border-end-start-radius')).toBe('0');
+    const box = block(css, '.bit-slider__box[data-unit="end"] :is(.bit-input.bit-slider__number, .bit-slider__steps)')!;
+    expect(decl(box, 'border-start-end-radius')).toBe('0');
+    expect(decl(box, 'border-end-end-radius')).toBe('0');
+  });
+
+  it('unit before the number (data-unit="start"): the tab drops its end border and corners, the box its start corners', () => {
+    const tab = block(css, '.bit-slider__box[data-unit="start"] .bit-slider__unit')!;
+    expect(decl(tab, 'border-inline-end')).toBe('0');
+    expect(decl(tab, 'border-start-end-radius')).toBe('0');
+    expect(decl(tab, 'border-end-end-radius')).toBe('0');
+    const box = block(css, '.bit-slider__box[data-unit="start"] .bit-input.bit-slider__number')!;
+    expect(decl(box, 'border-start-start-radius')).toBe('0');
+    expect(decl(box, 'border-end-start-radius')).toBe('0');
   });
 
   it('forced colors: the marks keep the text color', () => {

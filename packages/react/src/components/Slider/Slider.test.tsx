@@ -729,6 +729,32 @@ describe('Slider', () => {
       expect(box()).toHaveAttribute('aria-describedby', expect.stringContaining(unit.id));
     });
 
+    it.each(['$', '€', '£', '¥', '₹', '₩'])('unit %s: a currency sign, so its tab goes before the box', (sign) => {
+      const { container } = render(<Slider aria-label="Budget" numberInput unit={sign} />);
+      const unit = container.querySelector('.bit-slider__unit')!;
+      expect(unit.closest('.bit-slider__box')).toHaveAttribute('data-unit', 'start');
+      expect(unit.nextElementSibling).toHaveClass('bit-slider__spin');
+      expect(box()).toHaveAttribute('aria-describedby', unit.id);
+    });
+
+    it.each(['%', '¢', '°', 'px'])('unit %s: its tab goes after the box', (sign) => {
+      const { container } = render(<Slider aria-label="x" numberInput unit={sign} />);
+      const unit = container.querySelector('.bit-slider__unit')!;
+      expect(unit.closest('.bit-slider__box')).toHaveAttribute('data-unit', 'end');
+      expect(unit.previousElementSibling).toHaveClass('bit-slider__spin');
+    });
+
+    it('unitPosition overrides the sign: 5 € in French', () => {
+      const { container } = render(<Slider aria-label="Prix" numberInput unit="€" unitPosition="end" />);
+      expect(container.querySelector('.bit-slider__box')).toHaveAttribute('data-unit', 'end');
+      expect(container.querySelector('.bit-slider__unit')!.previousElementSibling).toHaveClass('bit-slider__spin');
+    });
+
+    it('without a unit the box has no data-unit', () => {
+      const { container } = render(<Slider aria-label="x" numberInput />);
+      expect(container.querySelector('.bit-slider__box')).not.toHaveAttribute('data-unit');
+    });
+
     it('without numberInput, unit draws nothing', () => {
       const { container } = render(<Slider aria-label="x" unit="%" />);
       expect(container.querySelector('.bit-slider__box')).toBeNull();

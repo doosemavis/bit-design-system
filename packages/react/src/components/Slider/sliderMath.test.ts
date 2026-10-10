@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_BLOCKS, MAX_NOTCHES, blockAt, blockCount, fractionAt, fractionOf, litBlocks, notchFractions, snapValue, stepCount, valueChars } from './sliderMath';
+import { MAX_BLOCKS, MAX_NOTCHES, blockAt, blockCount, fractionAt, fractionOf, litBlocks, notchFractions, snapValue, stepCount, unitSide, valueChars } from './sliderMath';
 
 describe('snapValue: what a native range input settles on', () => {
   it.each([
@@ -120,5 +120,15 @@ describe('valueChars: how many characters the longest value takes, so the number
     [0.5, 2, 0.5, 3],
   ])('%s to %s by %s is %s', (min, max, step, chars) => {
     expect(valueChars(min, max, step)).toBe(chars);
+  });
+});
+
+describe('unitSide', () => {
+  it.each(['$', '€', '£', '¥', '₹', '₩', ' $ '])('%s goes before the number', (unit) => {
+    expect(unitSide(unit)).toBe('start');
+  });
+
+  it.each(['%', '¢', '°', 'px', 'ms'])('%s goes after the number', (unit) => {
+    expect(unitSide(unit)).toBe('end');
   });
 });

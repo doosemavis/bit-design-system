@@ -46,8 +46,13 @@ export interface SliderProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color
    * value once, from the slider. square and round only. Rendered as `data-number-input`.
    */
   numberInput?: boolean;
-  /** A unit for the number box, shown in a tab on its end and read with it: "%", "px", "°". Needs numberInput. */
+  /**
+   * A unit for the number box, shown in a tab beside it and read with it. A currency sign ($, €, £, ¥, ₹, ₩) goes
+   * before the number and any other unit ("%", "¢", "°", "px") after it. Needs numberInput.
+   */
   unit?: string;
+  /** Which side of the number box the unit goes on, when its sign's usual side is wrong for you (5 € in French). */
+  unitPosition?: 'start' | 'end';
   /** The look: a square thumb, a health bar of blocks, or a round thumb with a value bubble. Class: `bit-{variant}`. */
   variant?: SliderVariant;
   /** Thumb, track and block size. Class: `bit-{size}`. */
@@ -93,6 +98,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
     notched = false,
     numberInput = false,
     unit,
+    unitPosition,
     variant = 'square',
     size = 'md',
     color = 'primary',
@@ -253,6 +259,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
           step={step}
           chars={valueChars(min, max, step)}
           unit={unit}
+          unitPosition={unitPosition}
           disabled={disabled}
           readOnly={readOnly}
           inputRef={inputRef}

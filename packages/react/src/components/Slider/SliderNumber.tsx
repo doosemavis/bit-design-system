@@ -4,7 +4,7 @@ import { PREFIX } from '@bit-ds/core/tokens';
 import { element } from '../../system/toClasses';
 import { Icon } from '../Icon/Icon';
 import { iconKeyboardArrowDown, iconKeyboardArrowUp } from '../../icons/icons.generated';
-import { snapValue } from './sliderMath';
+import { snapValue, unitSide } from './sliderMath';
 import { setInputValue } from './setInputValue';
 
 interface SliderNumberProps {
@@ -15,8 +15,10 @@ interface SliderNumberProps {
   step: number;
   /** How many characters the longest value takes: the box is this wide. */
   chars: number;
-  /** A unit shown in a tab after the box ("%"), which also describes it. */
+  /** A unit shown in a tab beside the box ("%" after it, "$" before it), which also describes it. */
   unit: string | undefined;
+  /** The unit's side, when the caller picks it. */
+  unitPosition: 'start' | 'end' | undefined;
   disabled: boolean;
   readOnly: boolean;
   /** The range input. The box moves the slider through it, so onChange, onValueChange and forms all follow. */
@@ -36,13 +38,13 @@ function typed(text: string): number | null {
 }
 
 /**
- * The number box after the track: a native number input that shows the slider's value and sets it. A number in
+ * The number box after the track, with a unit tab before or after it: a native number input that shows the slider's value and sets it. A number in
  * range moves the slider as it is typed; Enter or leaving the box pulls any number into range and onto a step,
  * and an empty box goes back to the value. Two step buttons at its end nudge it a step; they are out of the Tab
  * order and hidden from screen readers, since the box's own Up and Down keys step it. It has no name, so a form
  * gets the value once, from the range input.
  */
-export function SliderNumber({ value, min, max, step, chars, unit, disabled, readOnly, inputRef, label, describedBy, invalid }: SliderNumberProps) {
+export function SliderNumber({ value, min, max, step, chars, unit, unitPosition, disabled, readOnly, inputRef, label, describedBy, invalid }: SliderNumberProps) {
   // What is being typed, until Enter or blur; null shows the slider's value.
   const [draft, setDraft] = useState<string | null>(null);
   // When the value moves for another reason (a drag, a key, the parent), a draft that doesn't make it is dropped.
@@ -84,8 +86,16 @@ export function SliderNumber({ value, min, max, step, chars, unit, disabled, rea
     </button>
   ));
 
+  const side = unit ? (unitPosition ?? unitSide(unit)) : undefined;
+  const tab = unit ? (
+    <span className={element('slider', 'unit')} id={unitId}>
+      {unit}
+    </span>
+  ) : null;
+
   return (
-    <span className={element('slider', 'box')} style={{ '--_bit-slider-chars': chars } as CSSProperties}>
+    <span className={element('slider', 'box')} data-unit={side} style={{ '--_bit-slider-chars': chars } as CSSProperties}>
+      {side === 'start' ? tab : null}
       <span className={element('slider', 'spin')}>
         <input
           className={`${PREFIX}-input ${element('slider', 'number')}`}
@@ -115,11 +125,7 @@ export function SliderNumber({ value, min, max, step, chars, unit, disabled, rea
           {steps}
         </span>
       </span>
-      {unit ? (
-        <span className={element('slider', 'unit')} id={unitId}>
-          {unit}
-        </span>
-      ) : null}
+      {side === 'end' ? tab : null}
     </span>
   );
 }

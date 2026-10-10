@@ -303,12 +303,9 @@
   cursor: default;
 }
 
-/* unit: a purple tab on the box's end. The box's own end border divides them, so its end corners go square. */
-.bit-slider__box:has(> .bit-slider__unit) :is(.bit-input.bit-slider__number, .bit-slider__steps) {
-  border-start-end-radius: 0;
-  border-end-end-radius: 0;
-}
-
+/* unit: a purple tab on one side of the box: data-unit="end" after the number (40%), "start" before it ($40).
+   The box's own border divides them, so the tab drops its border on that side and the box's corners there go
+   square. */
 .bit-slider__unit {
   display: inline-flex;
   align-items: center;
@@ -317,12 +314,32 @@
   background: var(--bit-color-primary-soft);
   color: var(--bit-color-text);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-inline-start: 0;
-  border-start-end-radius: var(--bit-radius-10px);
-  border-end-end-radius: var(--bit-radius-10px);
+  border-radius: var(--bit-radius-10px);
   font-size: var(--_bit-size-text);
   font-weight: var(--bit-weight-bold);
   white-space: nowrap;
+}
+
+.bit-slider__box[data-unit="end"] .bit-slider__unit {
+  border-inline-start: 0;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
+.bit-slider__box[data-unit="end"] :is(.bit-input.bit-slider__number, .bit-slider__steps) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.bit-slider__box[data-unit="start"] .bit-slider__unit {
+  border-inline-end: 0;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.bit-slider__box[data-unit="start"] .bit-input.bit-slider__number {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
 }
 
 .bit-slider__box:has(.bit-slider__number[readonly]) .bit-slider__unit {

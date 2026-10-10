@@ -10,7 +10,7 @@ import { expectNoA11yViolations } from '../../test/a11y';
 describe.each([
   ['CheckboxExamples', CheckboxExamples, ['Select all', 'Agree in a form', 'Show a setting that can’t change here']],
   ['RadioGroupExamples', RadioGroupExamples, ['A required choice in a Field', 'Radio children', 'Show a choice that can’t change here']],
-  ['SliderExamples', SliderExamples, ['Volume with a number box', 'Lives, as a health bar', 'Brightness with a value bubble', 'Zoom, in notches', 'Show a setting that can’t change here']],
+  ['SliderExamples', SliderExamples, ['Volume with a number box', 'A budget, in dollars', 'Lives, as a health bar', 'Brightness with a value bubble', 'Zoom, in notches', 'Show a setting that can’t change here']],
   ['TextareaExamples', TextareaExamples, ['A message in a Field', 'Count what is left', 'Show text that can’t be edited here']],
 ] as const)('%s', (_name, Examples, titles) => {
   it('shows its use cases, each a live sample in a Box beside its code', async () => {
@@ -99,6 +99,15 @@ describe('Slider examples', () => {
     const locked = screen.getByRole('slider', { name: 'Difficulty' });
     fireEvent.change(locked, { target: { value: '2' } });
     expect(locked).toHaveValue('7');
-    expect(container.querySelectorAll('.bit-slider')).toHaveLength(5);
+    expect(container.querySelectorAll('.bit-slider')).toHaveLength(6);
+  });
+
+  it('the budget puts its $ tab before the box and the volume its % tab after it', () => {
+    render(<SliderExamples />);
+    const budget = screen.getByRole('spinbutton', { name: 'Monthly budget' });
+    expect(budget.closest('.bit-slider__box')).toHaveAttribute('data-unit', 'start');
+    expect(budget.closest('.bit-slider__box')!.firstElementChild).toHaveTextContent('$');
+    const volume = screen.getByRole('spinbutton', { name: 'Volume' });
+    expect(volume.closest('.bit-slider__box')).toHaveAttribute('data-unit', 'end');
   });
 });

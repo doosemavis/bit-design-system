@@ -4,6 +4,14 @@ export const MAX_BLOCKS = 20;
 /** The most marks notched draws. With more steps than fit, it draws none. */
 export const MAX_NOTCHES = 20;
 
+/** Units written before the number ($40, €5, £3): the currency signs. Every other unit goes after it (40%, 5¢, 90°). */
+export const UNITS_BEFORE: readonly string[] = ['$', '€', '£', '¥', '₹', '₩'];
+
+/** The side of the number box a unit's tab sits on: before it for a currency sign, else after. */
+export function unitSide(unit: string): 'start' | 'end' {
+  return UNITS_BEFORE.includes(unit.trim()) ? 'start' : 'end';
+}
+
 /** Decimal places in a number, so step arithmetic can round away float noise (0.1 + 0.2). */
 function decimals(n: number): number {
   const text = String(n);

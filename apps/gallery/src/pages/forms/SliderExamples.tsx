@@ -17,6 +17,19 @@ const EXAMPLES: readonly Example[] = [
     note: 'The box takes the Field\'s label, so screen readers hear "Volume" for both. It has no name of its own: a form gets the value once, from the slider. blocks has no number box.',
   },
   {
+    title: 'A budget, in dollars',
+    when: 'A currency sign goes before the number, so the $ tab sits in front of the box. % and ¢ go after it.',
+    sample: (
+      <Field label="Monthly budget">
+        <Slider numberInput unit="$" max={500} step={10} defaultValue={120} formatValue={(v) => `$${v}`} />
+      </Field>
+    ),
+    code: `<Field label="Monthly budget">
+  <Slider numberInput unit="$" max={500} step={10} defaultValue={120} formatValue={(v) => \`$\${v}\`} />
+</Field>`,
+    note: 'unit picks its side from the sign: $, €, £, ¥, ₹ and ₩ go before the number, and everything else after. Where your readers write it the other way (5 € in French), set unitPosition="end".',
+  },
+  {
     title: 'Lives, as a health bar',
     when: 'blocks draws one block per step, so a small count reads at a glance. A click on a block picks it.',
     sample: (
