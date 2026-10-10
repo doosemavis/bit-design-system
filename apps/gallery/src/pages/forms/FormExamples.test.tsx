@@ -1,14 +1,16 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { CheckboxExamples } from './CheckboxExamples';
 import { RadioGroupExamples } from './RadioGroupExamples';
 import { TextareaExamples } from './TextareaExamples';
+import { SliderExamples } from './SliderExamples';
 import { expectNoA11yViolations } from '../../test/a11y';
 
 describe.each([
   ['CheckboxExamples', CheckboxExamples, ['Select all', 'Agree in a form', 'Show a setting that can’t change here']],
   ['RadioGroupExamples', RadioGroupExamples, ['A required choice in a Field', 'Radio children', 'Show a choice that can’t change here']],
+  ['SliderExamples', SliderExamples, ['Volume in a Field', 'Lives, as a health bar', 'Brightness with a value bubble', 'Show a setting that can’t change here']],
   ['TextareaExamples', TextareaExamples, ['A message in a Field', 'Count what is left', 'Show text that can’t be edited here']],
 ] as const)('%s', (_name, Examples, titles) => {
   it('shows its use cases, each a live sample in a Box beside its code', async () => {
@@ -66,5 +68,28 @@ describe('RadioGroup examples', () => {
     expect(screen.getByRole('radiogroup', { name: 'Shipping' })).toHaveAccessibleDescription('Arrives in 2 to 5 days.');
     await user.click(screen.getByRole('radio', { name: 'Monthly' }));
     expect(screen.getByRole('radio', { name: 'Yearly' })).toBeChecked();
+  });
+});
+
+describe('Slider examples', () => {
+  it('the volume beside the slider follows it, and the Field names it', () => {
+    render(<SliderExamples />);
+    const volume = screen.getByRole('slider', { name: 'Volume' });
+    expect(volume).toHaveAccessibleDescription('Music and effects.');
+    fireEvent.change(volume, { target: { value: '55' } });
+    expect(screen.getByText('55%')).toBeInTheDocument();
+    expect(volume).toHaveAttribute('aria-valuetext', '55%');
+  });
+
+  it('the lives bar draws five blocks with three lit, and read-only stays put', () => {
+    const { container } = render(<SliderExamples />);
+    const lives = screen.getByRole('slider', { name: 'Lives' });
+    const bar = lives.parentElement!;
+    expect(bar.querySelectorAll('.bit-slider__block')).toHaveLength(5);
+    expect(bar.querySelectorAll('.bit-slider__block[data-state]')).toHaveLength(3);
+    const locked = screen.getByRole('slider', { name: 'Difficulty' });
+    fireEvent.change(locked, { target: { value: '2' } });
+    expect(locked).toHaveValue('7');
+    expect(container.querySelectorAll('.bit-slider')).toHaveLength(4);
   });
 });

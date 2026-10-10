@@ -15,6 +15,7 @@ import { field } from './field';
 import { input } from './input';
 import { select } from './select';
 import { switchManifest } from './switch';
+import { slider } from './slider';
 import { checkbox } from './checkbox';
 import { radioGroup } from './radioGroup';
 import { textarea } from './textarea';
@@ -30,7 +31,7 @@ import { iconButton } from './iconButton';
 import { tooltip } from './tooltip';
 
 /** Sidebar order within each group (Components, then Forms, then Brand). */
-export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, box, text, heading, spinner, modeToggle, bitTheme, link, code, codeBlock, segmentedControl, table, dialog, tabs, icon, iconButton, tooltip, field, input, textarea, select, checkbox, radioGroup, switchManifest, bitLogo];
+export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, box, text, heading, spinner, modeToggle, bitTheme, link, code, codeBlock, segmentedControl, table, dialog, tabs, icon, iconButton, tooltip, field, input, textarea, select, checkbox, radioGroup, switchManifest, slider, bitLogo];
 
 export function findManifest(slug: string): Manifest | undefined {
   return MANIFESTS.find((m) => m.slug === slug);
