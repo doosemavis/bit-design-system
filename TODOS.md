@@ -11,22 +11,13 @@
   - The mock exposed a gotcha: the Playground Card must not use `overflow: hidden`, or `position: sticky` stops working.
   - The Variants and Props tables should scroll sideways with a visible edge.
   - See "Design Review Amendments" in `docs/superpowers/plans/2026-09-13-gallery.md`.
-- **Depends on / blocked by:** The gallery shipping first (re-planned Tasks 8–11).
-
-## Release: docs-only deploy path
-
-- **What:** A `docs-deploy` workflow (manual run) that redeploys the gallery to Pages without publishing a new npm version.
-- **Why:** Deferred in the 2026-10-02 eng review (D3). Today every docs fix ships as a patch release through the `v*` tag workflow.
-- **Pros:** Typos and docs-only fixes go live without a version bump.
-- **Cons:** It's a second release path. To keep the promise that the docs never advertise an install that fails, it must fail if `packages/` changed since the `v{version}` tag (design doc reviewer concern R3-11).
-- **Context:** One release path was chosen for simplicity at 0.x with a solo owner. Revisit if patch-releases-for-typos become annoying.
-- **Depends on / blocked by:** The `release.yml` tag workflow (PR3) existing first.
+- **Depends on / blocked by:** Nothing. The gallery has shipped.
 
 ## Release: switch npm publishing to trusted publishing
 
 - **Deadline:** before January 2027. npm stops letting 2FA-bypass tokens publish then, so the `NPM_TOKEN` publish will fail.
 - **What:**
-  - After `@bit-ds/react` 0.1.0 is on npm, go to npmjs.com → package → Settings → Trusted Publisher → GitHub Actions, and fill in:
+  - Go to npmjs.com → `@bit-ds/react` → Settings → Trusted Publisher → GitHub Actions, and fill in:
     - owner `doosemavis`
     - repo `bit-design-system`
     - workflow `release.yml`
@@ -37,15 +28,6 @@
 - **Cons:** A 5-minute manual step on npmjs.com. Do it before the deadline, and do not remove the token from `release.yml` until npm trusts the workflow.
 - **Context:** npm trusted publishing can't create a brand-new package (verified 2026-10-02), so v0.1.0 used the token. The publish job already has `id-token: write` and installs the exact `NPM_VERSION` (11.5.1 or later), which trusted publishing requires, and since the build/publish split it runs no install, so the switch is safe.
 - **Depends on / blocked by:** Nothing now. The steps are in CONTRIBUTING.md, "Releasing".
-
-## Release: pin the publish job's actions to commit SHAs
-
-- **What:** Pin `actions/checkout`, `actions/setup-node` and `actions/download-artifact` in the `publish` job to full commit SHAs with a `# vX.Y.Z` comment, then the rest of both workflows (security.md C3, review M5).
-- **Why:** A moved tag runs new code. In `publish` that code would hold `NPM_TOKEN` and, after the trusted-publishing switch, the right to mint a publish credential.
-- **Pros:** The credential job runs only reviewed action code. Dependabot's github-actions updates bump SHA pins too.
-- **Cons:** `PINNED_ACTIONS` in `scripts/workflows.test.mjs` must learn the SHA form, and every bump is a PR.
-- **Context:** All three are GitHub-owned. The repo still allows all actions; also consider "Require actions to be pinned to a full-length commit SHA".
-- **Depends on / blocked by:** Nothing.
 
 ## Release: exact-key archive cache for the Pages site
 
@@ -92,15 +74,6 @@
 - **Context:** Worth doing only if a second theme changes the shadow sizes.
 - **Depends on / blocked by:** Nothing.
 
-## Release: derive the token count in verify-dist
-
-- **What:** Make `verify-dist.mjs` derive the SEMANTIC_TOKENS count from the source instead of hard-coding 94.
-- **Why:** The hard-coded count fails the build whenever a token is added, even when the change is right.
-- **Pros:** Adding a token needs no second edit.
-- **Cons:** The check must still catch a token that goes missing from the dist.
-- **Context:** The count is checked against the built CSS.
-- **Depends on / blocked by:** Nothing.
-
 ## Gallery: CodeBlock demo reads the install command from snippets
 
 - **What:** The Shell example in `apps/gallery/src/manifests/codeBlock.ts` hard-codes `pnpm add @bit-ds/react`. It could read `INSTALL_COMMANDS.pnpm` from `apps/gallery/src/content/snippets.mjs`.
@@ -112,7 +85,7 @@
 
 ## Tests: Icon route smoke under 5s
 
-- **Target:** 0.1.8.
+- **Target:** 0.1.9 (missed 0.1.8).
 - **What:** Make the Icon page's route smoke test (`apps/gallery/src/routes.test.tsx`, "Icon: heading, the five sections…") finish well under Vitest's 5s default, consistently on CI. Then remove `icon` from `SLOW_PAGES`, which gives it a 15s limit for now.
 - **Why:** On 2026-10-09 it took 5.6s on CI and failed PR #44 once; a re-run passed. Alone it takes about 0.9s locally, so the time goes to rendering 300 icons and running axe over all of them while other test files share the runner.
 - **Pros:** No flaky CI failures, and no special-case timeout to remember.
@@ -123,3 +96,21 @@
   - Render the grid lazily, or a page of icons at a time, which may also help the real page.
   - Check whether the jsdom environment or the axe import is the slow part, with `--reporter=verbose` timings on CI.
 - **Depends on / blocked by:** Nothing.
+
+## 0.2.0 removals
+
+- **What:** 0.2.0 deletes everything deprecated in 0.1.8:
+  - `@bit-ds/core` tokens (`packages/core/src/tokens.ts`): `DEPRECATED_TEXT_SIZES`, `DEPRECATED_TEXT_SIZE_TO`, the `DeprecatedTextSize` type, and their `--bit-text-11px`, `-13px` and `-15px` entries in `typeTokens` (SEMANTIC_TOKENS goes from 114 to 111).
+  - `packages/core/src/themes/power-up.css`: the 11, 13 and 15 aliases (`--bit-text-11px`, `-13px`, `-15px`).
+  - `packages/core/src/components/text.css`: the deprecated `.bit-text[data-size="11"]`, `"13"` and `"15"` rules.
+  - `packages/core/src/components/heading.css`: the `.bit-heading[data-level="1"]` to `"6"` rules.
+  - Heading (`Heading.tsx`): the `level` prop, `LEVELS`, `HeadingLevel`, `LEVEL_SIZE`, `levelTag`, `oldLevelSize`, and the old `size={1..6}` form (so `size` is `HeadingSize` only).
+  - Text (`Text.tsx`): the `as` prop and `TextElement`, and the size-deprecation branch (11, 13, 15 mapped through `DEPRECATED_TEXT_SIZE_TO`).
+  - Their exports from `@bit-ds/react`: `DEPRECATED_TEXT_SIZES` and `DeprecatedTextSize` (`src/index.ts`), `DEPRECATED_TEXT_SIZE_TO` (`system/axes.ts`), `HeadingLevel` and `TextElement`.
+  - Gallery: `apps/gallery/src/content/currentTokens.ts` (use `SEMANTIC_TOKENS` again), the `level` row in `manifests/heading.ts` and the `as` row in `manifests/text.ts`, and the "1 to 6 is deprecated" note in Heading's `size` row.
+  - The tests for the deprecated forms: the deprecation cases in `Heading.test.tsx` and `Text.test.tsx`, the 11/13/15 token and alias checks in core's `tokens.test.ts` and `px-rename.test.ts`, the `text.css` exception in `type-floor.test.ts`, and the gallery's `SHOWN_TOKENS` in `TokensPage.test.tsx` (back to `SEMANTIC_TOKENS`).
+- **Why:** Each was kept one minor version so code written for 0.1.7 keeps working, with a console warning that names the replacement.
+- **Pros:** One way to size and tag headings and text, and three fewer tokens per theme.
+- **Cons:** A breaking release: callers still on `level`, `as`, `size={1..6}` or text sizes 11, 13 and 15 must change their code.
+- **Context:** `warnDeprecated` (`packages/react/src/system/warnDeprecated.ts`) can go too if nothing else uses it by then. 0.2.0 also revisits the class-naming exceptions listed in CONTRIBUTING.md, "Conventions" (`bit-iconButton`, `bit-iconFilled`, `bit-flat`). The release notes for 0.2.0 should list every removal with its replacement.
+- **Depends on / blocked by:** The 0.2.0 release.
