@@ -227,11 +227,12 @@
   display: inline-flex;
 }
 
-/* An Input that fits the longest value, its digits centered: the padding on both sides leaves room for the step
-   buttons, so the number sits in the true middle. The browser's own spin buttons are hidden. */
+/* An Input that fits the longest value, its digits centered in the part you see: the end padding covers the step
+   buttons, so the number sits in the middle between the box's start edge and their divider. The browser's own spin
+   buttons are hidden. */
 .bit-input.bit-slider__number {
-  inline-size: calc(var(--_bit-slider-chars) * 1ch + 2 * (var(--_bit-slider-spin) + var(--bit-space-4px) + var(--bit-border-width)) + var(--bit-space-4px));
-  padding-inline: calc(var(--_bit-slider-spin) + var(--bit-space-4px));
+  inline-size: calc(var(--_bit-slider-chars) * 1ch + 2 * (var(--bit-space-8px) + var(--bit-border-width)) + var(--_bit-slider-spin) + var(--bit-space-4px));
+  padding-inline: var(--bit-space-8px) calc(var(--_bit-slider-spin) + var(--bit-space-8px));
   text-align: center;
   font-variant-numeric: tabular-nums;
   appearance: textfield;

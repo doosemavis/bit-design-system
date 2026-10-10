@@ -79,10 +79,12 @@ test('Slider: the number box follows the slider, sets it as you type, steps with
   await page.keyboard.press('Enter');
   await expect(box).toHaveValue('10');
   await expect(slider).toHaveValue('10');
-  // The digits sit in the middle of the box, step buttons and all.
+  // The digits sit in the middle of the part you see: the end padding covers the step buttons, and what's left
+  // matches the start padding.
   const [field, digits] = await Promise.all([box.boundingBox(), box.evaluate((el) => {
     const style = getComputedStyle(el);
-    return { start: parseFloat(style.paddingLeft), end: parseFloat(style.paddingRight) };
+    const steps = el.parentElement!.querySelector('.bit-slider__steps') as HTMLElement;
+    return { start: parseFloat(style.paddingLeft), end: parseFloat(style.paddingRight) - steps.offsetWidth };
   })]);
   expect(field!.width).toBeGreaterThan(0);
   expect(digits.start).toBe(digits.end);

@@ -167,10 +167,10 @@ describe('components/slider.css', () => {
     expect(decl(block(css, '.bit-slider__box')!, 'grid-area')).toBe('1 / 2');
   });
 
-  it('the number box: digits centered between equal padding that leaves room for the step buttons, native spinners hidden', () => {
+  it('the number box: digits centered left of the step buttons, whose width the end padding covers, native spinners hidden', () => {
     const box = block(css, '.bit-input.bit-slider__number')!;
     expect(decl(box, 'text-align')).toBe('center');
-    expect(decl(box, 'padding-inline')).toBe('calc(var(--_bit-slider-spin) + var(--bit-space-4px))');
+    expect(decl(box, 'padding-inline')).toBe('var(--bit-space-8px) calc(var(--_bit-slider-spin) + var(--bit-space-8px))');
     expect(decl(box, 'appearance')).toBe('textfield');
     expect(decl(box, '-moz-appearance')).toBe('textfield');
     expect(decl(box, 'inline-size')).toContain('var(--_bit-slider-chars) * 1ch');
