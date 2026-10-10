@@ -67,6 +67,14 @@ html {
   text-decoration: none;
 }
 
+/* The vertical rule between the logo and the version picker, as tall as the header's controls. */
+.gallery-header__divider {
+  align-self: center;
+  width: 0;
+  height: var(--bit-control-height-sm);
+  border-inline-start: 2px solid var(--bit-color-line);
+}
+
 .gallery-header__tools {
   margin-left: auto;
   display: flex;

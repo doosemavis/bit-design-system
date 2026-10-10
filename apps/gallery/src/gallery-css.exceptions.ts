@@ -30,6 +30,7 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-section-title::after', property: 'content', reason: 'structure: the accent bar under a section title' },
   { selector: '.gallery-section-title::after', property: 'border-radius', reason: 'structure: the accent bar under a section title' },
   { selector: '.gallery-section-title::after', property: 'background', reason: 'structure: the accent bar under a section title, in the accent color' },
+  { selector: '.gallery-header__divider', property: 'border-inline-start', reason: 'frame: the rule between the logo and the version picker' },
   { selector: '.gallery-ruler__bar', property: 'background', reason: 'specimen: shows a spacing token as a bar' },
   { selector: '@media (forced-colors: active) .gallery-ruler__bar', property: 'forced-color-adjust', reason: 'forced colors: keeps the spacing bar visible' },
   { selector: '@media (forced-colors: active) .gallery-ruler__bar', property: 'background', reason: 'forced colors: keeps the spacing bar visible' },
