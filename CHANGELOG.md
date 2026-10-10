@@ -2,6 +2,40 @@
 
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
+## 0.1.9 — 2026-10-10
+### Added
+- `Slider`: pick a number on a range, on a native `<input type="range">`. Three looks: `variant="square"` (a square thumb), `"blocks"` (a health bar, one block per step, 20 at most) and `"round"` (a round thumb with a value bubble). Takes `min`, `max`, `step`, `value`/`defaultValue`/`onValueChange`, `formatValue` (read as `aria-valuetext` and shown in the bubble), `color`, `size`, `invalid`, `readOnly`, `disabled`, `name` and `form`, and joins a Field.
+- Slider glides: the thumb follows the pointer while you drag and settles on the step when you let go. The value it reports and submits is always a whole step, and the keys move one step.
+- Slider `notched` (`data-notched`): the thumb snaps to each step, with a mark under the track at each one (20 marks at most).
+- Slider `numberInput` (`data-number-input`): a number box beside the track, with bit's own up and down step buttons. Dragging updates the box, typing moves the slider, and Enter or leaving the box pulls the number into range and onto a step. square and round only.
+- Slider `unit`: a tab beside the number box. A currency sign (`$`, `€`, `£`, `¥`, `₹`, `₩`) goes before the number and any other unit (`%`, `¢`, `°`, `px`) after it; `unitPosition="start" | "end"` overrides.
+- `Menu`, `MenuItem` and `MenuSeparator`: a WAI-ARIA menu button in the Retro window look. Items take `icon`, `shortcut`, `danger`, `disabled`, `onSelect` and `asChild`; the arrow keys, Home, End and the first letter move between them, and Esc closes the menu and returns focus to the trigger.
+- `Navbar` and `NavbarLink`: a named `<nav>` in two looks, `variant="pill"` and `variant="bar"`, the same height in both. Takes `brand`, `actions`, `label`, `size` and `collapse` (`auto`, `always`, `never`); below 40rem of its own width the links fold into a Menu. `current` marks a link `aria-current="page"`.
+- `Checkbox` (with `indeterminate` and `onCheckedChange`), `RadioGroup` and `Radio` (from `options` or `<Radio>` children), and `Textarea`: native controls in sizes sm, md and lg, with `invalid`, `required`, `disabled` and `readOnly`, that join a Field.
+- Textarea `showCount`: a live count under the box, on the Field hint's line. With `maxLength` it reads "136 / 140", turns warning with 10% left and danger at the limit, and typing stops at the limit; without it, it reads "42 characters". Screen readers hear "Up to 140 characters" with the hint, and the count only at 20 left, 10 left and the limit.
+- New token `--bit-color-warning-text`: a warning color that is safe for text (amber in light, coin yellow in dark).
+- `bit-light`, `bit-dark` and `bit-theme-<name>` classes, on `<html>` or any element, do what `data-mode` and `data-theme` do (those keep working). A second theme file can theme a subtree.
+- `<BitTheme theme mode asChild>`: themes the part of the page inside it. `colorMode`, `COLOR_MODE_SCRIPT` and `useColorMode` write the mode class next to `data-mode`. New exports: `BitTheme`, `BitThemeProps`, `BRAND_TOKENS`.
+- `headingTag(size)` and the `HeadingTag` type: the tag a Heading size renders.
+- ModeToggle `iconOnly` (`data-icon-only`): just the sun and moon, square and bigger, for a tight header.
+- `readOnly` on Input and Select: a dashed edge, no recess, never faded. A read-only Select never opens and still submits. Switch takes `invalid` and joins a Field.
+- Alert leads with a severity icon: info, check, warning sign or error (neutral has none). `icon={false}` hides it, and `icon={iconX}` swaps it.
+### Changed
+- Heads up, bit's CSS is in cascade layers now (`bit.reset`, `bit.tokens`, `bit.components`), so any unlayered style in your app beats bit's, whatever its specificity: `button { padding: 0 }` now overrides Button. If your app layers its own CSS, declare your order with `bit` where you want it.
+- Heads up, bit no longer sets `scrollbar-width: thin` on every element: your page's own scrollbars go back to the browser's. bit's own scroll areas stay thin.
+- Heads up, bit no longer stops every animation on the page under Reduce motion, only its own. Add `@media (prefers-reduced-motion: reduce)` to your own animations.
+- `SEMANTIC_TOKENS` drops the five `--bit-logo-*` names, which move to `BRAND_TOKENS`. Themes no longer declare them; `styles.css` does.
+- Textarea's scrollbar matches bit's other scroll areas: the accent thumb on the surface, inside the rounded corners.
+- Button `loading` keeps focus: it sets `aria-disabled` and `aria-busy` instead of `disabled`. A disabled or loading `asChild` link ignores click, Enter and Space.
+- Forced colors (Windows high contrast): the pressed ModeToggle option, an on Switch, a solid Button and a solid Badge keep a fill.
+- Spinner, Button and Switch stop their own motion under Reduce motion.
+- A labelled Table names the `<table>`, or the scroll region when it scrolls, never both.
+- Select's list and Tooltip's bubble share one top-layer positioning helper. They behave the same.
+- Two unused palette colors are gone from the power-up theme: `--bit-palette-stone-light` and `--bit-palette-night-raised-hover`.
+### Fixed
+- Tabs swap the arrow keys for right-to-left from the CSS `direction`, not only the `dir` attribute.
+- CodeBlock: when a grid or flex parent stretches the panel taller than its code, the code area takes the extra height, so a sideways scrollbar sits on the panel's bottom edge instead of in the middle.
+
 ## 0.1.8 — 2026-10-10
 ### Added
 - Text `italic`, `underline` and `strikethrough`: on/off props that combine with each other and with `weight`, rendered as `data-italic`, `data-underline` and `data-strikethrough`. `<Text>Press <Text weight="bold" italic>Start</Text></Text>`. The underline is thinner than Link's, so it doesn't read as a link.

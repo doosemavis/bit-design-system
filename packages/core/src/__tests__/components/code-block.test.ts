@@ -111,4 +111,12 @@ describe('system/reset.css (CodeBlock ring)', () => {
       'outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);',
     );
   });
+
+  it('a stretched panel gives its extra height to the pre, so the scrollbar stays on the bottom edge', () => {
+    const codeBlock = readCss('components/code-block.css');
+    const panel = block(codeBlock, '.bit-code__block')!;
+    expect(panel).toContain('display: flex;');
+    expect(panel).toContain('flex-direction: column;');
+    expect(block(codeBlock, '.bit-code__pre')).toContain('flex: 1 1 auto;');
+  });
 });

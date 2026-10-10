@@ -1,7 +1,11 @@
 /* CodeBlock: the Ink-night panel (dark in both modes) with editor colors, a language bar and a Copy
    button. The border and the bar's rule follow the mode accent (decision 3). The pre's focus ring is
-   pulled inside the panel by system/reset.css, so overflow: hidden can't clip it. */
+   pulled inside the panel by system/reset.css, so overflow: hidden can't clip it. A column, so when a grid or
+   flex parent stretches the panel taller than its code, the pre takes the extra height and its scrollbar stays
+   on the panel's bottom edge. */
 .bit-code__block {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   color: var(--bit-code-text);
   background: var(--bit-code-bg);
@@ -62,6 +66,7 @@
 }
 
 .bit-code__pre {
+  flex: 1 1 auto;
   margin: 0;
   padding: var(--bit-space-12px) var(--bit-space-16px);
   overflow-x: auto;
