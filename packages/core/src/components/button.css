@@ -126,3 +126,23 @@
   border-radius: var(--bit-radius-full);
   animation: bit-spin 0.7s linear infinite;
 }
+
+/* Forced colors drop fills and shadows, which would leave solid and outline alike. Solid keeps a fill by
+   swapping the system button colors; outline and ghost take the system defaults (ghost has no border). */
+@media (forced-colors: active) {
+  .bit-button.bit-solid {
+    forced-color-adjust: none;
+    background: ButtonText;
+    color: ButtonFace;
+    border-color: ButtonText;
+    box-shadow: none;
+    --_bit-lift: none;
+    --_bit-focus-ring: Highlight;
+  }
+
+  .bit-button.bit-solid:disabled,
+  .bit-button.bit-solid[aria-disabled="true"] {
+    background: GrayText;
+    border-color: GrayText;
+  }
+}

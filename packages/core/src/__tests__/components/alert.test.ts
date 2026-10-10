@@ -70,8 +70,9 @@ describe('components/alert.css', () => {
     });
   });
 
-  it('has no forced-colours rule, like Button: the browser keeps the border in a system colour and drops the shadow', () => {
+  // A solid Alert can't swap system colors as a solid Button does: its body holds links, buttons and code, which
+  // would keep their own colors. The severity icon carries the meaning that the fill carried.
+  it('has no forced-colors rule: the browser keeps the border in a system color, and the icon carries the severity', () => {
     expect(styleRules(css).filter((rule) => rule.media?.includes('forced-colors'))).toEqual([]);
-    expect(styleRules(button).filter((rule) => rule.media?.includes('forced-colors'))).toEqual([]);
   });
 });

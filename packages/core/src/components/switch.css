@@ -97,3 +97,20 @@
 .bit-switch:has(.bit-switch__input:disabled) {
   cursor: not-allowed;
 }
+
+/* Forced colors drop the green fill, so an on track takes the system highlight and its thumb the highlight
+   text: on and off differ by more than where the thumb sits. */
+@media (forced-colors: active) {
+  .bit-switch__input:checked + .bit-switch__track {
+    forced-color-adjust: none;
+    background: Highlight;
+    border-color: Highlight;
+    box-shadow: none;
+    --_bit-lift: none;
+  }
+
+  .bit-switch__input:checked + .bit-switch__track .bit-switch__thumb {
+    background: HighlightText;
+    border-color: HighlightText;
+  }
+}

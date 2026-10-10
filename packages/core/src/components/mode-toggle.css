@@ -38,3 +38,13 @@
      the dark theme's yellow ring would vanish on the yellow fill. */
   --_bit-focus-ring: var(--bit-color-warning-contrast);
 }
+
+/* Forced colors drop the fill, so the pressed option takes the system highlight, and its ring the highlight text. */
+@media (forced-colors: active) {
+  .bit-mode-toggle__option[aria-pressed="true"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+    --_bit-focus-ring: HighlightText;
+  }
+}
