@@ -11,6 +11,7 @@ import { InPageLink } from '../ui/InPageLink';
 import { SearchDialog } from '../search/SearchDialog';
 import { SearchButton } from './Header';
 import { NARROW_QUERY, useMediaQuery } from '../ui/useMediaQuery';
+import type { GameId } from '../arcade/games';
 
 interface ShellProps {
   nav?: readonly NavItem[];
@@ -45,6 +46,13 @@ export function Shell({ nav = NAV }: ShellProps) {
   const menuButton = useRef<HTMLButtonElement>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const openSearch = () => setSearchOpen(true);
+  // The open Arcade game, if any. It lives in the sidebar, not in the route, so pages and prev/next never see it.
+  const [game, setGame] = useState<GameId | null>(null);
+  const play = (id: GameId) => {
+    setGame(id);
+    // On a phone the game runs in the sheet, so opening one (from search, say) opens the sheet.
+    if (narrow) setOpenOn(pathname);
+  };
   useFocusHeading();
   useSearchShortcut(openSearch);
 
@@ -71,11 +79,14 @@ export function Shell({ nav = NAV }: ShellProps) {
         onToggleMenu={() => setOpenOn((open) => (open === pathname ? null : pathname))}
         onSearch={openSearch}
       />
-      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} onPlay={play} />
       <Sidebar
         items={nav}
         open={menuOpen}
         onNavigate={() => setOpenOn(null)}
+        game={game}
+        onPlay={play}
+        onBack={() => setGame(null)}
         header={narrow ? <SearchButton inSheet onClick={openSearch} /> : null}
         footer={
           narrow ? (

@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { matchPath, NavLink, useLocation } from 'react-router-dom';
-import { Link, Text } from '@bit-ds/react';
+import { Button, Link, Text } from '@bit-ds/react';
 import { MANIFESTS, routeFor } from '../manifests';
 import type { Manifest, ManifestGroup } from '../manifests';
+import { ArcadePanel } from '../arcade/ArcadePanel';
+import { GAMES, gameLabel } from '../arcade/games';
+import type { GameId } from '../arcade/games';
 
 type NavGroup = 'Start here' | 'Foundations' | 'Components' | 'Forms' | 'Brand';
 export interface NavItem {
@@ -53,6 +56,12 @@ interface SidebarProps {
   header?: ReactNode;
   /** Shown after the groups when the header is too narrow: the GitHub button and the version picker. */
   footer?: ReactNode;
+  /** The open game, which takes the sidebar's place; null shows the menu. */
+  game?: GameId | null;
+  /** Opens a game. Without it the Arcade section isn't listed. */
+  onPlay?: (game: GameId) => void;
+  /** Leaves the game for the menu. */
+  onBack?: () => void;
 }
 
 /** The group of the item NavLink would mark current for `pathname` (matchPath, as NavLink does), or null. */
@@ -63,6 +72,52 @@ function currentGroup(items: readonly NavItem[], pathname: string): NavGroup | n
 
 /** The id of a group's title, which labels its list of links. */
 const titleId = (group: string) => `gallery-nav-${group.toLowerCase().replace(/\s+/g, '-')}`;
+
+/** A group's title. A label, not a heading: it names the list below, so a screen reader says "Foundations, list". */
+function GroupTitle({ group }: { group: string }) {
+  return (
+    <Text id={titleId(group)} size={14} color="neutral" className="gallery-sidebar__title">
+      {group}
+    </Text>
+  );
+}
+
+/**
+ * The last section: games, not pages. Each item is a Button (it opens the game in the sidebar; it goes nowhere),
+ * kept out of NAV so the pages' previous and next links and the routes never see it.
+ */
+function ArcadeGroup({ onPlay }: { onPlay: (game: GameId) => void }) {
+  return (
+    <section className="gallery-sidebar__group">
+      <GroupTitle group="Arcade" />
+      <ul className="gallery-sidebar__list" aria-labelledby={titleId('Arcade')}>
+        {GAMES.map((game) => (
+          <li key={game.id}>
+            <Button variant="ghost" color="neutral" size="sm" className="gallery-sidebar__game" data-game={game.id} onClick={() => onPlay(game.id)}>
+              {game.label}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/** After Back, focus returns to the Arcade item of the game that was open, once the menu is back. */
+function useFocusGameItem(nav: HTMLElement | null, game: GameId | null): (left: GameId) => void {
+  const left = useRef<GameId | null>(null);
+  useEffect(() => {
+    if (game !== null || left.current === null || !nav) return;
+    // On the first pass `nav` can still be the game's region, now gone: wait for the menu's own element.
+    const item = nav.querySelector<HTMLElement>(`[data-game="${left.current}"]`);
+    if (!item) return;
+    item.focus();
+    left.current = null;
+  }, [nav, game]);
+  return (id) => {
+    left.current = id;
+  };
+}
 
 /**
  * The sidebar scrolls its own list (it stays put beside the page), so a page far down the list (Tooltip, Switch)
@@ -80,15 +135,37 @@ function useCurrentLinkInView(nav: HTMLElement | null, pathname: string, open: b
   }, [nav, pathname, open]);
 }
 
-export function Sidebar({ items, open, onNavigate, header, footer }: SidebarProps) {
+export function Sidebar({ items, open, onNavigate, header, footer, game = null, onPlay, onBack }: SidebarProps) {
   const { pathname } = useLocation();
   const current = currentGroup(items, pathname);
   const [nav, setNav] = useState<HTMLElement | null>(null);
   useCurrentLinkInView(nav, pathname, open);
+  const leaving = useFocusGameItem(nav, game);
   // Derived during render: the counter changes only when the current group does, so the title's key
   // (and its CSS animation) restarts on a section change and not on a page change inside one section.
   const [seen, setSeen] = useState({ group: current, count: 0 });
   if (seen.group !== current) setSeen({ group: current, count: seen.count + 1 });
+  if (game !== null) {
+    // The game isn't navigation, so while it is open the sidebar is a named region; it keeps the id the Menu
+    // button controls, so the phone sheet opens and closes the game the same way.
+    return (
+      <section
+        ref={setNav}
+        id="gallery-nav"
+        className="gallery-sidebar gallery-sidebar--arcade"
+        aria-label={`Arcade: ${gameLabel(game)}`}
+        data-open={open ? '' : undefined}
+      >
+        <ArcadePanel
+          game={game}
+          onBack={() => {
+            leaving(game);
+            onBack?.();
+          }}
+        />
+      </section>
+    );
+  }
   return (
     <nav ref={setNav} id="gallery-nav" className="gallery-sidebar" aria-label="Gallery" data-open={open ? '' : undefined}>
       {header ? <div className="gallery-sidebar__header">{header}</div> : null}
@@ -97,16 +174,7 @@ export function Sidebar({ items, open, onNavigate, header, footer }: SidebarProp
         if (links.length === 0) return null;
         return (
           <section key={group} className="gallery-sidebar__group" data-current={group === current ? '' : undefined}>
-            {/* A label, not a heading: it names the list below, so a screen reader says "Foundations, list". */}
-            <Text
-              key={group === current ? `${group}-${seen.count}` : group}
-              id={titleId(group)}
-              size={14}
-              color="neutral"
-              className="gallery-sidebar__title"
-            >
-              {group}
-            </Text>
+            <GroupTitle key={group === current ? `${group}-${seen.count}` : group} group={group} />
             <ul className="gallery-sidebar__list" aria-labelledby={titleId(group)}>
               {links.map((item) => (
                 <li key={item.to}>
@@ -121,6 +189,7 @@ export function Sidebar({ items, open, onNavigate, header, footer }: SidebarProp
           </section>
         );
       })}
+      {onPlay ? <ArcadeGroup onPlay={onPlay} /> : null}
       {footer ? <div className="gallery-sidebar__footer">{footer}</div> : null}
     </nav>
   );

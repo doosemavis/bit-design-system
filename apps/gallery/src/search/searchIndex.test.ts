@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { MANIFESTS, routeFor } from '../manifests';
 import { NAV } from '../shell/Sidebar';
 import { buildSearchIndex, searchEntries } from './searchIndex';
+import { GAMES } from '../arcade/games';
 
 const INDEX = buildSearchIndex(NAV, MANIFESTS);
 const titles = (query: string) => searchEntries(INDEX, query).map((entry) => `${entry.kind}:${entry.title}`);
@@ -76,5 +77,31 @@ describe('searchEntries', () => {
     }
     expect(INDEX.find((entry) => entry.kind === 'prop' && entry.to.startsWith('/components/select#'))?.group).toBe('Forms');
     expect(INDEX.find((entry) => entry.kind === 'page' && entry.title === 'Spacing')).toMatchObject({ group: 'Foundations', detail: 'Page' });
+  });
+});
+
+describe('Arcade games in search', () => {
+  const withGames = buildSearchIndex(NAV, MANIFESTS, GAMES);
+
+  it('come after the pages and before the props, under Arcade, opening a game rather than a route', () => {
+    const games = withGames.filter((entry) => entry.kind === 'game');
+    expect(games.map((entry) => [entry.title, entry.group, entry.game, entry.to])).toEqual([
+      ['Snake', 'Arcade', 'snake', ''],
+      ['Cheese Run', 'Arcade', 'cheese-run', ''],
+    ]);
+    const firstGame = withGames.indexOf(games[0]!);
+    expect(withGames.slice(0, firstGame).every((entry) => entry.kind === 'page' || entry.kind === 'component')).toBe(true);
+    expect(withGames.slice(firstGame + games.length).every((entry) => entry.kind === 'prop')).toBe(true);
+  });
+
+  it('are found by name, by "arcade" and "game", and listed with the pages on an empty query', () => {
+    expect(searchEntries(withGames, 'snake')[0]).toMatchObject({ kind: 'game', title: 'Snake' });
+    expect(searchEntries(withGames, 'arcade').map((entry) => entry.title)).toEqual(['Snake', 'Cheese Run']);
+    expect(searchEntries(withGames, 'maze').map((entry) => entry.title)).toEqual(['Cheese Run']);
+    expect(searchEntries(withGames, '').filter((entry) => entry.kind === 'game')).toHaveLength(2);
+  });
+
+  it('are left out when no games are given', () => {
+    expect(INDEX.some((entry) => entry.kind === 'game')).toBe(false);
   });
 });
