@@ -52,6 +52,15 @@ function classNameElement(manifest: Manifest, state: ControlState): ReactElement
   return createElement(manifest.component, { ...props, className: printedClassName(manifest, state) }, children);
 }
 
+/**
+ * The element the props-mode snippet describes: the component itself with every prop. A demo wrapper (Dialog's
+ * trigger Button) is left out: Dialog's demo mounts the dialog only once opened.
+ */
+function propsElement(manifest: Manifest, state: ControlState): ReactElement {
+  const { children } = renderManifest(manifest, state).props as { children?: ReactNode };
+  return manifest.demo ? createElement(manifest.component, buildProps(manifest, state), children) : renderManifest(manifest, state);
+}
+
 /** The component's own root: the first child, or, for a manifest with a demo wrapper (Dialog's trigger Button), the element with the component's class. */
 const rootClasses = (element: ReactElement, manifest: Manifest) => {
   const { container, unmount } = render(element);
@@ -73,6 +82,6 @@ describe('className mode round trip', () => {
   it.each(AXIS_CASES)('%s %s="%s": the className snippet renders the same root classes as the props snippet', (_n, prop, value, manifest) => {
     const state = { ...defaultState(manifest), [prop]: value };
     expect(printedClassName(manifest, state)).toBe(`bit-${value}`);
-    expect(rootClasses(classNameElement(manifest, state), manifest)).toEqual(rootClasses(renderManifest(manifest, state), manifest));
+    expect(rootClasses(classNameElement(manifest, state), manifest)).toEqual(rootClasses(propsElement(manifest, state), manifest));
   });
 });

@@ -94,6 +94,7 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-preview__title, .gallery-controls__title', property: 'font-family', reason: 'label face: Text has no face prop (spec amendment 2)' },
   { selector: '.gallery-preview__title, .gallery-controls__title', property: 'text-transform', reason: 'label face: Text has no face prop (spec amendment 2)' },
   { selector: '.gallery-preview__title, .gallery-controls__title', property: 'letter-spacing', reason: 'label face: Text has no face prop (spec amendment 2)' },
+  { selector: '.gallery-preview', property: 'container-type', reason: 'layout: the preview half is a size container, so its bar puts the presets on their own row by the room it really has (a media query cannot see the controls column beside it)' },
   { selector: '.gallery-controls', property: 'border-inline-start', reason: 'frame: divider between the preview and the controls in the playground card' },
   { selector: '@media (max-width: 720px) .gallery-controls', property: 'border-inline-start', reason: 'frame: stacked controls drop the side divider' },
   { selector: '@media (max-width: 720px) .gallery-controls', property: 'border-top', reason: 'frame: stacked controls take the divider on their top edge' },
@@ -102,6 +103,12 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-tile:has(.gallery-tile__link:focus-visible)', property: 'outline', reason: 'focus: visible ring for the whole tile' },
   { selector: '.gallery-tile:has(.gallery-tile__link:focus-visible)', property: 'outline-offset', reason: 'focus: visible ring for the whole tile' },
   { selector: '.gallery-tile__link:focus-visible', property: 'outline', reason: 'focus: removes the own ring of the link because the whole tile draws it' },
+  // section titles: the "#" deep link beside each h2
+  { selector: '.gallery-anchor.bit-link', property: 'border-radius', reason: 'section anchor: bit Link\'s hover chip, rounded around the #' },
+  { selector: '.gallery-anchor.bit-link', property: 'text-decoration', reason: 'section anchor: the # is a mark, not a word, so no underline' },
+  { selector: '.gallery-anchor.bit-link', property: 'opacity', reason: 'section anchor: hidden until its title row is hovered, keeping its place so nothing moves' },
+  { selector: '.gallery-section-head:hover .gallery-anchor.bit-link, .gallery-anchor.bit-link:focus-visible', property: 'opacity', reason: 'section anchor: shows on hover of its title row and on keyboard focus' },
+  { selector: '@media (hover: none) .gallery-anchor.bit-link', property: 'opacity', reason: 'section anchor: touch screens have no hover, so it always shows' },
   // release notes version rail
   { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'border', reason: 'release notes rail: transparent 2px border keeps rows from shifting (owner board R1)' },
   { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'border-radius', reason: 'release notes rail: rounded rows (owner board R1)' },

@@ -174,6 +174,11 @@ export interface Manifest {
   deriveChildren?: (state: ControlState) => readonly ChildSpec[];
   /** Props every render gets that the page doesn't let you change. They print after the controls' props. */
   fixedProps?: Readonly<Record<string, LiteralValue>>;
+  /**
+   * Props only the live samples get (the preview, Variants and the home tile), never the printed code or the HTML
+   * tab: Heading's role="presentation", so a sample title stays out of the page outline.
+   */
+  sampleProps?: Readonly<Record<string, LiteralValue>>;
   /** Props worked out from the full control state (defaults merged in), joining `fixedProps` for the render and the code. */
   deriveProps?: (state: ControlState) => Readonly<Record<string, LiteralValue>>;
   /** Props passed by name from @bit-ds/react, worked out from the full state (defaults merged in). Printed first as `prop={name}` and added to the import line. */

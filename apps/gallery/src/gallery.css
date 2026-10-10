@@ -248,11 +248,13 @@ html {
 
 /* ---------- preview ---------- */
 /* The preview half of the playground card: the bar, then the stage. The stage takes the spare height, so it
-   reaches the card's floor however many controls stand beside it. */
+   reaches the card's floor however many controls stand beside it. It is a size container, so its bar can wrap
+   the presets by its own width. */
 .gallery-preview {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  container-type: inline-size;
 }
 
 /* The preview bar and the controls bar are one header strip across the card: one height, one paint, one
@@ -574,9 +576,11 @@ html {
   }
 }
 
-/* Under 720px the presets get their own full-width row under the title and the Checkerboard switch (sharing
-   one row left them about 95px at 390px). The row still scrolls sideways, keeping the focus-ring padding above. */
-@media (max-width: 720px) {
+/* When the preview half is under 40rem the presets get their own full-width row under the title and the
+   Checkerboard switch: sharing one row left them about 95px on a phone and 14px on a tablet, where the controls
+   take a column beside the preview. The preview is a size container (see .gallery-preview), so this follows the
+   room the bar really has, not the window. The row still scrolls sideways, keeping the focus-ring padding above. */
+@container (max-width: 40rem) {
   .gallery-preview__bar {
     flex-wrap: wrap;
   }
@@ -632,6 +636,35 @@ html {
   height: 4px;
   border-radius: 2px;
   background: var(--bit-color-accent);
+}
+
+/* A section's title row: the h2, then its "#" deep link, on the title's baseline. */
+.gallery-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--bit-space-8px);
+}
+
+/* The "#" shows on hover of its title row and while it has keyboard focus. Hidden, it still takes its place,
+   so nothing moves when it appears. Screens with no hover (touch) always show it. No underline: it is a mark,
+   not a word; bit Link's hover chip still shows. */
+.gallery-anchor.bit-link {
+  padding-inline: var(--bit-space-4px);
+  border-radius: var(--bit-radius-6px);
+  text-decoration: none;
+  opacity: 0;
+}
+
+.gallery-section-head:hover .gallery-anchor.bit-link,
+.gallery-anchor.bit-link:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .gallery-anchor.bit-link {
+    opacity: 1;
+  }
 }
 
 /* ---------- examples ---------- */

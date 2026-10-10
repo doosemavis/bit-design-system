@@ -6,6 +6,7 @@ import { chooseOption, chosenLabel, optionLabels } from '../test/select';
 import { button } from '../manifests/button';
 import { modeToggle } from '../manifests/modeToggle';
 import { switchManifest } from '../manifests/switch';
+import { MANIFESTS } from '../manifests';
 import { importChip } from './component/ComponentHeader';
 import { classTip, PROP_COLUMNS } from './component/DocsSections';
 
@@ -285,5 +286,55 @@ describe('ComponentPage (layout C)', () => {
   it('the logo page lives under Brand', async () => {
     await open('/brand/logo', 'BitLogo');
     expect(screen.getByRole('heading', { level: 1, name: 'BitLogo' })).toBeInTheDocument();
+  });
+});
+
+describe('inline code in manifest copy', () => {
+  it("the Select subtitle shows `multiple` as Code, not raw backticks", async () => {
+    await open('/components/select', 'Select');
+    const subtitle = screen.getByText((_, el) => el?.tagName === 'P' && /^Picks one option/.test(el.textContent ?? ''));
+    expect(within(subtitle).getByText('multiple', { selector: 'code' })).toHaveClass('bit-code');
+    expect(subtitle.textContent).not.toContain('`');
+  });
+
+  it("Tooltip's accessibility note shows `open` as Code, not raw backticks", async () => {
+    await open('/components/tooltip', 'Tooltip');
+    const section = screen.getByRole('region', { name: 'Accessibility' });
+    expect(within(section).getByText('open', { selector: 'code' })).toHaveClass('bit-code');
+    expect(section.textContent).not.toContain('`');
+  });
+
+  it('no component page shows a raw backtick in its description, usage, props or accessibility copy', async () => {
+    for (const manifest of MANIFESTS) {
+      const copy = [
+        manifest.description,
+        ...manifest.docs.usage.do,
+        ...manifest.docs.usage.dont,
+        ...manifest.docs.a11y,
+        ...manifest.docs.props.map((prop) => prop.description),
+      ];
+      // renderInline turns each backtick pair into Code, so only an odd one out would show.
+      for (const line of copy) expect((line.match(/`/g) ?? []).length % 2, `${manifest.name}: ${line}`).toBe(0);
+    }
+  });
+});
+
+describe('live samples stay out of the page outline', () => {
+  const outline = () => within(main()).getAllByRole('heading').map((h) => h.textContent);
+
+  it("Heading's preview title is role=presentation, and the code still prints a plain Heading", async () => {
+    await open('/components/heading?size=40', 'Heading');
+    expect(outline()).not.toContain('Build with bit');
+    const sample = within(region('Heading preview')).getByText('Build with bit');
+    expect(sample.tagName).toBe('H1');
+    expect(sample).toHaveAttribute('role', 'presentation');
+    expect(main().textContent).toContain('<Heading size={40}>Build with bit</Heading>');
+    expect(main().textContent).not.toContain('presentation');
+  });
+
+  it("Dialog's samples (preview and Variants) add no headings until one is opened", async () => {
+    await open('/components/dialog', 'Dialog');
+    expect(outline()).not.toContain('Save changes?');
+    expect(main().querySelector('dialog')).toBeNull();
   });
 });

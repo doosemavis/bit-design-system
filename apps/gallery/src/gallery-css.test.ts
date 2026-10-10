@@ -14,9 +14,9 @@ const galleryCss = readFileSync(new URL('./gallery.css', import.meta.url), 'utf8
 const declared = new Set([...theme.matchAll(/(--bit-[a-zA-Z0-9-]+)\s*:/g)].map((m) => m[1]!));
 const reads = [...galleryCss.matchAll(/var\((--bit-[a-zA-Z0-9-]+)/g)].map((m) => m[1]!);
 
-/** The bodies of every `@media <query> { … }` block, braces matched, joined into one string. */
-function mediaBody(query: string): string {
-  const head = `@media ${query} {`;
+/** The bodies of every `@media <query> { … }` block (or another at-rule's), braces matched, joined into one string. */
+function mediaBody(query: string, atRule = '@media'): string {
+  const head = `${atRule} ${query} {`;
   const bodies: string[] = [];
   let at = galleryCss.indexOf(head);
   while (at !== -1) {
@@ -189,9 +189,11 @@ describe('gallery.css', () => {
     expect(presets).toContain('margin: calc(-1 * var(--bit-space-4px));');
   });
 
-  it('below 720px the presets take their own full-width row under the title and the Checkerboard switch', () => {
-    // At 390px the bar's one row left the presets about 95px, so "Danger outline" never fully showed.
-    const narrow = mediaBody('(max-width: 720px)');
+  it('when the preview half is under 40rem, the presets take their own full-width row under the title and the switch', () => {
+    // At 390px the bar's one row left the presets about 95px; at 834px, beside the controls column, about 14px.
+    // A container query follows the preview's own width, which a media query can't see.
+    expect(ruleIn(galleryCss, '.gallery-preview')).toContain('container-type: inline-size;');
+    const narrow = mediaBody('(max-width: 40rem)', '@container');
     expect(ruleIn(narrow, '.gallery-preview__bar')).toContain('flex-wrap: wrap;');
     const presets = ruleIn(narrow, '.gallery-presets');
     expect(presets).toContain('order: 1;');
