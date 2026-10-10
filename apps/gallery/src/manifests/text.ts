@@ -1,5 +1,4 @@
-import { Text } from '@bit-ds/react';
-import { SUPPORTED_TEXT_SIZES } from '../content/textSizes';
+import { TEXT_SIZES, Text } from '@bit-ds/react';
 import type { ControlState, Manifest } from './types';
 import { TextExamples } from '../pages/text/TextExamples';
 
@@ -19,7 +18,7 @@ export const text: Manifest = {
   component: Text,
   description: 'Body copy, labels and captions. size is the look, in px. A Text inside another Text renders inline. For titles, use Heading.',
   controls: [
-    { kind: 'select', prop: 'size', values: SUPPORTED_TEXT_SIZES.map(String), default: '16', numeric: true },
+    { kind: 'select', prop: 'size', values: TEXT_SIZES.map(String), default: '16', numeric: true },
     { kind: 'select', prop: 'color', values: ['default', 'neutral'], default: 'default', label: 'color' },
     { kind: 'select', prop: 'weight', values: ['normal', 'bold'], default: 'normal', lock: weightLock },
     { kind: 'boolean', prop: 'italic', default: false },

@@ -1,5 +1,4 @@
-import { HEADING_SIZES, Stack, Text } from '@bit-ds/react';
-import { SUPPORTED_TEXT_SIZES } from '../../content/textSizes';
+import { HEADING_SIZES, Stack, TEXT_SIZES, Text } from '@bit-ds/react';
 import { SectionLead, TokenCard, TokenGrid } from './TokenCard';
 import { TokenRow, TokenRows } from './TokenRow';
 import type { TokenValues } from './tokenValues';
@@ -53,7 +52,7 @@ export function TypeSection({ values }: { values: TokenValues }) {
         <TokenCard name="text sizes">
           <TokenRows>
             {/* The supported sizes only: the deprecated 11 goes in 0.2.0, so it isn't offered here. */}
-            {SUPPORTED_TEXT_SIZES.map((size) => (
+            {TEXT_SIZES.map((size) => (
               <TokenRow
                 key={size}
                 preview={<span style={{ fontSize: `var(--bit-text-${size}px)`, fontWeight: 'var(--bit-weight-bold)' }}>Ag</span>}
