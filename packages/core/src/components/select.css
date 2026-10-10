@@ -127,27 +127,6 @@
   transition: opacity var(--bit-duration-normal) ease-out, transform var(--bit-duration-normal) ease-out;
 }
 
-/* The scrollbar matches Table's: a surface track and a solid accent thumb, slimmed by a transparent
-   border that stays part of the grab area. Forced colours draw their own scrollbars. */
-@media not (forced-colors: active) {
-  .bit-select__list::-webkit-scrollbar { width: 14px; }
-  .bit-select__list::-webkit-scrollbar-track { background: var(--bit-color-surface); }
-  .bit-select__list::-webkit-scrollbar-thumb {
-    background: var(--bit-color-accent);
-    background-clip: padding-box;
-    border: 3px solid transparent;
-    border-radius: var(--bit-radius-10px);
-  }
-  /* reset.css sets the standard scrollbar-color and scrollbar-width, which Chrome 121+ lets override ::-webkit-scrollbar.
-     Where the pseudo-elements work, hand the scrollbar back to them. */
-  @supports selector(::-webkit-scrollbar) {
-    .bit-select__list { scrollbar-color: auto; scrollbar-width: auto; }
-  }
-  @supports not selector(::-webkit-scrollbar) {
-    .bit-select__list { scrollbar-color: var(--bit-color-accent) var(--bit-color-surface); scrollbar-width: thin; }
-  }
-}
-
 .bit-select__option {
   display: block;
   padding: var(--bit-space-8px) var(--bit-space-12px);

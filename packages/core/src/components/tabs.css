@@ -144,23 +144,6 @@
   }
 }
 
-@media not (forced-colors: active) {
-  .bit-tabs__list::-webkit-scrollbar { height: 14px; }
-  .bit-tabs__list::-webkit-scrollbar-track { background: transparent; }
-  .bit-tabs__list::-webkit-scrollbar-thumb {
-    background: var(--bit-color-accent);
-    background-clip: padding-box;
-    border: 3px solid transparent;
-    border-radius: var(--bit-radius-10px);
-  }
-  @supports selector(::-webkit-scrollbar) {
-    .bit-tabs__list { scrollbar-color: auto; scrollbar-width: auto; }
-  }
-  @supports not selector(::-webkit-scrollbar) {
-    .bit-tabs__list { scrollbar-color: var(--bit-color-accent) transparent; scrollbar-width: thin; }
-  }
-}
-
 @media (forced-colors: active) {
   .bit-tabs__tab,
   .bit-tabs__slot,

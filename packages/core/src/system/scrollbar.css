@@ -1,0 +1,48 @@
+/* The scrollbar on every bit scroll area: the CodeBlock panel, the Table, the Select list and the Tab list.
+   A solid thumb in the accent on a track each area picks through --_bit-scroll-track: the CodeBlock's own
+   dark, the surface under a Table or Select list, and no track under the Tab list, which sits on the page.
+   The transparent border slims the thumb, leaving an even strip of track around it, yet stays part of the
+   grab area. The thumb does not change on hover, so the bar never looks bigger.
+   Forced colors draw their own scrollbars, so none of this applies there. */
+@media not (forced-colors: active) {
+  .bit-code__pre { --_bit-scroll-track: var(--bit-code-bg); }
+  .bit-table,
+  .bit-select__list { --_bit-scroll-track: var(--bit-color-surface); }
+  .bit-tabs__list { --_bit-scroll-track: transparent; }
+
+  /* The CodeBlock, Table and Tab list scroll sideways, so their bars are sized by height; the Select list scrolls down. */
+  .bit-code__pre::-webkit-scrollbar,
+  .bit-table::-webkit-scrollbar,
+  .bit-tabs__list::-webkit-scrollbar { height: 14px; }
+  .bit-select__list::-webkit-scrollbar { width: 14px; }
+
+  .bit-code__pre::-webkit-scrollbar-track,
+  .bit-table::-webkit-scrollbar-track,
+  .bit-select__list::-webkit-scrollbar-track,
+  .bit-tabs__list::-webkit-scrollbar-track { background: var(--_bit-scroll-track); }
+
+  .bit-code__pre::-webkit-scrollbar-thumb,
+  .bit-table::-webkit-scrollbar-thumb,
+  .bit-select__list::-webkit-scrollbar-thumb,
+  .bit-tabs__list::-webkit-scrollbar-thumb {
+    background: var(--bit-color-accent);
+    background-clip: padding-box;
+    border: 3px solid transparent;
+    border-radius: var(--bit-radius-10px);
+  }
+
+  /* reset.css sets the standard scrollbar-color and scrollbar-width, which Chrome 121+ lets override ::-webkit-scrollbar.
+     Where the pseudo-elements work, hand the scrollbar back to them. */
+  @supports selector(::-webkit-scrollbar) {
+    .bit-code__pre,
+    .bit-table,
+    .bit-select__list,
+    .bit-tabs__list { scrollbar-color: auto; scrollbar-width: auto; }
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    .bit-code__pre,
+    .bit-table,
+    .bit-select__list,
+    .bit-tabs__list { scrollbar-color: var(--bit-color-accent) var(--_bit-scroll-track); scrollbar-width: thin; }
+  }
+}
