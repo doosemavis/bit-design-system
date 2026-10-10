@@ -157,12 +157,11 @@ describe('gallery.css', () => {
     expect(titles).toContain('text-transform: uppercase;');
   });
 
-  it('the presets row, the sidebar and the search results scroll in the accent on their own background, with no hover change', () => {
+  it('the presets row and the search results scroll in the accent on their own background, with no hover change; the sidebar hides its bar', () => {
     const body = mediaBody('not (forced-colors: active)');
     expect(ruleIn(body, '.gallery-presets::-webkit-scrollbar')).toContain('height: 14px;');
-    expect(ruleIn(body, '.gallery-sidebar::-webkit-scrollbar, .gallery-search__results::-webkit-scrollbar')).toContain('width: 14px;');
-    const both = (part: string) =>
-      `.gallery-presets::-webkit-scrollbar-${part}, .gallery-sidebar::-webkit-scrollbar-${part}, .gallery-search__results::-webkit-scrollbar-${part}`;
+    expect(ruleIn(body, '.gallery-search__results::-webkit-scrollbar')).toContain('width: 14px;');
+    const both = (part: string) => `.gallery-presets::-webkit-scrollbar-${part}, .gallery-search__results::-webkit-scrollbar-${part}`;
     expect(ruleIn(body, both('track'))).toContain('background: transparent;');
     const thumb = ruleIn(body, both('thumb'))!;
     expect(thumb).toContain('background: var(--bit-color-accent);');
@@ -172,9 +171,12 @@ describe('gallery.css', () => {
     expect(thumb).not.toContain('box-shadow');
     expect(galleryCss).not.toContain('::-webkit-scrollbar-thumb:hover');
     // Chrome 121+ ignores the pseudo-elements while reset.css's standard properties are not auto.
-    const reset = /@supports selector\(::-webkit-scrollbar\) \{\s*\.gallery-presets, \.gallery-sidebar, \.gallery-search__results \{([^}]*)\}/.exec(body)![1]!;
+    const reset = /@supports selector\(::-webkit-scrollbar\) \{\s*\.gallery-presets, \.gallery-search__results \{([^}]*)\}/.exec(body)![1]!;
     expect(reset).toContain('scrollbar-color: auto;');
     expect(reset).toContain('scrollbar-width: auto;');
+    // The sidebar still scrolls, with no bar.
+    expect(galleryCss).toMatch(/\.gallery-sidebar \{\s*scrollbar-width: none;\s*\}/);
+    expect(galleryCss).toMatch(/\.gallery-sidebar::-webkit-scrollbar \{\s*display: none;\s*\}/);
   });
 
   it('the presets scroll sideways in one row instead of widening the page', () => {
