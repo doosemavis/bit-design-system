@@ -53,7 +53,10 @@ describe('Typography page', () => {
       // Only the quotes: no alphabet, digits, game titles or years.
       expect(card.textContent).not.toMatch(/ABCDEFG|0123456789|\(\d{4}\)/);
       // Footer: what the font is used for.
-      expect(card.querySelector('.bit-card__footer')).toHaveTextContent(/^Used for /);
+      const footer = card.querySelector('.bit-card__footer')!;
+      expect(footer).toHaveTextContent(/^Used for /);
+      // One size under body text, so the line fits in the card.
+      expect(footer.querySelector('.bit-text')).toHaveAttribute('data-size', '14');
     });
     // Each "In use" sample is the real component that uses the font.
     expect(cards[0]!.querySelector('.bit-heading')).toHaveAttribute('role', 'presentation');

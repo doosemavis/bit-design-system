@@ -32,7 +32,7 @@ const FONTS: readonly { face: string; name: string; use: string; quotes: readonl
       "It's dangerous to go alone! Take this.",
       'Thank you Mario! But our princess is in another castle!',
     ],
-    use: 'Every Heading (20 to 44), and Text at 24, 32 and 40.',
+    use: 'Every Heading, and Text at 24 to 40.',
     // role="presentation" keeps the sample out of the page outline.
     inUse: (
       <Heading size={28} role="presentation">
@@ -47,7 +47,7 @@ const FONTS: readonly { face: string; name: string; use: string; quotes: readonl
       'Hey! Listen!',
       'Do a barrel roll!',
     ],
-    use: 'Body copy and labels: Text at 14, 16 and 18, Buttons and Fields.',
+    use: 'Body copy, labels, Buttons and Fields.',
     inUse: <Text>Every component has a live preview, its props and its accessibility notes.</Text>,
   },
   {
@@ -175,8 +175,11 @@ function Fonts() {
             </Stack>
           </CardBody>
           <CardFooter className="gallery-font-card__footer">
-            <Text>
-              <Text weight="bold">Used for</Text> {use}
+            <Text size={14}>
+              <Text size={14} weight="bold">
+                Used for
+              </Text>{' '}
+              {use}
             </Text>
           </CardFooter>
         </Card>

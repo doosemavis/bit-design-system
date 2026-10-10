@@ -21,8 +21,8 @@ function sourceFiles(dir: string): string[] {
  */
 const SMALL_TEXT_ALLOWED: Readonly<Record<string, readonly string[]>> = {
   // The Text sizes table's 14px row has to show 14px (the sample and its code); the font cards' group labels
-  // (Sample, In use) are captions.
-  'pages/TypographyPage.tsx': ['size: 14', 'size={14', 'size={14'],
+  // (Sample, In use) are captions, and their "Used for" footer line is 14 so it fits on one line in the card.
+  'pages/TypographyPage.tsx': ['size: 14', 'size={14', 'size={14', 'size={14', 'size={14'],
   // The Text page's "Hint or caption" example shows the 14px caption: the live sample and its code.
   'pages/text/TextExamples.tsx': ['size={14', 'size={14'],
   // A token row's value: muted detail beside the token's name, at the caption size, so the longest (the inset
