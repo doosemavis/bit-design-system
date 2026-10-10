@@ -1106,10 +1106,25 @@ html {
 }
 
 /* ---------- search ---------- */
-/* The search dialog keeps its top edge where it opened while the results grow and shrink under it (a centered
-   dialog would jump with every key). */
+/* The search dialog keeps its top edge where it opened while the results grow and shrink under it (a dialog
+   centered on its current height would jump with every key). */
 .gallery-search.bit-dialog {
-  margin-top: min(12dvh, 6rem);
+  /* Centered at its full size (680px tall with every result showing), so it sits evenly in the window and doesn't
+     jump as results come and go; at least 16px from the top on a short screen. */
+  margin-top: max(var(--bit-space-16px), calc((100dvh - 680px) / 2));
+}
+
+/* The footer band: the title bar's purple and contrast text, with the line above it, as the bar has below. */
+.gallery-search__footer.bit-dialog__footer {
+  justify-content: flex-start;
+  padding: var(--bit-space-8px) var(--bit-space-16px);
+  color: var(--bit-color-primary-contrast);
+  background: var(--bit-color-primary);
+  border-top: var(--bit-border-width) solid var(--bit-color-line);
+}
+
+.gallery-search__footer .bit-text {
+  color: inherit;
 }
 
 /* 100px wider than Dialog's lg (560px), for longer prop types. Dialog's max-width still keeps it inside a phone. */

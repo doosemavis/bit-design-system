@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Badge, Dialog, DialogBody, DialogHeader, Input, Stack, Text } from '@bit-ds/react';
+import { Badge, Dialog, DialogBody, DialogFooter, DialogHeader, Input, Stack, Text } from '@bit-ds/react';
 import type { BadgeProps } from '@bit-ds/react';
 import { useNavigate } from 'react-router-dom';
 import { MANIFESTS } from '../manifests';
@@ -32,18 +32,19 @@ export function moveActive(key: string, active: number, count: number): number |
 
 interface SearchPanelProps {
   onGo: (entry: SearchEntry) => void;
+  /** The id of the keys hint in the dialog's footer, which describes the query box. */
+  hintId: string;
 }
 
 /**
  * The query box and its results: a combobox that owns a listbox. Focus stays in the box; Up and Down move the
  * active result (aria-activedescendant), Enter opens it, and the pointer can pick one too.
  */
-function SearchPanel({ onGo }: SearchPanelProps) {
+function SearchPanel({ onGo, hintId }: SearchPanelProps) {
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const results = useMemo(() => searchEntries(INDEX, query), [query]);
   const listId = useId();
-  const hintId = useId();
   const current = results[Math.min(active, results.length - 1)];
 
   useEffect(() => {
@@ -114,9 +115,6 @@ function SearchPanel({ onGo }: SearchPanelProps) {
       ) : null}
       {/* Announced as it changes; shown only when nothing matches. */}
       <div role="status">{results.length === 0 ? <Text>{`No results for “${query.trim()}”. Try a component or prop name.`}</Text> : null}</div>
-      <Text id={hintId} color="neutral">
-        ↑ ↓ to move, Enter to open, Esc to close.
-      </Text>
     </Stack>
   );
 }
@@ -171,13 +169,18 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     navigate(entry.to);
   }
 
+  const hintId = useId();
   if (!mounted) return null;
   return (
     <Dialog ref={dialogRef} open={open} onOpenChange={onOpenChange} size="lg" className="gallery-search">
       <DialogHeader>Search</DialogHeader>
       <DialogBody>
-        <SearchPanel key={session} onGo={go} />
+        <SearchPanel key={session} onGo={go} hintId={hintId} />
       </DialogBody>
+      {/* The keys hint sits in a purple band, closing the window the way the title bar opens it. */}
+      <DialogFooter className="gallery-search__footer">
+        <Text id={hintId}>↑ ↓ to move, Enter to open, Esc to close.</Text>
+      </DialogFooter>
     </Dialog>
   );
 }
