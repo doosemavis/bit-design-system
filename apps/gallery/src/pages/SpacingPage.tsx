@@ -15,6 +15,7 @@ import {
   TableRow,
   Text,
 } from '@bit-ds/react';
+import { PageHeader } from '../ui/PageHeader';
 import { PageSection } from '../ui/PageSection';
 
 const STACK_EXAMPLE = `<Stack direction="row" gap={16}>
@@ -128,13 +129,12 @@ function BoxProps() {
 export function SpacingPage() {
   return (
     <Stack gap={64}>
-      <Stack gap={8}>
-        <Heading size={40}>Spacing</Heading>
+      <PageHeader title="Spacing">
         <Text size={18}>
           One scale for every gap, pad and margin: 4, 8, 12, 16, 24, 32, 48 and 64. <Code>Stack</Code> spaces things
           apart, and <Code>Box</Code> pads and offsets a single thing.
         </Text>
-      </Stack>
+      </PageHeader>
       <PageSection id="spacing-scale" title="The scale" landmark={false}>
         <Ruler />
       </PageSection>

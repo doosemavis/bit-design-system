@@ -20,6 +20,7 @@ import {
   headingTag,
 } from '@bit-ds/react';
 import type { TextProps } from '@bit-ds/react';
+import { PageHeader } from '../ui/PageHeader';
 import { PageSection } from '../ui/PageSection';
 
 /**
@@ -298,13 +299,12 @@ function DoAndDont() {
 export function TypographyPage() {
   return (
     <Stack gap={64}>
-      <Stack gap={8}>
-        <Heading size={40}>Typography</Heading>
+      <PageHeader title="Typography">
         <Text size={18}>
           Four fonts and two scales, each set with <Code>size</Code> in px. Use <Code>Heading</Code> for titles, so
           they're in the page outline, and <Code>Text</Code> for everything else.
         </Text>
-      </Stack>
+      </PageHeader>
       <PageSection id="typo-fonts" title="Fonts" landmark={false}>
         <Fonts />
       </PageSection>

@@ -539,8 +539,9 @@ html {
   white-space: nowrap;
 }
 
-/* Do and Don't, and the Accessibility list. */
-.gallery-bullets {
+/* Do and Don't, the Accessibility list, and the numbered steps on the Overview. */
+.gallery-bullets,
+.gallery-steps {
   margin: 0;
   padding-left: var(--bit-space-24px);
   display: grid;
@@ -903,13 +904,6 @@ html {
 .gallery-start-card__link {
   margin-top: auto;
   align-self: flex-start;
-}
-
-.gallery-steps {
-  margin: 0;
-  padding-left: var(--bit-space-24px);
-  display: grid;
-  gap: var(--bit-space-4px);
 }
 
 /* Tiles: a live preview over a footer link. The link's ::after covers the tile, so the whole tile is one
