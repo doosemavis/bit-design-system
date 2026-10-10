@@ -57,6 +57,15 @@ describe('themes', () => {
       expect(darkRule.selector).not.toMatch(/:root|html/);
     });
 
+    it('its dark block overrides exactly the mode tokens', () => {
+      expect([...dark.keys()].sort()).toEqual([...MODE_TOKENS].sort());
+    });
+
+    it('the shared block also applies to every mode element, so derived tokens (shadows) re-resolve in a dark subtree', () => {
+      const modes = isDefault ? `:where(.bit-light, .bit-dark, [data-mode="light"], [data-mode="dark"], [data-mode="system"])` : `${inside} ${MODES}`;
+      expect(shared.selector).toContain(modes);
+    });
+
     it('never uses the bare [data-mode] selector (without a value)', () => {
       expect(css).not.toMatch(/\[data-mode\]\s*[,{]/);
     });
