@@ -57,6 +57,10 @@ for (const file of themeFiles) {
   const extra = [...declared].filter((t) => !tokens.includes(t));
   assert.deepEqual({ missing, extra }, { missing: [], extra: [] }, `SEMANTIC_TOKENS and themes/${file} disagree`);
 }
+// The logo's brand colors are declared once, in styles.css, never in a theme.
+assert.deepEqual([...cjs.BRAND_TOKENS], [...esm.BRAND_TOKENS], 'CJS and ESM BRAND_TOKENS differ');
+const stylesSource = readFileSync(resolve(dist, 'styles.css'), 'utf8');
+for (const name of esm.BRAND_TOKENS) assert.ok(stylesSource.includes(`${name}:`), `styles.css does not declare ${name}`);
 
 // 3. Types
 assert.ok(existsSync(resolve(dist, 'index.d.cts')), 'index.d.cts missing (CJS types entry)');
@@ -72,13 +76,13 @@ for (const [file, contents] of Object.entries(dtsFiles)) {
   assert.ok(/declare\s+const\s+COLORS\b/.test(contents), `${file} missing local declaration: COLORS`);
   assert.ok(/type\s+Color\b/.test(contents), `${file} missing exported type: Color`);
 }
-for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size', 'FieldProps', 'InputProps', 'SelectProps', 'SelectMultipleProps', 'SelectOption', 'SwitchProps', 'LinkProps', 'CodeProps', 'CodeBlockProps', 'SegmentedControlProps', 'SegmentedControlMultipleProps', 'TableProps', 'TableCellProps', 'HeadingProps', 'HeadingLevel', 'BoxProps', 'BoxElement', 'CopyState', 'DialogProps', 'DialogHeaderProps', 'DialogPartProps', 'DialogCloseProps', 'TabsProps', 'TabListProps', 'TabProps', 'TabPanelProps', 'IconProps', 'IconData', 'IconGroup', 'TooltipProps', 'IconButtonProps']) {
+for (const name of ['ButtonProps', 'BitLogoProps', 'Variant', 'Size', 'FieldProps', 'InputProps', 'SelectProps', 'SelectMultipleProps', 'SelectOption', 'SwitchProps', 'LinkProps', 'CodeProps', 'CodeBlockProps', 'SegmentedControlProps', 'SegmentedControlMultipleProps', 'TableProps', 'TableCellProps', 'HeadingProps', 'HeadingLevel', 'BoxProps', 'BoxElement', 'CopyState', 'DialogProps', 'DialogHeaderProps', 'DialogPartProps', 'DialogCloseProps', 'TabsProps', 'TabListProps', 'TabProps', 'TabPanelProps', 'IconProps', 'IconData', 'IconGroup', 'TooltipProps', 'IconButtonProps', 'BitThemeProps']) {
   assert.ok(dtsFiles['index.d.ts'].includes(name), `index.d.ts missing type: ${name}`);
 }
 
 // 4. CSS bundle: system layer + every component, no unresolved local imports
 const css = readFileSync(resolve(dist, 'styles.css'), 'utf8');
-for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '.bit-logo__caption', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo', '.bit-mode-toggle', '.bit-field__error', '.bit-input', '.bit-select__control', '.bit-select__list', '.bit-select__option', '.bit-select__input', '.bit-switch__track', '.bit-link', '.bit-code', '.bit-code__token', '.bit-code__copy', '.bit-segmented-control__label', '.bit-table__cell', '.bit-heading[data-level="6"]', '.bit-box[data-ml="64"]', '.bit-icon', '.bit-icon:not(svg)', '.bit-tooltip', '.bit-iconButton']) {
+for (const needle of ['.bit-primary', '--_bit-color', '.bit-sm', '.bit-logo__caption', '.bit-button', '.bit-badge', '.bit-alert', '.bit-card__header', '.bit-stack', '.bit-text', '.bit-spinner', '.bit-logo', '.bit-mode-toggle', '.bit-field__error', '.bit-input', '.bit-select__control', '.bit-select__list', '.bit-select__option', '.bit-select__input', '.bit-switch__track', '.bit-link', '.bit-code', '.bit-code__token', '.bit-code__copy', '.bit-segmented-control__label', '.bit-table__cell', '.bit-heading[data-level="6"]', '.bit-box[data-ml="64"]', '.bit-icon', '.bit-icon:not(svg)', '.bit-tooltip', '.bit-iconButton', '.bit-theme']) {
   assert.ok(css.includes(needle), `styles.css missing: ${needle}`);
 }
 assert.ok(!/@import\s+"\.\//.test(css), 'styles.css still contains a relative @import (bundling failed)');
@@ -123,7 +127,14 @@ assert.ok(!bundled.includes(esm.iconHome.path), 'importing one icon pulled in ot
 // 5. Themes copied, not bundled, with their self-hosted fonts beside them (security audit A1: no third-party request)
 const theme = resolve(dist, 'themes/power-up.css');
 assert.ok(existsSync(theme), 'themes/power-up.css missing');
-assert.ok(readFileSync(theme, 'utf8').includes('--bit-color-primary'), 'theme lost its tokens');
+const themeSource = readFileSync(theme, 'utf8');
+assert.ok(themeSource.includes('--bit-color-primary'), 'theme lost its tokens');
+// The layer order comes first, the tokens sit in bit.tokens, and the build added data-mode="system" on a dark OS.
+assert.ok(themeSource.replace(/\/\*[\s\S]*?\*\//g, '').trim().startsWith('@layer bit.reset, bit.tokens, bit.components;'), 'theme does not open with the layer order');
+assert.ok(themeSource.includes('@layer bit.tokens {'), 'theme tokens are not in the bit.tokens layer');
+assert.ok(/@media \(prefers-color-scheme: dark\) \{\s*:where\(\[data-mode="system"\]\)/.test(themeSource), 'theme lacks its data-mode="system" dark-OS block');
+assert.ok(themeSource.includes('.bit-theme-power-up') && themeSource.includes('.bit-dark'), 'theme lacks its bit-theme-power-up or bit-dark class selectors');
+assert.ok(css.replace(/\/\*[\s\S]*?\*\//g, '').trim().startsWith('@layer bit.reset, bit.tokens, bit.components;'), 'styles.css does not open with the layer order');
 // Every font file power-up.css names, and each family's SIL OFL 1.1 license, which must travel with the fonts.
 const fontsDir = resolve(dist, 'themes/fonts');
 for (const file of FONT_FILES) assert.ok(existsSync(resolve(fontsDir, file)), `themes/fonts/${file} missing`);

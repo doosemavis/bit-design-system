@@ -104,6 +104,7 @@ describe('public index', () => {
         'Tabs', 'TabList', 'Tab', 'TabPanel',
         'Heading', 'Box', 'Icon', 'IconButton', 'Tooltip',
         'Dialog', 'DialogHeader', 'DialogBody', 'DialogFooter', 'DialogClose',
+        'BitTheme',
       ].sort(),
     );
   });
@@ -132,11 +133,16 @@ describe('public index', () => {
     expect(lib.HEADING_SIZES.map(lib.headingTag)).toEqual(['h6', 'h5', 'h4', 'h3', 'h3', 'h3', 'h2', 'h2', 'h2', 'h2', 'h1', 'h1', 'h1']);
   });
 
-  it('exports SEMANTIC_TOKENS, the 114 tier-2 token names every theme declares, from @bit-ds/core', () => {
-    expect(lib.SEMANTIC_TOKENS).toHaveLength(114);
+  it('exports SEMANTIC_TOKENS, the 109 tier-2 token names every theme declares, from @bit-ds/core', () => {
+    expect(lib.SEMANTIC_TOKENS).toHaveLength(109);
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-color-primary');
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-space-64px');
     expect(lib.SEMANTIC_TOKENS.every((name) => name.startsWith('--bit-'))).toBe(true);
+  });
+
+  it('exports BRAND_TOKENS, the five logo colors styles.css declares once for every theme', () => {
+    expect(lib.BRAND_TOKENS).toEqual(['--bit-logo-coin', '--bit-logo-coin-light', '--bit-logo-coin-shade', '--bit-logo-coin-deep', '--bit-logo-violet']);
+    expect(lib.BRAND_TOKENS.some((name) => lib.SEMANTIC_TOKENS.includes(name))).toBe(false);
   });
 
   it.each(componentNames.filter((name) => !BUTTON_ALIASES.includes(name)))('%s renders the root class the naming rule predicts', (name) => {

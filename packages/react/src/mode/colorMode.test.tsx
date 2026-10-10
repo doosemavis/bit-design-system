@@ -46,8 +46,12 @@ const saved = () => localStorage.getItem(COLOR_MODE_STORAGE_KEY);
 beforeEach(() => {
   localStorage.clear();
   delete root().dataset.mode;
+  root().removeAttribute('class');
   resetColorModeStore();
 });
+
+/** The root's mode classes, in order. */
+const modeClasses = () => [...root().classList].filter((name) => name === 'bit-light' || name === 'bit-dark');
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -124,6 +128,52 @@ describe('colorMode startup precedence', () => {
 
   it('is light on system when matchMedia does not exist', () => {
     expect(colorMode.mode).toBe('light');
+  });
+});
+
+describe('colorMode and the bit-light / bit-dark classes', () => {
+  it.each(['light', 'dark'] as const)('a root with only the bit-%s class starts there, and gets the matching data-mode', (mode) => {
+    root().classList.add(`bit-${mode}`);
+    expect(colorMode.preference).toBe(mode);
+    expect(root().dataset.mode).toBe(mode);
+    expect(modeClasses()).toEqual([`bit-${mode}`]);
+  });
+
+  it('the attribute beats a class that disagrees, and the class is put right', () => {
+    root().dataset.mode = 'light';
+    root().classList.add('bit-dark');
+    expect(colorMode.preference).toBe('light');
+    expect(modeClasses()).toEqual(['bit-light']);
+  });
+
+  it('a saved choice beats both, and is written as both', () => {
+    localStorage.setItem(COLOR_MODE_STORAGE_KEY, 'dark');
+    root().dataset.mode = 'light';
+    root().classList.add('bit-light');
+    expect(colorMode.preference).toBe('dark');
+    expect(root().dataset.mode).toBe('dark');
+    expect(modeClasses()).toEqual(['bit-dark']);
+  });
+
+  it('system has no class: data-mode="system" alone, and the CSS follows the OS', () => {
+    fakeSystem(true);
+    root().classList.add('bit-theme-power-up');
+    expect(colorMode.preference).toBe('system');
+    expect(modeClasses()).toEqual([]);
+    expect(root()).toHaveClass('bit-theme-power-up');
+  });
+
+  it('set and toggle keep the class in step with data-mode, and leave other classes alone', () => {
+    root().classList.add('bit-theme-power-up', 'app');
+    colorMode.set('dark');
+    expect(modeClasses()).toEqual(['bit-dark']);
+    colorMode.toggle();
+    expect(modeClasses()).toEqual(['bit-light']);
+    expect(root().dataset.mode).toBe('light');
+    colorMode.set('system');
+    expect(modeClasses()).toEqual([]);
+    expect(root().dataset.mode).toBe('system');
+    expect(root()).toHaveClass('bit-theme-power-up', 'app');
   });
 });
 
@@ -267,6 +317,7 @@ describe('resetColorModeStore (tests only)', () => {
     expect(system.listenerCount()).toBe(0);
     localStorage.clear();
     delete root().dataset.mode;
+    root().removeAttribute('class');
     expect(colorMode.preference).toBe('system');
     colorMode.toggle();
     expect(listener).toHaveBeenCalledTimes(1);
@@ -406,7 +457,7 @@ describe('COLOR_MODE_SCRIPT', () => {
 
   it('is exactly the snippet from the spec', () => {
     expect(COLOR_MODE_SCRIPT).toBe(
-      "(function(){var d=document.documentElement,m=null;try{m=localStorage.getItem('bit-color-mode')}catch(e){}if(m==='light'||m==='dark'){d.dataset.mode=m}else if(!d.dataset.mode){d.dataset.mode='system'}})();",
+      "(function(){var d=document.documentElement,c=d.classList,m=null;try{m=localStorage.getItem('bit-color-mode')}catch(e){}if(m==='light'||m==='dark'){d.dataset.mode=m;c.remove('bit-light','bit-dark');c.add('bit-'+m)}else if(!d.dataset.mode&&!c.contains('bit-light')&&!c.contains('bit-dark')){d.dataset.mode='system'}})();",
     );
   });
 
@@ -414,11 +465,26 @@ describe('COLOR_MODE_SCRIPT', () => {
     expect(COLOR_MODE_SCRIPT).toContain(`'${COLOR_MODE_STORAGE_KEY}'`);
   });
 
-  it('applies a saved dark, even over the attribute', () => {
+  it('applies a saved dark, even over the attribute and a light class, as data-mode and the bit-dark class', () => {
     localStorage.setItem(COLOR_MODE_STORAGE_KEY, 'dark');
     root().dataset.mode = 'light';
+    root().classList.add('bit-light', 'bit-theme-power-up');
     run();
     expect(root().dataset.mode).toBe('dark');
+    expect(modeClasses()).toEqual(['bit-dark']);
+    expect(root()).toHaveClass('bit-theme-power-up');
+  });
+
+  it('leaves a root with a mode class alone when nothing is saved', () => {
+    root().classList.add('bit-dark');
+    run();
+    expect(root().dataset.mode).toBeUndefined();
+    expect(modeClasses()).toEqual(['bit-dark']);
+  });
+
+  it('stays small and CSP-safe: one short function, no eval, no inline handlers', () => {
+    expect(COLOR_MODE_SCRIPT.length).toBeLessThan(400);
+    expect(COLOR_MODE_SCRIPT).not.toMatch(/eval|Function\(|setTimeout\(['"]|innerHTML/);
   });
 
   it('sets system when nothing is saved and there is no attribute', () => {

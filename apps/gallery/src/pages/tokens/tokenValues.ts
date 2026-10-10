@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { SEMANTIC_TOKENS, useColorMode } from '@bit-ds/react';
+import { BRAND_TOKENS, SEMANTIC_TOKENS, useColorMode } from '@bit-ds/react';
 import type { ColorMode } from '@bit-ds/react';
 
 /** Every public token's value as the page computes it right now. */
@@ -14,7 +14,7 @@ export interface TokenValues {
 }
 
 /** Read each token from the live document's computed style, so the values match the theme and the mode. */
-function readTokenValues(mode: ColorMode, names: readonly string[] = SEMANTIC_TOKENS): TokenValues {
+function readTokenValues(mode: ColorMode, names: readonly string[] = [...SEMANTIC_TOKENS, ...BRAND_TOKENS]): TokenValues {
   const style = getComputedStyle(document.documentElement);
   return { mode, values: new Map(names.map((name) => [name, style.getPropertyValue(name).trim()])) };
 }

@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-/** The two color modes. Same words as the `data-mode` attribute on the page root. */
+/** The two color modes. Same words as the `data-mode` attribute on the page root, and its `bit-{mode}` class. */
 export const COLOR_MODES = ['light', 'dark'] as const;
 /** What is showing: 'light' or 'dark'. */
 export type ColorMode = (typeof COLOR_MODES)[number];
@@ -13,14 +13,19 @@ export const COLOR_MODE_STORAGE_KEY = 'bit-color-mode';
 const DARK_QUERY = '(prefers-color-scheme: dark)';
 
 /**
- * Optional. Inline this in <head> to use a visitor's saved choice before the page draws. Without a
- * saved choice it sets `data-mode="system"` when the root has no attribute, and leaves a fixed
- * `light` or `dark` alone. Following the OS is the CSS's job (`data-mode="system"`).
+ * Optional. Inline this in <head> to use a visitor's saved choice before the page draws. A saved choice is
+ * written as `data-mode` and the matching `bit-light` or `bit-dark` class. Without one it sets
+ * `data-mode="system"` when the root has neither the attribute nor a mode class, and leaves a fixed `light`
+ * or `dark` alone. Following the OS is the CSS's job (`data-mode="system"`). No eval, so a CSP hash covers it.
  */
 export const COLOR_MODE_SCRIPT =
-  `(function(){var d=document.documentElement,m=null;` +
+  `(function(){var d=document.documentElement,c=d.classList,m=null;` +
   `try{m=localStorage.getItem('${COLOR_MODE_STORAGE_KEY}')}catch(e){}` +
-  `if(m==='light'||m==='dark'){d.dataset.mode=m}else if(!d.dataset.mode){d.dataset.mode='system'}})();`;
+  `if(m==='light'||m==='dark'){d.dataset.mode=m;c.remove('bit-light','bit-dark');c.add('bit-'+m)}` +
+  `else if(!d.dataset.mode&&!c.contains('bit-light')&&!c.contains('bit-dark')){d.dataset.mode='system'}})();`;
+
+/** The class each mode sets on the root, beside `data-mode`. 'system' has none: the CSS follows the OS. */
+const MODE_CLASSES: Readonly<Record<ColorMode, string>> = { light: 'bit-light', dark: 'bit-dark' };
 
 type ModeListener = (mode: ColorMode) => void;
 
@@ -52,6 +57,17 @@ function writeSaved(preference: ColorModePreference): void {
   } catch {
     // Storage is blocked (private browsing, disabled cookies): the choice lasts for this visit only.
   }
+}
+
+/** The mode the root's `bit-light` or `bit-dark` class asks for, or null when it has neither. */
+function classMode(root: HTMLElement): ColorMode | null {
+  return COLOR_MODES.find((mode) => root.classList.contains(MODE_CLASSES[mode])) ?? null;
+}
+
+/** Write a preference to the root: `data-mode`, and the one mode class that matches it (none for 'system'). */
+function writeRoot(root: HTMLElement, preference: ColorModePreference): void {
+  root.dataset.mode = preference;
+  for (const mode of COLOR_MODES) root.classList.toggle(MODE_CLASSES[mode], mode === preference);
 }
 
 function darkQuery(): MediaQueryList | null {
@@ -89,7 +105,7 @@ export class ColorModeService {
     return this.#query?.matches ? 'dark' : 'light';
   }
 
-  /** What was asked for: the saved choice, else the page's data-mode, else 'system'. */
+  /** What was asked for: the saved choice, else the page's data-mode or mode class, else 'system'. */
   get preference(): ColorModePreference {
     return this.#started();
   }
@@ -99,7 +115,7 @@ export class ColorModeService {
     if (!hasWindow() || !isPreference(preference)) return;
     const before = this.mode;
     writeSaved(preference);
-    document.documentElement.dataset.mode = preference;
+    writeRoot(document.documentElement, preference);
     this.#preference = preference;
     if (this.mode !== before) this.#notify();
   };
@@ -128,17 +144,16 @@ export class ColorModeService {
   }
 
   /**
-   * Precedence: a valid saved choice, then the root's data-mode, then 'system'. A saved choice is
-   * written to the root; a missing (or unknown) attribute becomes 'system'; a fixed light or dark
-   * is left alone. The OS listener lives for the page's life, so the mode keeps following the OS
-   * even while no hook is mounted.
+   * Precedence: a valid saved choice, then the root's data-mode, then its `bit-light` or `bit-dark` class,
+   * then 'system'. The result is written back as both data-mode and the matching class, so the two never
+   * disagree: a missing (or unknown) attribute becomes 'system'; a fixed light or dark stays. The OS
+   * listener lives for the page's life, so the mode keeps following the OS even while no hook is mounted.
    */
   #start(): ColorModePreference {
     const root = document.documentElement;
-    const saved = readSaved();
     const attribute = root.dataset.mode;
-    const preference = saved ?? (isPreference(attribute) ? attribute : 'system');
-    if (preference !== attribute) root.dataset.mode = preference;
+    const preference = readSaved() ?? (isPreference(attribute) ? attribute : (classMode(root) ?? 'system'));
+    writeRoot(root, preference);
     this.#query = darkQuery();
     this.#query?.addEventListener('change', this.#onSystemChange);
     return preference;
