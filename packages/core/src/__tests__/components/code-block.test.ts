@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CODE_KINDS, SEMANTIC_TOKENS } from '../../tokens';
-import { OUTLINE_DECLARATION, block, decl, readCss } from '../css';
+import { OUTLINE_DECLARATION, block, decl, readCss, rulesFor } from '../css';
 
 describe('components/code-block.css', () => {
   const css = readCss('components/code-block.css');
@@ -107,7 +107,7 @@ describe('components/code-block.css', () => {
 
 describe('system/reset.css (CodeBlock ring)', () => {
   it('pulls the pre’s ring 2px inside it, so the panel’s overflow: hidden cannot clip it', () => {
-    expect(block(readCss('system/reset.css'), '.bit-code__pre:focus-visible')).toContain(
+    expect(rulesFor(readCss('system/reset.css'), '.bit-code__pre:focus-visible')).toContain(
       'outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);',
     );
   });

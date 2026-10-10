@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { block, readCss, styleRules } from '../css';
+import { block, readCss, rulesFor, styleRules } from '../css';
 import { OUTLINE_DECLARATION } from '../css';
 
 describe('components/tabs.css', () => {
@@ -124,9 +124,9 @@ describe('components/tabs.css', () => {
 
 describe('system/reset.css (Tabs ring)', () => {
   it('draws the one ring inside the focused label', () => {
-    const focusVisible = block(readCss('system/reset.css'), '.bit-tabs__tab:focus-visible')!;
+    const focusVisible = rulesFor(readCss('system/reset.css'), '.bit-tabs__tab:focus-visible')!;
     expect(focusVisible).toContain('outline: none;');
-    const label = block(readCss('system/reset.css'), '.bit-tabs__tab:focus-visible > .bit-tabs__label')!;
+    const label = rulesFor(readCss('system/reset.css'), '.bit-tabs__tab:focus-visible > .bit-tabs__label')!;
     expect(label).toContain('outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));');
     expect(label).toContain('outline-offset: var(--bit-space-4px);');
   });
