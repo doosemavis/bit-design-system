@@ -207,9 +207,10 @@ html,
 }
 
 /* Focus moved by script (the page h1 after navigation, main after the skip link, a section's h2 from a
-   section bar) lands on things that aren't controls, so it draws no ring. */
+   section bar) lands on things that aren't controls, so it draws no ring. A roving-focus widget's parts (a
+   Menu's items) are controls with tabindex="-1" too, and keep theirs. */
 .gallery-main:focus,
-.gallery-main [tabindex="-1"]:focus {
+.gallery-main [tabindex="-1"]:not([role="menuitem"], [role="menu"]):focus {
   outline: none;
 }
 
@@ -740,6 +741,23 @@ html,
   border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-10px);
   background: var(--bit-color-bg);
+}
+
+/* Stacked Variants (Navbar): the value's name takes what it needs and the sample the rest, so a wide sample
+   keeps its full width. */
+.gallery-variants-stack td {
+  width: 100%;
+}
+
+/* A wide sample (a Navbar) goes above its code, at full width. */
+.gallery-example__body[data-wide] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* A phone-width frame inside a sample: 360px, the narrow end of phones. */
+.gallery-narrow {
+  width: 100%;
+  max-width: 22.5rem;
 }
 
 @media (max-width: 70rem) {
