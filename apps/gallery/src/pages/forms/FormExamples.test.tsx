@@ -9,7 +9,11 @@ import { expectNoA11yViolations } from '../../test/a11y';
 describe.each([
   ['CheckboxExamples', CheckboxExamples, ['Select all', 'Agree in a form', 'Show a setting that can’t change here']],
   ['RadioGroupExamples', RadioGroupExamples, ['A required choice in a Field', 'Radio children', 'Show a choice that can’t change here']],
-  ['TextareaExamples', TextareaExamples, ['A message in a Field', 'Count what is left', 'Show text that can’t be edited here']],
+  [
+    'TextareaExamples',
+    TextareaExamples,
+    ['A message in a Field', 'Bio with a character limit', 'Notes with a running count', 'Show text that can’t be edited here'],
+  ],
 ] as const)('%s', (_name, Examples, titles) => {
   it('shows its use cases, each a live sample in a Box beside its code', async () => {
     const { container } = render(<Examples />);
@@ -49,13 +53,28 @@ describe('Checkbox examples', () => {
 });
 
 describe('Textarea examples', () => {
-  it('the hint counts down the characters left as you type', async () => {
+  const countOf = (box: HTMLElement) => box.parentElement!.querySelector('.bit-textarea__count')!;
+
+  it('the bio counts toward 140 on the hint’s row, turns warning, then stops at the limit', async () => {
     const user = userEvent.setup();
     render(<TextareaExamples />);
-    const box = screen.getByRole('textbox', { name: 'Feedback' });
-    expect(box).toHaveAccessibleDescription('200 characters left.');
-    await user.type(box, 'Great');
-    expect(box).toHaveAccessibleDescription('195 characters left.');
+    const box = screen.getByRole('textbox', { name: 'Bio' });
+    expect(box).toHaveAccessibleDescription('A line or two about you. Up to 140 characters');
+    expect(countOf(box).firstChild?.textContent).toBe('120 / 140');
+    await user.type(box, ' Yes!!');
+    expect(countOf(box)).toHaveAttribute('data-state', 'near');
+    await user.type(box, 'x'.repeat(30));
+    expect(countOf(box).firstChild?.textContent).toBe('140 / 140');
+    expect(countOf(box)).toHaveAttribute('data-state', 'limit');
+  });
+
+  it('the notes count characters with no limit', async () => {
+    const user = userEvent.setup();
+    render(<TextareaExamples />);
+    const box = screen.getByRole('textbox', { name: 'Notes' });
+    expect(countOf(box)).toHaveTextContent('0 characters');
+    await user.type(box, 'Hi');
+    expect(countOf(box)).toHaveTextContent('2 characters');
   });
 });
 

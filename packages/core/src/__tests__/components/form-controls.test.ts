@@ -139,6 +139,36 @@ describe('components/textarea.css', () => {
     expect(decl(readOnly, 'opacity')).toBeNull();
     expect(decl(block(textarea, '.bit-textarea:disabled')!, 'opacity')).toBe('0.5');
   });
+
+  it('outside a Field the box and count share a wrapper as wide as the box', () => {
+    const wrap = block(textarea, '.bit-textarea__wrap')!;
+    expect(decl(wrap, 'width')).toBe('100%');
+    expect(decl(wrap, 'min-width')).toBe('0');
+  });
+
+  it('the count is muted 14px text with even-width digits, on its own line under the box at the end', () => {
+    const count = block(textarea, '.bit-textarea__count')!;
+    expect(decl(count, 'font-size')).toBe('var(--bit-text-14px)');
+    expect(decl(count, 'color')).toBe('var(--bit-color-text-muted)');
+    expect(decl(count, 'font-variant-numeric')).toBe('tabular-nums');
+    expect(decl(count, 'text-align')).toBe('end');
+    expect(decl(count, 'margin-block-start')).toBe('var(--bit-space-8px)');
+  });
+
+  it('near the limit the count is bold warning text, at the limit bold danger text (both text-safe tokens)', () => {
+    const near = block(textarea, '.bit-textarea__count[data-state="near"]')!;
+    expect(decl(near, 'color')).toBe('var(--bit-color-warning-text)');
+    expect(decl(near, 'font-weight')).toBe('var(--bit-weight-bold)');
+    const limit = block(textarea, '.bit-textarea__count[data-state="limit"]')!;
+    expect(decl(limit, 'color')).toBe('var(--bit-color-danger-text)');
+    expect(decl(limit, 'font-weight')).toBe('var(--bit-weight-bold)');
+  });
+
+  it('forced colors drop the warning and danger colors, so near is underlined and the limit double underlined', () => {
+    const media = '(forced-colors: active)';
+    expect(decl(inMedia(textarea, media, '.bit-textarea__count[data-state="near"]'), 'text-decoration')).toBe('underline');
+    expect(decl(inMedia(textarea, media, '.bit-textarea__count[data-state="limit"]'), 'text-decoration')).toBe('underline double');
+  });
 });
 
 describe('read-only Input and Select look like read-only Textarea, never like disabled', () => {
