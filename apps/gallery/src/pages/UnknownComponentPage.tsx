@@ -2,6 +2,7 @@ import { Heading, Link, Stack, Text } from '@bit-ds/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { MANIFESTS, routeFor } from '../manifests';
 import { closestManifest } from './closestManifest';
+import { useDocumentTitle } from '../shell/useDocumentTitle';
 
 interface UnknownComponentPageProps {
   /** The slug from the URL, exactly as typed. React escapes it like any text. */
@@ -10,6 +11,7 @@ interface UnknownComponentPageProps {
 
 /** `/components/<typo>`: names the typo, suggests the closest component, and lists every one. */
 export function UnknownComponentPage({ slug }: UnknownComponentPageProps) {
+  useDocumentTitle('Component not found');
   const closest = closestManifest(slug);
   return (
     <Stack gap={24}>

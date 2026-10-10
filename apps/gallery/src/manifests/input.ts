@@ -5,6 +5,7 @@ export const input: Manifest = {
   name: 'Input',
   slug: 'input',
   group: 'forms',
+  related: ['field', 'select', 'switch'],
   component: Input,
   description: 'A native text input, recessed into the page. Put it in a Field for a visible label.',
   controls: [

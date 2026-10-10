@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { matchPath, NavLink, useLocation } from 'react-router-dom';
 import { Link, Text } from '@bit-ds/react';
@@ -49,6 +49,8 @@ interface SidebarProps {
   items: readonly NavItem[];
   open: boolean;
   onNavigate: () => void;
+  /** Shown before the groups when the header is too narrow: the Search button. */
+  header?: ReactNode;
   /** Shown after the groups when the header is too narrow: the GitHub button and the version picker. */
   footer?: ReactNode;
 }
@@ -62,14 +64,34 @@ function currentGroup(items: readonly NavItem[], pathname: string): NavGroup | n
 /** The id of a group's title, which labels its list of links. */
 const titleId = (group: string) => `gallery-nav-${group.toLowerCase().replace(/\s+/g, '-')}`;
 
-export function Sidebar({ items, open, onNavigate, footer }: SidebarProps) {
-  const current = currentGroup(items, useLocation().pathname);
+/**
+ * The sidebar scrolls its own list (it stays put beside the page), so a page far down the list (Tooltip, Switch)
+ * would have its link out of sight. On each page change, and when the phone sheet opens, bring the current link
+ * into the list's view if it isn't.
+ */
+function useCurrentLinkInView(nav: HTMLElement | null, pathname: string, open: boolean): void {
+  useEffect(() => {
+    const link = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!nav || !link || nav.clientHeight === 0) return;
+    const top = link.offsetTop;
+    const bottom = top + link.offsetHeight;
+    if (top >= nav.scrollTop && bottom <= nav.scrollTop + nav.clientHeight) return;
+    nav.scrollTop = top - (nav.clientHeight - link.offsetHeight) / 2;
+  }, [nav, pathname, open]);
+}
+
+export function Sidebar({ items, open, onNavigate, header, footer }: SidebarProps) {
+  const { pathname } = useLocation();
+  const current = currentGroup(items, pathname);
+  const [nav, setNav] = useState<HTMLElement | null>(null);
+  useCurrentLinkInView(nav, pathname, open);
   // Derived during render: the counter changes only when the current group does, so the title's key
   // (and its CSS animation) restarts on a section change and not on a page change inside one section.
   const [seen, setSeen] = useState({ group: current, count: 0 });
   if (seen.group !== current) setSeen({ group: current, count: seen.count + 1 });
   return (
-    <nav id="gallery-nav" className="gallery-sidebar" aria-label="Gallery" data-open={open ? '' : undefined}>
+    <nav ref={setNav} id="gallery-nav" className="gallery-sidebar" aria-label="Gallery" data-open={open ? '' : undefined}>
+      {header ? <div className="gallery-sidebar__header">{header}</div> : null}
       {GROUPS.map((group) => {
         const links = items.filter((item) => item.group === group);
         if (links.length === 0) return null;

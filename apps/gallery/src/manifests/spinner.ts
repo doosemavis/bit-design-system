@@ -5,6 +5,7 @@ export const spinner: Manifest = {
   name: 'Spinner',
   slug: 'spinner',
   group: 'components',
+  related: ['button'],
   component: Spinner,
   description: 'A loading indicator. The aria-label is required so screen readers announce it.',
   controls: [

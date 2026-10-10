@@ -21,6 +21,7 @@ export const field: Manifest = {
   name: 'Field',
   slug: 'field',
   group: 'forms',
+  related: ['input', 'select', 'switch'],
   component: Field,
   description: 'A label, an optional hint and an error around one Input or Select. It wires the ids, so screen readers read them.',
   controls: [
