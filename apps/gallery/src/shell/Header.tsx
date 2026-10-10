@@ -81,13 +81,15 @@ export const Header = forwardRef<HTMLButtonElement, HeaderProps>(function Header
           <BitLogo size="sm" />
         </RouterLink>
       </Link>
+      {/* Left: the logo, then which version of the docs you're reading. */}
+      {narrow ? null : <VersionSelect />}
+      {/* The theme dropdown appears once a second theme exists (plan §H.5); light/dark is a mode. */}
+      {THEMES.length > 1 ? <ThemeSelect /> : null}
+      {/* Right: search, the repo, then light/dark as just the sun and moon. */}
       <div className="gallery-header__tools">
-        {/* The theme dropdown appears once a second theme exists (plan §H.5); light/dark is a mode. */}
         {narrow ? null : <SearchButton onClick={onSearch} />}
-        {THEMES.length > 1 ? <ThemeSelect /> : null}
-        {narrow ? null : <VersionSelect />}
-        <ModeToggle size="sm" />
         {narrow ? null : <GitHubLink />}
+        <ModeToggle size="sm" iconOnly />
       </div>
     </header>
   );

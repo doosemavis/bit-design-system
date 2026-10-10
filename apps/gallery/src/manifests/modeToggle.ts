@@ -8,7 +8,10 @@ export const modeToggle: Manifest = {
   related: ['switch', 'segmentedcontrol'],
   component: ModeToggle,
   description: 'The light/dark switch. It follows your system until you click, then remembers. Try it: it switches this whole site.',
-  controls: [{ kind: 'axis', prop: 'size', values: ['sm', 'md'], default: 'md' }],
+  controls: [
+    { kind: 'axis', prop: 'size', values: ['sm', 'md'], default: 'md' },
+    { kind: 'boolean', prop: 'iconOnly', default: false },
+  ],
   docs: {
     badges: ['Remembers the choice', 'Needs React'],
     usage: {
@@ -25,6 +28,12 @@ export const modeToggle: Manifest = {
     props: [
       { name: 'size', className: 'bit-{size}', type: "'sm' | 'md'", default: "'md'", description: 'Control size.' },
       {
+        name: 'iconOnly',
+        type: 'boolean',
+        default: 'false',
+        description: 'Just the sun and moon, as square buttons with bigger icons, for a tight header. Each keeps its name (Light, Dark) for screen readers. Rendered as data-icon-only.',
+      },
+      {
         name: 'aria-label',
         type: 'string',
         default: "'Color mode'",
@@ -33,6 +42,7 @@ export const modeToggle: Manifest = {
     ],
     a11y: [
       'A labelled group of two real buttons, Light and Dark; the current one has aria-pressed="true", which screen readers announce as "pressed".',
+      'With iconOnly the words go, but each button keeps its name (aria-label Light or Dark), and the icons are hidden from screen readers.',
       "It follows the visitor's system setting until they click, then remembers their choice.",
     ],
   },

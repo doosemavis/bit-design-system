@@ -93,11 +93,8 @@ const TAG_EXAMPLE: Readonly<Record<string, string>> = {
 /** Largest first, like the page outline. */
 const HEADINGS = [...HEADING_SIZES].reverse();
 
-/** Every Text size, largest first. 24, 32 and 40 are in the display face. */
+/** Body text sizes, largest first. Titles are Headings, in their own table above. */
 const TEXT_SIZES: readonly { props: TextProps; example: string; size: string; code: string }[] = [
-  { props: { size: 40 }, example: 'Big number', size: '40', code: '<Text size={40}>' },
-  { props: { size: 32 }, example: 'Score line', size: '32', code: '<Text size={32}>' },
-  { props: { size: 24 }, example: 'Callout', size: '24', code: '<Text size={24}>' },
   { props: { size: 18 }, example: 'Lead paragraph', size: '18', code: '<Text size={18}>' },
   { props: {}, example: 'Body copy, the default', size: '16', code: '<Text>' },
   { props: { size: 14, color: 'neutral' }, example: 'Hints and captions', size: '14', code: '<Text size={14} color="neutral">' },

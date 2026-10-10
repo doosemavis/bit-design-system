@@ -3,7 +3,6 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { screen, within } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { TEXT_SIZES } from '@bit-ds/react';
 import { renderAt } from '../test/renderRoute';
 
 async function renderTypography() {
@@ -92,7 +91,7 @@ describe('Typography page', () => {
 
   it.each([
     ['Headings', ['Example', 'Size', 'Tag', 'Code'], 10, ['24', 'h4']],
-    ['Text sizes', ['Example', 'Size', 'Token', 'Code'], 4, ['16', '--bit-text-16px']],
+    ['Text sizes', ['Example', 'Size', 'Token', 'Code'], 1, ['16', '--bit-text-16px']],
   ])('the %s table gives each value a column, centered under its heading', async (name, head, sampleRow, values) => {
     await renderTypography();
     const table = screen.getByRole('table', { name });
@@ -137,14 +136,12 @@ describe('Typography page', () => {
     }
   });
 
-  it('the Text sizes table shows all six sizes, largest first (14 muted), with their code', async () => {
+  it('the Text sizes table shows 18, 16 and 14 muted, with their code', async () => {
     await renderTypography();
     const table = screen.getByRole('table', { name: 'Text sizes' });
     const samples = [...table.querySelectorAll('.bit-table__body .bit-table__cell:first-child .bit-text')];
-    expect(samples.map((el) => el.getAttribute('data-size'))).toEqual(['40', '32', '24', '18', '16', '14']);
-    expect(samples.map((el) => Number(el.getAttribute('data-size')))).toEqual([...TEXT_SIZES].reverse());
-    expect(samples[5]).toHaveClass('bit-neutral');
-    expect(within(table).getByText('--bit-text-40px')).toBeInTheDocument();
+    expect(samples.map((el) => el.getAttribute('data-size'))).toEqual(['18', '16', '14']);
+    expect(samples[2]).toHaveClass('bit-neutral');
     expect(within(table).getByText('<Text size={14} color="neutral">')).toHaveClass('bit-code');
   });
 
