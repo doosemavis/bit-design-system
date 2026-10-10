@@ -1,7 +1,7 @@
 import { act, render, waitFor } from '@testing-library/react';
 import { createMemoryRouter, Outlet, RouterProvider } from 'react-router-dom';
 import { describe, it, expect } from 'vitest';
-import { useFocusHeading } from './useFocusHeading';
+import { sectionIdOf, useFocusHeading } from './useFocusHeading';
 
 function Layout() {
   useFocusHeading();
@@ -75,5 +75,62 @@ describe('useFocusHeading', () => {
     await waitFor(() => expect(document.activeElement).toBe(getByText('Other')));
     await act(() => router.navigate('/'));
     await waitFor(() => expect(document.activeElement).toBe(getByText('Home')));
+  });
+
+  describe('a route hash names a section', () => {
+    function SectionsPage() {
+      return (
+        <>
+          <h1>Sections</h1>
+          <h2 id="section-usage">Usage</h2>
+          <h2 id="section-props">Props</h2>
+        </>
+      );
+    }
+    const routes = [
+      {
+        element: <Layout />,
+        children: [
+          { path: '/', element: <h1>Home</h1> },
+          { path: '/sections', element: <SectionsPage /> },
+        ],
+      },
+    ];
+
+    it('a new page with a hash focuses that section, not the h1', async () => {
+      const router = createMemoryRouter(routes, { initialEntries: ['/'] });
+      const { getByText } = render(<RouterProvider router={router} />);
+      await act(() => router.navigate('/sections#section-props'));
+      await waitFor(() => expect(document.activeElement).toBe(getByText('Props')));
+    });
+
+    it('the first load of a deep link focuses its section', async () => {
+      const router = createMemoryRouter(routes, { initialEntries: ['/sections#section-usage'] });
+      const { getByText } = render(<RouterProvider router={router} />);
+      await waitFor(() => expect(document.activeElement).toBe(getByText('Usage')));
+    });
+
+    it('a new hash on the same page moves to that section', async () => {
+      const router = createMemoryRouter(routes, { initialEntries: ['/sections#section-usage'] });
+      const { getByText } = render(<RouterProvider router={router} />);
+      await waitFor(() => expect(document.activeElement).toBe(getByText('Usage')));
+      await act(() => router.navigate('/sections#section-props'));
+      await waitFor(() => expect(document.activeElement).toBe(getByText('Props')));
+    });
+
+    it('a hash that names nothing falls back to the h1 on a new page', async () => {
+      const router = createMemoryRouter(routes, { initialEntries: ['/'] });
+      const { getByText } = render(<RouterProvider router={router} />);
+      await act(() => router.navigate('/sections#nope'));
+      await waitFor(() => expect(document.activeElement).toBe(getByText('Sections')));
+    });
+  });
+
+  it('sectionIdOf reads the id, decoded, and nothing from an empty hash', () => {
+    expect(sectionIdOf('#section-props')).toBe('section-props');
+    expect(sectionIdOf('#a%20b')).toBe('a b');
+    expect(sectionIdOf('#%E0%A4%A')).toBe('%E0%A4%A');
+    expect(sectionIdOf('#')).toBe('');
+    expect(sectionIdOf('')).toBe('');
   });
 });

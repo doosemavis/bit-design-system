@@ -5,6 +5,7 @@ export const tooltip: Manifest = {
   name: 'Tooltip',
   slug: 'tooltip',
   group: 'components',
+  related: ['dialog', 'iconbutton'],
   component: Tooltip,
   description: 'A short label that appears above a control on hover or keyboard focus.',
   controls: [

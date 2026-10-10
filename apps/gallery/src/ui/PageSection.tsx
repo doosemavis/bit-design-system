@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Heading, Stack } from '@bit-ds/react';
+import { SectionHead } from './SectionAnchor';
 
 export interface SectionLink {
   /** The h2's id: what a section-bar link scrolls to and focuses. */
@@ -27,12 +28,17 @@ interface PageSectionProps extends SectionLink {
   children: ReactNode;
 }
 
-/** A page section named by its h2. The h2 takes tabIndex -1, so a section bar can move focus to it. */
+/**
+ * A page section named by its h2. The h2 takes tabIndex -1, so a section bar can move focus to it, and a "#"
+ * beside it links straight to the section.
+ */
 export function PageSection({ id, title, aside, landmark = true, children }: PageSectionProps) {
   const heading = (
-    <Heading id={id} tabIndex={-1} className={SECTION_TITLE_CLASS}>
-      {title}
-    </Heading>
+    <SectionHead id={id} title={title}>
+      <Heading id={id} tabIndex={-1} className={SECTION_TITLE_CLASS}>
+        {title}
+      </Heading>
+    </SectionHead>
   );
   const body = (
     <Stack gap={16}>

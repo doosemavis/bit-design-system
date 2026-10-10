@@ -2,6 +2,7 @@ import { Badge, Code, Stack, Text } from '@bit-ds/react';
 import type { Manifest } from '../../manifests/types';
 import { PageHeader } from '../../ui/PageHeader';
 import { CopyButton } from '../../ui/CopyButton';
+import { renderInline } from '../../ui/renderInline';
 
 /** `import { Name, ...parts } from '@bit-ds/react';`: the component first, then its parts in page order. */
 export function importChip(manifest: Manifest): string {
@@ -13,7 +14,7 @@ export function ComponentHeader({ manifest }: { manifest: Manifest }) {
   const line = importChip(manifest);
   return (
     <PageHeader title={manifest.name}>
-      <Text size={18}>{manifest.description}</Text>
+      <Text size={18}>{renderInline(manifest.description)}</Text>
       <Stack direction="row" gap={8} align="stretch" wrap>
         <Code className="gallery-import-code">{line}</Code>
         <CopyButton text={line} label="Copy import line" />

@@ -34,7 +34,7 @@ export function VariantsTable({ manifest, axes, state }: VariantsTableProps) {
       [column.prop]: columnValue,
       ...(row && rowValue !== undefined ? { [row.prop]: rowValue } : {}),
     };
-    return <TableCell key={columnValue}>{renderManifest(manifest, cellState)}</TableCell>;
+    return <TableCell key={columnValue}>{renderManifest(manifest, cellState, { sample: true })}</TableCell>;
   };
   return (
     <Table aria-label={`${manifest.name} variants`}>

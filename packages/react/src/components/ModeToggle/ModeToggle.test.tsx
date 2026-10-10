@@ -61,6 +61,42 @@ describe('ModeToggle', () => {
     expect(screen.getByRole('group', { name: 'Theme' }).className).toBe('bit-mode-toggle bit-sm extra');
   });
 
+  describe('iconOnly', () => {
+    it('shows the sun and moon icons only; each button keeps its name, and the group says data-icon-only', () => {
+      render(<ModeToggle iconOnly />);
+      const group = screen.getByRole('group', { name: 'Color mode' });
+      expect(group).toHaveAttribute('data-icon-only', '');
+      const light = screen.getByRole('button', { name: 'Light' });
+      const dark = screen.getByRole('button', { name: 'Dark' });
+      for (const button of [light, dark]) {
+        expect(button.textContent).toBe('');
+        // The icon is decoration: the button's name carries it.
+        expect(button.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+      }
+    });
+
+    it('draws the icon one size up from the control: md beside sm, lg beside md', () => {
+      const { rerender } = render(<ModeToggle iconOnly size="sm" />);
+      expect(screen.getByRole('button', { name: 'Light' }).querySelector('svg')).toHaveClass('bit-md');
+      rerender(<ModeToggle iconOnly size="md" />);
+      expect(screen.getByRole('button', { name: 'Light' }).querySelector('svg')).toHaveClass('bit-lg');
+    });
+
+    it('still switches the mode, and has no accessibility violations', async () => {
+      const { container } = render(<ModeToggle iconOnly />);
+      await userEvent.click(screen.getByRole('button', { name: 'Dark' }));
+      expect(root().dataset.mode).toBe('dark');
+      expect(screen.getByRole('button', { name: 'Dark' })).toHaveAttribute('aria-pressed', 'true');
+      await expectNoA11yViolations(container);
+    });
+
+    it('is off by default: the words and glyphs stay', () => {
+      render(<ModeToggle />);
+      expect(screen.getByRole('group')).not.toHaveAttribute('data-icon-only');
+      expect(screen.getByRole('button', { name: /Light/ }).textContent).toContain('Light');
+    });
+  });
+
   it('rejects the legacy DOM color attribute and does not render it', () => {
     // @ts-expect-error color is not part of ModeToggleProps
     render(<ModeToggle color="danger" data-testid="t" />);

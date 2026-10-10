@@ -37,6 +37,7 @@ export const dialog: Manifest = {
   name: 'Dialog',
   slug: 'dialog',
   group: 'components',
+  related: ['tooltip', 'alert'],
   component: Dialog,
   description: 'A modal window in the Retro window style. It opens over a dimmed page, keeps focus inside, and folds away when closed.',
   controls: [
