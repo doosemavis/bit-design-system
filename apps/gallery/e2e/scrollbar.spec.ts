@@ -29,3 +29,11 @@ test('the CodeBlock hands its scrollbar to ::-webkit-scrollbar', async ({ page }
   await expect(pre).toHaveCSS('scrollbar-color', 'auto');
   await expect(pre).toHaveCSS('scrollbar-width', 'auto');
 });
+
+test('the Textarea hands its scrollbar to ::-webkit-scrollbar', async ({ page }) => {
+  await page.goto('#/components/textarea');
+  const box = page.locator('.bit-textarea').first();
+  await expect(box).toBeVisible();
+  await expect(box).toHaveCSS('scrollbar-color', 'auto');
+  await expect(box).toHaveCSS('scrollbar-width', 'auto');
+});

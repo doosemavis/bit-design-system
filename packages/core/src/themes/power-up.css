@@ -36,6 +36,8 @@
     --bit-palette-yellow: #FFC800;
     --bit-palette-yellow-dark: #F0B400;
     --bit-palette-yellow-soft: #FFF1B8;
+    /* Coin yellow is 1.6:1 on white, too light for text. Amber is the warning for text: 5.93:1 on white, 5.13:1 on paper. */
+    --bit-palette-amber: #8A5A00;
     --bit-palette-green: #1FA34A;
     /* The review approved #178C3E, but ink on it is 4.22:1 (under AA). #19943F is the closest darker shade that passes (4.65:1). */
     --bit-palette-green-dark: #19943F;
@@ -83,6 +85,7 @@
     --bit-color-code-text: var(--bit-palette-violet-dark);
     /* The spec's var(--bit-color-danger) (#D91A1A) is 4.41:1 on the page; #D61A1A is the nearest red that passes (4.51:1). */
     --bit-color-danger-text: #D61A1A;
+    --bit-color-warning-text: var(--bit-palette-amber);
     --bit-color-knob: var(--bit-palette-white);
 
     --bit-color-primary: var(--bit-palette-violet);
@@ -244,6 +247,8 @@
     /* The spec's #9B7FE6 is 4.45:1 on the hover highlight (primary-soft); #9D82E7 is the nearest that passes (4.59:1). */
     --bit-color-link-visited: #9D82E7;
     --bit-color-danger-text: #FF8A8A;
+    /* Coin yellow reads on the dark surface (10.38:1), so text near a limit takes it. */
+    --bit-color-warning-text: var(--bit-palette-yellow);
     --bit-color-code-text: var(--bit-palette-yellow);
   }
 }

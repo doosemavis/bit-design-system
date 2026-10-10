@@ -13,6 +13,7 @@ import { codeBlock } from './codeBlock';
 import { select } from './select';
 import { field } from './field';
 import { navbar } from './navbar';
+import { textarea } from './textarea';
 import { isVirtual } from './virtual';
 import { childSpecs, isInteractive } from '../engine/childSpecs';
 import { staticProps } from '../engine/staticProps';
@@ -329,10 +330,11 @@ describe('manifest contract', () => {
     expect(codeBlock.docs.props.find((p) => p.name === 'actions')?.type).toBe('ReactNode');
   });
 
-  it('only ModeToggle, CodeBlock, Dialog, Tabs, Tooltip, Menu, Navbar, Select and Slider are interactive (no HTML tab): they need React to work', () => {
+  it('only ModeToggle, CodeBlock, Dialog, Tabs, Tooltip, Menu, Navbar, Select and Slider are interactive (no HTML tab): they need React to work; so do a Field around a Select and a Textarea with a count', () => {
     expect(MANIFESTS.filter((m) => isInteractive(m, defaultState(m))).map((m) => m.name)).toEqual(['ModeToggle', 'CodeBlock', 'Dialog', 'Tabs', 'Tooltip', 'Menu', 'Navbar', 'Select', 'Slider']);
     expect(isInteractive(navbar, { collapse: 'never' })).toBe(false);
     expect(isInteractive(field, { control: 'Select' })).toBe(true);
+    expect(isInteractive(textarea, { showCount: true })).toBe(true);
   });
 
   it('Select passes its choices as an options prop, not <option> children', () => {

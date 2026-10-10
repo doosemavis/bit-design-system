@@ -116,6 +116,12 @@ describe.each(MODES)('%s contrast', (_name, map) => {
       expect(contrastRatio(resolveColor('--bit-color-danger-text'), resolveColor(bg)), bg).toBeGreaterThanOrEqual(AA_TEXT);
     }
   });
+
+  it('the Textarea count near its limit (warning text) is readable on the page and on surfaces', () => {
+    for (const bg of ['--bit-color-bg', '--bit-color-surface']) {
+      expect(contrastRatio(resolveColor('--bit-color-warning-text'), resolveColor(bg)), bg).toBeGreaterThanOrEqual(AA_TEXT);
+    }
+  });
 });
 
 describe('dark mode values (owner-locked 2026-10-03)', () => {
@@ -136,6 +142,8 @@ describe('dark mode values (owner-locked 2026-10-03)', () => {
     // PR2 (spec §2). link-visited is #9D82E7, not the spec's #9B7FE6: see the plan's deviation D2.
     ['--bit-color-accent', '#FFC800'], ['--bit-color-link', '#B79BFF'],
     ['--bit-color-link-visited', '#9D82E7'], ['--bit-color-danger-text', '#FF8A8A'],
+    // The Textarea count near its limit: coin yellow, 10.38:1 on the dark surface.
+    ['--bit-color-warning-text', '#FFC800'],
   ])('%s is %s in dark', (token, value) => {
     expect(dk(token)).toBe(value);
   });
@@ -166,6 +174,8 @@ describe('PR2 light values (spec §2)', () => {
     ['--bit-color-link-visited', '#5B2BB5'],
     // Not the spec's var(--bit-color-danger) (#D91A1A, 4.41:1 on the page): see the plan's deviation D1.
     ['--bit-color-danger-text', '#D61A1A'],
+    // Coin yellow is 1.6:1 on white, so text near a limit takes a dark amber: 5.93:1 on white, 5.13:1 on the page.
+    ['--bit-color-warning-text', '#8A5A00'],
     ['--bit-color-knob', '#FFFFFF'],
   ])('%s is %s in light', (token, value) => {
     expect(resolveVar(light, token)).toBe(value);
