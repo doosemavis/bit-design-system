@@ -2,7 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableRow } from '@bit-ds/react'
 import type { AxisControl, ControlState, Manifest } from '../manifests/types';
 import { renderManifest } from './renderManifest';
 
-/** One row per color and one column per variant; or a single axis as one row (no `row`). */
+/** One row per color and one column per variant; or a single axis as one row (no `row`), or one row per value with variantsLayout 'stack'. */
 interface VariantAxes {
   row?: AxisControl;
   column: AxisControl;
@@ -28,6 +28,7 @@ interface VariantsTableProps {
 /** Every combination, drawn live, in a bit Table. */
 export function VariantsTable({ manifest, axes, state }: VariantsTableProps) {
   const { row, column } = axes;
+  const stacked = !row && manifest.variantsLayout === 'stack';
   const cell = (rowValue: string | undefined, columnValue: string) => {
     const cellState: ControlState = {
       ...state,
@@ -37,17 +38,33 @@ export function VariantsTable({ manifest, axes, state }: VariantsTableProps) {
     return <TableCell key={columnValue}>{renderManifest(manifest, cellState, { sample: true })}</TableCell>;
   };
   return (
-    <Table aria-label={`${manifest.name} variants`}>
+    <Table aria-label={`${manifest.name} variants`} className={stacked ? 'gallery-variants-stack' : undefined}>
       <TableHead>
-        <TableRow>
-          {row ? <TableCell>{row.prop}</TableCell> : null}
-          {column.values.map((value) => (
-            <TableCell key={value}>{value}</TableCell>
-          ))}
-        </TableRow>
+        {stacked ? (
+          <TableRow>
+            <TableCell>{column.prop}</TableCell>
+            <TableCell>sample</TableCell>
+          </TableRow>
+        ) : (
+          <TableRow>
+            {row ? <TableCell>{row.prop}</TableCell> : null}
+            {column.values.map((value) => (
+              <TableCell key={value}>{value}</TableCell>
+            ))}
+          </TableRow>
+        )}
       </TableHead>
       <TableBody>
-        {row ? (
+        {stacked ? (
+          column.values.map((value) => (
+            <TableRow key={value}>
+              <TableCell as="th" scope="row">
+                {value}
+              </TableCell>
+              {cell(undefined, value)}
+            </TableRow>
+          ))
+        ) : row ? (
           row.values.map((rowValue) => (
             <TableRow key={rowValue}>
               <TableCell as="th" scope="row">
