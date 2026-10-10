@@ -33,9 +33,9 @@ export function useAnchoredLayer(
 ): void {
   useLayoutEffect(() => {
     if (!open) return undefined;
-    const trigger = triggerRef.current;
-    const layer = layerRef.current;
-    if (!trigger || !layer) return undefined;
+    // Both are rendered whenever the layer can open.
+    const trigger = triggerRef.current!;
+    const layer = layerRef.current!;
     const topLayer = typeof layer.showPopover === 'function';
     if (topLayer) {
       // Set here, not rendered: a browser (or jsdom) that hides [popover] but can't show it would
@@ -74,8 +74,7 @@ export function useAnchoredLayer(
   useLayoutEffect(() => {
     const changed = placedContents.current !== contents;
     placedContents.current = contents;
-    if (!open || !changed || !triggerRef.current || !layerRef.current) return;
-    if (!placeAndMark(place, triggerRef.current, layerRef.current)) onLeave?.();
+    if (open && changed && !placeAndMark(place, triggerRef.current!, layerRef.current!)) onLeave?.();
   }, [contents, open, triggerRef, layerRef, place, onLeave]);
 }
 
