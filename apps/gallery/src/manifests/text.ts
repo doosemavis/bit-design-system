@@ -1,6 +1,7 @@
 import { Text } from '@bit-ds/react';
 import { SUPPORTED_TEXT_SIZES } from '../content/textSizes';
 import type { ControlState, Manifest } from './types';
+import { TextExamples } from '../pages/text/TextExamples';
 
 /** 24 and 32 switch to the display face, which ships one weight (text.css), so weight does nothing there. */
 const DISPLAY_SIZES: readonly string[] = ['24', '32'];
@@ -16,7 +17,7 @@ export const text: Manifest = {
   slug: 'text',
   group: 'components',
   component: Text,
-  description: 'Typography. The element comes from `as`; the look comes from `size`, in px.',
+  description: 'Typography. The element comes from `as`; the look comes from `size`, in px. Heading works the same way, for titles.',
   controls: [
     // No h1 to h6: the API takes them, but a title belongs to Heading, so the playground doesn't offer them.
     {
@@ -24,13 +25,14 @@ export const text: Manifest = {
       prop: 'as',
       values: ['p', 'span', 'div', 'label'],
       default: 'p',
-      hint: 'For a title, use Heading: level sets the tag.',
+      hint: 'For a title, use Heading: as="h2" and the same size.',
     },
     { kind: 'select', prop: 'size', values: SUPPORTED_TEXT_SIZES.map(String), default: '15', numeric: true },
     { kind: 'select', prop: 'color', values: ['default', 'neutral'], default: 'default', label: 'color' },
     { kind: 'select', prop: 'weight', values: ['normal', 'bold'], default: 'normal', lock: weightLock },
   ],
   children: 'The quick brown fox jumps over the lazy dog.',
+  extraSection: { id: 'section-examples', title: 'Examples', Component: TextExamples },
   presets: [
     { label: 'Display text', state: { size: '32' } },
     { label: 'Muted caption', state: { size: '13', color: 'neutral' } },
@@ -43,7 +45,7 @@ export const text: Manifest = {
         'Use color="neutral" for hints and captions that should step back.',
       ],
       dont: [
-        'Use Text as="h2" for a section title. Use Heading, which requires a level.',
+        'Use Text for a section title, even a big one. Use Heading as="h2": same size prop, and it joins the page outline.',
         'Use size to make body text tiny; 13 is the smallest for reading.',
       ],
     },
@@ -52,7 +54,8 @@ export const text: Manifest = {
         name: 'as',
         type: "'p' | 'span' | 'div' | 'label' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'",
         default: "'p'",
-        description: 'Which element to render. The look comes from size, not from the tag.',
+        description:
+          'Which element to render. The look comes from size, not from the tag. h1 to h6 work, but a title belongs in Heading, which takes the same as and size.',
       },
       {
         name: 'size',

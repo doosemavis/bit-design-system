@@ -539,6 +539,28 @@ html {
   }
 }
 
+/* ---------- examples ---------- */
+/* A component page example: the live sample on the left, its code on the right; stacked under 70rem, as
+   .gallery-split is. The sample's parts sit on top of each other with a small gap, centred in the height. */
+.gallery-example__body {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: center;
+  gap: var(--bit-space-16px);
+}
+
+.gallery-example__sample {
+  display: grid;
+  gap: var(--bit-space-8px);
+  min-width: 0;
+}
+
+@media (max-width: 70rem) {
+  .gallery-example__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* A step's bold sub-label. Inline Code in it drops its border and vertical padding, so the chip fits the line. */
 .gallery-caption .bit-code {
   padding: 0 5px;

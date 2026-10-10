@@ -25,7 +25,7 @@ export function VersionsPage() {
       <VersionsTable rows={rows} />
       {breaking.length > 0 ? (
         <Stack gap={12}>
-          <Heading level={2}>Breaking changes ahead</Heading>
+          <Heading>Breaking changes ahead</Heading>
           {breaking.map((release) => (
             <Alert key={release.version} color="warning" variant="outline" title={`Breaking changes in ${release.version}`}>
               <ChangeList items={release.items} label={`Breaking in v${release.version}`} />

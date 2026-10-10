@@ -54,7 +54,7 @@ export function AllIcons() {
         {groups.map((group) => (
           <Stack key={group.label} gap={16}>
             <div className="gallery-icon-group-head">
-              <Heading level={3} size={24}>{group.label}</Heading>
+              <Heading as="h3" size={24}>{group.label}</Heading>
               <Badge size="lg" variant="outline" color="neutral" flat>{countLabel(group.icons.length)}</Badge>
             </div>
             <div className="gallery-icon-grid">

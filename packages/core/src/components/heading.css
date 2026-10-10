@@ -1,8 +1,7 @@
-/* Heading: the tag and the look come from level (data-level); data-size (the size prop, in px) then sets
-   only the font size. The deprecated size={1..6} still sets data-level to that level. No margin: Stack and Box
-   do the spacing. With no data-level (or an unknown one) a heading looks like level 2. Every level sets
-   all five type properties, so none inherits another level's letter-spacing or weight. Display levels
-   use weight 400: the display face ships one weight, so anything heavier would be a synthesized bold. */
+/* Heading: as picks the tag; size (data-size, in px) picks the look. With no size the component sends the tag's
+   own size, so every Heading has a data-size. data-level is deprecated (removed in 0.2.0): it keeps the old
+   whole-level looks below for level={n} and size={1..6}. No margin: Stack and Box do the spacing. With no
+   data-size or data-level a heading looks like the h2 default. */
 .bit-heading {
   margin: 0;
   color: var(--bit-color-text);
@@ -62,10 +61,45 @@
   text-transform: uppercase;
 }
 
-/* size={px}: only the font size. The face, weight, line height and letter spacing stay the level's. After
-   the level rules, so at the same specificity the size wins by order. */
-.bit-heading[data-size="13"] { font-size: var(--bit-text-13px); }
-.bit-heading[data-size="15"] { font-size: var(--bit-text-15px); }
-.bit-heading[data-size="18"] { font-size: var(--bit-text-18px); }
-.bit-heading[data-size="24"] { font-size: var(--bit-text-24px); }
-.bit-heading[data-size="32"] { font-size: var(--bit-text-32px); }
+/* size, in px (data-size), the way a heading looks: the face follows the size, as on Text. 18 and up are the
+   display face at weight 400 (it ships one weight); 15 and 13 the body face in bold. Every size sets all five
+   type properties. After the deprecated level rules, so a level with a px size takes the size's look. */
+.bit-heading[data-size="32"] {
+  font-family: var(--bit-font-display);
+  font-size: var(--bit-text-32px);
+  font-weight: 400;
+  line-height: var(--bit-leading-tight);
+  letter-spacing: 0.01em;
+}
+
+.bit-heading[data-size="24"] {
+  font-family: var(--bit-font-display);
+  font-size: var(--bit-text-24px);
+  font-weight: 400;
+  line-height: var(--bit-leading-tight);
+  letter-spacing: 0.01em;
+}
+
+.bit-heading[data-size="18"] {
+  font-family: var(--bit-font-display);
+  font-size: var(--bit-text-18px);
+  font-weight: 400;
+  line-height: var(--bit-leading-tight);
+  letter-spacing: 0.01em;
+}
+
+.bit-heading[data-size="15"] {
+  font-family: var(--bit-font-body);
+  font-size: var(--bit-text-15px);
+  font-weight: var(--bit-weight-bold);
+  line-height: 1.3;
+  letter-spacing: normal;
+}
+
+.bit-heading[data-size="13"] {
+  font-family: var(--bit-font-body);
+  font-size: var(--bit-text-13px);
+  font-weight: var(--bit-weight-bold);
+  line-height: 1.3;
+  letter-spacing: normal;
+}

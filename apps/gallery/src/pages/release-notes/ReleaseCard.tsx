@@ -24,7 +24,7 @@ export function ReleaseCard({ version, date, sections, latest, open, only, onTog
     <Card>
       <CardHeader>
         <Stack direction="row" gap={12} align="center" wrap>
-          <Heading level={2} id={releaseAnchor(version)} tabIndex={-1}>{`v${version}`}</Heading>
+          <Heading id={releaseAnchor(version)} tabIndex={-1}>{`v${version}`}</Heading>
           {date ? (
             <Badge color="neutral" variant="outline">
               {date}

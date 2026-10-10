@@ -19,7 +19,7 @@ export function HomePage() {
       <Stack gap={32}>
         <div className="gallery-hero">
           <Stack gap={16} align="start">
-            <Heading level={1}>
+            <Heading as="h1">
               <BitLogo size="lg" />
             </Heading>
             <Text size={18}>A retro-styled React Design System for people who want a bit of nostalgia.</Text>
@@ -45,7 +45,7 @@ export function HomePage() {
       </PageSection>
       {/* A plain heading, not a PageSection: the table itself is the region named "The naming rule". */}
       <Stack gap={12}>
-        <Heading level={2}>The naming rule</Heading>
+        <Heading>The naming rule</Heading>
         <Text color="neutral">The prop you write is the class it emits is the token it reads, with a real Button in each row.</Text>
         <NamingRule />
       </Stack>

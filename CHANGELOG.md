@@ -4,9 +4,11 @@ Package releases only. Docs-site changes don't appear here. One bullet per line.
 
 ## 0.1.8 — 2026-10-10
 ### Changed
-- Heading: `size` is now in px, like Text's: `13`, `15`, `18`, `24` or `32` (`<Heading level={2} size={18}>`). It changes only the font size; the face, weight and spacing stay the level's, so an h6 stays a pixel eyebrow at any size. Rendered as `data-size`. New type: `HeadingSize`.
+- Heading works like Text: `as` picks the tag (`'h1'` to `'h6'`, default `'h2'`) and `size` picks the look in px: `13`, `15`, `18`, `24` or `32` (`<Heading as="h2" size={18}>`). With no `size` a heading takes its tag's own size (h1 32, h2 24, h3 18, h4 15, h5 and h6 13). The face follows the size: 18 and up use the display face, 15 and 13 the body face in bold. Rendered as `data-size`. New types: `HeadingTag`, `HeadingSize`.
+- The pixel-caps h6 look is gone from the new API: `as="h6"` is the body face in bold at 13px.
 ### Deprecated
-- Heading `size={1}` to `size={6}` (a level) still gives that level's whole look, but warns once in development to use the px size (`size={3}` → `size={18}`). It will be removed in 0.2.0.
+- Heading `level` is optional and deprecated: `level={2}` still renders an h2 with its old look, and warns once in development to use `as="h2"`. It will be removed in 0.2.0.
+- Heading `size={1}` to `size={6}` (a level) still gives that level's old look, and warns once to use the px size (`size={3}` → `size={18}`). It will be removed in 0.2.0.
 
 ## 0.1.7 — 2026-10-09
 ### Changed

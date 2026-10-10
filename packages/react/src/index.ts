@@ -28,7 +28,7 @@ export { Text } from './components/Text/Text';
 export type { TextProps, TextElement } from './components/Text/Text';
 
 export { Heading } from './components/Heading/Heading';
-export type { HeadingProps, HeadingLevel, HeadingSize } from './components/Heading/Heading';
+export type { HeadingProps, HeadingLevel, HeadingSize, HeadingTag } from './components/Heading/Heading';
 
 export { Spinner } from './components/Spinner/Spinner';
 export type { SpinnerProps } from './components/Spinner/Spinner';

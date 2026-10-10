@@ -40,7 +40,7 @@ const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
   Icon: { icon: lib.iconFavorite, children: undefined },
   IconButton: { icon: lib.iconDelete, label: 'x', children: undefined },
   Tooltip: { content: 'x', children: <button type="button">x</button> },
-  Heading: { level: 2 },
+  Heading: { as: 'h2' },
   CodeBlock: { code: 'x', language: 'shell', children: undefined },
   SegmentedControl: { legend: 'x', options: [{ value: 'x', label: 'x' }], children: undefined },
   Select: { options: [{ value: 'x', label: 'x' }], children: undefined },

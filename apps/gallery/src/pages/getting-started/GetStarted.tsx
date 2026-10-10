@@ -44,7 +44,7 @@ export function Step({ n, title, aside, help, children }: StepProps) {
         <Badge color="warning" shape="square">
           {String(n)}
         </Badge>
-        <Heading level={2}>{title}</Heading>
+        <Heading>{title}</Heading>
         {aside}
       </Stack>
       <Card>

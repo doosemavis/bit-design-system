@@ -17,7 +17,7 @@ interface PageSectionProps extends SectionLink {
 /** A page section named by its h2. The h2 takes tabIndex -1, so a section bar can move focus to it. */
 export function PageSection({ id, title, aside, children }: PageSectionProps) {
   const heading = (
-    <Heading level={2} id={id} tabIndex={-1}>
+    <Heading id={id} tabIndex={-1}>
       {title}
     </Heading>
   );

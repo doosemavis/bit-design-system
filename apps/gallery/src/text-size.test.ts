@@ -20,8 +20,11 @@ function sourceFiles(dir: string): string[] {
  * The only 13px text left is listed here, each with its reason.
  */
 const SMALL_TEXT_ALLOWED: Readonly<Record<string, readonly string[]>> = {
-  // The type scale's 13px row has to show 13px: its props, and the code sample that documents them.
-  'pages/TypographyPage.tsx': ['size: 13', 'size={13'],
+  // The type scale's 13px rows have to show 13px: the h5 and h6 headings, the Text caption row, and the code
+  // sample that documents it.
+  'pages/TypographyPage.tsx': ['size: 13', 'size: 13', 'size: 13', 'size={13'],
+  // The Text page's "Hint or caption" example shows the 13px caption: the live sample and its code.
+  'pages/text/TextExamples.tsx': ['size={13', 'size={13'],
   // Pixel-face labels (sidebar groups, the preview and controls titles): uppercase display type, not
   // reading text, at the 13px floor.
   'shell/Sidebar.tsx': ['size={13'],

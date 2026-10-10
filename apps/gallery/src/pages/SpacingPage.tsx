@@ -60,7 +60,7 @@ function StackOrBox() {
       <Card>
         <CardBody>
           <Stack gap={12}>
-            <Heading level={3} size={15}>
+            <Heading as="h3" size={15}>
               Stack: space between things
             </Heading>
             <Stack direction="row" gap={16}>
@@ -75,7 +75,7 @@ function StackOrBox() {
       <Card>
         <CardBody>
           <Stack gap={12}>
-            <Heading level={3} size={15}>
+            <Heading as="h3" size={15}>
               Box: space around one thing
             </Heading>
             {/* A row, so the Box hugs its Badge instead of stretching across the card. */}
@@ -128,22 +128,22 @@ export function SpacingPage() {
   return (
     <Stack gap={32}>
       <Stack gap={8}>
-        <Heading level={1}>Spacing</Heading>
+        <Heading as="h1">Spacing</Heading>
         <Text size={18}>
           One scale for every gap, pad and margin: 4, 8, 12, 16, 24, 32, 48 and 64. <Code>Stack</Code> spaces things
           apart, and <Code>Box</Code> pads and offsets a single thing.
         </Text>
       </Stack>
       <Stack gap={12}>
-        <Heading level={2}>The scale</Heading>
+        <Heading>The scale</Heading>
         <Ruler />
       </Stack>
       <Stack gap={12}>
-        <Heading level={2}>Stack or Box?</Heading>
+        <Heading>Stack or Box?</Heading>
         <StackOrBox />
       </Stack>
       <Stack gap={12}>
-        <Heading level={2}>Box props</Heading>
+        <Heading>Box props</Heading>
         <BoxProps />
         <Text color="neutral">
           When props overlap, the most specific wins: <Code>paddingTop</Code> beats <Code>paddingY</Code>, which beats{' '}

@@ -201,12 +201,13 @@ describe('manifest contract', () => {
     expect(text.presets?.map((p) => p.state.size)).toEqual(['32', '13']);
   });
 
-  it('Heading always prints its required level; size is left off until chosen', () => {
+  it('Heading always prints as and size, so the code shows the tag and the px look; no level anywhere', () => {
     expect(toJsx(heading, defaultState(heading))).toBe(
-      "import { Heading } from '@bit-ds/react';\n\n<Heading level={2}>Build with bit</Heading>",
+      'import { Heading } from \'@bit-ds/react\';\n\n<Heading as="h2" size={24}>Build with bit</Heading>',
     );
-    const preset = heading.presets!.find((p) => p.label === 'h2 at 18px')!;
-    expect(toJsx(heading, { ...defaultState(heading), ...preset.state } as ControlState)).toContain('<Heading level={2} size={18}>Build with bit</Heading>');
+    const preset = heading.presets!.find((p) => p.label === 'Page title')!;
+    expect(toJsx(heading, { ...defaultState(heading), ...preset.state } as ControlState)).toContain('<Heading as="h1" size={32}>Build with bit</Heading>');
+    expect(heading.controls.map((c) => c.prop)).toEqual(['as', 'size']);
   });
 
   it('Text presets never reach for a heading tag: titles belong to Heading', () => {
@@ -216,7 +217,7 @@ describe('manifest contract', () => {
 
   it('Heading size offers the px sizes, never the deprecated levels', () => {
     const size = heading.controls.find((c) => c.prop === 'size')!;
-    expect(size.kind === 'select' && size.values).toEqual(['none', '13', '15', '18', '24', '32']);
+    expect(size.kind === 'select' && size.values).toEqual(['13', '15', '18', '24', '32']);
   });
 
   it('Box prints its padding and leaves the other spacing props off until chosen; 0 prints as 0', () => {

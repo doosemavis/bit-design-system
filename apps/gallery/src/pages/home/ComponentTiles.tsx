@@ -95,7 +95,7 @@ function TileGroup({ title, lead, manifests }: { title: string; lead: string; ma
   return (
     <Stack gap={12}>
       <Stack direction="row" gap={8} align="center">
-        <Heading level={2}>{title}</Heading>
+        <Heading>{title}</Heading>
         <Badge variant="outline">{String(manifests.length)}</Badge>
       </Stack>
       <Text color="neutral">{lead}</Text>

@@ -207,7 +207,7 @@ describe('ControlsPanel', () => {
       renderText('15');
       const as = screen.getByRole('combobox', { name: 'as' });
       expect(optionLabels(as)).toEqual(['p', 'span', 'div', 'label']);
-      expect(as).toHaveAccessibleDescription('For a title, use Heading: level sets the tag.');
+      expect(as).toHaveAccessibleDescription('For a title, use Heading: as="h2" and the same size.');
     });
   });
 });

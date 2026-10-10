@@ -150,7 +150,7 @@ Keep the root `playwright` and the gallery's `@playwright/test` on the same vers
 ## Conventions
 
 - Classes: `bit-block`, `bit-block__element`, `bit-value`. No `--modifier` classes, no camelCase.
-- Booleans are attributes, never classes. So are layout values that aren't design axes: Stack's `gap`, Text's `size`, Heading's `data-level`, Box's `data-p` and friends. bit has no utility classes.
+- Booleans are attributes, never classes. So are layout values that aren't design axes: Stack's `gap`, Text's `size`, Heading's `size`, Box's `data-p` and friends. bit has no utility classes.
 - Components never import CSS; the app does, once.
 - Component CSS never sets `outline` or its longhands; `system/reset.css` draws the one focus ring. A visually hidden native input (Switch, SegmentedControl) gets its ring from a `reset.css` rule on the part drawn beside it.
 - Lines read `--bit-color-line`, never `--bit-color-ink`. The exceptions are listed, by selector, in `INK_EXCEPTIONS` in `packages/core/src/__tests__/system.test.ts`.

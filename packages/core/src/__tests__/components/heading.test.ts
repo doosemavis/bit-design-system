@@ -42,11 +42,22 @@ describe('components/heading.css', () => {
     expect(decl(block(css, '.bit-heading')!, 'text-transform')).toBeNull();
   });
 
-  it.each([13, 15, 18, 24, 32])('data-size="%i" sets only the font size, so the face stays the level\'s', (px) => {
+  // The face follows the size, like Text: 18 and up are the display face (one weight, so 400), 15 and 13 the
+  // body face in bold. Each size sets all five, so it never inherits a deprecated data-level's look.
+  const DISPLAY = { 'font-family': 'var(--bit-font-display)', 'font-weight': '400', 'line-height': 'var(--bit-leading-tight)', 'letter-spacing': '0.01em' };
+  const BODY = { 'font-family': 'var(--bit-font-body)', 'font-weight': 'var(--bit-weight-bold)', 'line-height': '1.3', 'letter-spacing': 'normal' };
+  it.each([
+    [32, DISPLAY],
+    [24, DISPLAY],
+    [18, DISPLAY],
+    [15, BODY],
+    [13, BODY],
+  ] as const)('data-size="%i" sets its px size and the face that goes with it', (px, face) => {
     const body = block(css, `.bit-heading[data-size="${px}"]`)!;
     expect(body).not.toBeNull();
     expect(decl(body, 'font-size')).toBe(`var(--bit-text-${px}px)`);
-    for (const prop of TYPE_PROPS.filter((p) => p !== 'font-size')) expect(decl(body, prop), prop).toBeNull();
+    for (const [prop, value] of Object.entries(face)) expect(decl(body, prop), prop).toBe(value);
+    expect(decl(body, 'text-transform')).toBeNull();
   });
 
   it('every data-size rule comes after every data-level rule, so the size wins at the same specificity', () => {

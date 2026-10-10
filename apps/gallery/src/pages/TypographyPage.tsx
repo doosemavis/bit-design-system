@@ -13,23 +13,24 @@ import {
   TableRow,
   Text,
 } from '@bit-ds/react';
-import type { HeadingLevel, TextProps } from '@bit-ds/react';
+import type { HeadingSize, HeadingTag, TextProps } from '@bit-ds/react';
 
 /** power-up's four faces. The sample is set in the face through `.gallery-face[data-face]` in gallery.css. */
 const FACES = [
-  { face: 'display', name: 'Lilita One', use: 'h1 to h3, and Text at 24 and 32.' },
-  { face: 'body', name: 'Nunito', use: 'Body copy, labels, h4 and h5.' },
-  { face: 'pixel', name: 'Press Start', use: 'Eyebrows, h6, small labels.' },
+  { face: 'display', name: 'Lilita One', use: 'Headings at 18 and up, and Text at 24 and 32.' },
+  { face: 'body', name: 'Nunito', use: 'Body copy, labels, and headings at 15 and 13.' },
+  { face: 'pixel', name: 'Press Start', use: 'Badges, table headers, small labels.' },
   { face: 'mono', name: 'JetBrains Mono', use: 'Code and CodeBlock.' },
 ] as const;
 
-const HEADINGS: readonly { level: HeadingLevel; example: string; size: string; face: string }[] = [
-  { level: 1, example: 'Page title', size: '32', face: 'display' },
-  { level: 2, example: 'Section', size: '24', face: 'display' },
-  { level: 3, example: 'Subsection', size: '18', face: 'display' },
-  { level: 4, example: 'Group title', size: '15', face: 'body bold' },
-  { level: 5, example: 'Small title', size: '13', face: 'body bold' },
-  { level: 6, example: 'Eyebrow', size: '13', face: 'pixel' },
+/** Each tag at its own px size, written out: the code reads like Text's as and size. */
+const HEADINGS: readonly { tag: HeadingTag; example: string; size: HeadingSize; face: string }[] = [
+  { tag: 'h1', example: 'Page title', size: 32, face: 'display' },
+  { tag: 'h2', example: 'Section', size: 24, face: 'display' },
+  { tag: 'h3', example: 'Subsection', size: 18, face: 'display' },
+  { tag: 'h4', example: 'Group title', size: 15, face: 'body bold' },
+  { tag: 'h5', example: 'Small title', size: 13, face: 'body bold' },
+  { tag: 'h6', example: 'Smallest title', size: 13, face: 'body bold' },
 ];
 
 const TEXT_SIZES: readonly { props: TextProps; example: string; size: string; code: string }[] = [
@@ -87,23 +88,23 @@ function Faces() {
 }
 
 /** Each sample is a real Heading, so it shows the real look. role="presentation" keeps it out of the page outline. */
-function HeadingLevels() {
+function HeadingTags() {
   return (
-    <Table aria-label="Heading levels">
+    <Table aria-label="Headings">
       <HeadRow values={['Tag', 'Size', 'Face']} />
       <TableBody>
-        {HEADINGS.map(({ level, example, size, face }) => (
-          <TableRow key={level}>
+        {HEADINGS.map(({ tag, example, size, face }) => (
+          <TableRow key={tag}>
             <TableCell>
-              <Heading level={level} role="presentation">
+              <Heading as={tag} size={size} role="presentation">
                 {example}
               </Heading>
             </TableCell>
-            <ValueCell>{`h${level}`}</ValueCell>
-            <ValueCell>{size}</ValueCell>
+            <ValueCell>{tag}</ValueCell>
+            <ValueCell>{String(size)}</ValueCell>
             <ValueCell>{face}</ValueCell>
             <TableCell>
-              <Code>{`<Heading level={${level}}>`}</Code>
+              <Code>{`<Heading as="${tag}" size={${size}}>`}</Code>
             </TableCell>
           </TableRow>
         ))}
@@ -139,8 +140,8 @@ function DoAndDont() {
   return (
     <Box className="gallery-grid">
       <Alert color="success" title="Do" role="note">
-        Pick the level for the outline (one h1 per page, no skipped levels), then use <Code>size</Code> if it should
-        look smaller.
+        Pick <Code>as</Code> for the outline (one h1 per page, no skipped levels), then <Code>size</Code> for how big it
+        looks.
       </Alert>
       <Alert color="danger" title="Don't" role="note">
         Use a bold Text where a heading belongs. Screen readers move through a page by its headings.
@@ -149,31 +150,32 @@ function DoAndDont() {
   );
 }
 
-/** Foundations: the faces, the heading levels and the Text sizes. Built only from bit components. */
+/** Foundations: the faces, the heading tags and the Text sizes. Built only from bit components. */
 export function TypographyPage() {
   return (
     <Stack gap={32}>
       <Stack gap={8}>
-        <Heading level={1}>Typography</Heading>
+        <Heading as="h1">Typography</Heading>
         <Text size={18}>
-          Four faces and one scale. Use <Code>Heading</Code> for titles: the level picks the tag. Use <Code>Text</Code>{' '}
-          for everything else: the size picks the step.
+          Four faces and one scale. <Code>Heading</Code> and <Code>Text</Code> work the same way: <Code>as</Code> picks
+          the tag, <Code>size</Code> picks the look, in px. Use Heading for titles, so they're in the page outline, and
+          Text for everything else.
         </Text>
       </Stack>
       <Stack gap={12}>
-        <Heading level={2}>Faces</Heading>
+        <Heading>Faces</Heading>
         <Faces />
       </Stack>
       <Stack gap={12}>
-        <Heading level={2}>Headings</Heading>
-        <HeadingLevels />
+        <Heading>Headings</Heading>
+        <HeadingTags />
       </Stack>
       <Stack gap={12}>
-        <Heading level={2}>Text sizes</Heading>
+        <Heading>Text sizes</Heading>
         <TextSizes />
       </Stack>
       <Stack gap={12}>
-        <Heading level={2}>Do and Don't</Heading>
+        <Heading>Do and Don't</Heading>
         <DoAndDont />
       </Stack>
     </Stack>

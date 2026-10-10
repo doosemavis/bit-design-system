@@ -14,7 +14,7 @@ export function UnknownComponentPage({ slug }: UnknownComponentPageProps) {
   return (
     <Stack gap={24}>
       <Stack gap={12} align="start">
-        <Heading level={1}>No component called “{slug}”</Heading>
+        <Heading as="h1">No component called “{slug}”</Heading>
         {closest ? (
           <Text size={18}>
             <Link asChild>
@@ -26,7 +26,7 @@ export function UnknownComponentPage({ slug }: UnknownComponentPageProps) {
         ) : null}
       </Stack>
       <Stack gap={12}>
-        <Heading level={2}>Every component</Heading>
+        <Heading>Every component</Heading>
         <ul className="gallery-link-list">
           {MANIFESTS.map((manifest) => (
             <li key={manifest.slug}>
