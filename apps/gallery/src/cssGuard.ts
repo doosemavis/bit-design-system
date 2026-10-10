@@ -19,7 +19,7 @@ interface GuardResult {
 const LAYOUT_EXACT = new Set([
   'display', 'gap', 'row-gap', 'column-gap', 'order', 'position', 'top', 'right', 'bottom', 'left', 'z-index',
   'width', 'min-width', 'max-width', 'height', 'min-height', 'max-height', 'box-sizing', 'aspect-ratio', 'contain',
-  'isolation', 'visibility', 'clip', 'clip-path', 'white-space', 'text-overflow', 'word-break', 'overflow-wrap',
+  'isolation', 'visibility', 'clip', 'clip-path', 'white-space', 'text-overflow', 'word-break', 'overflow-wrap', 'text-align',
 ]);
 const LAYOUT_PREFIXES = ['grid', 'flex', 'align-', 'justify-', 'place-', 'inset', 'margin', 'padding', 'overflow', 'scroll-margin', 'scroll-padding', '--_gallery-'];
 

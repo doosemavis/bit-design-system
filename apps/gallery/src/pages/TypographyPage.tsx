@@ -23,33 +23,41 @@ const FACES = [
   { face: 'mono', name: 'JetBrains Mono', use: 'Code and CodeBlock.' },
 ] as const;
 
-const HEADINGS: readonly { level: HeadingLevel; example: string; look: string }[] = [
-  { level: 1, example: 'Page title', look: 'h1 · 32 · display' },
-  { level: 2, example: 'Section', look: 'h2 · 24 · display' },
-  { level: 3, example: 'Subsection', look: 'h3 · 18 · display' },
-  { level: 4, example: 'Group title', look: 'h4 · 15 · body bold' },
-  { level: 5, example: 'Small title', look: 'h5 · 13 · body bold' },
-  { level: 6, example: 'Eyebrow', look: 'h6 · 13 · pixel' },
+const HEADINGS: readonly { level: HeadingLevel; example: string; size: string; face: string }[] = [
+  { level: 1, example: 'Page title', size: '32', face: 'display' },
+  { level: 2, example: 'Section', size: '24', face: 'display' },
+  { level: 3, example: 'Subsection', size: '18', face: 'display' },
+  { level: 4, example: 'Group title', size: '15', face: 'body bold' },
+  { level: 5, example: 'Small title', size: '13', face: 'body bold' },
+  { level: 6, example: 'Eyebrow', size: '13', face: 'pixel' },
 ];
 
-const TEXT_SIZES: readonly { props: TextProps; example: string; look: string; code: string }[] = [
-  { props: { size: 18 }, example: 'Lead paragraph', look: '18 · --bit-text-18px', code: '<Text size={18}>' },
-  { props: {}, example: 'Body copy, the default', look: '15 · --bit-text-15px', code: '<Text>' },
-  {
-    props: { size: 13, color: 'neutral' },
-    example: 'Hints and captions',
-    look: '13 · --bit-text-13px, muted',
-    code: '<Text size={13} color="neutral">',
-  },
+const TEXT_SIZES: readonly { props: TextProps; example: string; size: string; code: string }[] = [
+  { props: { size: 18 }, example: 'Lead paragraph', size: '18', code: '<Text size={18}>' },
+  { props: {}, example: 'Body copy, the default', size: '15', code: '<Text>' },
+  { props: { size: 13, color: 'neutral' }, example: 'Hints and captions', size: '13', code: '<Text size={13} color="neutral">' },
 ];
 
-/** The head row both tables share: what it looks like, what it is, and how to write it. */
-function HeadRow({ middle }: { middle: string }) {
+/** A value column (tag, size, face, token): muted text, centered under its heading. */
+function ValueCell({ children }: { children: string }) {
+  return (
+    <TableCell className="gallery-cell-center">
+      <Text color="neutral">{children}</Text>
+    </TableCell>
+  );
+}
+
+/** The head row both tables share: what it looks like, one centered column per value, and how to write it. */
+function HeadRow({ values }: { values: readonly string[] }) {
   return (
     <TableHead>
       <TableRow>
         <TableCell>Example</TableCell>
-        <TableCell>{middle}</TableCell>
+        {values.map((value) => (
+          <TableCell key={value} className="gallery-cell-center">
+            {value}
+          </TableCell>
+        ))}
         <TableCell>Code</TableCell>
       </TableRow>
     </TableHead>
@@ -82,20 +90,18 @@ function Faces() {
 function HeadingLevels() {
   return (
     <Table aria-label="Heading levels">
-      <HeadRow middle="Tag · size · face" />
+      <HeadRow values={['Tag', 'Size', 'Face']} />
       <TableBody>
-        {HEADINGS.map(({ level, example, look }) => (
+        {HEADINGS.map(({ level, example, size, face }) => (
           <TableRow key={level}>
             <TableCell>
               <Heading level={level} role="presentation">
                 {example}
               </Heading>
             </TableCell>
-            <TableCell>
-              <Text color="neutral">
-                {look}
-              </Text>
-            </TableCell>
+            <ValueCell>{`h${level}`}</ValueCell>
+            <ValueCell>{size}</ValueCell>
+            <ValueCell>{face}</ValueCell>
             <TableCell>
               <Code>{`<Heading level={${level}}>`}</Code>
             </TableCell>
@@ -109,18 +115,15 @@ function HeadingLevels() {
 function TextSizes() {
   return (
     <Table aria-label="Text sizes">
-      <HeadRow middle="Size · token" />
+      <HeadRow values={['Size', 'Token']} />
       <TableBody>
-        {TEXT_SIZES.map(({ props, example, look, code }) => (
+        {TEXT_SIZES.map(({ props, example, size, code }) => (
           <TableRow key={code}>
             <TableCell>
               <Text {...props}>{example}</Text>
             </TableCell>
-            <TableCell>
-              <Text color="neutral">
-                {look}
-              </Text>
-            </TableCell>
+            <ValueCell>{size}</ValueCell>
+            <ValueCell>{`--bit-text-${size}px`}</ValueCell>
             <TableCell>
               <Code>{code}</Code>
             </TableCell>
