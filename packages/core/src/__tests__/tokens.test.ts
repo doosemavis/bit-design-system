@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SEMANTIC_TOKENS, MODE_TOKENS, COLORS, SIZES, SPACE_STEPS, TEXT_SIZES, HEADING_SIZES, CODE_KINDS } from '../tokens';
+import { SEMANTIC_TOKENS, MODE_TOKENS, COLORS, SIZES, SPACE_STEPS, TEXT_SIZES, HEADING_SIZES, CODE_KINDS, headingTag } from '../tokens';
 
 describe('semantic token list', () => {
   it('has the five colors, three control sizes, six px text sizes, 13 px heading sizes, eight px space steps', () => {
@@ -79,5 +79,15 @@ describe('semantic token list', () => {
   it('has no --bit-gloss or --bit-focus-band (dark mode spec: flat buttons, one focus ring)', () => {
     expect(SEMANTIC_TOKENS).not.toContain('--bit-gloss');
     expect(SEMANTIC_TOKENS).not.toContain('--bit-focus-band');
+  });
+});
+
+describe('headingTag', () => {
+  it('maps 40 to 44 to h1, 32 to 38 to h2, 26 to 30 to h3, 24 to h4, 22 to h5, 20 to h6', () => {
+    const tags = Object.fromEntries(HEADING_SIZES.map((size) => [size, headingTag(size)]));
+    expect(tags).toEqual({
+      20: 'h6', 22: 'h5', 24: 'h4', 26: 'h3', 28: 'h3', 30: 'h3',
+      32: 'h2', 34: 'h2', 36: 'h2', 38: 'h2', 40: 'h1', 42: 'h1', 44: 'h1',
+    });
   });
 });

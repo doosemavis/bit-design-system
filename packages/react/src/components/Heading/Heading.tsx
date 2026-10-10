@@ -1,7 +1,7 @@
 import { createElement, forwardRef } from 'react';
 import type { HTMLAttributes } from 'react';
-import { HEADING_SIZES } from '../../system/axes';
-import type { HeadingSize } from '../../system/axes';
+import { HEADING_SIZES, headingTag } from '../../system/axes';
+import type { HeadingSize, HeadingTag } from '../../system/axes';
 import { dataValue, toClasses } from '../../system/toClasses';
 import { dropLegacyColor } from '../../system/dropLegacyColor';
 import { InlineText } from '../../system/inlineText';
@@ -14,18 +14,6 @@ export type { HeadingSize };
 
 /** @deprecated Heading's size picks the tag now. Removed in 0.2.0. */
 export type HeadingLevel = (typeof LEVELS)[number];
-
-type HeadingTag = `h${HeadingLevel}`;
-
-/** The tag each size renders: 40 and up h1, 32 to 38 h2, 26 to 30 h3, 24 h4, 22 h5, 20 h6. */
-function tagFor(size: HeadingSize): HeadingTag {
-  if (size >= 40) return 'h1';
-  if (size >= 32) return 'h2';
-  if (size >= 26) return 'h3';
-  if (size === 24) return 'h4';
-  if (size === 22) return 'h5';
-  return 'h6';
-}
 
 /** The smallest size that renders each level's tag: what to write in place of a deprecated level. */
 const LEVEL_SIZE: Record<HeadingLevel, HeadingSize> = { 1: 40, 2: 32, 3: 26, 4: 24, 5: 22, 6: 20 };
@@ -81,7 +69,7 @@ export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Hea
   const oldLook = old ?? (px === undefined && fromLevel !== undefined ? Number(fromLevel[1]) : undefined);
   // An unknown size falls back to the default, after dataValue's warning.
   const look = px ?? 32;
-  const tag = fromLevel ?? (old === undefined ? tagFor(look) : 'h2');
+  const tag = fromLevel ?? (old === undefined ? headingTag(look) : 'h2');
   return createElement(
     InlineText.Provider,
     { value: true },

@@ -1,6 +1,6 @@
 export { PREFIX, SEMANTIC_TOKENS } from '@bit-ds/core/tokens';
-export { COLORS, SIZES, TEXT_SIZES, DEPRECATED_TEXT_SIZES, HEADING_SIZES, SPACE_STEPS, VARIANTS } from './system/axes';
-export type { Color, Size, TextSize, DeprecatedTextSize, SpaceStep, Variant } from './system/axes';
+export { COLORS, SIZES, TEXT_SIZES, DEPRECATED_TEXT_SIZES, HEADING_SIZES, SPACE_STEPS, VARIANTS, headingTag } from './system/axes';
+export type { Color, Size, TextSize, DeprecatedTextSize, HeadingTag, SpaceStep, Variant } from './system/axes';
 
 export { Button } from './components/Button/Button';
 export type { ButtonProps } from './components/Button/Button';

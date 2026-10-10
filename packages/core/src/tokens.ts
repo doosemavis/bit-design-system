@@ -37,7 +37,22 @@ export type TextSize = (typeof TEXT_SIZES)[number];
 /** @deprecated 11, 13 and 15: use 14 or 16. Removed in 0.2.0. */
 export type DeprecatedTextSize = (typeof DEPRECATED_TEXT_SIZES)[number];
 export type HeadingSize = (typeof HEADING_SIZES)[number];
+/** The heading tags a Heading size can render. */
+export type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 export type SpaceStep = (typeof SPACE_STEPS)[number];
+
+/**
+ * The tag a Heading size renders: 40 and up h1, 32 to 38 h2, 26 to 30 h3, 24 h4, 22 h5, 20 h6. Heading uses it,
+ * and so does the gallery's Typography page, so the two never disagree.
+ */
+export function headingTag(size: HeadingSize): HeadingTag {
+  if (size >= 40) return 'h1';
+  if (size >= 32) return 'h2';
+  if (size >= 26) return 'h3';
+  if (size === 24) return 'h4';
+  if (size === 22) return 'h5';
+  return 'h6';
+}
 
 const token = (category: string, ...parts: (string | number)[]) =>
   `--${PREFIX}-${[category, ...parts].join('-')}`;
