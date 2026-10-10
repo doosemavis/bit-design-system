@@ -19,6 +19,14 @@ const EXEMPT: Readonly<Record<string, { sizes: readonly string[]; why: string }>
     why: 'Inline Code is 0.9em of the text around it, but max() holds it at 14px or more inside 14px text.',
   },
   'dialog.css': { sizes: ['11px'], why: 'The Retro window title is the pixel font, which reads large; 11px is its sub-scale, as Badge (owner pick D2).' },
+  'menu.css': {
+    sizes: ['11px'],
+    why: "Menu's title strip is Dialog's Retro window title (owner pick B): the pixel font reads large, so 11px, as Dialog. The items are 14px or more.",
+  },
+  'navbar.css': {
+    sizes: ['11px'],
+    why: "The Purple bar's links (owner pick C) are Dialog's title type: the pixel font reads large, so 11px, as Dialog. The pill's links are 14px or more.",
+  },
   'slider.css': {
     sizes: ['11px'],
     why: "The round Slider's value bubble is the pixel font, which reads large, at Dialog's 11px; it is hidden from screen readers, which read the input's value.",

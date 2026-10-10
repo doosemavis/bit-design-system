@@ -1,0 +1,224 @@
+/* Menu (B "Retro window"): a small window in the top layer by its trigger. Dialog's purple title strip in
+   the pixel font, then the items on the surface. Placed by Menu.tsx, which sets top, left, data-placement
+   and --_bit-menu-room (the height it may use). No display here, so the hidden attribute and the popover's
+   own rule can hide it. When the room is short the window scrolls and the strip stays at the top.
+   Size from .bit-sm / .bit-md on the window. */
+.bit-menu {
+  /* raw: the item icon, 16px at sm and 20px at md, as Icon's own sizes */
+  --_bit-menu-icon: 20px;
+  --_bit-menu-pad-x: var(--bit-space-12px);
+  --_bit-menu-pad-y: var(--bit-space-8px);
+  /* The window is the surface, so a ring in it takes the theme's color, even inside a colored bar (Navbar's). */
+  --_bit-focus-ring: initial;
+  position: fixed;
+  inset: auto;
+  z-index: 10; /* raw: there is no z-index token; only browsers without the Popover API (no top layer) use it */
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 12rem;
+  max-width: calc(100vw - var(--bit-space-16px));
+  max-height: min(24rem, var(--_bit-menu-room, 24rem));
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-bold);
+  line-height: var(--bit-leading-normal);
+  letter-spacing: normal;
+  text-align: start;
+  text-transform: none;
+  color: var(--bit-color-text);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+  box-shadow: var(--bit-shadow-md);
+  opacity: 0;
+  translate: 0 -4px;
+}
+
+.bit-menu.bit-sm {
+  --_bit-menu-icon: 16px;
+  --_bit-menu-pad-x: var(--bit-space-8px);
+  --_bit-menu-pad-y: var(--bit-space-4px);
+}
+
+.bit-menu[data-placement="top"] {
+  translate: 0 4px;
+}
+
+/* Two hard steps in, like Tooltip. */
+.bit-menu[data-entered] {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity var(--bit-duration-fast) steps(2),
+    translate var(--bit-duration-fast) steps(2);
+}
+
+/* The purple strip: Dialog's title bar type, uppercase pixel font. It names the menu (aria-labelledby). */
+.bit-menu__title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: var(--bit-space-8px) var(--bit-space-12px);
+  overflow: hidden;
+  font-family: var(--bit-font-pixel);
+  font-size: 11px; /* raw: the pixel font's sub-scale size, as Dialog's title */
+  font-weight: var(--bit-weight-normal);
+  line-height: var(--bit-leading-normal);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--bit-color-primary-contrast);
+  background: var(--bit-color-primary);
+  border-bottom: var(--bit-border-width) solid var(--bit-color-line);
+}
+
+.bit-menu__list {
+  display: grid;
+  gap: 2px; /* raw: the hairline between rows, so two active looks never touch */
+  padding: var(--bit-space-4px);
+}
+
+.bit-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-8px);
+  padding: var(--_bit-menu-pad-y) var(--_bit-menu-pad-x);
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: var(--bit-radius-6px);
+  cursor: pointer;
+  user-select: none;
+}
+
+.bit-menu__icon {
+  flex: none;
+}
+
+.bit-menu__label {
+  flex: 1 1 auto;
+}
+
+/* Rows without an icon start where the labels of rows with one do. */
+.bit-menu__list:has(.bit-menu__icon) .bit-menu__item:not(:has(> .bit-menu__icon)) {
+  padding-inline-start: calc(var(--_bit-menu-pad-x) + var(--_bit-menu-icon) + var(--bit-space-8px));
+}
+
+.bit-menu__shortcut {
+  margin-inline-start: auto;
+  padding-inline-start: var(--bit-space-16px);
+  font-family: var(--bit-font-mono);
+  font-size: var(--bit-text-14px);
+  font-weight: var(--bit-weight-normal);
+  color: var(--bit-color-text-muted);
+}
+
+/* states are attributes, never classes */
+/* The active row is the focused one (arrow keys, typing, or the pointer over it): primary-soft with a 2px line
+   edge, as the mockup. The edge is an inset shadow, so the focus ring (reset.css, inside the row) sits within it. */
+.bit-menu__item:focus {
+  background: var(--bit-color-primary-soft);
+  box-shadow: inset 0 0 0 2px var(--bit-color-line); /* raw: the active row's 2px edge */
+}
+
+.bit-menu__item:focus .bit-menu__shortcut {
+  color: var(--bit-color-text);
+}
+
+.bit-menu__item[data-danger] {
+  color: var(--bit-color-danger-text);
+}
+
+/* Active, a danger row fills red: danger-text on danger-soft is under 4.5:1 in light. */
+.bit-menu__item[data-danger]:focus {
+  color: var(--bit-color-danger-contrast);
+  background: var(--bit-color-danger);
+  /* The ring lands on this fill, so it takes the fill's contrast color. */
+  --_bit-focus-ring: var(--bit-color-danger-contrast);
+}
+
+.bit-menu__item[data-danger]:focus .bit-menu__shortcut {
+  color: inherit;
+}
+
+/* A link to the page you're on (a Navbar's links folded into a Menu): filled primary, as the pill's current link. */
+.bit-menu__item[aria-current="page"] {
+  color: var(--bit-color-primary-contrast);
+  background: var(--bit-color-primary);
+  /* The ring lands on this fill, so it takes the fill's contrast color. */
+  --_bit-focus-ring: var(--bit-color-primary-contrast);
+}
+
+.bit-menu__item[aria-current="page"]:focus {
+  background: var(--bit-color-primary-hover);
+}
+
+.bit-menu__item[aria-current="page"] .bit-menu__shortcut {
+  color: inherit;
+}
+
+.bit-menu__item[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* A faint full-width rule between groups. */
+.bit-menu__separator {
+  height: var(--bit-border-width);
+  margin: var(--bit-space-4px) calc(-1 * var(--bit-space-4px));
+  background: var(--bit-color-line);
+  opacity: 0.25;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bit-menu,
+  .bit-menu[data-entered] {
+    transition: none;
+  }
+}
+
+/* Forced colors drop fills and shadows: system colors for the frame and strip, and Highlight for the active
+   row, which a fill alone showed. */
+@media (forced-colors: active) {
+  .bit-menu {
+    border-color: CanvasText;
+  }
+
+  .bit-menu__title {
+    background: Canvas;
+    color: CanvasText;
+    border-bottom-color: CanvasText;
+  }
+
+  .bit-menu__item:focus,
+  .bit-menu__item[data-danger]:focus,
+  .bit-menu__item[aria-current="page"]:focus {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+    box-shadow: none;
+    --_bit-focus-ring: HighlightText;
+  }
+
+  .bit-menu__item:focus .bit-menu__shortcut {
+    color: HighlightText;
+  }
+
+  .bit-menu__item[aria-current="page"] {
+    text-decoration: underline;
+  }
+
+  .bit-menu__item[aria-disabled="true"] {
+    color: GrayText;
+  }
+
+  .bit-menu__separator {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}

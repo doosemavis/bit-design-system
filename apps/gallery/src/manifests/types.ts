@@ -147,6 +147,17 @@ export interface ImportedProp {
   value: unknown;
 }
 
+/** A prop whose value is an element (Menu's `trigger`, Navbar's `actions`): passed live, printed as JSX. */
+export interface ElementProp {
+  prop: string;
+  /** What every render gets: preview, Variants, tiles and the HTML tab. */
+  value: ReactElement;
+  /** What the code prints between the braces: `<Button>File</Button>`. */
+  jsx: string;
+  /** The bit exports the JSX uses, added to the import line. */
+  imports: readonly string[];
+}
+
 /** A page section of its own, after Variants: Icon's "All icons". */
 export interface ExtraSection {
   id: string;
@@ -183,8 +194,15 @@ export interface Manifest {
   deriveProps?: (state: ControlState) => Readonly<Record<string, LiteralValue>>;
   /** Props passed by name from @bit-ds/react, worked out from the full state (defaults merged in). Printed first as `prop={name}` and added to the import line. */
   importedProps?: (state: ControlState) => readonly ImportedProp[];
+  /** Props whose values are elements, worked out from the full state (defaults merged in). Printed first as `prop={<…>}`. */
+  elementProps?: (state: ControlState) => readonly ElementProp[];
   /** The HTML tab's code, in place of the preview's markup: Icon prints its short class form, not the inline svg. Gets the full state. */
   html?: (state: ControlState) => string;
+  /**
+   * `stack`: a single-axis Variants table draws one row per value, under a row header, instead of one row of
+   * columns. For wide components (Navbar), and to show values one above the other (its two looks, the same height).
+   */
+  variantsLayout?: 'stack';
   /** A section only this page has, placed after Variants. */
   extraSection?: ExtraSection;
   presets?: readonly Preset[];

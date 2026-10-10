@@ -4,6 +4,8 @@ import {
   Card,
   CodeBlock,
   Heading,
+  Navbar,
+  NavbarLink,
   Link,
   Stack,
   Tab,
@@ -57,6 +59,15 @@ const COMPACT: Readonly<Record<string, () => ReactNode>> = {
       <Badge color="success">Two</Badge>
       <Badge color="danger">Three</Badge>
     </Stack>
+  ),
+  // Its links in a row, two of them, so it fits a tile without folding into a Menu button.
+  navbar: () => (
+    <Navbar collapse="never" size="sm" label="Navbar sample">
+      <NavbarLink href="#games" current>
+        Games
+      </NavbarLink>
+      <NavbarLink href="#shop">Shop</NavbarLink>
+    </Navbar>
   ),
   tabs: () => (
     <Tabs defaultValue="one">

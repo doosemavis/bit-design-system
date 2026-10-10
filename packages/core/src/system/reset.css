@@ -66,10 +66,15 @@ body {
    - a segment is flush with its neighbours;
    - a ModeToggle option is flush with the pill's border, so a ring outside it would sit on that border with no gap;
    - CodeBlock's scrollable pre sits inside a panel with overflow: hidden, which would clip a ring drawn outside
-     it, so the ring goes onto the code background. */
+     it, so the ring goes onto the code background;
+   - a Menu item is flush with its neighbours and the scrolling window would clip a ring outside it, so the ring
+     sits inside the active row's 2px edge;
+   - a Navbar link is flush with the pill's border, as a ModeToggle option, and the bar's links are drawn the same. */
 .bit-segmented-control__input:focus-visible + .bit-segmented-control__label,
 .bit-mode-toggle__option:focus-visible,
-.bit-code__pre:focus-visible {
+.bit-code__pre:focus-visible,
+.bit-menu__item:focus-visible,
+.bit-navbar__link:focus-visible {
   outline-offset: calc(-1 * var(--bit-focus-ring-width) - 2px);
 }
 

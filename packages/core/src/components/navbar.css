@@ -1,0 +1,223 @@
+/* Navbar: an app's top bar, in two looks the owner picked, B "Pill group" (.bit-pill) and C "Purple bar"
+   (.bit-bar). Both are exactly the same height: the header's height is set once here, from the size alone,
+   and no variant rule sets a height, padding or border width, so switching variant never moves the page.
+   Size from .bit-sm / .bit-md on the root. The links fold into a Menu below 40rem of the Navbar's own
+   width (a container query), with data-collapse="auto"; "always" and "never" render only one form. */
+.bit-navbar {
+  /* The row everything sits in: the pill, the chips, a md Button. */
+  --_bit-navbar-row: var(--bit-control-height-lg);
+  /* It sizes its contents to its own width (container-type), so it can't shrink to fit them: it takes its
+     container's width, even in a centred flex or grid parent. */
+  container-type: inline-size;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-16px);
+  box-sizing: border-box;
+  height: calc(var(--_bit-navbar-row) + 2 * var(--bit-space-8px) + 2 * var(--bit-border-width));
+  padding: 0 var(--bit-space-16px);
+  font-family: var(--bit-font-body);
+  color: var(--bit-color-text);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-10px);
+  box-shadow: var(--bit-shadow-md);
+}
+
+.bit-navbar.bit-sm {
+  --_bit-navbar-row: var(--bit-control-height-md);
+}
+
+/* The brand gives way first when the bar is short of room: it shrinks to an ellipsis. */
+.bit-navbar__brand {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--bit-font-display);
+  font-size: var(--bit-heading-22px);
+  font-weight: var(--bit-weight-normal);
+  line-height: var(--bit-leading-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A brand that is a link home reads as the brand, not as a link. */
+.bit-navbar__brand a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.bit-navbar__nav {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.bit-navbar__links {
+  display: flex;
+  align-items: center;
+  gap: var(--bit-space-4px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bit-navbar__item {
+  display: flex;
+}
+
+/* A link fills the row less the pill's border and padding (four border widths), in both variants. */
+.bit-navbar__link {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: calc(var(--_bit-navbar-row) - 4 * var(--bit-border-width));
+  padding: 0 var(--bit-space-12px);
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-bold);
+  line-height: 1;
+  white-space: nowrap;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--bit-radius-full);
+  cursor: pointer;
+}
+
+.bit-navbar__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--bit-space-8px);
+  margin-inline-start: auto;
+}
+
+/* B "Pill group": the links in one outlined neutral-soft pill, the current one filled primary, as ModeToggle. */
+.bit-navbar.bit-pill .bit-navbar__links {
+  gap: 0;
+  padding: var(--bit-border-width);
+  background: var(--bit-color-neutral-soft);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-full);
+}
+
+.bit-navbar.bit-pill .bit-navbar__link:hover:not([aria-current="page"]) {
+  background: var(--bit-color-surface);
+}
+
+/* states are attributes, never classes */
+.bit-navbar.bit-pill .bit-navbar__link[aria-current="page"] {
+  color: var(--bit-color-primary-contrast);
+  background: var(--bit-color-primary);
+  /* The ring is drawn inside the link (reset.css), on this fill, so it takes the fill's contrast color. */
+  --_bit-focus-ring: var(--bit-color-primary-contrast);
+}
+
+/* C "Purple bar": the whole bar in primary, like Dialog's title bar. Rings on the fill take its contrast color,
+   as in a solid Alert; the Menu window resets it for its own surface. */
+.bit-navbar.bit-bar {
+  color: var(--bit-color-primary-contrast);
+  background: var(--bit-color-primary);
+  --_bit-focus-ring: var(--bit-color-primary-contrast);
+}
+
+.bit-navbar.bit-bar .bit-navbar__link {
+  padding: 0 var(--bit-space-12px);
+  font-family: var(--bit-font-pixel);
+  font-size: 11px; /* raw: the pixel font's sub-scale size, as Dialog's title */
+  font-weight: var(--bit-weight-normal);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: var(--bit-radius-6px);
+}
+
+.bit-navbar.bit-bar .bit-navbar__link:hover:not([aria-current="page"]) {
+  background: var(--bit-color-primary-hover);
+}
+
+/* The current link is a raised chip in the page color, with a small hard shadow. The page color, not the surface:
+   dark's surface is under 3:1 on the violet (2.83:1), its page 3.19:1. The ring inside the chip is the theme's. */
+.bit-navbar.bit-bar .bit-navbar__link[aria-current="page"] {
+  color: var(--bit-color-text);
+  background: var(--bit-color-bg);
+  box-shadow: var(--bit-shadow-sm);
+  --_bit-focus-ring: var(--bit-focus-ring-color);
+}
+
+/* A ghost Button in the bar's actions would be text-colored on the purple: give it the bar's contrast color. */
+.bit-navbar.bit-bar .bit-navbar__actions .bit-button.bit-ghost {
+  color: var(--bit-color-primary-contrast);
+}
+
+.bit-navbar.bit-bar .bit-navbar__actions .bit-button.bit-ghost:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--bit-color-primary-hover);
+}
+
+/* The Menu button the links fold into. Its hit area reaches 44px tall even at sm, past the drawn button. */
+.bit-navbar__menu {
+  display: flex;
+  align-items: center;
+}
+
+.bit-navbar__toggle {
+  position: relative;
+}
+
+.bit-navbar__toggle::before {
+  content: "";
+  position: absolute;
+  /* raw: 44px is the tap target the owner asked for */
+  inset: calc(-1 * var(--bit-border-width) - max(0px, (44px - var(--_bit-size-height)) / 2)) calc(-1 * var(--bit-border-width));
+}
+
+.bit-navbar[data-collapse="auto"] .bit-navbar__menu {
+  display: none;
+}
+
+@container (max-width: 40rem) {
+  .bit-navbar[data-collapse="auto"] .bit-navbar__links {
+    display: none;
+  }
+
+  .bit-navbar[data-collapse="auto"] .bit-navbar__menu {
+    display: flex;
+  }
+}
+
+/* Very narrow (a phone's own bar, under 24rem): the Menu button is its icon alone, still named by its hidden
+   words, so the brand and the actions keep their room. */
+@container (max-width: 24rem) {
+  .bit-navbar__toggle {
+    width: var(--_bit-size-height);
+    padding: 0;
+  }
+
+  /* Square now, so the 44px hit area reaches past both sides too. */
+  .bit-navbar__toggle::before {
+    inset: calc(-1 * var(--bit-border-width) - max(0px, (44px - var(--_bit-size-height)) / 2));
+  }
+
+  .bit-navbar__toggle-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* Forced colors drop the fills: the current link takes Highlight, as a pressed ModeToggle option. */
+@media (forced-colors: active) {
+  .bit-navbar.bit-pill .bit-navbar__link[aria-current="page"],
+  .bit-navbar.bit-bar .bit-navbar__link[aria-current="page"] {
+    forced-color-adjust: none;
+    color: HighlightText;
+    background: Highlight;
+    box-shadow: none;
+    --_bit-focus-ring: HighlightText;
+  }
+}

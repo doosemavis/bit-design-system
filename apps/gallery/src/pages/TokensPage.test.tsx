@@ -69,7 +69,8 @@ describe('TokensPage', () => {
     const bar = screen.getByRole('navigation', { name: 'On this page' });
     expect(within(bar).getAllByRole('link').map((l) => l.textContent)).toEqual(titles);
     await expectNoA11yViolations(container);
-  });
+    // axe walks every token card (the heading sizes added a card), which takes over 5s on CI's runner, as the Icon page does.
+  }, 15_000);
 
   it('every public token can be copied by name exactly once: the flow holds the color tokens, the cards hold the rest', async () => {
     await open();
