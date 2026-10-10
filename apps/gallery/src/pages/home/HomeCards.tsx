@@ -66,7 +66,7 @@ export function Facts() {
             <CardBody>
               <div className="gallery-fact">
                 <span className="gallery-fact__count">{count}</span>
-                <Text as="span" color="neutral">
+                <Text color="neutral">
                   {label}
                 </Text>
               </div>

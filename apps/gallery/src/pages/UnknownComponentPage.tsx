@@ -14,7 +14,7 @@ export function UnknownComponentPage({ slug }: UnknownComponentPageProps) {
   return (
     <Stack gap={24}>
       <Stack gap={12} align="start">
-        <Heading as="h1">No component called “{slug}”</Heading>
+        <Heading size={40}>No component called “{slug}”</Heading>
         {closest ? (
           <Text size={18}>
             <Link asChild>

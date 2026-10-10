@@ -20,8 +20,9 @@ function sourceFiles(dir: string): string[] {
  * with its reason. The old odd sizes (11, 13, 15) are deprecated and never written.
  */
 const SMALL_TEXT_ALLOWED: Readonly<Record<string, readonly string[]>> = {
-  // The type scale's 14px rows have to show 14px: the h6 heading, the Text caption row, and its code sample.
-  'pages/TypographyPage.tsx': ['size: 14', 'size: 14', 'size={14'],
+  // The Text sizes table's 14px row has to show 14px (the sample and its code), and each font card's "In use"
+  // label is a caption.
+  'pages/TypographyPage.tsx': ['size: 14', 'size={14', 'size={14'],
   // The Text page's "Hint or caption" example shows the 14px caption: the live sample and its code.
   'pages/text/TextExamples.tsx': ['size={14', 'size={14'],
   // A token row's value: muted detail beside the token's name, at the caption size, so the longest (the inset

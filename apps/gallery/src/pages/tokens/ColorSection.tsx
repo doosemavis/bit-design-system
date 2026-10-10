@@ -32,7 +32,7 @@ function SwatchRow({ name, token, values }: { name: string; token: string; value
     <Stack direction="row" gap={8} align="center">
       <Swatch token={token} />
       <Stack gap={4} align="start">
-        <Text as="span" weight="bold">
+        <Text weight="bold">
           {name}
         </Text>
         <CopyChip text={values.values.get(token) ?? ''} />

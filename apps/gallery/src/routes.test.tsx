@@ -25,7 +25,7 @@ async function checkComponentPage(manifest: Manifest) {
   expect(await screen.findByRole('heading', { level: 1, name: manifest.name })).toBeInTheDocument();
   const preview = screen.getByRole('region', { name: `${manifest.name} preview` });
   expect(preview.querySelector('[class*="bit-"]')).not.toBeNull();
-  expect(screen.getByRole('heading', { level: 3, name: 'Controls' })).toBeInTheDocument();
+  expect(screen.getByRole('region', { name: 'Controls' })).toBeInTheDocument();
   for (const name of ['Playground', 'Usage', 'Props', 'Accessibility']) {
     expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument();
   }

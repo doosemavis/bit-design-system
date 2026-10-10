@@ -37,44 +37,41 @@ const EXAMPLES: readonly Example[] = [
   },
   {
     title: 'Inline emphasis',
-    when: 'as="span" keeps Text inside a sentence; weight="bold" picks out the part that matters.',
+    when: 'A Text inside a Text stays in the sentence (it renders a span); weight="bold" picks out the part that matters.',
     sample: (
       <Text>
-        You have{' '}
-        <Text as="span" weight="bold">
-          3 coins
-        </Text>{' '}
-        left.
+        You have <Text weight="bold">3 coins</Text> left.
       </Text>
     ),
     code: `<Text>
-  You have <Text as="span" weight="bold">3 coins</Text> left.
+  You have <Text weight="bold">3 coins</Text> left.
 </Text>`,
   },
   {
     title: 'Big text that is not a title',
     when: '24, 32 and 40 use the display face, for a big number or statement that does not name a section. That face has one weight, so weight does nothing here.',
-    sample: <Text size={32}>98 tokens</Text>,
-    code: `<Text size={32}>98 tokens</Text>`,
+    sample: <Text size={32}>300 icons</Text>,
+    code: `<Text size={32}>300 icons</Text>`,
   },
   {
     title: 'Same look, different job',
-    when: 'Heading and Text take the same as and size, so at 24 they look alike.',
+    when: 'Heading and Text both take size in px, so at 24 they look alike.',
     sample: (
       <>
-        {/* role="presentation" keeps the sample out of this page's own outline; its tag is still h2. */}
-        <Heading as="h2" size={24} role="presentation">
+        {/* role="presentation" keeps the sample out of this page's own outline; its tag is still h4. */}
+        <Heading size={24} role="presentation">
           Release notes
         </Heading>
         <Text size={24}>Release notes</Text>
       </>
     ),
-    code: `<Heading as="h2" size={24}>Release notes</Heading>
+    code: `<Heading size={24}>Release notes</Heading>
 <Text size={24}>Release notes</Text>`,
     note: (
       <>
-        Only the Heading is an h2. Screen readers list it and jump to it, search engines read it as a section, and
-        reader modes build their outline from it. If it names a section, use Heading. If it is only big, use Text.
+        Only the Heading is a heading (an h4, picked by its size). Screen readers list it and jump to it, search
+        engines read it as a section, and reader modes build their outline from it. If it names a section, use Heading.
+        If it is only big, use Text.
       </>
     ),
   },
@@ -87,7 +84,7 @@ function ExampleCard({ title, when, sample, code, note }: Example) {
       <CardBody>
         <Stack gap={12}>
           <Stack gap={4}>
-            <Heading as="h3" size={16} id={titleId}>
+            <Heading size={26} id={titleId}>
               {title}
             </Heading>
             <Text color="neutral">{when}</Text>

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { block, decl, readCss } from '../css';
+import { HEADING_SIZES } from '../../tokens';
 
 /** Spec §1's table, one row per data-level. Every level declares all five, so none inherits another's. */
 const LEVELS = {
@@ -42,34 +43,29 @@ describe('components/heading.css', () => {
     expect(decl(block(css, '.bit-heading')!, 'text-transform')).toBeNull();
   });
 
-  // The face follows the size, like Text: 18 and up are the display face (one weight, so 400), 16 and 14 the
-  // body face in bold. Each size sets all five, so it never inherits a deprecated data-level's look.
+  // One face for every size: each data-size rule sets only its font size, and the base rule has the rest.
   const DISPLAY = { 'font-family': 'var(--bit-font-display)', 'font-weight': '400', 'line-height': 'var(--bit-leading-tight)', 'letter-spacing': '0.01em' };
-  const BODY = { 'font-family': 'var(--bit-font-body)', 'font-weight': 'var(--bit-weight-bold)', 'line-height': '1.3', 'letter-spacing': 'normal' };
-  it.each([
-    [40, DISPLAY],
-    [32, DISPLAY],
-    [24, DISPLAY],
-    [18, DISPLAY],
-    [16, BODY],
-    [14, BODY],
-  ] as const)('data-size="%i" sets its px size and the face that goes with it', (px, face) => {
+  it.each(HEADING_SIZES)('data-size="%i" sets only its px size, from --bit-heading-%ipx', (px) => {
     const body = block(css, `.bit-heading[data-size="${px}"]`)!;
     expect(body).not.toBeNull();
-    expect(decl(body, 'font-size')).toBe(`var(--bit-text-${px}px)`);
-    for (const [prop, value] of Object.entries(face)) expect(decl(body, prop), prop).toBe(value);
-    expect(decl(body, 'text-transform')).toBeNull();
+    expect(decl(body, 'font-size')).toBe(`var(--bit-heading-${px}px)`);
+    for (const prop of TYPE_PROPS.filter((p) => p !== 'font-size')) expect(decl(body, prop), prop).toBeNull();
   });
 
-  it('every data-size rule comes after every data-level rule, so the size wins at the same specificity', () => {
+  it('has no data-size rule outside 20 to 44', () => {
+    const sizes = [...css.matchAll(/\.bit-heading\[data-size="(\d+)"\]/g)].map((m) => Number(m[1]));
+    expect(sizes).toEqual([...HEADING_SIZES]);
+  });
+
+  it('every data-size rule comes after every data-level rule', () => {
     const lastLevel = Math.max(...[1, 2, 3, 4, 5, 6].map((n) => css.indexOf(`.bit-heading[data-level="${n}"]`)));
-    const firstSize = Math.min(...[14, 16, 18, 24, 32, 40].map((n) => css.indexOf(`.bit-heading[data-size="${n}"]`)));
+    const firstSize = Math.min(...HEADING_SIZES.map((n) => css.indexOf(`.bit-heading[data-size="${n}"]`)));
     expect(firstSize).toBeGreaterThan(lastLevel);
   });
 
-  it('with no data-size or data-level, the base rule is the h2 default: display at 32px', () => {
+  it('the base rule is the display face at the 32px default', () => {
     const root = block(css, '.bit-heading')!;
-    expect(decl(root, 'font-size')).toBe('var(--bit-text-32px)');
+    expect(decl(root, 'font-size')).toBe('var(--bit-heading-32px)');
     for (const [prop, value] of Object.entries(DISPLAY)) expect(decl(root, prop), prop).toBe(value);
   });
 });

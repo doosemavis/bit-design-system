@@ -29,19 +29,20 @@ describe('TextExamples', () => {
     const example = screen.getByRole('article', { name: 'Inline emphasis' });
     const bold = example.querySelector('.gallery-example__sample p.bit-text > span.bit-text[data-weight="bold"]');
     expect(bold).toHaveTextContent('3 coins');
-    expect(example).toHaveTextContent('<Text as="span" weight="bold">3 coins</Text>');
+    expect(example).toHaveTextContent('<Text weight="bold">3 coins</Text>');
+    expect(example).not.toHaveTextContent('as=');
   });
 
-  it('same look, different job: a Heading and a Text at 24, and a primary note on why only one is an h2', () => {
+  it('same look, different job: a Heading and a Text at 24, and a primary note on why only one is a heading', () => {
     render(<TextExamples />);
     const example = screen.getByRole('article', { name: 'Same look, different job' });
     const sample = example.querySelector('.gallery-example__sample')!;
-    // role="presentation" keeps the sample out of this page's own outline; its tag is still h2.
-    expect(sample.querySelector('h2.bit-heading[data-size="24"]')).toHaveAttribute('role', 'presentation');
+    // role="presentation" keeps the sample out of this page's own outline; size 24 still renders an h4.
+    expect(sample.querySelector('h4.bit-heading[data-size="24"]')).toHaveAttribute('role', 'presentation');
     expect(sample.querySelector('p.bit-text[data-size="24"]')).not.toBeNull();
     const note = within(example).getByRole('note');
     expect(note).toHaveClass('bit-alert', 'bit-primary', 'bit-outline');
-    expect(note).toHaveTextContent('Only the Heading is an h2');
+    expect(note).toHaveTextContent('Only the Heading is a heading (an h4, picked by its size)');
   });
 
   it('has no accessibility violations', async () => {

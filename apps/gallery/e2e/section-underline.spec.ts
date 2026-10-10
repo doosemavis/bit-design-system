@@ -1,10 +1,14 @@
 import { expect, test } from "@playwright/test";
 import { MODES, seedColorMode } from "./mode";
 
+/** A sidebar group's title: a label for its list of links, not a heading. */
+function navTitle(page: import("@playwright/test").Page, name: string) {
+  return page.locator(".gallery-sidebar__title", { hasText: name });
+}
+
 /** The computed width of the Foundations title's ::after bar, the title's own width, and the animation name. */
 async function barState(page: import("@playwright/test").Page) {
-  return page
-    .getByRole("heading", { level: 2, name: "Foundations" })
+  return navTitle(page, "Foundations")
     .evaluate((title) => {
       const bar = getComputedStyle(title, "::after");
       return {
@@ -21,7 +25,7 @@ test("reduced motion: the current section underline is full width with no animat
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("#/tokens");
   await expect(
-    page.getByRole("heading", { level: 2, name: "Foundations" }),
+    navTitle(page, "Foundations"),
   ).toBeVisible();
   const { bar, title, animation } = await barState(page);
   expect(animation).toBe("none");
@@ -33,7 +37,7 @@ test("the current section underline has filled the title once its animation ends
 }) => {
   await page.goto("#/tokens");
   await expect(
-    page.getByRole("heading", { level: 2, name: "Foundations" }),
+    navTitle(page, "Foundations"),
   ).toBeVisible();
   await expect
     .poll(async () => {
@@ -45,8 +49,7 @@ test("the current section underline has filled the title once its animation ends
 
 test("a section that is not current keeps the 22px bar", async ({ page }) => {
   await page.goto("#/tokens");
-  const width = await page
-    .getByRole("heading", { level: 2, name: "Components" })
+  const width = await navTitle(page, "Components")
     .evaluate((title) => parseFloat(getComputedStyle(title, "::after").width));
   expect(width).toBe(22);
 });
@@ -58,8 +61,7 @@ for (const mode of MODES) {
     await seedColorMode(page, mode);
     await page.goto("#/tokens");
     await expect(page.locator("html")).toHaveAttribute("data-mode", mode);
-    const { title, text } = await page
-      .getByRole("heading", { level: 2, name: "Foundations" })
+    const { title, text } = await navTitle(page, "Foundations")
       .evaluate((el) => {
         // A probe resolves var(--bit-color-text) to the same computed form as the title's color.
         const probe = document.createElement("span");

@@ -104,7 +104,7 @@ export function ControlsPanel({ manifest, state, onChange, onReset }: ControlsPa
     <section className="gallery-controls" aria-labelledby="controls-heading">
       {/* The same bar as the preview's, so the two read as one header strip across the card. */}
       <div className="gallery-controls__bar">
-        <Text as="h3" size={14} id="controls-heading" className="gallery-controls__title">
+        <Text size={14} id="controls-heading" className="gallery-controls__title">
           Controls
         </Text>
         <Button variant="ghost" size="sm" color="neutral" onClick={onReset}>

@@ -11,12 +11,17 @@ function renderSidebar(items: readonly NavItem[]) {
       <Sidebar items={items} open={false} onNavigate={() => {}} />
     </MemoryRouter>,
   );
-  return screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+  return groupTitles().map((h) => h.textContent);
 }
 
-/** The link names listed under one sidebar heading. */
+/** Every group title, in order. Each is a label for its list of links, not a heading. */
+function groupTitles(): HTMLElement[] {
+  return [...document.querySelectorAll<HTMLElement>('.gallery-sidebar__title')];
+}
+
+/** The link names in one group's list, found by the title that labels it. */
 function linksUnder(heading: string): string[] {
-  const section = screen.getByRole('heading', { level: 2, name: heading }).closest('section')!;
+  const section = screen.getByRole('list', { name: heading });
   return within(section)
     .getAllByRole('link')
     .map((link) => link.textContent ?? '');
@@ -35,7 +40,7 @@ describe('Sidebar', () => {
 
   it('group titles are Text in its neutral color, so the muted shade comes from bit', () => {
     renderSidebar(NAV);
-    expect(screen.getByRole('heading', { level: 2, name: 'Foundations' })).toHaveClass('bit-text', 'bit-neutral');
+    expect(groupTitles().find((h) => h.textContent === 'Foundations')).toHaveClass('bit-text', 'bit-neutral');
   });
 
   it('lists Foundations, Components, Forms and Brand, with Forms between Components and Brand', () => {
@@ -58,7 +63,7 @@ describe('Sidebar', () => {
 
   it('Start here comes first, with Overview, Getting started, Versions and Release notes, in that order (the one section not sorted)', () => {
     renderSidebar(NAV);
-    expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent('Start here');
+    expect(groupTitles()[0]).toHaveTextContent('Start here');
     expect(linksUnder('Start here')).toEqual(['Overview', 'Getting started', 'Versions', 'Release notes']);
     expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', '/');
     expect(screen.getByRole('link', { name: 'Getting started' })).toHaveAttribute('href', '/getting-started');
@@ -68,7 +73,7 @@ describe('Sidebar', () => {
 
   it('every section but Start here lists its items in alphabetical order', () => {
     renderSidebar(NAV);
-    for (const heading of screen.getAllByRole('heading', { level: 2 })) {
+    for (const heading of groupTitles()) {
       const sectionName = heading.textContent ?? '';
       if (sectionName === 'Start here') continue; // Only Start here is not sorted alphabetically
       const labels = linksUnder(sectionName);
@@ -105,7 +110,7 @@ describe('Sidebar current section', () => {
     go = (to) => navigate(to);
     return null;
   }
-  const title = (name: string) => screen.getByRole('heading', { level: 2, name });
+  const title = (name: string) => groupTitles().find((h) => h.textContent === name)!;
   const sectionOf = (name: string) => title(name).closest('section')!;
   function renderAt(path: string) {
     render(
@@ -130,7 +135,7 @@ describe('Sidebar current section', () => {
 
   it('marks no section on an unknown path, and does not crash', () => {
     renderAt('/nope');
-    for (const h of screen.getAllByRole('heading', { level: 2 })) expect(h.closest('section')).not.toHaveAttribute('data-current');
+    for (const h of groupTitles()) expect(h.closest('section')).not.toHaveAttribute('data-current');
   });
 
   it('does not mark Foundations on /tokens-extra, which only shares a prefix with /tokens', () => {

@@ -8,11 +8,13 @@ Package releases only. Docs-site changes don't appear here. One bullet per line.
 - Type scale: `TEXT_SIZES` is `[14, 16, 18, 24, 32, 40]`, with new tokens `--bit-text-14px`, `--bit-text-16px` and `--bit-text-40px`. 14 is the smallest text; it was 13.
 - Text: `size` takes 14, 16, 18, 24, 32 or 40, and defaults to 16 (was 15). 24, 32 and 40 use the display face.
 - Every component that used 13px or 15px text now uses 14px or 16px: Alert, Badge (`lg`), CodeBlock, Code, Field, Select, Switch, Table headers, Tabs, SegmentedControl, Tooltip, and the `sm` and `md` control sizes.
-- Heading works like Text: `as` picks the tag (`'h1'` to `'h6'`, default `'h2'`) and `size` picks the look in px (`<Heading as="h2" size={24}>`). With no `size` each tag takes its own step: h1 40, h2 32, h3 24, h4 18, h5 16, h6 14. 18 and up use the display face; 16 and 14 the body face in bold. Rendered as `data-size`. New types: `HeadingTag`, `HeadingSize`.
-- The pixel-caps h6 look is gone from the new API: `as="h6"` is the body face in bold at 14px.
+- Heads up, Heading is set by `size` alone now: every 2px from 20 to 44, all in the display face, default 32. The size picks the tag too: 40 to 44 render an h1, 32 to 38 an h2, 26 to 30 an h3, 24 an h4, 22 an h5 and 20 an h6. So `<Heading size={40}>` is a page title. `level` is deprecated, not removed: swap `level={1}` for `size={40}` and `level={2}` for `size={32}` before 0.2.0.
+- Heading sizes come from new tokens `--bit-heading-20px` to `--bit-heading-44px`. New exports: `HEADING_SIZES`, `HeadingSize`.
+- Text renders a `<p>`, or a `<span>` when it sits inside a Text, Heading, Button or Link, so `<Text>You have <Text weight="bold">3 coins</Text> left.</Text>` is one paragraph.
 - Text `size={11}`, `size={13}` and `size={15}` render as 14, 14 and 16, and warn once in development. `--bit-text-11px`, `--bit-text-13px` and `--bit-text-15px` are aliases of `--bit-text-14px` and `--bit-text-16px`. All removed in 0.2.0. New exports: `DEPRECATED_TEXT_SIZES`, `DeprecatedTextSize`.
-- Heading `level` is optional and deprecated: `level={2}` still renders an h2 with its old look, and warns once to use `as="h2" size={24}`, which keeps that look. Removed in 0.2.0.
-- Heading `size={1}` to `size={6}` (a level) still gives that level's old look, and warns once to use the px size (`size={3}` → `size={18}`). Removed in 0.2.0.
+- Text `as` is deprecated: it still renders the element you give, and warns once in development. Removed in 0.2.0. For a title, use Heading.
+- Heading `level` is optional and deprecated: `level={2}` still renders an h2 with its old look, and warns once to use the size that renders that tag (`level={2}` → `size={32}`). Removed in 0.2.0.
+- Heading `size={1}` to `size={6}` (a level) still gives that level's old look, and warns once to use a px size (`size={3}` → `size={26}`). Removed in 0.2.0.
 
 ## 0.1.7 — 2026-10-09
 ### Changed

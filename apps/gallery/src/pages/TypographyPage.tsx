@@ -1,9 +1,12 @@
+import type { ReactNode } from 'react';
 import {
   Alert,
+  Badge,
   Box,
   Card,
   CardBody,
   Code,
+  HEADING_SIZES,
   Heading,
   Stack,
   Table,
@@ -13,25 +16,72 @@ import {
   TableRow,
   Text,
 } from '@bit-ds/react';
-import type { HeadingSize, HeadingTag, TextProps } from '@bit-ds/react';
+import type { HeadingSize, TextProps } from '@bit-ds/react';
 
-/** power-up's four faces. The sample is set in the face through `.gallery-face[data-face]` in gallery.css. */
-const FACES = [
-  { face: 'display', name: 'Lilita One', use: 'Headings at 18 and up, and Text at 24, 32 and 40.' },
-  { face: 'body', name: 'Nunito', use: 'Body copy, labels, and headings at 16 and 14.' },
-  { face: 'pixel', name: 'Press Start', use: 'Badges, table headers, small labels.' },
-  { face: 'mono', name: 'JetBrains Mono', use: 'Code and CodeBlock.' },
-] as const;
+/** The specimen every font shows: both cases, the digits and some punctuation. */
+const SPECIMEN = 'ABCDEFGHIJKLM NOPQRSTUVWXYZ abcdefghijklm nopqrstuvwxyz 0123456789 !?&@';
 
-/** Each tag at its own px size, written out: the code reads like Text's as and size. */
-const HEADINGS: readonly { tag: HeadingTag; example: string; size: HeadingSize; face: string }[] = [
-  { tag: 'h1', example: 'Page title', size: 40, face: 'display' },
-  { tag: 'h2', example: 'Section', size: 32, face: 'display' },
-  { tag: 'h3', example: 'Subsection', size: 24, face: 'display' },
-  { tag: 'h4', example: 'Group title', size: 18, face: 'display' },
-  { tag: 'h5', example: 'Small title', size: 16, face: 'body bold' },
-  { tag: 'h6', example: 'Smallest title', size: 14, face: 'body bold' },
+/**
+ * power-up's four fonts, each with its specimen and a real component set in it. The specimen is set in the font
+ * through `.gallery-face[data-face]` in gallery.css; the "In use" sample is the component itself.
+ */
+const FONTS: readonly { face: string; name: string; use: string; inUse: ReactNode }[] = [
+  {
+    face: 'display',
+    name: 'Lilita One',
+    use: 'Every Heading (20 to 44), and Text at 24, 32 and 40.',
+    // role="presentation" keeps the sample out of the page outline.
+    inUse: (
+      <Heading size={28} role="presentation">
+        Level complete
+      </Heading>
+    ),
+  },
+  {
+    face: 'body',
+    name: 'Nunito',
+    use: 'Body copy and labels: Text at 14, 16 and 18, Buttons and Fields.',
+    inUse: <Text>Every component has a live preview, its props and its accessibility notes.</Text>,
+  },
+  {
+    face: 'pixel',
+    name: 'Press Start 2P',
+    use: 'Badges, table headers and small labels.',
+    inUse: (
+      <Stack direction="row" gap={8} wrap>
+        <Badge>New</Badge>
+        <Badge color="success">Ready</Badge>
+      </Stack>
+    ),
+  },
+  {
+    face: 'mono',
+    name: 'JetBrains Mono',
+    use: 'Code and CodeBlock.',
+    inUse: <Code>npm i @bit-ds/react</Code>,
+  },
 ];
+
+/** The tag each heading size renders, as Heading picks it: 40 and up h1, 32 to 38 h2, 26 to 30 h3, 24 h4, 22 h5, 20 h6. */
+function tagOf(size: HeadingSize): string {
+  if (size >= 40) return 'h1';
+  if (size >= 32) return 'h2';
+  if (size >= 26) return 'h3';
+  return { 24: 'h4', 22: 'h5', 20: 'h6' }[size as 24 | 22 | 20];
+}
+
+/** What each tag is for, as the sample text of its rows. */
+const TAG_EXAMPLE: Readonly<Record<string, string>> = {
+  h1: 'Page title',
+  h2: 'Section',
+  h3: 'Subsection',
+  h4: 'Group title',
+  h5: 'Small title',
+  h6: 'Smallest title',
+};
+
+/** Largest first, like the page outline. */
+const HEADINGS = [...HEADING_SIZES].reverse();
 
 const TEXT_SIZES: readonly { props: TextProps; example: string; size: string; code: string }[] = [
   { props: { size: 18 }, example: 'Lead paragraph', size: '18', code: '<Text size={18}>' },
@@ -39,7 +89,7 @@ const TEXT_SIZES: readonly { props: TextProps; example: string; size: string; co
   { props: { size: 14, color: 'neutral' }, example: 'Hints and captions', size: '14', code: '<Text size={14} color="neutral">' },
 ];
 
-/** A value column (tag, size, face, token): muted text, centered under its heading. */
+/** A value column (size, tag, token): muted text, centered under its heading. */
 function ValueCell({ children }: { children: string }) {
   return (
     <TableCell className="gallery-cell-center">
@@ -65,20 +115,28 @@ function HeadRow({ values }: { values: readonly string[] }) {
   );
 }
 
-function Faces() {
+/** One card per font: its name and specimen set in it, a real component that uses it, its token and its jobs. */
+function Fonts() {
   return (
-    <Box className="gallery-grid">
-      {FACES.map(({ face, name, use }) => (
-        <Card key={face}>
+    <Box className="gallery-grid gallery-grid--fonts">
+      {FONTS.map(({ face, name, use, inUse }) => (
+        <Card key={face} role="article" aria-label={name}>
           <CardBody>
-            <Stack gap={8} align="start">
-              <Text as="span" size={24} className="gallery-face" data-face={face}>
+            <Stack gap={12} align="start">
+              <Text size={24} className="gallery-face" data-face={face}>
                 {name}
               </Text>
-              <Code>{`--bit-font-${face}`}</Code>
-              <Text color="neutral">
-                {use}
+              <Text className="gallery-face gallery-face--specimen" data-face={face}>
+                {SPECIMEN}
               </Text>
+              <Stack gap={4} align="start">
+                <Text size={14} color="neutral">
+                  In use
+                </Text>
+                {inUse}
+              </Stack>
+              <Code>{`--bit-font-${face}`}</Code>
+              <Text color="neutral">{use}</Text>
             </Stack>
           </CardBody>
         </Card>
@@ -88,23 +146,22 @@ function Faces() {
 }
 
 /** Each sample is a real Heading, so it shows the real look. role="presentation" keeps it out of the page outline. */
-function HeadingTags() {
+function HeadingSizes() {
   return (
     <Table aria-label="Headings">
-      <HeadRow values={['Tag', 'Size', 'Face']} />
+      <HeadRow values={['Size', 'Tag']} />
       <TableBody>
-        {HEADINGS.map(({ tag, example, size, face }) => (
-          <TableRow key={tag}>
+        {HEADINGS.map((size) => (
+          <TableRow key={size}>
             <TableCell>
-              <Heading as={tag} size={size} role="presentation">
-                {example}
+              <Heading size={size} role="presentation">
+                {TAG_EXAMPLE[tagOf(size)]}
               </Heading>
             </TableCell>
-            <ValueCell>{tag}</ValueCell>
             <ValueCell>{String(size)}</ValueCell>
-            <ValueCell>{face}</ValueCell>
+            <ValueCell>{tagOf(size)}</ValueCell>
             <TableCell>
-              <Code>{`<Heading as="${tag}" size={${size}}>`}</Code>
+              <Code>{`<Heading size={${size}}>`}</Code>
             </TableCell>
           </TableRow>
         ))}
@@ -140,8 +197,8 @@ function DoAndDont() {
   return (
     <Box className="gallery-grid">
       <Alert color="success" title="Do" role="note">
-        Pick <Code>as</Code> for the outline (one h1 per page, no skipped levels), then <Code>size</Code> for how big it
-        looks.
+        Pick a heading's size by its place on the page: 40 and up for the page title (one per page), 32 to 38 for
+        sections, 26 to 30 inside them.
       </Alert>
       <Alert color="danger" title="Don't" role="note">
         Use a bold Text where a heading belongs. Screen readers move through a page by its headings.
@@ -150,25 +207,28 @@ function DoAndDont() {
   );
 }
 
-/** Foundations: the faces, the heading tags and the Text sizes. Built only from bit components. */
+/** Foundations: the fonts, the heading sizes and the Text sizes. Built only from bit components. */
 export function TypographyPage() {
   return (
     <Stack gap={32}>
       <Stack gap={8}>
-        <Heading as="h1">Typography</Heading>
+        <Heading size={40}>Typography</Heading>
         <Text size={18}>
-          Four faces and one scale. <Code>Heading</Code> and <Code>Text</Code> work the same way: <Code>as</Code> picks
-          the tag, <Code>size</Code> picks the look, in px. Use Heading for titles, so they're in the page outline, and
-          Text for everything else.
+          Four fonts and two scales, each set with <Code>size</Code> in px. Use <Code>Heading</Code> for titles, so
+          they're in the page outline, and <Code>Text</Code> for everything else.
         </Text>
       </Stack>
       <Stack gap={12}>
-        <Heading>Faces</Heading>
-        <Faces />
+        <Heading>Fonts</Heading>
+        <Fonts />
       </Stack>
       <Stack gap={12}>
         <Heading>Headings</Heading>
-        <HeadingTags />
+        <Text>
+          Every 2px from 20 to 44, all in the display font. The size picks the tag (h1 to h6) that screen readers and
+          search engines read, so bigger titles always rank higher.
+        </Text>
+        <HeadingSizes />
       </Stack>
       <Stack gap={12}>
         <Heading>Text sizes</Heading>

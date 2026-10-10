@@ -26,35 +26,55 @@ describe('Typography page', () => {
     const outline = within(main)
       .getAllByRole('heading')
       .map((h) => `${h.tagName} ${h.textContent}`);
-    expect(outline).toEqual(['H1 Typography', 'H2 Faces', 'H2 Headings', 'H2 Text sizes', "H2 Do and Don't"]);
+    expect(outline).toEqual(['H1 Typography', 'H2 Fonts', 'H2 Headings', 'H2 Text sizes', "H2 Do and Don't"]);
   });
 
-  it('shows the four faces, each with its font token', async () => {
-    const { container } = await renderTypography();
-    const faces = [...container.querySelectorAll('.gallery-face')].map((el) => el.getAttribute('data-face'));
-    expect(faces).toEqual(['display', 'body', 'pixel', 'mono']);
-    for (const face of faces) expect(screen.getByText(`--bit-font-${face}`)).toHaveClass('bit-code');
+  it('shows all four fonts, each with its name and specimen set in it, a component in use, and its token', async () => {
+    await renderTypography();
+    const cards = ['Lilita One', 'Nunito', 'Press Start 2P', 'JetBrains Mono'].map((name) => screen.getByRole('article', { name }));
+    const faces = ['display', 'body', 'pixel', 'mono'];
+    cards.forEach((card, i) => {
+      const face = faces[i]!;
+      const set = [...card.querySelectorAll('.gallery-face')];
+      expect(set.map((el) => el.getAttribute('data-face'))).toEqual([face, face]);
+      expect(set[1]).toHaveClass('gallery-face--specimen');
+      expect(set[1]).toHaveTextContent('0123456789');
+      expect(within(card).getByText('In use')).toBeInTheDocument();
+      expect(within(card).getByText(`--bit-font-${face}`)).toHaveClass('bit-code');
+    });
+    // Each "In use" sample is the real component that uses the font.
+    expect(cards[0]!.querySelector('.bit-heading')).toHaveAttribute('role', 'presentation');
+    expect(cards[2]!.querySelectorAll('.bit-badge')).toHaveLength(2);
+    expect(within(cards[3]!).getByText('npm i @bit-ds/react')).toHaveClass('bit-code');
   });
 
-  it('the Headings table renders every tag as a real Heading, with its tag, size, face and code', async () => {
+  it('the Headings table shows every size from 44 down to 20 as a real Heading, with the tag the size picks', async () => {
     await renderTypography();
     const table = screen.getByRole('table', { name: 'Headings' });
     const samples = [...table.querySelectorAll('.bit-heading')];
     expect(samples.map((el) => `${el.tagName} ${el.getAttribute('data-size')}`)).toEqual([
+      'H1 44',
+      'H1 42',
       'H1 40',
+      'H2 38',
+      'H2 36',
+      'H2 34',
       'H2 32',
-      'H3 24',
-      'H4 18',
-      'H5 16',
-      'H6 14',
+      'H3 30',
+      'H3 28',
+      'H3 26',
+      'H4 24',
+      'H5 22',
+      'H6 20',
     ]);
     for (const el of samples) expect(el).toHaveAttribute('role', 'presentation');
-    expect(within(table).getByText('<Heading as="h6" size={14}>')).toHaveClass('bit-code');
+    expect(within(table).getByText('<Heading size={20}>')).toHaveClass('bit-code');
     expect(table.textContent).not.toContain('level');
+    expect(table.textContent).not.toContain('as=');
   });
 
   it.each([
-    ['Headings', ['Example', 'Tag', 'Size', 'Face', 'Code'], 4, ['h5', '16', 'body bold']],
+    ['Headings', ['Example', 'Size', 'Tag', 'Code'], 10, ['24', 'h4']],
     ['Text sizes', ['Example', 'Size', 'Token', 'Code'], 1, ['16', '--bit-text-16px']],
   ])('the %s table gives each value a column, centered under its heading', async (name, head, sampleRow, values) => {
     await renderTypography();
@@ -69,20 +89,18 @@ describe('Typography page', () => {
     }
   });
 
-  // Value: protects=each Headings row's face cell matches heading.css for its size; fails_when=heading.css changes the face a size uses and the page text does not; why_new=only h4's text is checked, never against the CSS; seam=none
-  it("every Headings row's face matches heading.css for its size, and its code names as and size", async () => {
+  it("every Headings row's size has a rule in heading.css, its tag is the sample's, and its code is size only", async () => {
     // Not new URL(..., import.meta.url): under jsdom Vite rewrites that to an http: URL; ?raw CSS comes back empty.
     const css = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../../../packages/core/src/components/heading.css'), 'utf8');
     await renderTypography();
     const table = screen.getByRole('table', { name: 'Headings' });
     for (const row of table.querySelectorAll('.bit-table__body .bit-table__row')) {
-      const [, tag, size, faceCell, code] = cellTexts(row);
-      const rule = new RegExp(`\\.bit-heading\\[data-size="${size}"\\]\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? '';
-      const face = /font-family:\s*var\(--bit-font-(\w+)\)/.exec(rule)?.[1];
-      expect(face, `${tag} at ${size}: a data-size rule`).toBeDefined();
-      expect(faceCell, `${tag} face`).toMatch(new RegExp(`^${face}\\b`));
-      expect(code, `${tag} code`).toBe(`<Heading as="${tag}" size={${size}}>`);
-      expect(row.querySelector('.bit-heading'), `${tag} sample`).toHaveAttribute('data-size', size);
+      const [, size, tag, code] = cellTexts(row);
+      expect(css, `${size}: a data-size rule`).toContain(`.bit-heading[data-size="${size}"]`);
+      const sample = row.querySelector('.bit-heading')!;
+      expect(sample.tagName.toLowerCase(), `${size} tag`).toBe(tag);
+      expect(sample).toHaveAttribute('data-size', size);
+      expect(code, `${size} code`).toBe(`<Heading size={${size}}>`);
     }
   });
 

@@ -201,23 +201,24 @@ describe('manifest contract', () => {
     expect(text.presets?.map((p) => p.state.size)).toEqual(['32', '14']);
   });
 
-  it('Heading always prints as and size, so the code shows the tag and the px look; no level anywhere', () => {
+  it('Heading has one control, size, and always prints it; no as and no level anywhere', () => {
     expect(toJsx(heading, defaultState(heading))).toBe(
-      'import { Heading } from \'@bit-ds/react\';\n\n<Heading as="h2" size={32}>Build with bit</Heading>',
+      "import { Heading } from '@bit-ds/react';\n\n<Heading size={32}>Build with bit</Heading>",
     );
     const preset = heading.presets!.find((p) => p.label === 'Page title')!;
-    expect(toJsx(heading, { ...defaultState(heading), ...preset.state } as ControlState)).toContain('<Heading as="h1" size={40}>Build with bit</Heading>');
-    expect(heading.controls.map((c) => c.prop)).toEqual(['as', 'size']);
+    expect(toJsx(heading, { ...defaultState(heading), ...preset.state } as ControlState)).toContain('<Heading size={40}>Build with bit</Heading>');
+    expect(heading.controls.map((c) => c.prop)).toEqual(['size']);
   });
 
-  it('Text presets never reach for a heading tag: titles belong to Heading', () => {
+  it('Text has no as control: Text picks its element, and titles belong to Heading', () => {
     expect(text.presets?.map((p) => p.label)).toEqual(['Display text', 'Muted caption']);
-    expect(text.presets?.every((p) => !String(p.state.as ?? 'p').startsWith('h'))).toBe(true);
+    expect(text.controls.map((c) => c.prop)).not.toContain('as');
+    expect(text.presets?.every((p) => !('as' in p.state))).toBe(true);
   });
 
-  it('Heading size offers the px sizes, never the deprecated levels', () => {
+  it('Heading size offers every 2px from 20 to 44, never the deprecated levels', () => {
     const size = heading.controls.find((c) => c.prop === 'size')!;
-    expect(size.kind === 'select' && size.values).toEqual(['14', '16', '18', '24', '32', '40']);
+    expect(size.kind === 'select' && size.values).toEqual(['20', '22', '24', '26', '28', '30', '32', '34', '36', '38', '40', '42', '44']);
   });
 
   it('Box prints its padding and leaves the other spacing props off until chosen; 0 prints as 0', () => {

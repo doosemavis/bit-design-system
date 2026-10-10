@@ -346,7 +346,7 @@ html {
 .gallery-face[data-face="pixel"] {
   font-family: var(--bit-font-pixel);
   font-weight: 400;
-  font-size: var(--bit-text-13px);
+  font-size: var(--bit-text-14px);
   text-transform: uppercase;
 }
 
@@ -354,6 +354,28 @@ html {
   font-family: var(--bit-font-mono);
   font-weight: 400;
   font-size: var(--bit-text-18px);
+}
+
+/* A font's specimen: the alphabet and digits, in its face, wrapping where it needs to. The pixel name is caps,
+   but its specimen keeps its lowercase, so both cases show. */
+.gallery-face--specimen {
+  min-height: 0;
+  overflow-wrap: anywhere;
+}
+
+.gallery-face--specimen[data-face="pixel"] {
+  text-transform: none;
+}
+
+/* The four font cards: two by two, so none sits alone on a row; one column on a phone. */
+.gallery-grid--fonts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 40rem) {
+  .gallery-grid--fonts {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* A Typography table value (tag, size, face, token) centered under its column heading. Two classes, so it

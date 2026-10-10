@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import type { AnchorHTMLAttributes } from 'react';
 import { toClasses } from '../../system/toClasses';
+import { InlineText } from '../../system/inlineText';
 import { createSlot } from '../../system/Slot';
 
 /** Only these two pass text contrast in both modes, so Link has no full color axis. */
@@ -20,6 +21,10 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
   ref,
 ) {
   const classes = toClasses('link', [{ name: 'color', allowed: colors, value: color }], className);
-  if (asChild) return <Slot ref={ref} className={classes} {...rest} />;
-  return <a ref={ref} className={classes} {...rest} />;
+  // A Text in a link renders a span, so the link stays inline in its sentence.
+  return (
+    <InlineText.Provider value>
+      {asChild ? <Slot ref={ref} className={classes} {...rest} /> : <a ref={ref} className={classes} {...rest} />}
+    </InlineText.Provider>
+  );
 });

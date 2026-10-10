@@ -18,6 +18,12 @@ export const TEXT_SIZES = [14, 16, 18, 24, 32, 40] as const;
 export const DEPRECATED_TEXT_SIZES = [11, 13, 15] as const;
 /** What each deprecated size renders as: 11 and 13 → 14, 15 → 16. */
 export const DEPRECATED_TEXT_SIZE_TO = { 11: 14, 13: 14, 15: 16 } as const;
+/**
+ * Heading sizes in px: every 2px from 20 to 44, all in the display face. Same numbers as Heading's `size` prop, its
+ * `data-size` attribute and the `--bit-heading-{n}px` token. The size also picks the tag (40 and up h1, 32 to 38
+ * h2, 26 to 30 h3, 24 h4, 22 h5, 20 h6).
+ */
+export const HEADING_SIZES = [20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44] as const;
 /** Space in px. Same numbers as Stack's `gap` prop, its `data-gap` attribute and the `--bit-space-{n}px` token. */
 export const SPACE_STEPS = [4, 8, 12, 16, 24, 32, 48, 64] as const;
 /** Corner radii in px, as `--bit-radius-{n}px`. `--bit-radius-full` (the pill) names a shape, not a size. */
@@ -30,6 +36,7 @@ export type Size = (typeof SIZES)[number];
 export type TextSize = (typeof TEXT_SIZES)[number];
 /** @deprecated 11, 13 and 15: use 14 or 16. Removed in 0.2.0. */
 export type DeprecatedTextSize = (typeof DEPRECATED_TEXT_SIZES)[number];
+export type HeadingSize = (typeof HEADING_SIZES)[number];
 export type SpaceStep = (typeof SPACE_STEPS)[number];
 
 const token = (category: string, ...parts: (string | number)[]) =>
@@ -65,6 +72,7 @@ const typeTokens = [
   ...['display', 'body', 'pixel', 'mono'].map((f) => token('font', f)),
   ...TEXT_SIZES.map((n) => token('text', px(n))),
   ...DEPRECATED_TEXT_SIZES.map((n) => token('text', px(n))),
+  ...HEADING_SIZES.map((n) => token('heading', px(n))),
   token('leading', 'tight'),
   token('leading', 'normal'),
   token('weight', 'normal'),

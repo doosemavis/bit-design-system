@@ -90,7 +90,7 @@ export function GetStarted() {
           </li>
         </ul>
         <Stack gap={8}>
-          <Text as="h3" weight="bold" className="gallery-caption">
+          <Text weight="bold" className="gallery-caption">
             In your entry file
           </Text>
           <Text>
@@ -99,7 +99,7 @@ export function GetStarted() {
           <CodeBlock code={STYLE_IMPORTS} language="tsx" label="Style imports" />
         </Stack>
         <Stack gap={8}>
-          <Text as="h3" weight="bold" className="gallery-caption">
+          <Text weight="bold" className="gallery-caption">
             Or in your global stylesheet
           </Text>
           <Text>
@@ -128,13 +128,13 @@ export function GetStarted() {
             {/* The code and what it renders, side by side (stacked on a phone). */}
             <div className="gallery-split">
               <Stack gap={8} className="gallery-split__code">
-                <Text as="h3" weight="bold" className="gallery-caption">
+                <Text weight="bold" className="gallery-caption">
                   1. In a component file, such as <Code>src/Toolbar.tsx</Code>:
                 </Text>
                 <CodeBlock code={FIRST_COMPONENT} language="tsx" label="First component" />
               </Stack>
               <Stack gap={8}>
-                <Text as="h3" weight="bold" className="gallery-caption">
+                <Text weight="bold" className="gallery-caption">
                   It renders:
                 </Text>
                 <Card role="region" aria-label="What it renders" className="gallery-split__result">
@@ -170,7 +170,7 @@ export function GetStarted() {
             </ul>
           </Stack>
           <Stack gap={8} data-step-part="2">
-            <Text as="h3" weight="bold" className="gallery-caption">
+            <Text weight="bold" className="gallery-caption">
               2. Then use your component like any other, for example in <Code>src/App.tsx</Code>:
             </Text>
             <CodeBlock code={USE_IT} language="tsx" label="Use it in your app" />

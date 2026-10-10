@@ -1,59 +1,48 @@
-import { Heading } from '@bit-ds/react';
+import { HEADING_SIZES, Heading } from '@bit-ds/react';
 import type { Manifest } from './types';
-
-const TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
-const SIZES = ['14', '16', '18', '24', '32', '40'];
 
 export const heading: Manifest = {
   name: 'Heading',
   slug: 'heading',
   group: 'components',
   component: Heading,
-  description: 'A section title. as picks the tag (h1–h6) for the page outline; size picks the look, in px, like Text.',
-  controls: [
-    { kind: 'select', prop: 'as', values: TAGS, default: 'h2', alwaysPrint: true },
-    { kind: 'select', prop: 'size', values: SIZES, default: '32', numeric: true, alwaysPrint: true },
-  ],
+  description: 'A section title. size is the look, in px, every 2px from 20 to 44, and it picks the tag (h1 to h6) for the page outline.',
+  controls: [{ kind: 'select', prop: 'size', values: HEADING_SIZES.map(String), default: '32', numeric: true, alwaysPrint: true }],
   children: 'Build with bit',
   presets: [
-    { label: 'Page title', state: { as: 'h1', size: '40' } },
-    { label: 'Small h2', state: { as: 'h2', size: '24' } },
+    { label: 'Page title', state: { size: '40' } },
+    { label: 'Card title', state: { size: '26' } },
   ],
   docs: {
-    badges: ['h1 to h6', 'size in px'],
+    badges: ['size in px', 'size picks h1 to h6'],
     usage: {
       do: [
-        'Pick as for the outline: one h1 per page, then h2 for sections, h3 inside them.',
-        'Pick size for how big it looks, in px. 18 and up use the display face; 16 and 14 the body face in bold.',
+        'Pick size by where the title sits: 40 and up for the page title (one per page), 32 to 38 for sections, 26 to 30 inside them.',
+        'Every size is the display face, so a title looks the same family at any size.',
       ],
       dont: [
-        'Skip tags (an h4 straight after the h1) to get a smaller look. Keep the tag and use size.',
+        'Jump from a page title straight to 24 or under: that skips tags in the outline (h1, then h4).',
         'Use a bold Text where a heading belongs.',
       ],
     },
     props: [
       {
-        name: 'as',
-        type: "'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'",
-        default: "'h2'",
-        description: 'The tag, for the page outline that screen readers, search engines and reader modes use.',
-      },
-      {
         name: 'size',
-        type: '14 | 16 | 18 | 24 | 32 | 40',
+        type: '20 | 22 | 24 | 26 | 28 | 30 | 32 | 34 | 36 | 38 | 40 | 42 | 44',
+        default: '32',
         description:
-          "The look, in px. Rendered as data-size; reads --bit-text-{size}px. Default: the tag's own size (h1 40, h2 32, h3 24, h4 18, h5 16, h6 14). 1 to 6 (a level) is deprecated and will be removed in 0.2.0.",
+          'The look, in px. Rendered as data-size; reads --bit-heading-{size}px. It picks the tag too: 40 to 44 h1, 32 to 38 h2, 26 to 30 h3, 24 h4, 22 h5, 20 h6. 1 to 6 (a level) is deprecated and will be removed in 0.2.0.',
       },
       {
         name: 'level',
         type: '1 | 2 | 3 | 4 | 5 | 6',
-        description: 'Deprecated: use as="h{level}". Still renders the old look, with a dev warning. Removed in 0.2.0.',
+        description: 'Deprecated: use size, which picks the tag. Still renders the old tag and look, with a dev warning. Removed in 0.2.0.',
       },
       { name: 'children', type: 'ReactNode', description: 'The title.' },
     ],
     a11y: [
       'Renders a real <h1> to <h6>; screen-reader users jump between headings to scan a page.',
-      'size changes only the look, so an h2 at 18px is still announced as heading level 2.',
+      'The size picks the tag, so bigger titles always rank higher in the outline than smaller ones.',
     ],
   },
 };

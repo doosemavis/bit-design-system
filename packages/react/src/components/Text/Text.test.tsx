@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { Text } from './Text';
+import { Button } from '../Button/Button';
+import { Link } from '../Link/Link';
 import { TEXT_SIZES } from '../../system/axes';
 import { expectNoA11yViolations } from '../../test/a11y';
 import { resetDeprecationWarnings } from '../../system/warnDeprecated';
@@ -20,12 +22,65 @@ describe('Text', () => {
     expect(el).toHaveAttribute('data-weight', 'normal');
   });
 
-  it('renders the element given by `as` and maps size, color, and weight', () => {
-    render(<Text as="h2" size={32} color="neutral" weight="bold">Title</Text>);
-    const el = screen.getByRole('heading', { level: 2 });
+  it('maps size, color, and weight', () => {
+    render(<Text size={32} color="neutral" weight="bold">Big</Text>);
+    const el = screen.getByText('Big');
     expect(el.className).toBe('bit-text bit-neutral');
     expect(el).toHaveAttribute('data-size', '32');
     expect(el).toHaveAttribute('data-weight', 'bold');
+  });
+
+  it('a Text inside a Text renders a span, so the sentence stays one paragraph', () => {
+    render(
+      <Text>
+        You have <Text weight="bold">3 coins</Text> left.
+      </Text>,
+    );
+    expect(screen.getByText('3 coins').tagName).toBe('SPAN');
+    expect(screen.getByText('3 coins').parentElement?.tagName).toBe('P');
+  });
+
+  it('a Text inside a Button or a Link renders a span', () => {
+    render(
+      <>
+        <Button>
+          <Text>Save</Text>
+        </Button>
+        <Link href="#top">
+          <Text>Back to top</Text>
+        </Link>
+      </>,
+    );
+    expect(screen.getByText('Save').tagName).toBe('SPAN');
+    expect(screen.getByText('Back to top').tagName).toBe('SPAN');
+  });
+
+  it('a Text next to (not inside) another renders a <p>', () => {
+    render(
+      <div>
+        <Text>One</Text>
+        <Text>Two</Text>
+      </div>,
+    );
+    expect(screen.getByText('Two').tagName).toBe('P');
+  });
+
+  describe('deprecated: as (removed in 0.2.0)', () => {
+    it('still renders the element given, and warns once', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <>
+          <Text as="span">a</Text>
+          <Text as="label">b</Text>
+        </>,
+      );
+      expect(screen.getByText('a').tagName).toBe('SPAN');
+      expect(screen.getByText('b').tagName).toBe('LABEL');
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(
+        '[bit] Text as= is deprecated: Text renders a <p>, or a <span> inside a Text, Heading, Button or Link. For a title, use Heading. It will be removed in 0.2.0.',
+      );
+    });
   });
 
   it.each([
@@ -76,13 +131,17 @@ describe('Text', () => {
 
   it('appends className last and forwards the ref', () => {
     const ref = createRef<HTMLElement>();
-    render(<Text ref={ref} as="span" className="extra">x</Text>);
+    render(<Text ref={ref} className="extra">x</Text>);
     expect(screen.getByText('x').className).toBe('bit-text extra');
     expect(ref.current).toBe(screen.getByText('x'));
   });
 
-  it('has no accessibility violations as a heading', async () => {
-    const { container } = render(<Text as="h1" size={24}>Press Start</Text>);
+  it('has no accessibility violations, nested or not', async () => {
+    const { container } = render(
+      <Text size={24}>
+        Press <Text weight="bold">Start</Text>
+      </Text>,
+    );
     await expectNoA11yViolations(container);
   });
 });

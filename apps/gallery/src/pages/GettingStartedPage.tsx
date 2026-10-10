@@ -51,13 +51,13 @@ export function GettingStartedPage() {
             <ModeToggle />
           </Stack>
           <Stack gap={8}>
-            <Text as="h3" weight="bold" className="gallery-caption">
+            <Text weight="bold" className="gallery-caption">
               In <Code>index.html</Code>
             </Text>
             <CodeBlock code={HTML_EXAMPLE} language="html" label="index.html" />
           </Stack>
           <Stack gap={8}>
-            <Text as="h3" weight="bold" className="gallery-caption">
+            <Text weight="bold" className="gallery-caption">
               In any file
             </Text>
             <CodeBlock code={COLOR_MODE_EXAMPLE} language="jsx" label="Any file" />

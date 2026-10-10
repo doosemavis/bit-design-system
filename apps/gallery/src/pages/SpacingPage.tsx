@@ -41,7 +41,7 @@ function Ruler() {
         <Stack gap={8}>
           {SPACE_STEPS.map((step) => (
             <Box key={step} className="gallery-ruler">
-              <Text as="span" color="neutral">
+              <Text color="neutral">
                 {step}
               </Text>
               <Box paddingLeft={step} className="gallery-ruler__bar" aria-hidden="true" />
@@ -60,7 +60,7 @@ function StackOrBox() {
       <Card>
         <CardBody>
           <Stack gap={12}>
-            <Heading as="h3" size={16}>
+            <Heading size={26}>
               Stack: space between things
             </Heading>
             <Stack direction="row" gap={16}>
@@ -75,7 +75,7 @@ function StackOrBox() {
       <Card>
         <CardBody>
           <Stack gap={12}>
-            <Heading as="h3" size={16}>
+            <Heading size={26}>
               Box: space around one thing
             </Heading>
             {/* A row, so the Box hugs its Badge instead of stretching across the card. */}
@@ -128,7 +128,7 @@ export function SpacingPage() {
   return (
     <Stack gap={32}>
       <Stack gap={8}>
-        <Heading as="h1">Spacing</Heading>
+        <Heading size={40}>Spacing</Heading>
         <Text size={18}>
           One scale for every gap, pad and margin: 4, 8, 12, 16, 24, 32, 48 and 64. <Code>Stack</Code> spaces things
           apart, and <Code>Box</Code> pads and offsets a single thing.

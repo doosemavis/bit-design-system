@@ -17,16 +17,8 @@ export const text: Manifest = {
   slug: 'text',
   group: 'components',
   component: Text,
-  description: 'Typography. The element comes from `as`; the look comes from `size`, in px. Heading works the same way, for titles.',
+  description: 'Body copy, labels and captions. size is the look, in px. A Text inside another Text renders inline. For titles, use Heading.',
   controls: [
-    // No h1 to h6: the API takes them, but a title belongs to Heading, so the playground doesn't offer them.
-    {
-      kind: 'select',
-      prop: 'as',
-      values: ['p', 'span', 'div', 'label'],
-      default: 'p',
-      hint: 'For a title, use Heading: as="h2" and the same size.',
-    },
     { kind: 'select', prop: 'size', values: SUPPORTED_TEXT_SIZES.map(String), default: '16', numeric: true },
     { kind: 'select', prop: 'color', values: ['default', 'neutral'], default: 'default', label: 'color' },
     { kind: 'select', prop: 'weight', values: ['normal', 'bold'], default: 'normal', lock: weightLock },
@@ -45,18 +37,11 @@ export const text: Manifest = {
         'Use color="neutral" for hints and captions that should step back.',
       ],
       dont: [
-        'Use Text for a section title, even a big one. Use Heading as="h2": same size prop, and it joins the page outline.',
+        'Use Text for a section title, even a big one. Use Heading: same size prop, and it joins the page outline.',
         'Use size to make body text tiny; 14 is the smallest, for hints and captions.',
       ],
     },
     props: [
-      {
-        name: 'as',
-        type: "'p' | 'span' | 'div' | 'label' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'",
-        default: "'p'",
-        description:
-          'Which element to render. The look comes from size, not from the tag. h1 to h6 work, but a title belongs in Heading, which takes the same as and size.',
-      },
       {
         name: 'size',
         type: '14 | 16 | 18 | 24 | 32 | 40',
@@ -71,10 +56,16 @@ export const text: Manifest = {
         default: "'normal'",
         description: 'Rendered as data-weight. No effect at 24, 32 and 40, where the display face has one weight.',
       },
-      { name: 'children', type: 'ReactNode', description: 'The text.' },
+      { name: 'children', type: 'ReactNode', description: 'The text. A Text inside it renders a <span>, for bold or muted words in a sentence.' },
+      {
+        name: 'as',
+        type: "'p' | 'span' | 'div' | 'label' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'",
+        description:
+          'Deprecated: Text picks its element. It renders a <p>, or a <span> inside a Text, Heading, Button or Link. Still works, with a dev warning. Removed in 0.2.0.',
+      },
     ],
     a11y: [
-      'Text renders the element you choose, so as="p" is a paragraph to screen readers.',
+      'Text renders a <p>, a paragraph to screen readers. Inside a Text, Heading, Button or Link it renders a <span>, so it never breaks the sentence or the control.',
       'A big Text is still not a heading. Screen-reader users move through a page by its headings, so titles need Heading.',
     ],
   },

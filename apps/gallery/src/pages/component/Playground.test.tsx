@@ -48,7 +48,7 @@ describe('Playground (B3: one card)', () => {
     const { container } = renderPlayground(childrenOnly);
     const controls = container.querySelector('.gallery-playground__top > .gallery-controls')!;
     expect([...controls.children].map((child) => child.className)).toEqual(['gallery-controls__bar', 'gallery-controls__grid']);
-    expect(within(controls as HTMLElement).getByRole('heading', { level: 3, name: 'Controls' })).toBeInTheDocument();
+    expect(within(controls as HTMLElement).getByText('Controls')).toHaveAttribute('id', 'controls-heading');
     const grid = controls.querySelector('.gallery-controls__grid')!;
     expect(grid.children).toHaveLength(1);
     expect(within(grid as HTMLElement).getByLabelText('children')).toHaveValue('x');

@@ -112,9 +112,10 @@ describe('ControlsPanel', () => {
     expect(screen.getByLabelText('aria-label')).toHaveValue('Loading coins');
   });
 
-  it('Controls is an h3 under the Playground h2', () => {
+  it('Controls names the panel: a region labelled by its title, which is a label, not a heading', () => {
     render(<ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={() => {}} />);
-    expect(screen.getByRole('heading', { level: 3, name: 'Controls' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Controls' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Controls' })).toBeNull();
   });
 
   it("emptied children show the manifest's error, tied to the field and marking it invalid", async () => {
@@ -153,7 +154,7 @@ describe('ControlsPanel', () => {
     expect(container.querySelector('[class*="gallery-control__"], .gallery-switch')).toBeNull();
   });
 
-  it('starts with a bar like the preview bar: the h3 "Controls" in the pixel label face, then Reset', () => {
+  it('starts with a bar like the preview bar: the "Controls" label in the pixel label face, then Reset', () => {
     const { container } = render(
       <ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={() => {}} />,
     );
@@ -161,7 +162,7 @@ describe('ControlsPanel', () => {
     expect(section).toHaveAttribute('aria-labelledby', 'controls-heading');
     const bar = section.firstElementChild!;
     expect(bar).toHaveClass('gallery-controls__bar');
-    const heading = screen.getByRole('heading', { level: 3, name: 'Controls' });
+    const heading = screen.getByText('Controls');
     expect(heading).toHaveAttribute('id', 'controls-heading');
     // The same Text size as the preview title; the pixel face comes from the selector list it shares with it.
     expect(heading).toHaveClass('bit-text', 'gallery-controls__title');
@@ -203,11 +204,9 @@ describe('ControlsPanel', () => {
       expect(screen.queryByRole('note')).toBeNull();
     });
 
-    it('as offers no heading tags and points to Heading in its hint', () => {
-      renderText('15');
-      const as = screen.getByRole('combobox', { name: 'as' });
-      expect(optionLabels(as)).toEqual(['p', 'span', 'div', 'label']);
-      expect(as).toHaveAccessibleDescription('For a title, use Heading: as="h2" and the same size.');
+    it('offers no as: Text picks its element', () => {
+      renderText('16');
+      expect(screen.queryByRole('combobox', { name: 'as' })).toBeNull();
     });
   });
 });

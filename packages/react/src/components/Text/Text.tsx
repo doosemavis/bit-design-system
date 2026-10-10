@@ -1,17 +1,22 @@
-import { createElement, forwardRef } from 'react';
+import { createElement, forwardRef, useContext } from 'react';
 import type { HTMLAttributes } from 'react';
 import { DEPRECATED_TEXT_SIZES, DEPRECATED_TEXT_SIZE_TO, TEXT_SIZES } from '../../system/axes';
 import type { DeprecatedTextSize, TextSize } from '../../system/axes';
+import { InlineText } from '../../system/inlineText';
 import { dataValue, toClasses } from '../../system/toClasses';
 import { warnDeprecated } from '../../system/warnDeprecated';
 
 /** Only `neutral` (muted) is supported on Text in v1; see the plan note. */
 const colors = ['neutral'] as const;
 
+/** @deprecated Text picks its element itself now. Removed in 0.2.0. */
 export type TextElement = 'p' | 'span' | 'div' | 'label' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
 export interface TextProps extends HTMLAttributes<HTMLElement> {
-  /** Which element to render. Styling comes from `size`, not from the tag. */
+  /**
+   * @deprecated Text renders a `<p>`, or a `<span>` inside a Text, Heading, Button or Link. For a title use Heading.
+   * Removed in 0.2.0.
+   */
   as?: TextElement;
   /**
    * Size in px (14, 16, 18, 24, 32, 40). Rendered as `data-size`; reads `--bit-text-{size}px`. 24, 32 and 40 use the
@@ -28,10 +33,18 @@ export interface TextProps extends HTMLAttributes<HTMLElement> {
   weight?: 'normal' | 'bold';
 }
 
+/** Body copy: a `<p>`, or a `<span>` when it sits inside a Text, Heading, Button or Link. */
 export const Text = forwardRef<HTMLElement, TextProps>(function Text(
-  { as = 'p', size = 16, color, weight = 'normal', className, ...rest },
+  { as, size = 16, color, weight = 'normal', className, children, ...rest },
   ref,
 ) {
+  const inline = useContext(InlineText);
+  if (as !== undefined) {
+    warnDeprecated(
+      'text-as',
+      'Text as= is deprecated: Text renders a <p>, or a <span> inside a Text, Heading, Button or Link. For a title, use Heading. It will be removed in 0.2.0.',
+    );
+  }
   // String(): untyped callers (JS, MDX) can pass size="13", which is the old form too.
   const old = DEPRECATED_TEXT_SIZES.find((n) => String(n) === String(size));
   if (old !== undefined) {
@@ -40,11 +53,16 @@ export const Text = forwardRef<HTMLElement, TextProps>(function Text(
       `Text size={${old}} is deprecated: the scale is even now (14, 16, 18, 24, 32, 40). Use size={${DEPRECATED_TEXT_SIZE_TO[old]}}. It will be removed in 0.2.0.`,
     );
   }
-  return createElement(as, {
-    ref,
-    className: toClasses('text', [{ name: 'color', allowed: colors, value: color }], className),
-    'data-size': dataValue('text', { name: 'size', allowed: TEXT_SIZES, value: old === undefined ? size : DEPRECATED_TEXT_SIZE_TO[old] }),
-    'data-weight': weight,
-    ...rest,
-  });
+  const element = createElement(
+    as ?? (inline ? 'span' : 'p'),
+    {
+      ref,
+      className: toClasses('text', [{ name: 'color', allowed: colors, value: color }], className),
+      'data-size': dataValue('text', { name: 'size', allowed: TEXT_SIZES, value: old === undefined ? size : DEPRECATED_TEXT_SIZE_TO[old] }),
+      'data-weight': weight,
+      ...rest,
+    },
+    children,
+  );
+  return inline ? element : createElement(InlineText.Provider, { value: true }, element);
 });

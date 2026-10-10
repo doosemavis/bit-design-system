@@ -86,7 +86,7 @@ describe('TokensPage', () => {
 
   it('each section is a grid of cards, named for the family they hold', async () => {
     await open();
-    expect(cardsIn('Type')).toEqual(['faces', 'sizes', 'weight & leading']);
+    expect(cardsIn('Type')).toEqual(['faces', 'text sizes', 'heading sizes', 'weight & leading']);
     expect(cardsIn('Space')).toEqual(['space', 'controls']);
     // Shadow last and full width: its values are the longest, so it gets the room to keep each on one line.
     expect(cardsIn('Shape')).toEqual(['radius', 'lines', 'shadow']);
@@ -135,9 +135,12 @@ describe('TokensPage', () => {
       'Press Start',
       'JetBrains Mono',
     ]);
-    expect([...card('sizes').querySelectorAll('.gallery-token-row__name')].map((el) => el.textContent)).toEqual(['14', '16', '18', '24', '32', '40']);
+    expect([...card('text sizes').querySelectorAll('.gallery-token-row__name')].map((el) => el.textContent)).toEqual(['14', '16', '18', '24', '32', '40']);
+    expect([...card('heading sizes').querySelectorAll('.gallery-token-row__name')].map((el) => el.textContent)).toEqual(
+      ['20', '22', '24', '26', '28', '30', '32', '34', '36', '38', '40', '42', '44'],
+    );
     for (const old of [11, 13, 15]) expect(screen.queryByRole('button', { name: `Copy --bit-text-${old}px` })).toBeNull();
-    expect(card('sizes')).not.toHaveTextContent('deprecated');
+    expect(card('text sizes')).not.toHaveTextContent('deprecated');
     expect(screen.getByRole('link', { name: 'See Typography' })).toHaveAttribute('href', '/typography');
     expect(screen.getByRole('link', { name: 'See Spacing' })).toHaveAttribute('href', '/spacing');
   });

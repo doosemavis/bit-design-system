@@ -19,7 +19,7 @@ export function HomePage() {
       <Stack gap={32}>
         <div className="gallery-hero">
           <Stack gap={16} align="start">
-            <Heading as="h1">
+            <Heading size={40}>
               <BitLogo size="lg" />
             </Heading>
             <Text size={18}>A retro-styled React Design System for people who want a bit of nostalgia.</Text>

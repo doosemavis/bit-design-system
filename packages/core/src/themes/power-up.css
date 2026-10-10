@@ -129,6 +129,20 @@
   --bit-text-11px: var(--bit-text-14px);
   --bit-text-13px: var(--bit-text-14px);
   --bit-text-15px: var(--bit-text-16px);
+  /* Heading sizes: every 2px from 20 to 44. */
+  --bit-heading-20px: 20px;
+  --bit-heading-22px: 22px;
+  --bit-heading-24px: 24px;
+  --bit-heading-26px: 26px;
+  --bit-heading-28px: 28px;
+  --bit-heading-30px: 30px;
+  --bit-heading-32px: 32px;
+  --bit-heading-34px: 34px;
+  --bit-heading-36px: 36px;
+  --bit-heading-38px: 38px;
+  --bit-heading-40px: 40px;
+  --bit-heading-42px: 42px;
+  --bit-heading-44px: 44px;
   --bit-leading-tight: 1.1;
   --bit-leading-normal: 1.5;
   --bit-weight-normal: 600;

@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { listCss, readCss } from './css';
 
-/** Font sizes that resolve to 14px or more: the 14, 16, 18, 24, 32 and 40px steps, and the control sizes. */
-const AT_LEAST_14 = /^var\(--bit-text-(14|16|18|24|32|40)px\)$|^var\(--_bit-size-text\)$/;
+/** Font sizes that resolve to 14px or more: the 14 to 40px text steps, the 20 to 44px heading sizes, and the control sizes. */
+const AT_LEAST_14 = /^var\(--bit-text-(14|16|18|24|32|40)px\)$|^var\(--bit-heading-(2[02468]|3[02468]|4[024])px\)$|^var\(--_bit-size-text\)$/;
 
 /**
  * Below the 14px floor on purpose, by file, each with its reason (owner, 2026-10-05). Anything else under 14px
