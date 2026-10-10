@@ -38,6 +38,7 @@ const componentNames = Object.keys(lib).filter(
 const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
   Input: { children: undefined },
   Textarea: { children: undefined },
+  Slider: { children: undefined },
   RadioGroup: { legend: 'x', options: [{ value: 'x', label: 'x' }], children: undefined },
   Icon: { icon: lib.iconFavorite, children: undefined },
   IconButton: { icon: lib.iconDelete, label: 'x', children: undefined },
@@ -106,7 +107,7 @@ describe('public index', () => {
     expect(componentNames.sort()).toEqual(
       [
         'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
-        'Field', 'Input', 'Select', 'Switch', 'Checkbox', 'RadioGroup', 'Radio', 'Textarea', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
+        'Field', 'Input', 'Select', 'Switch', 'Checkbox', 'RadioGroup', 'Radio', 'Textarea', 'Slider', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
         'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
         'Tabs', 'TabList', 'Tab', 'TabPanel',
         'Heading', 'Box', 'Icon', 'IconButton', 'Tooltip',
