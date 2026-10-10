@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import type { ControlState, ControlValue, Manifest } from '../manifests/types';
-import { parseState, serializeState } from './state';
+import { applyLocks, parseState, serializeState } from './state';
 
 /** A text or number edit reaches the URL this long after the last keystroke. */
 export const TYPING_DEBOUNCE_MS = 400;
@@ -69,16 +69,17 @@ export function useControlState(manifest: Manifest): ControlStateApi {
 
   const apply = useCallback(
     (partial: Partial<ControlState>) => {
-      const next: ControlState = { ...state };
-      for (const [key, value] of Object.entries(partial)) if (value !== undefined) next[key] = value;
-      push(next);
+      const merged: ControlState = { ...state };
+      for (const [key, value] of Object.entries(partial)) if (value !== undefined) merged[key] = value;
+      push(applyLocks(manifest, merged));
     },
-    [state, push],
+    [manifest, state, push],
   );
 
   const setProp = useCallback(
     (prop: string, value: ControlValue) => {
-      const next: ControlState = { ...state, [prop]: value };
+      // Locks first: picking size 32 while bold puts weight back to normal in the same history step.
+      const next = applyLocks(manifest, { ...state, [prop]: value });
       if (!isTyped(manifest, prop)) {
         push(next);
         return;

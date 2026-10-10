@@ -209,6 +209,11 @@ describe('manifest contract', () => {
     expect(toJsx(heading, { ...defaultState(heading), ...preset.state } as ControlState)).toContain('<Heading level={2} size={18}>Build with bit</Heading>');
   });
 
+  it('Text presets never reach for a heading tag: titles belong to Heading', () => {
+    expect(text.presets?.map((p) => p.label)).toEqual(['Display text', 'Muted caption']);
+    expect(text.presets?.every((p) => !String(p.state.as ?? 'p').startsWith('h'))).toBe(true);
+  });
+
   it('Heading size offers the px sizes, never the deprecated levels', () => {
     const size = heading.controls.find((c) => c.prop === 'size')!;
     expect(size.kind === 'select' && size.values).toEqual(['none', '13', '15', '18', '24', '32']);

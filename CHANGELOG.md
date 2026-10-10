@@ -2,6 +2,12 @@
 
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
+## 0.1.8 — 2026-10-10
+### Changed
+- Heading: `size` is now in px, like Text's: `13`, `15`, `18`, `24` or `32` (`<Heading level={2} size={18}>`). It changes only the font size; the face, weight and spacing stay the level's, so an h6 stays a pixel eyebrow at any size. Rendered as `data-size`. New type: `HeadingSize`.
+### Deprecated
+- Heading `size={1}` to `size={6}` (a level) still gives that level's whole look, but warns once in development to use the px size (`size={3}` → `size={18}`). It will be removed in 0.2.0.
+
 ## 0.1.7 — 2026-10-09
 ### Changed
 - CodeBlock: attributes (JSX and HTML) and shell flags are orchid `#EC8FFF` (`--bit-code-attr`), no longer orange `#FFB86B`, so they stand apart from component names (yellow) and stay close to props (pink). Contrast is 8.6:1 on the code background.

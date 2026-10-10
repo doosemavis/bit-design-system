@@ -8,6 +8,7 @@ import type { ControlState, ControlValue, Manifest } from '../manifests/types';
 import { button } from '../manifests/button';
 import { spinner } from '../manifests/spinner';
 import { badge as badgeManifest } from '../manifests/badge';
+import { text } from '../manifests/text';
 import { expectNoA11yViolations } from '../test/a11y';
 import { chooseOption, chosenLabel, optionLabels } from '../test/select';
 
@@ -174,5 +175,39 @@ describe('ControlsPanel', () => {
     render(<ControlsPanel manifest={button} state={defaultState(button)} onChange={() => {}} onReset={onReset} />);
     await userEvent.click(screen.getByRole('button', { name: 'Reset' }));
     expect(onReset).toHaveBeenCalledTimes(1);
+  });
+
+  describe('a locked control (Text weight at the display sizes)', () => {
+    const WHY = '24 and 32 use the display face, which has one weight. Pick 13, 15 or 18 to set the weight.';
+
+    function renderText(size: string) {
+      return render(
+        <ControlsPanel manifest={text} state={{ ...defaultState(text), size }} onChange={() => {}} onReset={() => {}} />,
+      );
+    }
+
+    it('is disabled and explains why in a primary note it is described by', async () => {
+      const { container } = renderText('32');
+      const weight = screen.getByRole('combobox', { name: 'weight' });
+      expect(weight).toBeDisabled();
+      const note = screen.getByRole('note');
+      expect(note).toHaveTextContent(WHY);
+      expect(note).toHaveClass('bit-alert', 'bit-primary', 'bit-outline');
+      expect(weight.getAttribute('aria-describedby')?.split(' ')).toContain(note.id);
+      await expectNoA11yViolations(container);
+    });
+
+    it('is open with no note at a body size', () => {
+      renderText('15');
+      expect(screen.getByRole('combobox', { name: 'weight' })).toBeEnabled();
+      expect(screen.queryByRole('note')).toBeNull();
+    });
+
+    it('as offers no heading tags and points to Heading in its hint', () => {
+      renderText('15');
+      const as = screen.getByRole('combobox', { name: 'as' });
+      expect(optionLabels(as)).toEqual(['p', 'span', 'div', 'label']);
+      expect(as).toHaveAccessibleDescription('For a title, use Heading: level sets the tag.');
+    });
   });
 });

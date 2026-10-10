@@ -38,8 +38,22 @@ function parseValue(control: Control, raw: string): ControlValue | undefined {
   }
 }
 
-/** Defaults overlaid with whatever valid values the query carries. Invalid or unknown keys are ignored. */
+/** A new state where every control locked by the rest of the state is back at its default. */
+export function applyLocks(manifest: Manifest, state: ControlState): ControlState {
+  const locked = manifest.controls.filter((control) => control.kind === 'select' && control.lock?.(state) !== undefined);
+  if (locked.length === 0) return state;
+  return { ...state, ...Object.fromEntries(locked.map((control) => [control.prop, controlDefault(control)])) };
+}
+
+/**
+ * Defaults overlaid with whatever valid values the query carries, then locks applied. Invalid or unknown
+ * keys are ignored, and a locked value (?size=32&weight=bold) is dropped, so the URL is rewritten without it.
+ */
 export function parseState(manifest: Manifest, search: URLSearchParams): ControlState {
+  return applyLocks(manifest, parseQuery(manifest, search));
+}
+
+function parseQuery(manifest: Manifest, search: URLSearchParams): ControlState {
   const state = defaultState(manifest);
   for (const control of manifest.controls) {
     const raw = search.get(control.prop);

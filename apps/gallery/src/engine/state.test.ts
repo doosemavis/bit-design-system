@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { defaultState, parseState, serializeState } from './state';
+import { applyLocks, defaultState, parseState, serializeState } from './state';
+import { text } from '../manifests/text';
 import { button } from '../manifests/button';
 import { stack } from '../manifests/stack';
 import { bitLogo } from '../manifests/bitLogo';
@@ -70,5 +71,25 @@ describe('serializeState', () => {
   it('round-trips through parseState', () => {
     const state = { ...defaultState(stack), direction: 'row', gap: '24', wrap: true };
     expect(parseState(stack, serializeState(stack, state))).toEqual(state);
+  });
+});
+
+describe('locked controls', () => {
+  it('a locked control holds its default, so ?size=32&weight=bold shows and prints weight normal', () => {
+    const state = parseState(text, new URLSearchParams('size=32&weight=bold'));
+    expect(state.size).toBe('32');
+    expect(state.weight).toBe('normal');
+    expect(serializeState(text, state).toString()).toBe('size=32');
+  });
+
+  it('an unlocked control keeps its value: bold at 15 stays bold', () => {
+    expect(parseState(text, new URLSearchParams('weight=bold')).weight).toBe('bold');
+  });
+
+  it('applyLocks returns a new state and leaves the one it was given alone', () => {
+    const given = { ...defaultState(text), size: '24', weight: 'bold' };
+    const next = applyLocks(text, given);
+    expect(next.weight).toBe('normal');
+    expect(given.weight).toBe('bold');
   });
 });

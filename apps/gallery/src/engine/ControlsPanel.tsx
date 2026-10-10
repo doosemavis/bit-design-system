@@ -1,4 +1,5 @@
-import { Button, Field, Input, Select, Switch, Text } from '@bit-ds/react';
+import { useId } from 'react';
+import { Alert, Button, Field, Input, Select, Switch, Text } from '@bit-ds/react';
 import type { Control, ControlState, ControlValue, Manifest } from '../manifests/types';
 
 interface ControlsPanelProps {
@@ -11,18 +12,20 @@ interface ControlsPanelProps {
 interface ControlFieldProps {
   control: Control;
   value: ControlValue | undefined;
+  /** The whole page state, so a control can lock itself on another control's value. */
+  state: ControlState;
   onChange: (prop: string, value: ControlValue) => void;
   /** Shown under a text field, which is then marked invalid (the emptied children of a Button, say). */
   error?: string;
 }
 
 /** One form control per manifest entry. Labels are the prop names so the panel doubles as API docs. */
-function ControlField({ control, value, onChange, error }: ControlFieldProps) {
+function ControlField({ control, value, state, onChange, error }: ControlFieldProps) {
   const label = ('label' in control && control.label) || control.prop;
+  const noteId = useId();
 
   switch (control.kind) {
     case 'axis':
-    case 'select':
       return (
         <Field label={label}>
           <Select
@@ -33,6 +36,29 @@ function ControlField({ control, value, onChange, error }: ControlFieldProps) {
           />
         </Field>
       );
+    case 'select': {
+      // Locked: disabled, held at its default (applyLocks), and a primary note under it says why.
+      const why = control.lock?.(state);
+      return (
+        <div className="gallery-control">
+          <Field label={label} hint={control.hint}>
+            <Select
+              size="sm"
+              options={control.values.map((v) => ({ value: v, label: v }))}
+              value={String(value ?? control.default)}
+              onValueChange={(next) => onChange(control.prop, next)}
+              disabled={why !== undefined}
+              aria-describedby={why === undefined ? undefined : noteId}
+            />
+          </Field>
+          {why === undefined ? null : (
+            <Alert id={noteId} color="primary" role="note">
+              {why}
+            </Alert>
+          )}
+        </div>
+      );
+    }
     case 'boolean':
       return (
         <div className="gallery-control">
@@ -87,10 +113,10 @@ export function ControlsPanel({ manifest, state, onChange, onReset }: ControlsPa
       </div>
       <div className="gallery-controls__grid">
         {manifest.controls.map((control) => (
-          <ControlField key={control.prop} control={control} value={state[control.prop]} onChange={onChange} />
+          <ControlField key={control.prop} control={control} value={state[control.prop]} state={state} onChange={onChange} />
         ))}
         {childrenControl ? (
-          <ControlField control={childrenControl} value={state.children} onChange={onChange} error={childrenError} />
+          <ControlField control={childrenControl} value={state.children} state={state} onChange={onChange} error={childrenError} />
         ) : null}
       </div>
     </section>

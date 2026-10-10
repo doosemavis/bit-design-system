@@ -1,6 +1,15 @@
 import { Text } from '@bit-ds/react';
 import { SUPPORTED_TEXT_SIZES } from '../content/textSizes';
-import type { Manifest } from './types';
+import type { ControlState, Manifest } from './types';
+
+/** 24 and 32 switch to the display face, which ships one weight (text.css), so weight does nothing there. */
+const DISPLAY_SIZES: readonly string[] = ['24', '32'];
+
+function weightLock(state: ControlState): string | undefined {
+  return DISPLAY_SIZES.includes(String(state.size))
+    ? '24 and 32 use the display face, which has one weight. Pick 13, 15 or 18 to set the weight.'
+    : undefined;
+}
 
 export const text: Manifest = {
   name: 'Text',
@@ -9,14 +18,21 @@ export const text: Manifest = {
   component: Text,
   description: 'Typography. The element comes from `as`; the look comes from `size`, in px.',
   controls: [
-    { kind: 'select', prop: 'as', values: ['p', 'span', 'div', 'label', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'], default: 'p' },
+    // No h1 to h6: the API takes them, but a title belongs to Heading, so the playground doesn't offer them.
+    {
+      kind: 'select',
+      prop: 'as',
+      values: ['p', 'span', 'div', 'label'],
+      default: 'p',
+      hint: 'For a title, use Heading: level sets the tag.',
+    },
     { kind: 'select', prop: 'size', values: SUPPORTED_TEXT_SIZES.map(String), default: '15', numeric: true },
     { kind: 'select', prop: 'color', values: ['default', 'neutral'], default: 'default', label: 'color' },
-    { kind: 'select', prop: 'weight', values: ['normal', 'bold'], default: 'normal' },
+    { kind: 'select', prop: 'weight', values: ['normal', 'bold'], default: 'normal', lock: weightLock },
   ],
   children: 'The quick brown fox jumps over the lazy dog.',
   presets: [
-    { label: 'Display heading', state: { as: 'h2', size: '32' } },
+    { label: 'Display text', state: { size: '32' } },
     { label: 'Muted caption', state: { size: '13', color: 'neutral' } },
   ],
   docs: {
