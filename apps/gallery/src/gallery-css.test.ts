@@ -363,6 +363,10 @@ describe('the animated section underline', () => {
       { key: '@keyframes spin to', property: 'color' },
     ]);
   });
+
+  it('a centered table cell beats the core cell rule, which sets text-align: left on .bit-table__cell', () => {
+    expect(ruleIn(galleryCss, '.bit-table__cell.gallery-cell-center')).toMatch(/text-align: center;/);
+  });
 });
 
 describe('gallery.css is layout only, apart from the documented exceptions', () => {

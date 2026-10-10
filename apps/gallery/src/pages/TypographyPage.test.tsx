@@ -11,6 +11,11 @@ async function renderTypography() {
   return { ...utils, main: screen.getByRole('main') };
 }
 
+/** The text of each cell in a table row, in column order. */
+function cellTexts(row: Element): (string | null)[] {
+  return [...row.querySelectorAll('.bit-table__cell')].map((cell) => cell.textContent);
+}
+
 describe('Typography page', () => {
   beforeEach(() => {
     document.documentElement.dataset.theme = 'power-up';
@@ -44,22 +49,41 @@ describe('Typography page', () => {
       'H6 6',
     ]);
     for (const el of samples) expect(el).toHaveAttribute('role', 'presentation');
-    expect(within(table).getByText('h4 · 15 · body bold')).toBeInTheDocument();
     expect(within(table).getByText('<Heading level={6}>')).toHaveClass('bit-code');
   });
 
-  // Value: protects=each Headings row's "hN · size · face" text matches heading.css for that level; fails_when=heading.css changes a level's size or face (as h6 11→13 did) and the page text does not; why_new=only h4's text is checked, never against the CSS; seam=none
+  it.each([
+    ['Heading levels', ['Example', 'Tag', 'Size', 'Face', 'Code'], 3, ['h4', '15', 'body bold']],
+    ['Text sizes', ['Example', 'Size', 'Token', 'Code'], 1, ['15', '--bit-text-15px']],
+  ])('the %s table gives each value a column, centered under its heading', async (name, head, sampleRow, values) => {
+    await renderTypography();
+    const table = screen.getByRole('table', { name });
+    expect(cellTexts(table.querySelector('.bit-table__head .bit-table__row')!)).toEqual(head);
+    const rows = [...table.querySelectorAll('.bit-table__body .bit-table__row')];
+    expect(cellTexts(rows[sampleRow]!).slice(1, -1)).toEqual(values);
+    for (const row of [table.querySelector('.bit-table__head .bit-table__row')!, ...rows]) {
+      const centered = [...row.querySelectorAll('.bit-table__cell')].map((cell) => cell.classList.contains('gallery-cell-center'));
+      // Example and Code stay left; every value column between them is centered.
+      expect(centered).toEqual(head.map((_, i) => i > 0 && i < head.length - 1));
+    }
+  });
+
+  // Value: protects=each Headings row's size and face cells match heading.css for that level; fails_when=heading.css changes a level's size or face (as h6 11→13 did) and the page text does not; why_new=only h4's text is checked, never against the CSS; seam=none
   it("every Headings row's size and face match heading.css", async () => {
     // Not new URL(..., import.meta.url): under jsdom Vite rewrites that to an http: URL; ?raw CSS comes back empty.
     const css = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../../../packages/core/src/components/heading.css'), 'utf8');
     await renderTypography();
     const table = screen.getByRole('table', { name: 'Heading levels' });
+    const rows = [...table.querySelectorAll('.bit-table__body .bit-table__row')];
     for (let level = 1; level <= 6; level++) {
       const rule = new RegExp(`\\.bit-heading\\[data-level="${level}"\\]\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? '';
       const size = /font-size:\s*var\(--bit-text-(\d+)px\)/.exec(rule)?.[1];
       const face = /font-family:\s*var\(--bit-font-(\w+)\)/.exec(rule)?.[1];
       expect(size, `h${level} font-size`).toBeDefined();
-      expect(within(table).getByText(new RegExp(`^h${level} · ${size} · ${face}\\b`))).toBeInTheDocument();
+      const [, tag, sizeCell, faceCell] = cellTexts(rows[level - 1]!);
+      expect(tag, `h${level} tag`).toBe(`h${level}`);
+      expect(sizeCell, `h${level} size`).toBe(size);
+      expect(faceCell, `h${level} face`).toMatch(new RegExp(`^${face}\\b`));
     }
   });
 

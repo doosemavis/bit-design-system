@@ -356,6 +356,14 @@ html {
   font-size: var(--bit-text-18px);
 }
 
+/* A Typography table value (tag, size, face, token) centered under its column heading. Two classes, so it
+   beats the core .bit-table__cell rule that sets text-align: left. One line, so a token never breaks at a
+   hyphen on a phone: the table scrolls instead. */
+.bit-table__cell.gallery-cell-center {
+  text-align: center;
+  white-space: nowrap;
+}
+
 /* One row of the Spacing page's ruler: the step, its bar (the 64px bar fits in 5rem), its token. */
 .gallery-ruler {
   display: grid;
