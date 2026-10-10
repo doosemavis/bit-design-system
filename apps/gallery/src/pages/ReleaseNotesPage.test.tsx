@@ -1,12 +1,13 @@
 import { screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderAt } from '../test/renderRoute';
 import { expectNoA11yViolations } from '../test/a11y';
 import userEvent from '@testing-library/user-event';
 import { CHANGE_KINDS, RELEASES } from '../content/changelog';
 import type { ChangeKind } from '../content/changelog';
 import { renderInline } from '../ui/renderInline';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
+import { resetVersionsCache } from '../shell/useVersions';
 
 describe('renderInline', () => {
   it('splits backtick spans into Code and keeps the text around them', () => {
@@ -62,11 +63,39 @@ describe('ReleaseNotesPage', () => {
     expect(toggles[0]).toHaveAttribute('aria-expanded', 'true');
     expect(toggles[0]).toHaveTextContent('Hide changes');
     expect(toggles[1]).toHaveAttribute('aria-expanded', 'false');
-    const body = document.getElementById(toggles[1]!.getAttribute('aria-controls')!)!;
-    expect(body).not.toBeVisible();
+    // Collapsed, the card is its header alone: no empty body band, and nothing for aria-controls to point at.
+    const card = toggles[1]!.closest('.bit-card')!;
+    expect(card.querySelector('.bit-card__body')).toBeNull();
+    expect(toggles[1]).not.toHaveAttribute('aria-controls');
     await user.click(toggles[1]!);
     expect(toggles[1]).toHaveAttribute('aria-expanded', 'true');
+    const body = document.getElementById(toggles[1]!.getAttribute('aria-controls')!)!;
+    expect(body).toHaveClass('bit-card__body');
     expect(body).toBeVisible();
+  });
+
+  describe('against versions.json', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      resetVersionsCache();
+    });
+
+    it('labels Latest the newest published release, and a newer CHANGELOG section Unreleased, never Latest', async () => {
+      const [ahead, published] = RELEASES as [(typeof RELEASES)[number], (typeof RELEASES)[number]];
+      const file = {
+        latest: published.version.split('.').slice(0, 2).join('.'),
+        lines: [{ line: published.version.split('.').slice(0, 2).join('.'), version: published.version, date: published.date, path: '/bit-design-system/', react: '^19.0.0', reactDom: '^19.0.0' }],
+      };
+      resetVersionsCache();
+      vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(file) })));
+      await open();
+      const main = within(screen.getByRole('main'));
+      const cardOf = (version: string) => within(main.getByRole('heading', { level: 2, name: `v${version}` }).closest('.bit-card') as HTMLElement);
+      await waitFor(() => expect(cardOf(published.version).getByText('Latest')).toHaveClass('bit-badge'));
+      expect(cardOf(ahead.version).queryByText('Latest')).toBeNull();
+      expect(cardOf(ahead.version).getByText('Unreleased')).toHaveClass('bit-badge', 'bit-warning');
+      expect(main.getAllByText('Latest')).toHaveLength(1);
+    });
   });
 
   it('marks the newest release Latest and shows per-kind counts from the data', async () => {
@@ -121,7 +150,8 @@ describe('ReleaseNotesPage', () => {
       await user.click(screen.getByRole('radio', { name: new RegExp(`^${kind} \\(`) }));
       const main = within(screen.getByRole('main'));
       expect(main.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(matching.map((r) => `v${r.version}`));
-      expect(main.getAllByRole('link').map((a) => a.querySelector('span')?.textContent)).toEqual(matching.map((r) => `v${r.version}`));
+      const rail = within(screen.getByRole('navigation', { name: 'Versions' }));
+      expect(rail.getAllByRole('link').map((a) => a.querySelector('span')?.textContent)).toEqual(matching.map((r) => `v${r.version}`));
       main.getAllByRole('button', { name: /changes in v/ }).forEach((b) => expect(b).toHaveAttribute('aria-expanded', 'true'));
       main.getAllByRole('list').forEach((l) => expect(l.getAttribute('aria-label')).toMatch(new RegExp(`^${kind} in`)));
       await expectNoA11yViolations(screen.getByRole('main'));

@@ -11,6 +11,7 @@ const SHIPPING = [
 export const radioGroup: Manifest = {
   name: 'RadioGroup',
   slug: 'radiogroup',
+  related: ['segmentedcontrol', 'checkbox', 'select'],
   group: 'forms',
   component: RadioGroup,
   description: 'Pick exactly one of a few choices, all in view. Real radios in a fieldset: the arrow keys move the choice.',

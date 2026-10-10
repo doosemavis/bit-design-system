@@ -1,5 +1,6 @@
 import { screen, within } from '@testing-library/react';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { resetVersionsCache } from '../shell/useVersions';
 import userEvent from '@testing-library/user-event';
 import { renderAt } from '../test/renderRoute';
 import { expectNoA11yViolations } from '../test/a11y';
@@ -103,6 +104,22 @@ describe('GettingStartedPage', () => {
     expect(screen.getByRole('region', { name: 'Install command' }).textContent).toBe('pnpm add @bit-ds/react');
     expect(screen.getByRole('radio', { name: 'npm' })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'yarn' })).toBeInTheDocument();
+  });
+
+  it("Install's version Badge is the latest published release from versions.json, as the header shows it", async () => {
+    const file = {
+      latest: '0.9',
+      lines: [{ line: '0.9', version: '0.9.4', date: '2027-01-01', path: '/bit-design-system/', react: '^19.0.0', reactDom: '^19.0.0' }],
+    };
+    resetVersionsCache();
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(file) })));
+    try {
+      await open();
+      expect(await screen.findByText('v0.9.4')).toHaveClass('bit-badge');
+    } finally {
+      vi.unstubAllGlobals();
+      resetVersionsCache();
+    }
   });
 
   describe('Add the styles once', () => {

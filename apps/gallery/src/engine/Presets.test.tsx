@@ -16,14 +16,14 @@ describe('isPresetActive', () => {
 });
 
 describe('Presets', () => {
-  it('renders one ghost button per preset in a "Presets" group and applies its state', async () => {
+  it('renders one neutral outline button per preset in a "Presets" group and applies its state', async () => {
     const onApply = vi.fn();
     render(<Presets manifest={button} state={defaultState(button)} onApply={onApply} />);
     const buttons = screen.getAllByRole('button');
     expect(screen.getByRole('group', { name: 'Presets' })).toBeInTheDocument();
     expect(buttons.map((b) => b.textContent)).toEqual(['Danger outline', 'Ghost small', 'Loading']);
     for (const b of buttons) {
-      expect(b).toHaveClass('bit-ghost', 'bit-sm');
+      expect(b).toHaveClass('bit-outline', 'bit-neutral', 'bit-sm');
       expect(b).toHaveAttribute('aria-pressed', 'false');
     }
     await userEvent.click(buttons[0]!);

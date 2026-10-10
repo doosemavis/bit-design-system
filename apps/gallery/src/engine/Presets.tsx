@@ -13,7 +13,7 @@ interface PresetsProps {
 }
 
 /**
- * Quick states in the preview bar, as ghost Buttons. Each applies its values on top of the current state.
+ * Quick states in the preview bar, as outline Buttons, so each reads as a button with its own hover. Each applies its values on top of the current state.
  * An active preset is pressed (aria-pressed="true") and solid. On a phone the row scrolls sideways.
  */
 export function Presets({ manifest, state, onApply }: PresetsProps) {
@@ -27,7 +27,7 @@ export function Presets({ manifest, state, onApply }: PresetsProps) {
             key={preset.label}
             size="sm"
             color={active ? 'primary' : 'neutral'}
-            variant={active ? 'solid' : 'ghost'}
+            variant={active ? 'solid' : 'outline'}
             aria-pressed={active}
             onClick={() => onApply(preset.state)}
           >

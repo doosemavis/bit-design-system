@@ -19,9 +19,15 @@ function renderChildren(manifest: Manifest, state: ControlState): ReactNode {
   return childSpecs(manifest, state)?.map(renderChild);
 }
 
-/** The exact element the preview shows and toHtml serializes. */
-export function renderManifest(manifest: Manifest, state: ControlState): ReactElement {
-  const element = createElement(manifest.component, buildProps(manifest, state), renderChildren(manifest, state));
+interface RenderOptions {
+  /** A live sample on the page (preview, Variants, tile): adds the manifest's sampleProps, which the code never shows. */
+  sample?: boolean;
+}
+
+/** The element the preview shows (with `sample`) and toHtml serializes (without). */
+export function renderManifest(manifest: Manifest, state: ControlState, { sample = false }: RenderOptions = {}): ReactElement {
+  const props = sample ? { ...buildProps(manifest, state), ...manifest.sampleProps } : buildProps(manifest, state);
+  const element = createElement(manifest.component, props, renderChildren(manifest, state));
   const demo = activeDemo(manifest, state);
   return demo ? demo.render(element, { ...defaultState(manifest), ...state }) : element;
 }

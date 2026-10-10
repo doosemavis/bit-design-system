@@ -1,6 +1,7 @@
 import { BitLogo, Button, Heading, Stack, Text } from '@bit-ds/react';
 import { Link } from 'react-router-dom';
 import { NAV } from '../shell/Sidebar';
+import { useDocumentTitle } from '../shell/useDocumentTitle';
 import { PageSection } from '../ui/PageSection';
 import { ComponentTiles } from './home/ComponentTiles';
 import { Facts, QuickStart, StartBuilding } from './home/HomeCards';
@@ -14,6 +15,7 @@ export const BROWSE_TARGET = NAV.find((item) => item.group === 'Components')!.to
  * equal live tile; three ways to start building; and the naming rule. Every block is a bit Card, as on Tokens.
  */
 export function HomePage() {
+  useDocumentTitle(null);
   return (
     <Stack gap={64}>
       <Stack gap={32}>

@@ -5,6 +5,7 @@ import { TextareaExamples } from '../pages/forms/TextareaExamples';
 export const textarea: Manifest = {
   name: 'Textarea',
   slug: 'textarea',
+  related: ['input', 'field'],
   group: 'forms',
   component: Textarea,
   description: 'A native multi-line text box, recessed like Input. Put it in a Field for a visible label. People can drag it taller.',

@@ -40,4 +40,10 @@ export function routeFor(manifest: Manifest): string {
   return manifest.group === 'brand' ? '/brand/logo' : `/components/${manifest.slug}`;
 }
 
+/** The pages a manifest's `related` names, in its order: only slugs with a manifest, never itself, each once. */
+export function relatedManifests(manifest: Manifest): Manifest[] {
+  const slugs = [...new Set(manifest.related ?? [])].filter((slug) => slug !== manifest.slug);
+  return slugs.map(findManifest).filter((found): found is Manifest => found !== undefined);
+}
+
 export type { Manifest, ManifestGroup } from './types';

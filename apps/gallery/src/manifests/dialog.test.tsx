@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { dialog } from './dialog';
 import { defaultState } from '../engine/state';
@@ -10,10 +10,16 @@ import { CODE_FORMATS } from '../code/codeFormats';
 import type { ControlState } from './types';
 
 describe('Dialog page', () => {
-  it('previews an "Open dialog" Button; the dialog starts closed', () => {
-    render(renderManifest(dialog, defaultState(dialog)));
-    expect(screen.getByRole('button', { name: 'Open dialog' })).toBeInTheDocument();
-    expect(document.querySelector('dialog')!.hasAttribute('open')).toBe(false);
+  it('previews an "Open dialog" Button; the dialog mounts on the first open, so its title adds no heading before', async () => {
+    render(renderManifest(dialog, defaultState(dialog), { sample: true }));
+    expect(document.querySelector('dialog')).toBeNull();
+    expect(screen.queryByRole('heading')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Open dialog' }));
+    // Open, the title is the dialog's own h2 and names it, as in any Dialog.
+    const box = document.querySelector('dialog')!;
+    expect(box.hasAttribute('open')).toBe(true);
+    const title = within(box).getByRole('heading', { level: 2, name: 'Save changes?' });
+    expect(box).toHaveAttribute('aria-labelledby', title.id);
   });
 
   it('prints useState, the trigger Button and the Dialog with its parts', () => {

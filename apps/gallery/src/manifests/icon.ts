@@ -13,6 +13,7 @@ export const icon: Manifest = {
   name: 'Icon',
   slug: 'icon',
   group: 'components',
+  related: ['badge', 'iconbutton'],
   component: Icon,
   description: 'A Material Symbols icon, as a React component or plain classes. 300 icons, each with a filled version.',
   controls: [

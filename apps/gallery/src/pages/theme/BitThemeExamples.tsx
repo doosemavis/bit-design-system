@@ -47,7 +47,7 @@ function SwitchFromCode() {
         <Button size="sm" variant="outline" onClick={() => colorMode.toggle()}>
           Toggle
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => colorMode.set('system')}>
+        <Button size="sm" variant="outline" onClick={() => colorMode.set('system')}>
           Follow the system
         </Button>
       </Stack>
