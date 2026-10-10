@@ -64,6 +64,18 @@
   border-color: var(--bit-color-danger);
 }
 
+/* Read-only: it shows the choice and keeps focus, but never opens: a dashed edge, no recess and no chevron. */
+.bit-select__control[aria-readonly="true"] {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+  cursor: default;
+}
+
+.bit-select:has(> .bit-select__control[aria-readonly="true"])::after {
+  display: none;
+}
+
 .bit-select__control:disabled {
   opacity: 0.5;
   cursor: not-allowed;

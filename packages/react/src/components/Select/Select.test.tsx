@@ -405,6 +405,50 @@ describe('Select: invalid, disabled and Field', () => {
     expect(trigger()).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('readOnly shows the choice, keeps focus and submits it, but neither a click nor a key opens it', async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    const { container } = render(
+      <form>
+        <Select aria-label="Range" options={OPTIONS} defaultValue="week" readOnly name="range" required onValueChange={onValueChange} />
+      </form>,
+    );
+    expect(trigger()).toHaveAttribute('aria-readonly', 'true');
+    expect(trigger()).not.toBeDisabled();
+    expect(trigger()).toHaveTextContent('Week');
+    await user.click(trigger());
+    expect(trigger()).toHaveFocus();
+    expect(trigger()).toHaveAttribute('aria-expanded', 'false');
+    for (const key of ['{ArrowDown}', '{Enter}', ' ', 'y']) {
+      await user.keyboard(key);
+      expect(trigger()).toHaveAttribute('aria-expanded', 'false');
+    }
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(trigger()).toHaveTextContent('Week');
+    const form = container.querySelector('form')!;
+    expect(new FormData(form).get('range')).toBe('week');
+    // Like a read-only native input, it is not checked for required.
+    expect(form.checkValidity()).toBe(true);
+  });
+
+  it('making an open Select read-only closes it', async () => {
+    const user = userEvent.setup();
+    const { container, rerender } = render(<Select aria-label="Range" options={OPTIONS} />);
+    await user.click(trigger());
+    rerender(<Select aria-label="Range" options={OPTIONS} readOnly />);
+    expect(trigger()).toHaveAttribute('aria-expanded', 'false');
+    expect(list(container)).toHaveAttribute('hidden');
+  });
+
+  it('read-only has no accessibility violations', async () => {
+    const { container } = render(
+      <Field label="Range">
+        <Select options={OPTIONS} defaultValue="week" readOnly />
+      </Field>,
+    );
+    await expectNoA11yViolations(container);
+  });
+
   it('disabling an open Select closes it', async () => {
     const user = userEvent.setup();
     const { container, rerender } = render(<Select aria-label="Range" options={OPTIONS} />);

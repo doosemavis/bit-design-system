@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Input } from './Input';
 import { SIZES } from '../../system/axes';
 import { expectNoA11yViolations } from '../../test/a11y';
@@ -59,6 +60,20 @@ describe('Input', () => {
 
   it.each([false, true])('has no accessibility violations (invalid=%s)', async (invalid) => {
     const { container } = render(<Input aria-label="Email" invalid={invalid} />);
+    await expectNoA11yViolations(container);
+  });
+  it('readOnly is the native attribute: focusable and selectable, but typing changes nothing', async () => {
+    const user = userEvent.setup();
+    render(<Input aria-label="Email" readOnly defaultValue="mo@example.com" />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveAttribute('readonly');
+    await user.type(input, 'x');
+    expect(input).toHaveFocus();
+    expect(input).toHaveValue('mo@example.com');
+  });
+
+  it('read-only has no accessibility violations', async () => {
+    const { container } = render(<Input aria-label="Email" readOnly defaultValue="mo@example.com" />);
     await expectNoA11yViolations(container);
   });
 });

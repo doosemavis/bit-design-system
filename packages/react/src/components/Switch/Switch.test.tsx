@@ -3,6 +3,7 @@ import { createRef, useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Switch } from './Switch';
+import { Field } from '../Field/Field';
 import { expectNoA11yViolations } from '../../test/a11y';
 
 describe('Switch', () => {
@@ -108,6 +109,34 @@ describe('Switch', () => {
     ['disabled', { disabled: true }],
   ])('has no accessibility violations (%s)', async (_state, props) => {
     const { container } = render(<Switch {...props}>Wi-Fi</Switch>);
+    await expectNoA11yViolations(container);
+  });
+  it('invalid sets aria-invalid; without it there is none', () => {
+    const { rerender } = render(<Switch invalid>Wi-Fi</Switch>);
+    expect(screen.getByRole('switch')).toHaveAttribute('aria-invalid', 'true');
+    rerender(<Switch>Wi-Fi</Switch>);
+    expect(screen.getByRole('switch')).not.toHaveAttribute('aria-invalid');
+  });
+
+  it("joins a Field: the Field's label and its own name it, and the hint, error and required reach the input", () => {
+    const { container } = render(
+      <Field label="Notifications" hint="We send at most one a day." error="Turn this on to continue." required>
+        <Switch>Email me</Switch>
+      </Field>,
+    );
+    const input = screen.getByRole('switch', { name: 'Notifications Email me' });
+    expect(container.querySelector('label.bit-field__label')).toHaveAttribute('for', input.id);
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toBeRequired();
+    expect(input).toHaveAccessibleDescription('We send at most one a day. Turn this on to continue.');
+  });
+
+  it('in a Field with an error, has no accessibility violations', async () => {
+    const { container } = render(
+      <Field label="Notifications" error="Turn this on to continue.">
+        <Switch>Email me</Switch>
+      </Field>,
+    );
     await expectNoA11yViolations(container);
   });
 });

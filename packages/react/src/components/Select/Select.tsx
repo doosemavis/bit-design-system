@@ -49,6 +49,11 @@ export interface SelectProps
   invalid?: boolean;
   /** Can't be opened, and submits nothing, like a disabled native select. */
   disabled?: boolean;
+  /**
+   * Shows the choice and keeps focus, and submits it, but never opens, so the choice can't change. Rendered as
+   * `aria-readonly`. Like a read-only native input, it is not checked for `required`.
+   */
+  readOnly?: boolean;
 }
 
 /** Props for a Select that picks any number of options. */
@@ -116,6 +121,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps | SelectMultiple
     size = 'md',
     invalid,
     disabled,
+    readOnly = false,
     className,
     onClick,
     onKeyDown,
@@ -145,8 +151,8 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps | SelectMultiple
   const setTriggerRef = useMemo(() => composeRefs(ref, triggerRef), [ref]);
   const close = useCallback(() => setOpen(false), []);
 
-  // A Select disabled while open closes, so it doesn't reappear open when enabled again.
-  if (disabled && open) setOpen(false);
+  // A Select disabled (or made read-only) while open closes, so it doesn't reappear open when enabled again.
+  if ((disabled || readOnly) && open) setOpen(false);
 
   const isMultiple = multiple === true;
   const { chosen, pickOne, toggle } = useSelectValue({ options, multiple: isMultiple, value, defaultValue, onValueChange, inputRef, form });
@@ -306,6 +312,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps | SelectMultiple
         aria-controls={listId}
         aria-activedescendant={open && activeIndex >= 0 ? optionId(activeIndex) : undefined}
         aria-required={required || undefined}
+        aria-readonly={readOnly || undefined}
         disabled={disabled}
         {...dropLegacyColor(rest)}
         {...wired}
@@ -319,11 +326,11 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps | SelectMultiple
             // A label's click that followed the press which closed the list: leave it closed.
             pressedOutside.current = false;
           } else if (open) setOpen(false);
-          else openAt(startIndex());
+          else if (!readOnly) openAt(startIndex());
         }}
         onKeyDown={(event) => {
           onKeyDown?.(event);
-          if (event.defaultPrevented) return;
+          if (event.defaultPrevented || readOnly) return;
           if (open) onOpenKey(event);
           else onClosedKey(event);
         }}
@@ -378,7 +385,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps | SelectMultiple
         values={chosen.map((index) => options[index]!.value)}
         name={name}
         form={form}
-        required={required}
+        required={required && !readOnly}
         disabled={disabled}
         onFocus={() => triggerRef.current!.focus()}
       />

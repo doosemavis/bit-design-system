@@ -88,6 +88,11 @@
   border-color: var(--bit-color-ink);
 }
 
+/* Inside a Field with an error (or with invalid): a danger edge on the track, on or off. */
+.bit-switch__input[aria-invalid="true"] + .bit-switch__track {
+  border-color: var(--bit-color-danger);
+}
+
 /* states are attributes, never classes */
 .bit-switch__input:disabled + .bit-switch__track,
 .bit-switch__input:disabled ~ .bit-switch__label {
@@ -112,6 +117,11 @@
   .bit-switch__input:checked + .bit-switch__track .bit-switch__thumb {
     background: HighlightText;
     border-color: HighlightText;
+  }
+
+  /* The danger edge is replaced too, so invalid needs a shape: a double edge. */
+  .bit-switch__input[aria-invalid="true"] + .bit-switch__track {
+    border-style: double;
   }
 }
 
