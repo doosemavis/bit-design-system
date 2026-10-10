@@ -70,6 +70,7 @@ body {
    ring's outer edge, casts it instead: an outer box-shadow paints only outside its own box, so the gap stays
    see-through. Each control sets --_bit-lift (the shadow to move) and --_bit-lift-radius (its corner radius). */
 .bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])::after,
+.bit-button:is(.bit-solid, .bit-outline)[aria-disabled="true"]:focus-visible::after,
 .bit-switch__input:focus-visible + .bit-switch__track::after {
   content: "";
   position: absolute;

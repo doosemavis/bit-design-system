@@ -290,7 +290,10 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
   // Owner pick A (2026-10-10): on a control with a hard shadow, the shadow moves out under the ring, so the gap
   // between control and ring is the same on every side instead of filling with shadow at the bottom-right.
   describe('the shadow moves out under the ring', () => {
-    const lifted = '.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])::after,\n.bit-switch__input:focus-visible + .bit-switch__track::after';
+    const lifted =
+      '.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])::after,\n' +
+      '.bit-button:is(.bit-solid, .bit-outline)[aria-disabled="true"]:focus-visible::after,\n' +
+      '.bit-switch__input:focus-visible + .bit-switch__track::after';
     const button = readCss('components/button.css');
     const track = readCss('components/switch.css');
 
@@ -306,7 +309,7 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
     });
 
     it('a focused Button drops its own shadow; the moved one follows hover and press', () => {
-      const focused = block(button, '.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])')!;
+      const focused = rulesFor(button, '.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"])')!;
       expect(decl(focused, 'box-shadow')).toBe('none');
       expect(decl(focused, 'position')).toBe('relative');
       // After the hover and press rules, at their weight, so a focused, hovered button never shows two shadows.
@@ -316,6 +319,12 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
       expect(button).toMatch(/\.bit-button\.bit-outline \{\s*--_bit-lift: 4px 4px 0 var\(--_bit-color-outline-shadow\);\s*\}/);
       expect(button).toMatch(/\.bit-button\.bit-solid:hover:not\(:disabled\):not\(\[aria-disabled="true"\]\) \{\s*--_bit-lift: var\(--bit-shadow-sm\);\s*\}/);
       expect(decl(block(button, '.bit-button:is(.bit-solid, .bit-outline):active:not(:disabled):not([aria-disabled="true"])')!, '--_bit-lift')).toBe('none');
+    });
+
+    it('a focused loading Button (aria-disabled, still focusable) moves its shadow the same way', () => {
+      const loading = rulesFor(button, '.bit-button:is(.bit-solid, .bit-outline)[aria-disabled="true"]:focus-visible')!;
+      expect(decl(loading, 'box-shadow')).toBe('none');
+      expect(decl(loading, 'position')).toBe('relative');
     });
 
     it("a focused Switch's track drops its shadow, and the moved one is the track's", () => {

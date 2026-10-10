@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import type { ButtonHTMLAttributes, ElementType } from 'react';
+import type { ButtonHTMLAttributes, ElementType, KeyboardEvent, MouseEvent } from 'react';
 import { InlineText } from '../../system/inlineText';
 import { createSlot } from '../../system/Slot';
 import { SIZES, COLORS, VARIANTS } from '../../system/axes';
@@ -15,6 +15,25 @@ const variants = VARIANTS;
 const sizes = SIZES;
 const Slot = createSlot('Button', { emptyRendersNothing: true, alwaysChainHandlers: true, noFragmentRef: true });
 
+/** Stops a click before any handler sees it, and stops a link from following its href. */
+function blockClick(event: MouseEvent) {
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+/** Stops Enter and Space, so they can't activate the element (a link follows its href on Enter). */
+function blockKeys(event: KeyboardEvent) {
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+/**
+ * An element that looks disabled but keeps focus: a loading button, or a disabled or loading link (asChild).
+ * The capture handlers run before the element's own handlers, so neither fires.
+ */
+const BLOCKED = { 'aria-disabled': true, onClickCapture: blockClick, onKeyDownCapture: blockKeys } as const;
+
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Color role. Class: `bit-{color}`. */
   color?: Color;
@@ -22,7 +41,10 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   /** Control height. Class: `bit-{size}`. */
   size?: Size;
-  /** Shows a spinner and blocks clicks. Rendered as `data-loading` and `aria-busy`. */
+  /**
+   * Shows a spinner and blocks clicks, Enter and Space, but keeps the button focusable, so focus stays put
+   * while it works. Rendered as `data-loading`, `aria-busy` and `aria-disabled`.
+   */
   loading?: boolean;
   /** Render the single child element (for example an `<a>`) with Button's classes instead of a `<button>`. */
   asChild?: boolean;
@@ -44,7 +66,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   ref,
 ) {
   const Comp: ElementType = asChild ? Slot : 'button';
-  const inert = disabled || loading;
+  // A native button can be truly disabled. Loading, and anything rendered asChild, stays focusable instead.
+  const native = asChild ? {} : { type, disabled };
+  const blocked = (asChild && disabled) || (loading && !disabled);
   const classes = toClasses(
     'button',
     [
@@ -63,8 +87,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         className={classes}
         data-loading={loading ? '' : undefined}
         aria-busy={loading || undefined}
-        {...(asChild ? { 'aria-disabled': inert || undefined } : { type, disabled: inert })}
+        {...native}
         {...rest}
+        {...(blocked ? BLOCKED : {})}
       >
         {children}
       </Comp>

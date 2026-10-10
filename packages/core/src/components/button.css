@@ -97,7 +97,9 @@
   --_bit-lift: none;
 }
 
-.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"]) {
+/* A loading button (aria-disabled) keeps focus, so its shadow moves too. Hover and press skip it. */
+.bit-button:is(.bit-solid, .bit-outline):focus-visible:not(:disabled):not([aria-disabled="true"]),
+.bit-button:is(.bit-solid, .bit-outline)[aria-disabled="true"]:focus-visible {
   position: relative;
   box-shadow: none;
 }
