@@ -1,6 +1,7 @@
 import { createRequire } from 'node:module';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { cspPlugin } from './csp.ts';
 
 /** Served from https://doosemavis.github.io/bit-design-system/ in production, from / in dev. */
 export const PAGES_BASE = '/bit-design-system/';
@@ -17,7 +18,8 @@ export default defineConfig(({ command, isPreview }) => ({
   // Preview serves the build, whose asset URLs start with the Pages base.
   base: command === 'build' || isPreview ? PAGES_BASE : '/',
   define: DEFINE,
-  plugins: [react()],
+  // The CSP meta goes into the production build only (see csp.ts); dev's HMR needs inline scripts.
+  plugins: [react(), cspPlugin()],
   server: { port: 5173, strictPort: true },
   preview: { port: 4173, strictPort: true },
 }));
