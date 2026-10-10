@@ -44,7 +44,7 @@ Versions and release notes: [all versions](https://doosemavis.github.io/bit-desi
 Every pull request runs all of this in CI ([workflow](https://github.com/doosemavis/bit-design-system/blob/main/.github/workflows/ci.yml)). Releases publish only from a tagged commit on `main`, and the release job runs the package checks again before publishing:
 
 - **Unit tests** (Vitest and Testing Library) for every component, with 100% statement, branch, function and line coverage on `@bit-ds/react`.
-- **Accessibility in unit tests:** all 21 components run [axe-core](https://github.com/dequelabs/axe-core) on what they render. Select is checked both closed and open.
+- **Accessibility in unit tests:** all 25 components listed under [Components](#components) run [axe-core](https://github.com/dequelabs/axe-core) on what they render. Select is checked both closed and open.
 - **Accessibility in a real browser:** Playwright opens every docs page in light and dark mode and fails on any axe violation of the WCAG 2.0, 2.1 and 2.2 A and AA rules.
 - **Keyboard and focus:** Select's keyboard model (arrows, Home and End, Page Up and Page Down, typeahead, Enter, Space, Escape, Tab) is tested key by key, along with where focus goes and how it behaves in a form (`required`, reset, `form="id"`).
 - **Dialog and Tabs:** Dialog is tested for focus moving in (to `data-autofocus`), Esc and the × closing it, focus returning to the opener, and an `alert` dialog ignoring clicks on the dimmed page; in a real browser, Playwright checks the page behind is inert and won't take focus. Tabs are tested for the one Tab stop, arrows (swapped right-to-left), Home and End, skipping disabled tabs, and manual activation.
