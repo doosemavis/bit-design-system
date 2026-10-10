@@ -29,22 +29,31 @@ describe('Typography page', () => {
     expect(outline).toEqual(['H1 Typography', 'H2 Fonts', 'H2 Headings', 'H2 Text sizes', "H2 Do and Don't"]);
   });
 
-  it('shows all four fonts, each with its name, specimen and two game quotes set in it, a component in use, and its token', async () => {
+  it('shows all four fonts, each card in three parts: header, Sample and In use groups, footer', async () => {
     await renderTypography();
     const cards = ['Lilita One', 'Nunito', 'Press Start 2P', 'JetBrains Mono'].map((name) => screen.getByRole('article', { name }));
     const faces = ['display', 'body', 'pixel', 'mono'];
     cards.forEach((card, i) => {
       const face = faces[i]!;
-      const set = [...card.querySelectorAll('.gallery-face')];
-      // The name, the specimen, then two quotes: all in the card's font.
-      expect(set.map((el) => el.getAttribute('data-face'))).toEqual([face, face, face, face]);
-      expect(set[1]).toHaveClass('gallery-face--specimen');
-      expect(set[1]).toHaveTextContent('0123456789');
-      const quotes = [...card.querySelectorAll('.gallery-quote')];
+      expect([...card.children].map((part) => part.classList[0])).toEqual(['bit-card__header', 'bit-card__body', 'bit-card__footer']);
+      // Header: the name in its font, and its token.
+      const header = card.querySelector('.bit-card__header')!;
+      expect(header.querySelector('.gallery-face')).toHaveAttribute('data-face', face);
+      expect(within(header as HTMLElement).getByText(`--bit-font-${face}`)).toHaveClass('bit-code');
+      // Body: a labelled Sample group of two quotes in the font, then a labelled In use group.
+      const groups = [...card.querySelectorAll('[data-group]')];
+      expect(groups.map((g) => g.getAttribute('data-group'))).toEqual(['sample', 'in-use']);
+      expect(groups.map((g) => g.firstElementChild?.textContent)).toEqual(['Sample', 'In use']);
+      const quotes = [...groups[0]!.querySelectorAll('.gallery-face--sample')];
       expect(quotes).toHaveLength(2);
-      for (const quote of quotes) expect(quote.firstElementChild?.textContent).toMatch(/^“.+”$/);
-      expect(within(card).getByText('In use')).toBeInTheDocument();
-      expect(within(card).getByText(`--bit-font-${face}`)).toHaveClass('bit-code');
+      for (const quote of quotes) {
+        expect(quote).toHaveAttribute('data-face', face);
+        expect(quote.textContent).toMatch(/^“.+”$/);
+      }
+      // Only the quotes: no alphabet, digits, game titles or years.
+      expect(card.textContent).not.toMatch(/ABCDEFG|0123456789|\(\d{4}\)/);
+      // Footer: what the font is used for.
+      expect(card.querySelector('.bit-card__footer')).toHaveTextContent(/^Used for /);
     });
     // Each "In use" sample is the real component that uses the font.
     expect(cards[0]!.querySelector('.bit-heading')).toHaveAttribute('role', 'presentation');

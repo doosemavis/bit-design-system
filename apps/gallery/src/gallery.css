@@ -356,15 +356,30 @@ html {
   font-size: var(--bit-text-18px);
 }
 
-/* A font's specimen: the alphabet and digits, in its face, wrapping where it needs to. The pixel name is caps,
-   but its specimen keeps its lowercase, so both cases show. */
-.gallery-face--specimen {
+/* A font's sample (a game quote), in its face, wrapping where it needs to. The pixel name is caps, but its
+   sample keeps its own case. */
+.gallery-face--sample {
   min-height: 0;
   overflow-wrap: anywhere;
 }
 
-.gallery-face--specimen[data-face="pixel"] {
+.gallery-face--sample[data-face="pixel"] {
   text-transform: none;
+}
+
+/* A font card's name, in its header: no sample floor, so it centers on the token chip beside it. */
+.gallery-face--name {
+  min-height: 0;
+}
+
+/* A font card's body takes the spare height, so the footers line up along the bottom of a row of cards; the
+   footer's "Used for" line starts at the left, not at Card's default right. */
+.gallery-font-card__body {
+  flex: 1;
+}
+
+.gallery-font-card__footer {
+  justify-content: flex-start;
 }
 
 /* The four font cards: two by two, so none sits alone on a row; one column on a phone. */

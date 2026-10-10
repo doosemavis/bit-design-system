@@ -5,6 +5,8 @@ import {
   Box,
   Card,
   CardBody,
+  CardFooter,
+  CardHeader,
   Code,
   HEADING_SIZES,
   Heading,
@@ -18,26 +20,17 @@ import {
 } from '@bit-ds/react';
 import type { HeadingSize, TextProps } from '@bit-ds/react';
 
-/** The specimen every font shows: both cases, the digits and some punctuation. */
-const SPECIMEN = 'ABCDEFGHIJKLM NOPQRSTUVWXYZ abcdefghijklm nopqrstuvwxyz 0123456789 !?&@';
-
-/** A line from a retro game, shown in a font's card as a sample of that font in real words. */
-interface Quote {
-  text: string;
-  from: string;
-}
-
 /**
- * power-up's four fonts, each with its specimen and a real component set in it. The specimen is set in the font
- * through `.gallery-face[data-face]` in gallery.css; the "In use" sample is the component itself.
+ * power-up's four fonts. Each sample is two lines from retro games, set in the font through
+ * `.gallery-face[data-face]` in gallery.css; the "In use" sample is a real component that uses it.
  */
-const FONTS: readonly { face: string; name: string; use: string; quotes: readonly Quote[]; inUse: ReactNode }[] = [
+const FONTS: readonly { face: string; name: string; use: string; quotes: readonly string[]; inUse: ReactNode }[] = [
   {
     face: 'display',
     name: 'Lilita One',
     quotes: [
-      { text: "It's dangerous to go alone! Take this.", from: 'The Legend of Zelda (1986)' },
-      { text: 'Thank you Mario! But our princess is in another castle!', from: 'Super Mario Bros. (1985)' },
+      "It's dangerous to go alone! Take this.",
+      'Thank you Mario! But our princess is in another castle!',
     ],
     use: 'Every Heading (20 to 44), and Text at 24, 32 and 40.',
     // role="presentation" keeps the sample out of the page outline.
@@ -51,8 +44,8 @@ const FONTS: readonly { face: string; name: string; use: string; quotes: readonl
     face: 'body',
     name: 'Nunito',
     quotes: [
-      { text: 'Hey! Listen!', from: 'The Legend of Zelda: Ocarina of Time (1998)' },
-      { text: 'Do a barrel roll!', from: 'Star Fox 64 (1997)' },
+      'Hey! Listen!',
+      'Do a barrel roll!',
     ],
     use: 'Body copy and labels: Text at 14, 16 and 18, Buttons and Fields.',
     inUse: <Text>Every component has a live preview, its props and its accessibility notes.</Text>,
@@ -61,8 +54,8 @@ const FONTS: readonly { face: string; name: string; use: string; quotes: readonl
     face: 'pixel',
     name: 'Press Start 2P',
     quotes: [
-      { text: 'ALL YOUR BASE ARE BELONG TO US.', from: 'Zero Wing (1991)' },
-      { text: 'A WINNER IS YOU', from: 'Pro Wrestling (1987)' },
+      'ALL YOUR BASE ARE BELONG TO US.',
+      'A WINNER IS YOU',
     ],
     use: 'Badges, table headers and small labels.',
     inUse: (
@@ -76,8 +69,8 @@ const FONTS: readonly { face: string; name: string; use: string; quotes: readonl
     face: 'mono',
     name: 'JetBrains Mono',
     quotes: [
-      { text: 'War. War never changes.', from: 'Fallout (1997)' },
-      { text: 'I am Error.', from: 'Zelda II: The Adventure of Link (1987)' },
+      'War. War never changes.',
+      'I am Error.',
     ],
     use: 'Code and CodeBlock.',
     inUse: <Code>npm i @bit-ds/react</Code>,
@@ -137,43 +130,55 @@ function HeadRow({ values }: { values: readonly string[] }) {
   );
 }
 
+/** A group's small label inside a font card. */
+function GroupLabel({ children }: { children: string }) {
+  return (
+    <Text size={14} weight="bold" color="neutral">
+      {children}
+    </Text>
+  );
+}
+
 /**
- * One card per font: its name, specimen and two retro game quotes set in it, a real component that uses it, its
- * token and its jobs.
+ * One card per font, in three parts: the header names the font (in it) and its token; the body holds the
+ * Sample (two game quotes, in the font) and In use (a real component) groups; the footer says what it's used for.
  */
 function Fonts() {
   return (
     <Box className="gallery-grid gallery-grid--fonts">
       {FONTS.map(({ face, name, use, quotes, inUse }) => (
         <Card key={face} role="article" aria-label={name}>
-          <CardBody>
-            <Stack gap={12} align="start">
-              <Text size={24} className="gallery-face" data-face={face}>
+          <CardHeader>
+            <Stack direction="row" gap={12} justify="between" align="center" wrap>
+              <Text size={24} className="gallery-face gallery-face--name" data-face={face}>
                 {name}
               </Text>
-              <Text className="gallery-face gallery-face--specimen" data-face={face}>
-                {SPECIMEN}
-              </Text>
-              {quotes.map(({ text, from }) => (
-                <Stack key={text} gap={4} align="start" className="gallery-quote">
-                  <Text size={18} className="gallery-face gallery-face--specimen" data-face={face}>
-                    {`“${text}”`}
-                  </Text>
-                  <Text size={14} color="neutral">
-                    {from}
-                  </Text>
+              <Code>{`--bit-font-${face}`}</Code>
+            </Stack>
+          </CardHeader>
+          <CardBody className="gallery-font-card__body">
+            <Stack gap={24}>
+              <Stack gap={8} align="start" data-group="sample">
+                <GroupLabel>Sample</GroupLabel>
+                <Stack gap={12} align="start">
+                  {quotes.map((quote) => (
+                    <Text key={quote} size={18} className="gallery-face gallery-face--sample" data-face={face}>
+                      {`“${quote}”`}
+                    </Text>
+                  ))}
                 </Stack>
-              ))}
-              <Stack gap={4} align="start">
-                <Text size={14} color="neutral">
-                  In use
-                </Text>
+              </Stack>
+              <Stack gap={8} align="start" data-group="in-use">
+                <GroupLabel>In use</GroupLabel>
                 {inUse}
               </Stack>
-              <Code>{`--bit-font-${face}`}</Code>
-              <Text color="neutral">{use}</Text>
             </Stack>
           </CardBody>
+          <CardFooter className="gallery-font-card__footer">
+            <Text>
+              <Text weight="bold">Used for</Text> {use}
+            </Text>
+          </CardFooter>
         </Card>
       ))}
     </Box>
