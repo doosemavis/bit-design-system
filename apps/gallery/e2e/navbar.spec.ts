@@ -24,6 +24,16 @@ test.describe('Navbar page', () => {
     });
   }
 
+  test('the playground Navbar spans the preview and shows its links, not the folded Menu', async ({ page }) => {
+    await page.goto('#/components/navbar');
+    const stage = page.locator('.gallery-preview__stage');
+    const navbar = stage.locator('.bit-navbar');
+    await expect(navbar.getByRole('link', { name: 'Scores' })).toBeVisible();
+    const [stageBox, navbarBox] = [(await stage.boundingBox())!, (await navbar.boundingBox())!];
+    // The stage pads 32px each side; the Navbar fills the rest.
+    expect(navbarBox.width).toBeGreaterThan(stageBox.width - 2 * 32 - 2);
+  });
+
   test('switching the playground between pill and bar moves nothing below it', async ({ page }) => {
     await page.goto('#/components/navbar');
     const below = page.locator('#section-variants');

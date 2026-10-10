@@ -16,5 +16,11 @@ export function NavbarDemo({ navbar }: { navbar: ReactElement<NavbarProps> }) {
     if ((event.target as Element).closest('a')) event.preventDefault();
   };
   const label = `${navbar.props.label ?? 'Main'}, sample ${number}`;
-  return <div onClickCapture={stay}>{cloneElement(navbar, { label })}</div>;
+  // Full width: a Navbar takes its container's width, so a wrapper shrunk to fit (the centered preview) would
+  // fold it into its Menu and squeeze even that.
+  return (
+    <div className="gallery-navbar-demo" onClickCapture={stay}>
+      {cloneElement(navbar, { label })}
+    </div>
+  );
 }

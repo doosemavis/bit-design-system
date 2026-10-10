@@ -349,6 +349,11 @@ html,
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
 }
 
+/* A Navbar sample's wrapper is full width, so the Navbar inside spans the stage, a Variants cell or a tile. */
+.gallery-navbar-demo {
+  width: 100%;
+}
+
 /* A previewed Tabs takes a steady width, so the stage's centring does not shift it sideways each time a
    shorter or longer panel is chosen. */
 .gallery-preview__stage > .bit-tabs {
