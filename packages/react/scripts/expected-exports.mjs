@@ -8,7 +8,7 @@ export const EXPECTED = [
   'Field', 'Input', 'Select', 'Switch', 'Checkbox', 'RadioGroup', 'Radio', 'Textarea', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
   'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
   'Dialog', 'DialogHeader', 'DialogBody', 'DialogFooter', 'DialogClose', 'Tabs', 'TabList', 'Tab', 'TabPanel',
-  'Heading', 'Box', 'Icon', 'IconButton', 'Tooltip', 'announce', 'useCopyToClipboard', 'colorMode', 'ColorModeService',
+  'Heading', 'Box', 'Icon', 'IconButton', 'Tooltip', 'Menu', 'MenuItem', 'MenuSeparator', 'Navbar', 'NavbarLink', 'announce', 'useCopyToClipboard', 'colorMode', 'ColorModeService',
   'headingTag', 'BitTheme', 'BRAND_TOKENS',
 ];
 

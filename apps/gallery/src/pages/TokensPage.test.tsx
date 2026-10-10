@@ -43,7 +43,8 @@ afterEach(() => {
 
 async function open() {
   const utils = renderAt('/tokens');
-  await screen.findByRole('heading', { level: 1, name: 'Tokens' });
+  // The page is lazy and big: on CI's runner it can take longer than findByRole's 1s to appear.
+  await screen.findByRole('heading', { level: 1, name: 'Tokens' }, { timeout: 5_000 });
   return utils;
 }
 

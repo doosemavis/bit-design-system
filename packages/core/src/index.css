@@ -39,4 +39,6 @@
 @import "./components/tabs.css" layer(bit.components);
 @import "./components/icon.css" layer(bit.components);
 @import "./components/tooltip.css" layer(bit.components);
+@import "./components/menu.css" layer(bit.components);
+@import "./components/navbar.css" layer(bit.components);
 @import "./components/theme.css" layer(bit.components);

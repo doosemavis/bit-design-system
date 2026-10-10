@@ -14,9 +14,11 @@ export interface Example {
   language?: CodeLanguage;
   /** The why, in the primary note, for an example that needs it. */
   note?: ReactNode;
+  /** A wide sample (a Navbar) sits above its code at full width, instead of beside it. */
+  wide?: boolean;
 }
 
-function ExampleCard({ title, when, sample, code, language = 'jsx', note }: Example) {
+function ExampleCard({ title, when, sample, code, language = 'jsx', note, wide = false }: Example) {
   const titleId = useId();
   return (
     <Card role="article" aria-labelledby={titleId}>
@@ -31,7 +33,7 @@ function ExampleCard({ title, when, sample, code, language = 'jsx', note }: Exam
       </CardHeader>
       <CardBody>
         <Stack gap={12}>
-          <div className="gallery-example__body">
+          <div className="gallery-example__body" data-wide={wide ? '' : undefined}>
             <Box padding={16} className="gallery-example__sample">
               {sample}
             </Box>

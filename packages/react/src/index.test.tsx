@@ -42,6 +42,9 @@ const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
   Icon: { icon: lib.iconFavorite, children: undefined },
   IconButton: { icon: lib.iconDelete, label: 'x', children: undefined },
   Tooltip: { content: 'x', children: <button type="button">x</button> },
+  Navbar: { children: <lib.NavbarLink href="#x">x</lib.NavbarLink> },
+  NavbarLink: { href: '#x' },
+  Menu: { title: 'x', trigger: <button type="button">x</button>, children: <lib.MenuItem>x</lib.MenuItem> },
   Heading: { size: 32 },
   CodeBlock: { code: 'x', language: 'shell', children: undefined },
   SegmentedControl: { legend: 'x', options: [{ value: 'x', label: 'x' }], children: undefined },
@@ -58,6 +61,11 @@ const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
 const PARENTS: Record<string, { wrap: (part: ReactElement) => ReactElement; root: string }> = {
   // Tooltip's root is the bubble after its trigger.
   Tooltip: { wrap: (part) => part, root: '.bit-tooltip' },
+  NavbarLink: { wrap: (part) => <lib.Navbar collapse="never">{part}</lib.Navbar>, root: '.bit-navbar__link' },
+  // Menu's root is the window after its trigger; its parts sit in a (closed) Menu.
+  Menu: { wrap: (part) => part, root: '.bit-menu' },
+  MenuItem: { wrap: (part) => <lib.Menu title="x" trigger={<button type="button">x</button>}>{part}</lib.Menu>, root: '.bit-menu__item' },
+  MenuSeparator: { wrap: (part) => <lib.Menu title="x" trigger={<button type="button">x</button>}>{part}</lib.Menu>, root: '.bit-menu__separator' },
   TableHead: { wrap: (part) => <table>{part}</table>, root: 'thead' },
   TableBody: { wrap: (part) => <table>{part}</table>, root: 'tbody' },
   TableRow: { wrap: (part) => <table><tbody>{part}</tbody></table>, root: 'tr' },
@@ -110,6 +118,7 @@ describe('public index', () => {
         'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
         'Tabs', 'TabList', 'Tab', 'TabPanel',
         'Heading', 'Box', 'Icon', 'IconButton', 'Tooltip',
+        'Menu', 'MenuItem', 'MenuSeparator', 'Navbar', 'NavbarLink',
         'Dialog', 'DialogHeader', 'DialogBody', 'DialogFooter', 'DialogClose',
         'BitTheme',
       ].sort(),
