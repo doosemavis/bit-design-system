@@ -150,7 +150,8 @@ describe('ReleaseNotesPage', () => {
       await user.click(screen.getByRole('radio', { name: new RegExp(`^${kind} \\(`) }));
       const main = within(screen.getByRole('main'));
       expect(main.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(matching.map((r) => `v${r.version}`));
-      expect(main.getAllByRole('link').map((a) => a.querySelector('span')?.textContent)).toEqual(matching.map((r) => `v${r.version}`));
+      const rail = within(screen.getByRole('navigation', { name: 'Versions' }));
+      expect(rail.getAllByRole('link').map((a) => a.querySelector('span')?.textContent)).toEqual(matching.map((r) => `v${r.version}`));
       main.getAllByRole('button', { name: /changes in v/ }).forEach((b) => expect(b).toHaveAttribute('aria-expanded', 'true'));
       main.getAllByRole('list').forEach((l) => expect(l.getAttribute('aria-label')).toMatch(new RegExp(`^${kind} in`)));
       await expectNoA11yViolations(screen.getByRole('main'));

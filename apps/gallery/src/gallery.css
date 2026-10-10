@@ -177,6 +177,12 @@ html {
   margin-top: var(--bit-space-24px);
 }
 
+/* At phone width the Search button heads the sheet, full width, above the groups. */
+.gallery-sidebar__header {
+  display: grid;
+  margin-bottom: var(--bit-space-24px);
+}
+
 .gallery-main {
   grid-area: main;
   padding: var(--bit-space-32px) var(--_gallery-gutter);
@@ -226,7 +232,10 @@ html {
     position: fixed;
     inset: var(--_gallery-header-height) 0 0 0;
     z-index: 5;
+    /* Between its insets: no set height, and no start alignment (an absolutely placed box with align-self: start
+       takes its content's height and runs past the window). */
     height: auto;
+    align-self: auto;
   }
 
   .gallery-sidebar[data-open] {
@@ -1076,4 +1085,104 @@ html {
   .gallery-rail {
     position: static;
   }
+}
+
+/* ---------- search ---------- */
+/* The search dialog keeps its top edge where it opened while the results grow and shrink under it (a centered
+   dialog would jump with every key). */
+.gallery-search.bit-dialog {
+  margin-top: min(12dvh, 6rem);
+}
+
+/* The results under the query box: a list that scrolls inside the dialog once it is taller than half the window. */
+.gallery-search__results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--bit-space-4px);
+  max-height: min(24rem, 50dvh);
+  overflow-y: auto;
+}
+
+/* One result: its name and kind, then one line of detail. The active one (keyboard or pointer) takes the line
+   border and soft fill of the Release notes rail's chosen row; the others keep a transparent border, so nothing
+   shifts. */
+.gallery-search__option {
+  display: grid;
+  gap: var(--bit-space-4px);
+  min-width: 0;
+  padding: var(--bit-space-8px) 10px;
+  border: 2px solid transparent;
+  border-radius: var(--bit-radius-10px);
+  cursor: pointer;
+}
+
+.gallery-search__option[aria-selected="true"] {
+  border-color: var(--bit-color-line);
+  background: var(--bit-color-primary-soft);
+}
+
+/* The detail stays one line, cut with an ellipsis, so every result is the same height. */
+.gallery-search__detail {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------- link cards: previous / next and related ---------- */
+/* A Card that is one link: the name's ::after covers the card, so the whole card clicks, and the focus ring goes
+   around the card, as on the Overview's tiles. */
+.gallery-link-card {
+  position: relative;
+}
+
+.gallery-link-card[data-align="end"] {
+  text-align: end;
+}
+
+.gallery-link-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.gallery-link-card:has(.gallery-link-card__link:focus-visible) {
+  outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
+  outline-offset: var(--bit-focus-ring-offset);
+}
+
+.gallery-link-card__link:focus-visible {
+  outline: none;
+}
+
+/* The foot of every page: Previous on the left, Next on the right (on the right even alone), one column on a
+   phone. 128px above it, the same break as between sections. */
+.gallery-pager {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bit-space-16px);
+  margin-top: calc(2 * var(--bit-space-64px));
+}
+
+.gallery-pager__next {
+  grid-column: 2;
+  display: grid;
+}
+
+@media (max-width: 720px) {
+  .gallery-pager {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gallery-pager__next {
+    grid-column: auto;
+  }
+}
+
+/* Related components: as many 16rem cards as fit, three on a desktop, one on a phone. */
+.gallery-related {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
+  gap: var(--bit-space-16px);
 }

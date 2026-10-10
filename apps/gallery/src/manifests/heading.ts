@@ -5,6 +5,7 @@ export const heading: Manifest = {
   name: 'Heading',
   slug: 'heading',
   group: 'components',
+  related: ['text'],
   component: Heading,
   description: 'A section title. size is the look, in px, every 2px from 20 to 44, and it picks the tag (h1 to h6) for the page outline.',
   controls: [{ kind: 'select', prop: 'size', values: HEADING_SIZES.map(String), default: '32', numeric: true, alwaysPrint: true }],

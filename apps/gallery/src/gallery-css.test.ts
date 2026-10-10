@@ -413,6 +413,7 @@ describe('gallery.css is layout only, apart from the documented exceptions', () 
       expect(sheet).toContain('position: fixed;');
       expect(sheet).toContain('inset: var(--_gallery-header-height) 0 0 0;');
       expect(sheet).toContain('height: auto;');
+      expect(sheet).toContain('align-self: auto;');
     });
   });
 });

@@ -59,9 +59,9 @@ describe('ComponentPage (layout C)', () => {
     expect(importChip(button)).toBe("import { Button } from '@bit-ds/react';");
   });
 
-  it('renders the five sections in order, and the section bar links to each', async () => {
+  it('renders the sections in order, Related last, and the section bar links to each', async () => {
     await open('/components/button', 'Button');
-    const titles = ['Playground', 'Variants', 'Usage', 'Props', 'Accessibility'];
+    const titles = ['Playground', 'Variants', 'Usage', 'Props', 'Accessibility', 'Related'];
     expect(within(main()).getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(titles);
     const bar = screen.getByRole('navigation', { name: 'On this page' });
     expect(within(bar).getAllByRole('link').map((link) => link.textContent)).toEqual(titles);

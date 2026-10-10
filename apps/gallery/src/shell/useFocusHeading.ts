@@ -33,23 +33,32 @@ export function useFocusHeading(): void {
     shown.current = pathname;
     const sectionId = sectionIdOf(hash);
     if (!pageChanged && !sectionId) return;
-    let cancelled = false;
-    const tryFocus = () => {
-      if (cancelled) return;
-      const heading = document.querySelector<HTMLHeadingElement>(PAGE_HEADING);
-      if (!heading) {
-        requestAnimationFrame(tryFocus);
-        return;
-      }
-      // A hash that names nothing on the page falls back to the page's h1 (or, on the same page, leaves focus be).
-      if (sectionId && scrollToSection(sectionId)) return;
-      if (!pageChanged) return;
-      heading.tabIndex = -1;
-      heading.focus();
-    };
-    tryFocus();
-    return () => {
-      cancelled = true;
-    };
+    return focusRouteTarget(sectionId, pageChanged);
   }, [pathname, hash]);
+}
+
+/**
+ * Focus what a route points at, once the page has rendered: the section `sectionId` names (scrolled into view), or
+ * the page's h1 when there is none and `toHeading` is set. Polls one frame at a time while the page loads; the
+ * returned function stops it. Search calls it after its dialog closes, when the page behind can take focus again.
+ */
+export function focusRouteTarget(sectionId: string, toHeading: boolean): () => void {
+  let cancelled = false;
+  const tryFocus = () => {
+    if (cancelled) return;
+    const heading = document.querySelector<HTMLHeadingElement>(PAGE_HEADING);
+    if (!heading) {
+      requestAnimationFrame(tryFocus);
+      return;
+    }
+    // A hash that names nothing on the page falls back to the page's h1 (or, on the same page, leaves focus be).
+    if (sectionId && scrollToSection(sectionId)) return;
+    if (!toHeading) return;
+    heading.tabIndex = -1;
+    heading.focus();
+  };
+  tryFocus();
+  return () => {
+    cancelled = true;
+  };
 }

@@ -109,6 +109,18 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-anchor.bit-link', property: 'opacity', reason: 'section anchor: hidden until its title row is hovered, keeping its place so nothing moves' },
   { selector: '.gallery-section-head:hover .gallery-anchor.bit-link, .gallery-anchor.bit-link:focus-visible', property: 'opacity', reason: 'section anchor: shows on hover of its title row and on keyboard focus' },
   { selector: '@media (hover: none) .gallery-anchor.bit-link', property: 'opacity', reason: 'section anchor: touch screens have no hover, so it always shows' },
+  // link cards (previous / next, related)
+  { selector: '.gallery-link-card__link::after', property: 'content', reason: 'frame: stretched link makes the whole card clickable, as on the Overview tiles' },
+  { selector: '.gallery-link-card:has(.gallery-link-card__link:focus-visible)', property: 'outline', reason: 'focus: visible ring for the whole card, as on the Overview tiles' },
+  { selector: '.gallery-link-card:has(.gallery-link-card__link:focus-visible)', property: 'outline-offset', reason: 'focus: visible ring for the whole card, as on the Overview tiles' },
+  { selector: '.gallery-link-card__link:focus-visible', property: 'outline', reason: 'focus: the card draws the ring, so the link drops its own' },
+  // search dialog
+  { selector: '.gallery-search__results', property: 'list-style', reason: 'search: no bullets on the results list' },
+  { selector: '.gallery-search__option', property: 'border', reason: 'search: transparent 2px border keeps results from shifting, as on the Release notes rail' },
+  { selector: '.gallery-search__option', property: 'border-radius', reason: 'search: rounded results, as on the Release notes rail' },
+  { selector: '.gallery-search__option', property: 'cursor', reason: 'search: the pointer says a result can be clicked' },
+  { selector: '.gallery-search__option[aria-selected="true"]', property: 'border-color', reason: 'search: the active result, as the rail marks its chosen version' },
+  { selector: '.gallery-search__option[aria-selected="true"]', property: 'background', reason: 'search: the active result, as the rail marks its chosen version' },
   // release notes version rail
   { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'border', reason: 'release notes rail: transparent 2px border keeps rows from shifting (owner board R1)' },
   { selector: '.gallery-rail__row.bit-link.bit-neutral', property: 'border-radius', reason: 'release notes rail: rounded rows (owner board R1)' },

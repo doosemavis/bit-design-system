@@ -17,6 +17,7 @@ export const table: Manifest = {
   name: 'Table',
   slug: 'table',
   group: 'components',
+  related: ['card'],
   component: Table,
   description: 'A native table in a card frame. Head cells are th, body cells td. Wide tables scroll sideways, from the keyboard too.',
   controls: [

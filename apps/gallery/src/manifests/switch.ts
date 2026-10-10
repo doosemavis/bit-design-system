@@ -6,6 +6,7 @@ export const switchManifest: Manifest = {
   name: 'Switch',
   slug: 'switch',
   group: 'forms',
+  related: ['field', 'segmentedcontrol', 'modetoggle'],
   component: Switch,
   description: 'An on/off switch. A real checkbox announced as a switch: click the label or press Space. Green when on.',
   controls: [

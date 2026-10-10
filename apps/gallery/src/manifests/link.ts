@@ -5,6 +5,7 @@ export const link: Manifest = {
   name: 'Link',
   slug: 'link',
   group: 'components',
+  related: ['button', 'iconbutton'],
   component: Link,
   description: 'A bold, underlined text link. primary or neutral; asChild lends the look to a router link.',
   controls: [

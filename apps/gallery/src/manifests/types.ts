@@ -188,6 +188,11 @@ export interface Manifest {
   /** A section only this page has, placed after Variants. */
   extraSection?: ExtraSection;
   presets?: readonly Preset[];
+  /**
+   * Slugs of other component pages to suggest in the page's Related section, closest first. Only pages that exist
+   * are linked (manifests.test checks every slug).
+   */
+  related?: readonly string[];
   /** Compound parts documented on this page; the import line lists them. */
   parts?: readonly string[];
   /** Page content beyond the playground: badges, usage, props and accessibility. */

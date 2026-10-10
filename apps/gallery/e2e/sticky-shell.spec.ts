@@ -110,6 +110,11 @@ test.describe('phone', () => {
     await expect(close).toBeFocused();
     const nav = page.getByRole('navigation', { name: 'Gallery' });
     await expect(nav).toBeVisible();
+    // The sheet fills the window under the header exactly: it scrolls its own list, never the page.
+    const headerHeight = (await box(page, '.gallery-header')).height;
+    const sheet = (await nav.boundingBox())!;
+    expect(sheet.y).toBe(headerHeight);
+    expect(sheet.height).toBe(844 - headerHeight);
     await expect(nav.getByRole('link', { name: 'Button', exact: true })).toBeInViewport();
 
     await page.keyboard.press('Escape');

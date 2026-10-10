@@ -33,6 +33,7 @@ export const stack: Manifest = {
   name: 'Stack',
   slug: 'stack',
   group: 'components',
+  related: ['box', 'card'],
   component: Stack,
   description: 'Flex layout. gap is a px value on the space scale. Every prop is a data attribute, never a class.',
   controls: [

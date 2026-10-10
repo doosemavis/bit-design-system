@@ -13,6 +13,7 @@ export const segmentedControl: Manifest = {
   name: 'SegmentedControl',
   slug: 'segmentedcontrol',
   group: 'components',
+  related: ['tabs', 'select', 'switch'],
   component: SegmentedControl,
   description: 'Joined segments that pick one option, or several with multiple.',
   controls: [

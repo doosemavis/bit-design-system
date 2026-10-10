@@ -49,6 +49,8 @@ interface SidebarProps {
   items: readonly NavItem[];
   open: boolean;
   onNavigate: () => void;
+  /** Shown before the groups when the header is too narrow: the Search button. */
+  header?: ReactNode;
   /** Shown after the groups when the header is too narrow: the GitHub button and the version picker. */
   footer?: ReactNode;
 }
@@ -78,7 +80,7 @@ function useCurrentLinkInView(nav: HTMLElement | null, pathname: string, open: b
   }, [nav, pathname, open]);
 }
 
-export function Sidebar({ items, open, onNavigate, footer }: SidebarProps) {
+export function Sidebar({ items, open, onNavigate, header, footer }: SidebarProps) {
   const { pathname } = useLocation();
   const current = currentGroup(items, pathname);
   const [nav, setNav] = useState<HTMLElement | null>(null);
@@ -89,6 +91,7 @@ export function Sidebar({ items, open, onNavigate, footer }: SidebarProps) {
   if (seen.group !== current) setSeen({ group: current, count: seen.count + 1 });
   return (
     <nav ref={setNav} id="gallery-nav" className="gallery-sidebar" aria-label="Gallery" data-open={open ? '' : undefined}>
+      {header ? <div className="gallery-sidebar__header">{header}</div> : null}
       {GROUPS.map((group) => {
         const links = items.filter((item) => item.group === group);
         if (links.length === 0) return null;
