@@ -44,6 +44,8 @@ const cases = [
   { owner: 'components/select.css', sel: '.bit-select__list', track: 'var(--bit-color-surface)', size: 'width' },
   // The Tabs list scrolls horizontally; the track is transparent since it sits on the page background.
   { owner: 'components/tabs.css', sel: '.bit-tabs__list', track: 'transparent', size: 'height' },
+  // The Textarea scrolls down. Its track is the box's own surface.
+  { owner: 'components/textarea.css', sel: '.bit-textarea', track: 'var(--bit-color-surface)', size: 'width' },
 ];
 
 describe.each(cases)('scrollbar on $sel', ({ owner, sel, track, size }) => {
@@ -86,7 +88,18 @@ describe.each(cases)('scrollbar on $sel', ({ owner, sel, track, size }) => {
 describe(FILE, () => {
   it("thins bit's own scroll areas, the Dialog body included, outside the forced-colors guard", () => {
     const thin = styleRules(css).find((rule) => rule.media === null && decl(rule.body, 'scrollbar-width') === 'thin');
-    expect(thin?.selector.split(/,\s*/)).toEqual(['.bit-code__pre', '.bit-table', '.bit-select__list', '.bit-tabs__list', '.bit-dialog__body']);
+    expect(thin?.selector.split(/,\s*/)).toEqual(['.bit-code__pre', '.bit-table', '.bit-select__list', '.bit-tabs__list', '.bit-textarea', '.bit-dialog__body']);
+  });
+
+  it("the Textarea's track is rounded to the box's inner corner, so it never pokes past the rounded border", () => {
+    expect(decl(ruleFor('.bit-textarea::-webkit-scrollbar-track', 'border-radius'), 'border-radius')).toBe(
+      'calc(var(--bit-radius-10px) - var(--bit-border-width))',
+    );
+  });
+
+  it("a read-only Textarea has no surface, so its track is see-through too, and the resize corner is never a block", () => {
+    expect(decl(ruleFor('.bit-textarea[readonly]', '--_bit-scroll-track'), '--_bit-scroll-track')).toBe('transparent');
+    expect(decl(ruleFor('.bit-textarea::-webkit-scrollbar-corner', 'background'), 'background')).toBe('transparent');
   });
 
   it('does not change on hover, so the bar never looks bigger', () => {

@@ -40,13 +40,15 @@ body {
    from the theme (violet 2px/2px in light, yellow 2px/1px in dark). Containers with a colored fill
    set --_bit-focus-ring so rings inside them stay visible.
    Visually hidden inputs can't show a ring, so the part drawn beside them shows it (the Switch track, the
-   Checkbox box, the Radio dot, a segment's label), and a Tab shows it on its label (see below): the same ring,
+   Checkbox box, the Radio dot, a segment's label, a Slider's thumb or blocks frame), and a Tab shows it on its label (see below): the same ring,
    from the same tokens. */
 :focus-visible,
 .bit-switch__input:focus-visible + .bit-switch__track,
 .bit-checkbox__input:focus-visible + .bit-checkbox__box,
 .bit-radio__input:focus-visible + .bit-radio__dot,
 .bit-segmented-control__input:focus-visible + .bit-segmented-control__label,
+.bit-slider__input:focus-visible ~ .bit-slider__thumb,
+.bit-slider__input:focus-visible ~ .bit-slider__blocks,
 .bit-tabs__tab:focus-visible > .bit-tabs__label {
   outline: var(--bit-focus-ring-width) solid var(--_bit-focus-ring, var(--bit-focus-ring-color));
 }
@@ -54,7 +56,9 @@ body {
 :focus-visible,
 .bit-switch__input:focus-visible + .bit-switch__track,
 .bit-checkbox__input:focus-visible + .bit-checkbox__box,
-.bit-radio__input:focus-visible + .bit-radio__dot {
+.bit-radio__input:focus-visible + .bit-radio__dot,
+.bit-slider__input:focus-visible ~ .bit-slider__thumb,
+.bit-slider__input:focus-visible ~ .bit-slider__blocks {
   outline-offset: var(--bit-focus-ring-offset);
 }
 

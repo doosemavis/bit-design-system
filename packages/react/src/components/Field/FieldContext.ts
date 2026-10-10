@@ -39,3 +39,8 @@ export function useFieldControl(own: FieldControlProps, invalid: boolean | undef
 export function useFieldLabelId(): string | undefined {
   return useContext(FieldContext)?.labelId;
 }
+
+/** True inside a Field, where a control's extra parts (Textarea's count) sit straight in the Field's layout. */
+export function useInsideField(): boolean {
+  return useContext(FieldContext) !== null;
+}

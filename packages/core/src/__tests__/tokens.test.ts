@@ -10,11 +10,12 @@ describe('semantic token list', () => {
     expect(SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('contains exactly 109 unique names, all prefixed --bit-', () => {
+  it('contains exactly 110 unique names, all prefixed --bit-', () => {
     // 98 in 0.1.7, plus text 14, 16 and 40 and the 13 heading sizes (114 in 0.1.8), minus the five logo colors,
-    // which moved to BRAND_TOKENS. 11, 13 and 15 stay as deprecated aliases until 0.2.0.
-    expect(SEMANTIC_TOKENS).toHaveLength(109);
-    expect(new Set(SEMANTIC_TOKENS).size).toBe(109);
+    // which moved to BRAND_TOKENS, plus warning text for the Textarea count. 11, 13 and 15 stay as deprecated
+    // aliases until 0.2.0.
+    expect(SEMANTIC_TOKENS).toHaveLength(110);
+    expect(new Set(SEMANTIC_TOKENS).size).toBe(110);
     for (const name of SEMANTIC_TOKENS) expect(name).toMatch(/^--bit-[a-z0-9-]+$/);
   });
 
@@ -67,9 +68,14 @@ describe('semantic token list', () => {
     }
   });
 
-  it('has 28 unique mode tokens (the ones the dark block overrides)', () => {
-    expect(MODE_TOKENS).toHaveLength(28);
-    expect(new Set(MODE_TOKENS).size).toBe(28);
+  it('has warning text, a text-safe warning for the Textarea count, which changes with the mode', () => {
+    expect(SEMANTIC_TOKENS).toContain('--bit-color-warning-text');
+    expect(MODE_TOKENS).toContain('--bit-color-warning-text');
+  });
+
+  it('has 29 unique mode tokens (the ones the dark block overrides)', () => {
+    expect(MODE_TOKENS).toHaveLength(29);
+    expect(new Set(MODE_TOKENS).size).toBe(29);
   });
 
   it('has no --bit-color-focus (the focus ring has its own tokens)', () => {

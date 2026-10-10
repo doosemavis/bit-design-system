@@ -64,10 +64,13 @@ const colorRoleTokens = ['bg', 'surface', 'ink', 'text', 'text-muted', 'selectio
 );
 
 /**
- * Component roles: the accent (CodeBlock's border and bar rule), link text, field error text, the Switch thumb when on, Table stripes, and Code text inside a Table.
- * Each has one job, so a theme can tune it without moving primary, danger or the surfaces.
+ * Component roles: the accent (CodeBlock's border and bar rule), link text, field error text, a Textarea count near
+ * its limit, the Switch thumb when on, Table stripes, and Code text inside a Table.
+ * Each has one job, so a theme can tune it without moving primary, warning, danger or the surfaces.
  */
-const componentColorTokens = ['accent', 'link', 'link-visited', 'danger-text', 'knob', 'stripe', 'code-text'].map((role) => token('color', role));
+const componentColorTokens = ['accent', 'link', 'link-visited', 'danger-text', 'warning-text', 'knob', 'stripe', 'code-text'].map((role) =>
+  token('color', role),
+);
 
 const colorTokens = COLORS.flatMap((color) => [
   token('color', color),
@@ -174,5 +177,6 @@ export const MODE_TOKENS: readonly string[] = [
   token('color', 'link'),
   token('color', 'link-visited'),
   token('color', 'danger-text'),
+  token('color', 'warning-text'),
   token('color', 'code-text'),
 ];

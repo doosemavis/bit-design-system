@@ -42,9 +42,48 @@
   resize: none;
 }
 
+/* With showCount outside a Field, the box and its count share a wrapper as wide as the box would be, so the count
+   stays under the box's end however the parent lays things out (a centering grid, a flex row). */
+.bit-textarea__wrap {
+  width: 100%;
+  min-width: 0;
+}
+
+/* The character count (showCount): on its own line under the box, at the end. Inside a Field it moves up to the
+   hint's row (field.css). Even-width digits, so the number doesn't jitter as it changes. */
+.bit-textarea__count {
+  margin-block-start: var(--bit-space-8px);
+  font-size: var(--bit-text-14px);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--bit-leading-normal);
+  color: var(--bit-color-text-muted);
+  text-align: end;
+}
+
+/* 10% or less left, then none: warning, then danger, each in its text-safe shade. Bold, so the change is not
+   color alone. */
+.bit-textarea__count[data-state="near"] {
+  color: var(--bit-color-warning-text);
+  font-weight: var(--bit-weight-bold);
+}
+
+.bit-textarea__count[data-state="limit"] {
+  color: var(--bit-color-danger-text);
+  font-weight: var(--bit-weight-bold);
+}
+
 /* Forced colours replace the danger border with the system text colour, so invalid needs a shape. */
 @media (forced-colors: active) {
   .bit-textarea[aria-invalid="true"] {
     border-inline-start-width: 10px;
+  }
+
+  /* The count's colors are gone too: near is underlined, the limit double underlined. */
+  .bit-textarea__count[data-state="near"] {
+    text-decoration: underline;
+  }
+
+  .bit-textarea__count[data-state="limit"] {
+    text-decoration: underline double;
   }
 }

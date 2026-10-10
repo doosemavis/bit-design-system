@@ -50,7 +50,7 @@ describe('Sidebar', () => {
 
   it('Forms holds the form controls, routed like any component', () => {
     renderSidebar(NAV);
-    expect(linksUnder('Forms')).toEqual(['Checkbox', 'Field', 'Input', 'RadioGroup', 'Select', 'Switch', 'Textarea']);
+    expect(linksUnder('Forms')).toEqual(['Checkbox', 'Field', 'Input', 'RadioGroup', 'Select', 'Slider', 'Switch', 'Textarea']);
     expect(screen.getByRole('link', { name: 'Input' })).toHaveAttribute('href', '/components/input');
   });
 

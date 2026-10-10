@@ -17,24 +17,30 @@ export const textarea: Manifest = {
     { kind: 'boolean', prop: 'invalid', default: false },
     { kind: 'boolean', prop: 'readOnly', default: false },
     { kind: 'boolean', prop: 'disabled', default: false },
+    { kind: 'boolean', prop: 'showCount', default: false },
   ],
+  // The count follows typing, which needs React, so the HTML tab hides while it shows.
+  interactive: (state) => state.showCount === true,
   extraSection: { id: 'section-examples', title: 'Examples', Component: TextareaExamples },
   presets: [
     { label: 'Invalid', state: { invalid: true } },
     { label: 'Six rows', state: { rows: '6' } },
     { label: 'Read-only', state: { readOnly: true } },
+    { label: 'With a count', state: { showCount: true } },
   ],
   docs: {
-    badges: ['Native <textarea>', 'Recessed', 'Grows downward'],
+    badges: ['Native <textarea>', 'Recessed', 'Grows downward', 'Live count'],
     usage: {
       do: [
         'Use a Textarea for answers longer than a line: a message, a description, feedback.',
         'Put it in a Field for a visible label, a hint and an error.',
         'Set rows to the length of a typical answer.',
+        'Add showCount when the length matters: with maxLength for a hard limit, or alone to show a running count.',
       ],
       dont: [
         'Use it for one line of text, such as a name or an email. Use an Input.',
         'Rely on the placeholder for instructions; it disappears as soon as someone types.',
+        'Write the limit in the hint as well as the count. showCount already tells screen readers the limit.',
       ],
     },
     props: [
@@ -45,7 +51,24 @@ export const textarea: Manifest = {
         description: "Names the textarea when there's no visible label. Inside a Field, leave it off: the Field's label names it.",
       },
       { name: 'placeholder', type: 'string', description: 'An example shown while it is empty.' },
-      { name: 'rows', type: 'number', default: '3', description: 'How many lines tall it starts. People can drag it taller, never wider.' },
+      {
+        name: 'rows',
+        type: 'number',
+        default: '3',
+        description: "How many lines tall it starts. People can drag it taller, never wider. Longer text scrolls inside, on bit's accent scrollbar.",
+      },
+      {
+        name: 'maxLength',
+        type: 'number',
+        description: 'The native hard limit: typing and pasting stop at this many characters. With showCount, the count reads "136 / 140".',
+      },
+      {
+        name: 'showCount',
+        type: 'boolean',
+        default: 'false',
+        description:
+          'Shows a live count under the box, at the right: "136 / 140" with maxLength, "42 characters" without. Inside a Field it shares the hint\'s row. With maxLength it turns warning with 10% left (data-state="near") and danger at the limit (data-state="limit"). Class: bit-textarea__count.',
+      },
       {
         name: 'invalid',
         type: 'boolean',
@@ -64,6 +87,9 @@ export const textarea: Manifest = {
       'A real <textarea>, so typing, Enter for a new line, spellcheck and autofill work as browsers intend.',
       "Inside a Field it takes the Field's id, hint and error, so screen readers read all three.",
       'In forced-colors mode (Windows high contrast), the system replaces the red border color, so an invalid textarea shows a thick 10px start edge instead.',
+      'With showCount and maxLength, the limit is part of the description: "Up to 140 characters", read after the hint and error.',
+      'The count is not read on every key. Screen readers hear it once at 20 characters left, once at 10 left, and at the limit ("Limit reached, 140 characters"), through one shared polite live region. Deleting back past a step lets it speak again.',
+      'The visible count is hidden from screen readers, since the description and those announcements carry it. Near the limit it turns bold as well as warning or danger; in forced colors, where those colors are gone, near is underlined and the limit double underlined.',
     ],
   },
 };

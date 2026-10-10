@@ -12,6 +12,38 @@ test('RadioGroup: the arrow keys move the choice in a real browser, and Tab leav
   for (const radio of await stage.getByRole('radio').all()) await expect(radio).not.toBeFocused();
 });
 
+test('Textarea count: inside a Field it shares the hint row at the right, and stops at the limit', async ({ page }) => {
+  await page.goto('#/components/textarea');
+  const box = page.getByRole('textbox', { name: 'Bio' });
+  const field = page.locator('.bit-field', { has: box });
+  const hint = field.locator('.bit-field__hint');
+  const count = field.locator('.bit-textarea__count');
+  await expect(count).toContainText('120 / 140');
+  const [boxRect, hintRect, countRect] = await Promise.all([box.boundingBox(), hint.boundingBox(), count.boundingBox()]);
+  // One row under the box: the hint at the left, the count's right edge on the box's.
+  expect(Math.abs(hintRect!.y - countRect!.y)).toBeLessThan(1);
+  expect(hintRect!.y).toBeGreaterThan(boxRect!.y + boxRect!.height);
+  expect(Math.abs(hintRect!.x - boxRect!.x)).toBeLessThan(1);
+  expect(Math.abs(countRect!.x + countRect!.width - (boxRect!.x + boxRect!.width))).toBeLessThan(1);
+  await expect(count).toHaveCSS('font-variant-numeric', 'tabular-nums');
+  await box.press('End');
+  await box.pressSequentially('x'.repeat(30));
+  await expect(box).toHaveValue(/^.{140}$/s);
+  await expect(count).toContainText('140 / 140');
+  await expect(count).toHaveAttribute('data-state', 'limit');
+});
+
+test('Textarea count: outside a Field it sits on its own line under the box, at the end', async ({ page }) => {
+  await page.goto('#/components/textarea?showCount=1');
+  const stage = page.locator('.gallery-preview__stage');
+  const box = stage.locator('.bit-textarea');
+  const count = stage.locator('.bit-textarea__count');
+  await expect(count).toHaveText('0 characters');
+  const [boxRect, countRect] = await Promise.all([box.boundingBox(), count.boundingBox()]);
+  expect(countRect!.y).toBeGreaterThan(boxRect!.y + boxRect!.height);
+  expect(Math.abs(countRect!.x + countRect!.width - (boxRect!.x + boxRect!.width))).toBeLessThan(1);
+});
+
 test('Checkbox: the label toggles it, the box shows the ring on keyboard focus, and read-only stays put', async ({ page }) => {
   await page.goto('#/components/checkbox');
   const stage = page.locator('.gallery-preview__stage');
@@ -26,6 +58,68 @@ test('Checkbox: the label toggles it, the box shows the ring on keyboard focus, 
   const readOnly = page.getByRole('checkbox', { name: 'Two-step sign-in' });
   await readOnly.click({ force: true });
   await expect(readOnly).toBeChecked();
+});
+
+test('Slider: a drag glides the thumb under the pointer and settles on a step when it lifts; notched jumps between steps', async ({ page }) => {
+  const stage = page.locator('.gallery-preview__stage');
+  const root = stage.locator('.bit-slider');
+  const fill = () => root.evaluate((el) => Number((el as HTMLElement).style.getPropertyValue('--_bit-slider-fill')));
+  /** Press at 20% along the track, drag to 43%, and return the fill while still dragging. */
+  async function dragTo43() {
+    await root.scrollIntoViewIfNeeded();
+    const track = (await stage.locator('.bit-slider__track').boundingBox())!;
+    const thumb = (await stage.locator('.bit-slider__thumb').boundingBox())!;
+    const at = (fraction: number) => track.x + thumb.width / 2 + fraction * (track.width - thumb.width);
+    const y = track.y + track.height / 2;
+    await page.mouse.move(at(0.2), y);
+    await page.mouse.down();
+    await page.mouse.move(at(0.43), y, { steps: 4 });
+    return fill();
+  }
+
+  await page.goto('#/components/slider?rangeMax=100&rangeStep=10');
+  expect(Math.abs((await dragTo43()) - 0.43)).toBeLessThan(0.01);
+  await expect(stage.getByRole('slider')).toHaveValue('40');
+  await page.mouse.up();
+  expect(await fill()).toBe(0.4);
+
+  await page.goto('#/components/slider?rangeMax=100&rangeStep=10&notched=1');
+  await expect(stage.locator('.bit-slider__notch')).toHaveCount(11);
+  expect(await dragTo43()).toBe(0.4);
+  await page.mouse.up();
+});
+
+test('Slider: the number box follows the slider, sets it as you type, steps with its keys and buttons, and clamps on Enter', async ({ page }) => {
+  await page.goto('#/components/slider?numberInput=1&unit=%25');
+  const stage = page.locator('.gallery-preview__stage');
+  const slider = stage.getByRole('slider', { name: 'Volume' });
+  const box = stage.getByRole('spinbutton', { name: 'Volume' });
+  await expect(box).toHaveValue('6');
+  await expect(box).toHaveCSS('text-align', 'center');
+  await expect(box).toHaveCSS('appearance', 'textfield');
+  await slider.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(box).toHaveValue('7');
+  await box.fill('3');
+  await expect(slider).toHaveValue('3');
+  await page.keyboard.press('ArrowUp');
+  await expect(slider).toHaveValue('4');
+  await stage.locator('.bit-slider__step[data-direction="up"]').click();
+  await expect(slider).toHaveValue('5');
+  await expect(box).toBeFocused();
+  await box.fill('50');
+  await page.keyboard.press('Enter');
+  await expect(box).toHaveValue('10');
+  await expect(slider).toHaveValue('10');
+  // The digits sit in the middle of the part you see: the end padding covers the step buttons, and what's left
+  // matches the start padding.
+  const [field, digits] = await Promise.all([box.boundingBox(), box.evaluate((el) => {
+    const style = getComputedStyle(el);
+    const steps = el.parentElement!.querySelector('.bit-slider__steps') as HTMLElement;
+    return { start: parseFloat(style.paddingLeft), end: parseFloat(style.paddingRight) - steps.offsetWidth };
+  })]);
+  expect(field!.width).toBeGreaterThan(0);
+  expect(digits.start).toBe(digits.end);
 });
 
 test('Select: read-only shows its choice but never opens', async ({ page }) => {
@@ -51,4 +145,59 @@ test.describe('forced colors', () => {
     const other = await fill('.bit-radio__input:not(:checked) + .bit-radio__dot');
     expect(chosen).not.toBe(other);
   });
+
+  test('a Textarea count near and at its limit is underlined, since its colors are gone', async ({ page }) => {
+    await page.goto('#/components/textarea');
+    const box = page.getByRole('textbox', { name: 'Bio' });
+    const count = page.locator('.bit-field', { has: box }).locator('.bit-textarea__count');
+    const line = () => count.evaluate((el) => getComputedStyle(el).textDecorationLine + ' ' + getComputedStyle(el).textDecorationStyle);
+    expect(await line()).toBe('none solid');
+    await box.press('End');
+    await box.pressSequentially('x'.repeat(10));
+    await expect(count).toHaveAttribute('data-state', 'near');
+    expect(await line()).toBe('underline solid');
+    await box.pressSequentially('x'.repeat(10));
+    await expect(count).toHaveAttribute('data-state', 'limit');
+    expect(await line()).toBe('underline double');
+  });
+});
+
+test('Slider: the real arrow, Page and Home/End keys move it, the thumb shows the ring, and the round bubble opens on focus', async ({ page }) => {
+  await page.goto('#/components/slider');
+  const stage = page.locator('.gallery-preview__stage');
+  const input = stage.getByRole('slider', { name: 'Volume' });
+  await expect(input).toHaveValue('6');
+  await input.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(input).toHaveValue('7');
+  await page.keyboard.press('Home');
+  await expect(input).toHaveValue('0');
+  await page.keyboard.press('PageUp');
+  await expect(input).not.toHaveValue('0');
+  await page.keyboard.press('End');
+  await expect(input).toHaveValue('10');
+  await expect(stage.locator('.bit-slider__thumb')).toHaveCSS('outline-style', 'solid');
+  // The thumb ends flush with the track's end at max.
+  const [thumb, track] = await Promise.all([stage.locator('.bit-slider__thumb').boundingBox(), stage.locator('.bit-slider__track').boundingBox()]);
+  expect(Math.abs(thumb!.x + thumb!.width - (track!.x + track!.width))).toBeLessThan(1);
+
+  await page.goto('#/components/slider?variant=round');
+  const round = page.locator('.gallery-preview__stage');
+  await round.getByRole('slider').focus();
+  await expect(round.locator('.bit-slider__bubble')).toHaveCSS('opacity', '1');
+});
+
+test('Slider: a click on a block picks that block, and a drag on the square thumb lands where the pointer is', async ({ page }) => {
+  await page.goto('#/components/slider?variant=blocks');
+  const stage = page.locator('.gallery-preview__stage');
+  const input = stage.getByRole('slider');
+  await stage.locator('.bit-slider__block').nth(2).click();
+  await expect(input).toHaveValue('3');
+  await expect(stage.locator('.bit-slider__block[data-state="current"]')).toHaveCount(1);
+
+  await page.goto('#/components/slider');
+  const square = page.locator('.gallery-preview__stage');
+  const box = (await square.locator('.bit-slider').boundingBox())!;
+  await page.mouse.click(box.x + box.width - 2, box.y + box.height / 2);
+  await expect(square.getByRole('slider')).toHaveValue('10');
 });
