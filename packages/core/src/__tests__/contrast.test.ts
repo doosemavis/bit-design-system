@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CODE_KINDS, COLORS } from '../tokens';
+import { withSystemMode } from '../../../react/scripts/system-mode.mjs';
 import { block, contrastRatio, decl, listCss, luminance, readCss, resolveVar, styleRules, themeModes } from './css';
 
 const AA_TEXT = 4.5;
@@ -262,7 +263,7 @@ describe('Spinner arc against its ring (0.1.4 final review)', () => {
   const darkMap = new Map([...light, ...dark]);
   const VAR = /var\((--[\w-]+)\)/;
   const base = block(spinner, '.bit-spinner')!;
-  const darkRule = block(spinner, '[data-mode="dark"] .bit-spinner');
+  const darkRule = block(spinner, ':is(.bit-dark, [data-mode="dark"]) .bit-spinner');
   type Mode = 'light' | 'dark';
 
   /** The token a declaration reads: from the dark rule in dark mode when it sets `prop`, else from `fallback` in the base rule. */
@@ -302,11 +303,11 @@ describe('Spinner arc against its ring (0.1.4 final review)', () => {
 
   it('every dark arc override is repeated for system mode on a dark OS', () => {
     const rules = styleRules(spinner);
-    const darkRules = rules.filter((rule) => rule.media === null && rule.selector.startsWith('[data-mode="dark"]'));
+    const darkRules = rules.filter((rule) => rule.media === null && rule.selector.startsWith(':is(.bit-dark, [data-mode="dark"])'));
     expect(darkRules.length).toBeGreaterThan(0);
     for (const rule of darkRules) {
       const system = rules.find(
-        (r) => r.media === '(prefers-color-scheme: dark)' && r.selector === rule.selector.replace('[data-mode="dark"]', '[data-mode="system"]'),
+        (r) => r.media === '(prefers-color-scheme: dark)' && r.selector === rule.selector.replace(':is(.bit-dark, [data-mode="dark"])', '[data-mode="system"]'),
       );
       const flat = (body: string | undefined) => body?.replace(/\s+/g, ' ');
       expect(flat(system?.body), rule.selector).toBe(flat(rule.body));
@@ -345,8 +346,9 @@ describe('neutral colour (N1 steel, 0.1.4)', () => {
     expect(resolveVar(new Map([...light, ...dark]), '--bit-color-neutral-soft')).toBe('#2B2B37');
   });
 
-  it('the system-mode dark block carries the same neutral values as [data-mode="dark"]', () => {
-    const sys = css.slice(css.indexOf('prefers-color-scheme'));
+  it('the system-mode dark block (added by the build) carries the same neutral values as [data-mode="dark"]', () => {
+    const shipped = withSystemMode(css);
+    const sys = shipped.slice(shipped.indexOf('prefers-color-scheme'));
     for (const [name, value] of [['', '#9A9EB0'], ['-hover', '#ADB1C2'], ['-contrast', '#151515']]) {
       const m = sys.match(new RegExp(`--bit-color-neutral${name}:\\s*var\\((--bit-palette-[a-z-]+)\\)`));
       expect(m, name).not.toBeNull();

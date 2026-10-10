@@ -13,7 +13,7 @@
 /* Dark (owner, board S1): the mid-grey line ring left every arc under 3:1, so the ring is the page's
    darkest colour (night) and each arc keeps its own colour. System mode on a dark OS does the same.
    Both are (0,2,0), above the base rule; border-top-color is restated after the shorthand. */
-[data-mode="dark"] .bit-spinner {
+:is(.bit-dark, [data-mode="dark"]) .bit-spinner {
   border-color: var(--bit-color-bg);
   border-top-color: var(--_bit-color);
 }

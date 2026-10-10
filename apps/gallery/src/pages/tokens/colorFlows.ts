@@ -20,13 +20,33 @@ const DECLARATION = /--bit-([a-z0-9-]+)\s*:\s*([^;]+);/g;
 const VAR_ONLY = /^var\(--bit-([a-z0-9-]+)\)$/;
 const HEX = /^#[0-9a-f]{6}$/i;
 
-/** The body of the first top-level rule whose selector list starts with `selector`, or null. */
-function ruleBody(css: string, selector: RegExp): string | null {
-  const start = selector.exec(css);
-  if (!start) return null;
-  const open = css.indexOf('{', start.index);
-  const close = css.indexOf('}', open);
-  return open < 0 || close < 0 ? null : css.slice(open + 1, close);
+/** A style rule's selector list and body. */
+interface Rule {
+  readonly selector: string;
+  readonly body: string;
+}
+
+/**
+ * Every style rule outside an `@media` block, in order; the rules inside an `@layer` block count. Comments must
+ * already be gone. `@media` and other at-rule blocks are skipped whole.
+ */
+function topLevelRules(css: string): Rule[] {
+  const found: Rule[] = [];
+  let i = 0;
+  while (i < css.length) {
+    const open = css.indexOf('{', i);
+    if (open < 0) break;
+    const prelude = css.slice(i, open).split(/[;}]/).pop()!.trim();
+    let close = open + 1;
+    for (let depth = 1; close < css.length && depth > 0; close++) {
+      if (css[close] === '{') depth++;
+      else if (css[close] === '}') depth--;
+    }
+    if (prelude.startsWith('@layer')) found.push(...topLevelRules(css.slice(open + 1, close - 1)));
+    else if (!prelude.startsWith('@')) found.push({ selector: prelude, body: css.slice(open + 1, close - 1) });
+    i = close;
+  }
+  return found;
 }
 
 const declarationsOf = (body: string): Declarations =>
@@ -56,14 +76,16 @@ export function flowTokens(flows: ColorFlows): ReadonlySet<string> {
 }
 
 /**
- * Reads a bit theme's CSS: the light block (the rule that starts with `:root`) and the `[data-mode="dark"]`
- * block on top of it. Comments are dropped first, so braces inside them do no harm. The system-mode media
- * copy is never read: it repeats the dark block. Null when either block is missing (or the CSS is empty).
+ * Reads a bit theme's CSS: the light block (the rule whose selectors include `:root`) and the dark block (the
+ * rule for `[data-mode="dark"]` that leaves light out) on top of it, inside an `@layer` or not. Comments are
+ * dropped first, so braces inside them do no harm. The system-mode media copy is never read: it repeats the
+ * dark block. Null when either block is missing (or the CSS is empty).
  */
 export function parseColorFlows(css: string): ColorFlows | null {
-  const clean = css.replace(/\/\*[\s\S]*?\*\//g, '');
-  const lightBody = ruleBody(clean, /(?:^|[{}])\s*:root\b/);
-  const darkBody = ruleBody(clean, /(?:^|[{}])\s*\[data-mode="dark"\]\s*\{/);
+  const rules = topLevelRules(css.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const lightBody = rules.find((rule) => rule.selector.includes(':root'))?.body ?? null;
+  const darkBody =
+    rules.find((rule) => rule.selector.includes('[data-mode="dark"]') && !rule.selector.includes('[data-mode="light"]'))?.body ?? null;
   if (lightBody === null || darkBody === null) return null;
   const light = declarationsOf(lightBody);
   const dark = { ...light, ...declarationsOf(darkBody) };

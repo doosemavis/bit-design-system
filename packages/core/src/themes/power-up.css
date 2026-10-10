@@ -9,14 +9,23 @@
    order is declared here and again at the top of styles.css, so it holds whichever file you import first. */
 @layer bit.reset, bit.tokens, bit.components;
 
+/* Where the theme applies. Its class (bit-theme-power-up) or data-theme="power-up" applies it to an element and
+   everything inside; power-up is also the default on the page root when no theme is set. A mode (the bit-light
+   or bit-dark class, or data-mode) works on any element: the light block re-declares every token there, so
+   tokens built from mode tokens (the shadows) re-resolve in a dark subtree instead of keeping the root's values.
+   Specificity sorts out several themes on one page (the bit.tokens layer holds nothing else):
+   - :where() keeps the root default and the bare modes at zero, so any other theme's selectors beat them;
+   - a theme's class or attribute weighs one class, and so does a mode inside another theme
+     (:where(.bit-theme-<name>, [data-theme="<name>"]) :is(<modes>), which power-up, the default, doesn't need);
+   - a mode on the theme's own element weighs two, so it beats the theme around it.
+   Another theme copies these selectors with its own name, swapping the :where() defaults for that descendant form.
+   The build (packages/react/scripts/build-css.mjs) adds data-mode="system" on a dark OS, a copy of the dark
+   block, so it is written once here. */
 @layer bit.tokens {
-  /* Any element that sets a mode (light or dark) re-declares the shared tokens, so tokens built from mode
-     tokens (the shadows) re-resolve there instead of inheriting the root's light values. */
-  :root,
-  [data-theme="power-up"],
-  [data-mode="light"],
-  [data-mode="dark"],
-  [data-mode="system"] {
+  :where(:root),
+  :where(.bit-light, .bit-dark, [data-mode="light"], [data-mode="dark"], [data-mode="system"]),
+  :is(.bit-theme-power-up, [data-theme="power-up"]),
+  :is(.bit-theme-power-up, [data-theme="power-up"]):is(.bit-light, .bit-dark, [data-mode="light"], [data-mode="dark"], [data-mode="system"]) {
     color-scheme: light;
     /* ---------- tier 1: palette ---------- */
     --bit-palette-violet: #7C3AED;
@@ -41,10 +50,6 @@
     --bit-palette-steel-hover: #4E5260;
     --bit-palette-paper: #EEEFE9;
     --bit-palette-white: #FFFFFF;
-    --bit-palette-coin: #FFCC00;
-    --bit-palette-coin-light: #FFF3BF;
-    --bit-palette-coin-shade: #E0B000;
-    --bit-palette-coin-deep: #F5A623;
 
     /* tier 1, dark mode ("Arcade Night") */
     --bit-palette-night: #15151C;
@@ -201,18 +206,12 @@
     --bit-code-inline-bg-on-tint: var(--bit-code-inline-bg);
     --bit-code-inline-text: var(--bit-palette-lilac);
     --bit-code-inline-selection: var(--bit-palette-yellow);
-
-    /* ---------- tier 2: logo (fixed coin golds and violet; never primary or warning) ---------- */
-    --bit-logo-coin: var(--bit-palette-coin);
-    --bit-logo-coin-light: var(--bit-palette-coin-light);
-    --bit-logo-coin-shade: var(--bit-palette-coin-shade);
-    --bit-logo-coin-deep: var(--bit-palette-coin-deep);
-    --bit-logo-violet: var(--bit-palette-violet);
   }
 
   /* Dark mode ("Arcade Night"). Overrides only the mode tokens (MODE_TOKENS in tokens.ts); every other
      token is shared. Works on the root or on any element, so a subtree can be dark inside a light page. */
-  [data-mode="dark"] {
+  :where(.bit-dark, [data-mode="dark"]),
+  :is(.bit-theme-power-up, [data-theme="power-up"]):is(.bit-dark, [data-mode="dark"]) {
     color-scheme: dark;
     --bit-color-bg: var(--bit-palette-night);
     --bit-color-surface: var(--bit-palette-night-surface);
@@ -246,46 +245,6 @@
     --bit-color-link-visited: #9D82E7;
     --bit-color-danger-text: #FF8A8A;
     --bit-color-code-text: var(--bit-palette-yellow);
-  }
-
-  /* data-mode="system": follows the OS. Light on a light OS (the shared block above), dark on a dark OS.
-     Keep in step with [data-mode="dark"]; the parity test enforces it. */
-  @media (prefers-color-scheme: dark) {
-    [data-mode="system"] {
-      color-scheme: dark;
-      --bit-color-bg: var(--bit-palette-night);
-      --bit-color-surface: var(--bit-palette-night-surface);
-      --bit-color-text: var(--bit-palette-chalk);
-      --bit-color-text-muted: var(--bit-palette-chalk-muted);
-      --bit-color-line: var(--bit-palette-slate-line);
-      --bit-color-shadow: var(--bit-palette-slate-shadow);
-      --bit-color-neutral: var(--bit-palette-steel-light);
-      --bit-color-neutral-contrast: var(--bit-palette-ink);
-      --bit-color-neutral-hover: var(--bit-palette-steel-light-hover);
-      --bit-color-neutral-soft: var(--bit-palette-night-raised);
-      --bit-color-stripe: var(--bit-palette-night-stripe);
-      --bit-color-primary-soft: var(--bit-palette-violet-night);
-      --bit-color-success-soft: var(--bit-palette-green-night);
-      --bit-color-warning-soft: var(--bit-palette-yellow-night);
-      --bit-color-danger-soft: var(--bit-palette-red-night);
-      --bit-shadow-inset: inset 3px 3px 0 rgba(0, 0, 0, 0.4);
-      --bit-code-bg: var(--bit-palette-night-code);
-      /* Raised: lighter than the page and the surface, so the borderless pill still reads as a chip. */
-      --bit-code-inline-bg: var(--bit-palette-night-raised);
-      /* Tinted surfaces sit close to night-raised, so there the pill takes the CodeBlock near-black. */
-      --bit-code-inline-bg-on-tint: var(--bit-palette-night-code);
-      --bit-code-inline-text: var(--bit-palette-yellow);
-      /* The text is yellow here, so selection switches to lilac (ink on it is 7.95:1). */
-      --bit-code-inline-selection: var(--bit-palette-lilac);
-      --bit-focus-ring-color: var(--bit-palette-yellow);
-      --bit-focus-ring-offset: 1px;
-      --bit-color-accent: var(--bit-palette-yellow);
-      --bit-color-link: var(--bit-palette-lilac);
-      /* The spec's #9B7FE6 is 4.45:1 on the hover highlight (primary-soft); #9D82E7 is the nearest that passes (4.59:1). */
-      --bit-color-link-visited: #9D82E7;
-      --bit-color-danger-text: #FF8A8A;
-      --bit-color-code-text: var(--bit-palette-yellow);
-    }
   }
 }
 

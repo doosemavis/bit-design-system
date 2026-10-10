@@ -50,7 +50,7 @@ describe('components/link.css', () => {
   });
 
   it('in dark mode the hover underline turns the accent (Q3b-A)', () => {
-    expect(block(css, '[data-mode="dark"] .bit-link:hover')).toContain('text-decoration-color: var(--bit-color-accent);');
+    expect(block(css, ':is(.bit-dark, [data-mode="dark"]) .bit-link:hover')).toContain('text-decoration-color: var(--bit-color-accent);');
   });
 
   it('in system mode on a dark OS the hover underline turns the accent too', () => {
@@ -59,6 +59,7 @@ describe('components/link.css', () => {
     expect(rule?.body).toContain('text-decoration-color: var(--bit-color-accent);');
   });
 
+  // :is(.bit-dark, [data-mode="dark"]) weighs as its heaviest argument, one class, the same as [data-mode="dark"].
   it('the solid-Alert hover (0,4,0) outranks the dark and system accent hovers (0,3,0)', () => {
     expect(specificity('.bit-alert.bit-solid .bit-link:hover')).toEqual([0, 4, 0]);
     expect(specificity('[data-mode="dark"] .bit-link:hover')).toEqual([0, 3, 0]);
@@ -68,9 +69,9 @@ describe('components/link.css', () => {
   it('inside a solid Alert the hover underline is currentColor (the Alert text) and overrides dark accent (Q1-A fix)', () => {
     const solidAlert = block(css, '.bit-alert.bit-solid .bit-link:hover')!;
     expect(solidAlert).toContain('text-decoration-color: currentColor;');
-    // Specificity: .bit-alert.bit-solid .bit-link:hover (0,4,0) > [data-mode="dark"] .bit-link:hover (0,3,0)
+    // Specificity: .bit-alert.bit-solid .bit-link:hover (0,4,0) > :is(.bit-dark, [data-mode="dark"]) .bit-link:hover (0,3,0)
     // so the solid-Alert rule wins even though it comes before the dark accent rule
     expect(css).toContain('.bit-alert.bit-solid .bit-link:hover');
-    expect(css).toContain('[data-mode="dark"] .bit-link:hover');
+    expect(css).toContain(':is(.bit-dark, [data-mode="dark"]) .bit-link:hover');
   });
 });

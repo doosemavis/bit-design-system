@@ -5,12 +5,17 @@
   box-sizing: border-box;
 }
 
-/* The page root, and any element that sets a mode, re-declares the inherited colors so a dark (or
-   light) subtree gets its own text, caret, and scrollbar colors. A subtree paints its own background. */
+/* The page root, and any element that sets a mode or a theme, re-declares the inherited colors so a dark (or
+   light, or other-themed) subtree gets its own text, caret, and scrollbar colors. A theme class is any
+   bit-theme-<name>. A subtree paints its own background (BitTheme's root does). */
 :root,
+.bit-light,
+.bit-dark,
 [data-mode="light"],
 [data-mode="dark"],
-[data-mode="system"] {
+[data-mode="system"],
+[data-theme],
+[class*="bit-theme-"] {
   caret-color: var(--bit-color-primary);
   scrollbar-color: var(--bit-color-line) var(--bit-color-neutral-soft);
   color: var(--bit-color-text);

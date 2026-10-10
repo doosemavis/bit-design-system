@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SEMANTIC_TOKENS, MODE_TOKENS, COLORS, SIZES, SPACE_STEPS, TEXT_SIZES, HEADING_SIZES, CODE_KINDS, headingTag } from '../tokens';
+import { SEMANTIC_TOKENS, MODE_TOKENS, BRAND_TOKENS, COLORS, SIZES, SPACE_STEPS, TEXT_SIZES, HEADING_SIZES, CODE_KINDS, headingTag } from '../tokens';
 
 describe('semantic token list', () => {
   it('has the five colors, three control sizes, six px text sizes, 13 px heading sizes, eight px space steps', () => {
@@ -10,10 +10,11 @@ describe('semantic token list', () => {
     expect(SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('contains exactly 114 unique names, all prefixed --bit-', () => {
-    // 98 in 0.1.7, plus text 14, 16 and 40 and the 13 heading sizes. 11, 13 and 15 stay as deprecated aliases until 0.2.0.
-    expect(SEMANTIC_TOKENS).toHaveLength(114);
-    expect(new Set(SEMANTIC_TOKENS).size).toBe(114);
+  it('contains exactly 109 unique names, all prefixed --bit-', () => {
+    // 98 in 0.1.7, plus text 14, 16 and 40 and the 13 heading sizes (114 in 0.1.8), minus the five logo colors,
+    // which moved to BRAND_TOKENS. 11, 13 and 15 stay as deprecated aliases until 0.2.0.
+    expect(SEMANTIC_TOKENS).toHaveLength(109);
+    expect(new Set(SEMANTIC_TOKENS).size).toBe(109);
     for (const name of SEMANTIC_TOKENS) expect(name).toMatch(/^--bit-[a-z0-9-]+$/);
   });
 
@@ -40,16 +41,15 @@ describe('semantic token list', () => {
     expect(SEMANTIC_TOKENS).not.toContain('--bit-motion-power-up');
   });
 
-  it('includes the code, mono, selection, and logo tokens (amendments §C)', () => {
+  it('includes the code, mono and selection tokens (amendments §C)', () => {
     expect(CODE_KINDS).toEqual(['text', 'keyword', 'string', 'tag', 'component', 'attr', 'punct', 'comment', 'number', 'prop']);
-    const expected = [
-      '--bit-code-bg',
-      ...CODE_KINDS.map((kind) => `--bit-code-${kind}`),
-      '--bit-font-mono',
-      '--bit-color-selection',
-      '--bit-logo-coin', '--bit-logo-coin-light', '--bit-logo-coin-shade', '--bit-logo-coin-deep', '--bit-logo-violet',
-    ];
+    const expected = ['--bit-code-bg', ...CODE_KINDS.map((kind) => `--bit-code-${kind}`), '--bit-font-mono', '--bit-color-selection'];
     for (const name of expected) expect(SEMANTIC_TOKENS).toContain(name);
+  });
+
+  it('keeps the five logo colors out of the theme tokens, as BRAND_TOKENS, so a new theme need not declare them', () => {
+    expect(BRAND_TOKENS).toEqual(['--bit-logo-coin', '--bit-logo-coin-light', '--bit-logo-coin-shade', '--bit-logo-coin-deep', '--bit-logo-violet']);
+    for (const name of BRAND_TOKENS) expect(SEMANTIC_TOKENS).not.toContain(name);
   });
 
   it('includes the seven PR2 color roles; six change with the mode, the knob is shared', () => {

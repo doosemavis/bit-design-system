@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { SEMANTIC_TOKENS, SIZES, COLORS } from '../tokens';
-import { OUTLINE_DECLARATION, block, decl, listCss, readCss, resolveVar, rulesFor, styleRules, themeModes, withoutBlocks } from './css';
+import { BRAND_TOKENS, SEMANTIC_TOKENS, SIZES, COLORS } from '../tokens';
+import { OUTLINE_DECLARATION, block, decl, listCss, parseCustomProps, readCss, resolveVar, rulesFor, styleRules, themeModes, withoutBlocks } from './css';
 
 /**
  * The only places a component may read --bit-color-ink, by file and exact selector. Everything else
@@ -87,11 +87,10 @@ describe('index.css', () => {
     }
   });
 
-  it('puts every import in a layer: reset.css in bit.reset, everything else in bit.components', () => {
+  it('puts every import in a layer: reset.css in bit.reset, the logo colors in bit.tokens, everything else in bit.components', () => {
     expect(imports.length).toBe(css.match(/@import/g)!.length);
-    for (const { path, layer } of imports) {
-      expect(layer, path).toBe(path === './system/reset.css' ? 'bit.reset' : 'bit.components');
-    }
+    const LAYERS: Record<string, string> = { './system/reset.css': 'bit.reset', './system/brand.css': 'bit.tokens' };
+    for (const { path, layer } of imports) expect(layer, path).toBe(LAYERS[path] ?? 'bit.components');
   });
 });
 
@@ -119,10 +118,11 @@ describe('components/*.css conventions', () => {
   for (const file of listCss('components')) {
     const css = readCss(`components/${file}`);
 
-    it(`${file}: every var(--bit-…) it reads is a semantic token`, () => {
+    it(`${file}: every var(--bit-…) it reads is a semantic token (or, for the logo, a brand color)`, () => {
       const reads = [...css.matchAll(/var\((--bit-[a-zA-Z0-9-]+)/g)].map((m) => m[1]!);
+      const allowed = file === 'logo.css' ? [...SEMANTIC_TOKENS, ...BRAND_TOKENS] : SEMANTIC_TOKENS;
       for (const name of reads) {
-        expect(SEMANTIC_TOKENS).toContain(name);
+        expect(allowed).toContain(name);
       }
     });
 
@@ -148,8 +148,10 @@ describe('system/reset.css browser surfaces (amendments §C)', () => {
     expect(body).toContain('color: var(--bit-color-ink);');
   });
 
-  it('the root and any mode element set text, a primary caret, and a line-on-neutral-soft scrollbar', () => {
-    const root = block(css, ':root,\n[data-mode="light"],\n[data-mode="dark"],\n[data-mode="system"]');
+  const ROOTS = ':root,\n.bit-light,\n.bit-dark,\n[data-mode="light"],\n[data-mode="dark"],\n[data-mode="system"],\n[data-theme],\n[class*="bit-theme-"]';
+
+  it('the root, any mode element and any theme element set text, a primary caret, and a line-on-neutral-soft scrollbar', () => {
+    const root = block(css, ROOTS);
     expect(root).not.toBeNull();
     expect(root).toContain('caret-color: var(--bit-color-primary);');
     expect(root).toContain('scrollbar-color: var(--bit-color-line) var(--bit-color-neutral-soft);');
@@ -162,7 +164,7 @@ describe('system/reset.css browser surfaces (amendments §C)', () => {
   });
 
   it('a nested system subtree recomputes its text, caret and scrollbar too', () => {
-    expect(block(css, ':root,\n[data-mode="light"],\n[data-mode="dark"],\n[data-mode="system"]')).toContain('color: var(--bit-color-text);');
+    expect(block(css, ROOTS)).toContain('color: var(--bit-color-text);');
   });
 });
 
@@ -288,11 +290,30 @@ describe('themes/power-up.css (logo)', () => {
     expect(css).not.toContain('--bit-motion-power-up');
   });
 
-  it('the logo violet is a fixed brand colour, the palette violet in both modes (Amendment 3, C2)', () => {
-    const { light, dark } = themeModes(css);
-    expect(light.get('--bit-logo-violet')).toBe('var(--bit-palette-violet)');
-    expect(resolveVar(light, '--bit-logo-violet')).toBe('#7C3AED');
-    expect(dark.has('--bit-logo-violet')).toBe(false);
+  it('declares no logo color: those are brand colors, the same in every theme', () => {
+    expect(css).not.toContain('--bit-logo-');
+    expect(css).not.toContain('--bit-palette-coin');
+  });
+});
+
+describe('system/brand.css: the logo colors, declared once for every theme and mode', () => {
+  const css = readCss('system/brand.css');
+  const values = parseCustomProps(css);
+
+  it('declares exactly BRAND_TOKENS on :root, with their fixed values (Amendment 3, C2: the violet is the brand violet)', () => {
+    expect([...values.keys()]).toEqual([...BRAND_TOKENS]);
+    expect(Object.fromEntries(values)).toEqual({
+      '--bit-logo-coin': '#FFCC00',
+      '--bit-logo-coin-light': '#FFF3BF',
+      '--bit-logo-coin-shade': '#E0B000',
+      '--bit-logo-coin-deep': '#F5A623',
+      '--bit-logo-violet': '#7C3AED',
+    });
+    expect(styleRules(css).map((rule) => rule.selector)).toEqual([':root']);
+  });
+
+  it("the logo violet is the theme's violet today, so the logo looked the same before the move", () => {
+    expect(values.get('--bit-logo-violet')).toBe(resolveVar(themeModes(readCss('themes/power-up.css')).light, '--bit-palette-violet'));
   });
 });
 

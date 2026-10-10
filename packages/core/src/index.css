@@ -1,9 +1,11 @@
 /* bit core styles, in cascade layers so any unlayered style in your app wins over bit's, whatever its
    specificity. The layer order is declared first (and again at the top of every theme), so it holds in
-   either import order: bit.reset (the page base), bit.tokens (themes), bit.components (everything else).
+   either import order: bit.reset (the page base), bit.tokens (themes and the logo colors), bit.components
+   (everything else).
    The system test fails if a component file exists but is not imported here. */
 @layer bit.reset, bit.tokens, bit.components;
 @import "./system/reset.css" layer(bit.reset);
+@import "./system/brand.css" layer(bit.tokens);
 @import "./system/colors.css" layer(bit.components);
 @import "./system/sizes.css" layer(bit.components);
 @import "./system/motion.css" layer(bit.components);
@@ -34,3 +36,4 @@
 @import "./components/tabs.css" layer(bit.components);
 @import "./components/icon.css" layer(bit.components);
 @import "./components/tooltip.css" layer(bit.components);
+@import "./components/theme.css" layer(bit.components);

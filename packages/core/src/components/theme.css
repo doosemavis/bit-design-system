@@ -1,0 +1,6 @@
+/* BitTheme: a themed subtree. Its theme class (bit-theme-<name>) and mode class (bit-light, bit-dark) set the
+   tokens; this paints the subtree in them, as any subtree with its own mode or theme must paint its own page. */
+.bit-theme {
+  background: var(--bit-color-bg);
+  color: var(--bit-color-text);
+}

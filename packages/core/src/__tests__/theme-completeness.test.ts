@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { MODE_TOKENS, SEMANTIC_TOKENS } from '../tokens';
-import { listCss, readCss, themeModes } from './css';
+import { listCss, readCss, styleRules, themeModes } from './css';
 
 const themes = listCss('themes');
 
@@ -24,22 +24,37 @@ describe('themes', () => {
       expect(unknown).toEqual([]);
     });
 
-    it('applies itself to :root and to its data-theme selector', () => {
-      const themeName = file.replace(/\.css$/, '');
-      expect(css).toMatch(/:root/);
-      expect(css).toContain(`[data-theme="${themeName}"]`);
+    const themeName = file.replace(/\.css$/, '');
+    const isDefault = themeName === 'power-up';
+    const scope = `:is(.bit-theme-${themeName}, [data-theme="${themeName}"])`;
+    const inside = `:where(.bit-theme-${themeName}, [data-theme="${themeName}"])`;
+    const MODES = ':is(.bit-light, .bit-dark, [data-mode="light"], [data-mode="dark"], [data-mode="system"])';
+    const DARK = ':is(.bit-dark, [data-mode="dark"])';
+    const rules = styleRules(css).filter((rule) => rule.media === null);
+    const shared = rules.find((rule) => rule.selector.includes(`${scope}${MODES}`))!;
+    const darkRule = rules.find((rule) => rule.selector.includes(`${scope}${DARK}`))!;
+
+    it('applies itself to its class (bit-theme-<name>) and its data-theme attribute, and to a mode on that element', () => {
+      expect(shared).toBeDefined();
+      expect(shared.selector.split(/,\s*(?![^(]*\))/)).toContain(scope);
     });
 
-    it('its dark block overrides exactly the mode tokens', () => {
-      expect([...dark.keys()].sort()).toEqual([...MODE_TOKENS].sort());
+    it('only power-up is the default on the page root and on bare modes, at zero specificity so any other theme wins', () => {
+      expect(shared.selector.includes(':where(:root)')).toBe(isDefault);
+      expect(shared.selector.includes(`:where(.bit-light, .bit-dark, [data-mode="light"], [data-mode="dark"], [data-mode="system"])`)).toBe(isDefault);
+      expect(darkRule.selector.includes(':where(.bit-dark, [data-mode="dark"])')).toBe(isDefault);
+      expect(css).not.toMatch(/(^|[\s,])(:root|html)\s*[,{]/);
     });
 
-    it('dark block is attribute-only, so any element (not just <html>) can be dark', () => {
-      expect(css).toMatch(/(^|\n)\s*\[data-mode="dark"\] \{/);
+    it('any other theme also reaches a mode anywhere inside it, at one class, over the default', () => {
+      expect(shared.selector.includes(`${inside} ${MODES}`)).toBe(!isDefault);
+      expect(darkRule.selector.includes(`${inside} ${DARK}`)).toBe(!isDefault);
     });
 
-    it('the shared block also applies to [data-mode="light"], [data-mode="dark"] and [data-mode="system"] elements, so derived tokens (shadows) re-resolve in a dark subtree', () => {
-      expect(css).toMatch(/:root,\s*\[data-theme="[^"]+"\],\s*\[data-mode="light"\],\s*\[data-mode="dark"\],\s*\[data-mode="system"\]\s*\{/);
+    it('dark mode works on any element (the bit-dark class or data-mode="dark"), and on the theme element itself at two classes', () => {
+      expect(darkRule).toBeDefined();
+      expect(darkRule.selector).toContain(`${scope}${DARK}`);
+      expect(darkRule.selector).not.toMatch(/:root|html/);
     });
 
     it('never uses the bare [data-mode] selector (without a value)', () => {
