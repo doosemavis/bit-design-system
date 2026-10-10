@@ -609,12 +609,11 @@ html {
 }
 
 /* ---------- page sections ---------- */
-/* The break between a page's sections (owner pick, 2026-10-10): 64px of space, a full-width rule, 64px more,
-   then the title with a short accent bar under it. The page's Stack (gap 64) gives the first 64px. The rule goes
-   on every section after the first, so the page header never gets one. */
+/* The break between a page's sections (owner pick, 2026-10-10): 128px of space, then the title with a short
+   accent bar under it. No rule. The page's Stack (gap 64) gives the first 64px and this the rest, on every
+   section after the first, so the page header keeps its 64px. */
 .gallery-section + .gallery-section {
   padding-top: var(--bit-space-64px);
-  border-top: 2px solid var(--bit-color-line);
 }
 
 /* The accent bar: 48px wide, 4px tall, hung 6px under the title in the gap before the content, so the title's

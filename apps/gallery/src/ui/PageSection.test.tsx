@@ -30,9 +30,10 @@ describe('PageSection', () => {
     expect(container.firstElementChild).toHaveClass(SECTION_CLASS);
   });
 
-  // Owner pick, 2026-10-10: 64px, a rule, 64px between sections, and an accent bar under each title.
-  it('gallery.css draws the break: a rule and 64px on every section after the first, and the accent bar', () => {
-    expect(css).toMatch(/\.gallery-section \+ \.gallery-section \{\s*padding-top: var\(--bit-space-64px\);\s*border-top: 2px solid var\(--bit-color-line\);\s*\}/);
+  // Owner pick, 2026-10-10: 128px between sections (no rule), and an accent bar under each title.
+  it('gallery.css draws the break: 64px more on every section after the first (128 with the page gap), no rule, and the accent bar', () => {
+    expect(css).toMatch(/\.gallery-section \+ \.gallery-section \{\s*padding-top: var\(--bit-space-64px\);\s*\}/);
+    expect(css).not.toMatch(/\.gallery-section[^{]*\{[^}]*border-top/);
     expect(css).toMatch(/\.gallery-section-title::after \{[^}]*width: var\(--bit-space-48px\);[^}]*background: var\(--bit-color-accent\);/);
   });
 });

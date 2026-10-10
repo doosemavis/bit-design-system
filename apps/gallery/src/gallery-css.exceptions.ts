@@ -27,7 +27,6 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-example__sample', property: 'border', reason: 'specimen: frames the live example beside its code' },
   { selector: '.gallery-example__sample', property: 'border-radius', reason: 'specimen: frames the live example beside its code' },
   { selector: '.gallery-example__sample', property: 'background', reason: 'specimen: the example sits on the page background, apart from the card' },
-  { selector: '.gallery-section + .gallery-section', property: 'border-top', reason: 'structure: the rule between page sections' },
   { selector: '.gallery-section-title::after', property: 'content', reason: 'structure: the accent bar under a section title' },
   { selector: '.gallery-section-title::after', property: 'border-radius', reason: 'structure: the accent bar under a section title' },
   { selector: '.gallery-section-title::after', property: 'background', reason: 'structure: the accent bar under a section title, in the accent color' },

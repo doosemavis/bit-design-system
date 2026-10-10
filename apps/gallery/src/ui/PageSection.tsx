@@ -9,8 +9,8 @@ export interface SectionLink {
 }
 
 /**
- * A page section's class, and its title's. gallery.css draws the break between sections (64px, a rule, 64px, with
- * the page's Stack at gap 64) and the accent bar under each title. Steps and tile groups that are not a
+ * A page section's class, and its title's. gallery.css draws the break between sections (128px, with the page's
+ * Stack at gap 64) and the accent bar under each title. Steps and tile groups that are not a
  * PageSection take the same two classes.
  */
 export const SECTION_CLASS = 'gallery-section';
