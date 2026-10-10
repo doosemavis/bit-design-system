@@ -29,16 +29,20 @@ describe('Typography page', () => {
     expect(outline).toEqual(['H1 Typography', 'H2 Fonts', 'H2 Headings', 'H2 Text sizes', "H2 Do and Don't"]);
   });
 
-  it('shows all four fonts, each with its name and specimen set in it, a component in use, and its token', async () => {
+  it('shows all four fonts, each with its name, specimen and two game quotes set in it, a component in use, and its token', async () => {
     await renderTypography();
     const cards = ['Lilita One', 'Nunito', 'Press Start 2P', 'JetBrains Mono'].map((name) => screen.getByRole('article', { name }));
     const faces = ['display', 'body', 'pixel', 'mono'];
     cards.forEach((card, i) => {
       const face = faces[i]!;
       const set = [...card.querySelectorAll('.gallery-face')];
-      expect(set.map((el) => el.getAttribute('data-face'))).toEqual([face, face]);
+      // The name, the specimen, then two quotes: all in the card's font.
+      expect(set.map((el) => el.getAttribute('data-face'))).toEqual([face, face, face, face]);
       expect(set[1]).toHaveClass('gallery-face--specimen');
       expect(set[1]).toHaveTextContent('0123456789');
+      const quotes = [...card.querySelectorAll('.gallery-quote')];
+      expect(quotes).toHaveLength(2);
+      for (const quote of quotes) expect(quote.firstElementChild?.textContent).toMatch(/^“.+”$/);
       expect(within(card).getByText('In use')).toBeInTheDocument();
       expect(within(card).getByText(`--bit-font-${face}`)).toHaveClass('bit-code');
     });

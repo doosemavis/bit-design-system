@@ -21,14 +21,24 @@ import type { HeadingSize, TextProps } from '@bit-ds/react';
 /** The specimen every font shows: both cases, the digits and some punctuation. */
 const SPECIMEN = 'ABCDEFGHIJKLM NOPQRSTUVWXYZ abcdefghijklm nopqrstuvwxyz 0123456789 !?&@';
 
+/** A line from a retro game, shown in a font's card as a sample of that font in real words. */
+interface Quote {
+  text: string;
+  from: string;
+}
+
 /**
  * power-up's four fonts, each with its specimen and a real component set in it. The specimen is set in the font
  * through `.gallery-face[data-face]` in gallery.css; the "In use" sample is the component itself.
  */
-const FONTS: readonly { face: string; name: string; use: string; inUse: ReactNode }[] = [
+const FONTS: readonly { face: string; name: string; use: string; quotes: readonly Quote[]; inUse: ReactNode }[] = [
   {
     face: 'display',
     name: 'Lilita One',
+    quotes: [
+      { text: "It's dangerous to go alone! Take this.", from: 'The Legend of Zelda (1986)' },
+      { text: 'Thank you Mario! But our princess is in another castle!', from: 'Super Mario Bros. (1985)' },
+    ],
     use: 'Every Heading (20 to 44), and Text at 24, 32 and 40.',
     // role="presentation" keeps the sample out of the page outline.
     inUse: (
@@ -40,12 +50,20 @@ const FONTS: readonly { face: string; name: string; use: string; inUse: ReactNod
   {
     face: 'body',
     name: 'Nunito',
+    quotes: [
+      { text: 'Hey! Listen!', from: 'The Legend of Zelda: Ocarina of Time (1998)' },
+      { text: 'Do a barrel roll!', from: 'Star Fox 64 (1997)' },
+    ],
     use: 'Body copy and labels: Text at 14, 16 and 18, Buttons and Fields.',
     inUse: <Text>Every component has a live preview, its props and its accessibility notes.</Text>,
   },
   {
     face: 'pixel',
     name: 'Press Start 2P',
+    quotes: [
+      { text: 'ALL YOUR BASE ARE BELONG TO US.', from: 'Zero Wing (1991)' },
+      { text: 'A WINNER IS YOU', from: 'Pro Wrestling (1987)' },
+    ],
     use: 'Badges, table headers and small labels.',
     inUse: (
       <Stack direction="row" gap={8} wrap>
@@ -57,6 +75,10 @@ const FONTS: readonly { face: string; name: string; use: string; inUse: ReactNod
   {
     face: 'mono',
     name: 'JetBrains Mono',
+    quotes: [
+      { text: 'War. War never changes.', from: 'Fallout (1997)' },
+      { text: 'I am Error.', from: 'Zelda II: The Adventure of Link (1987)' },
+    ],
     use: 'Code and CodeBlock.',
     inUse: <Code>npm i @bit-ds/react</Code>,
   },
@@ -115,11 +137,14 @@ function HeadRow({ values }: { values: readonly string[] }) {
   );
 }
 
-/** One card per font: its name and specimen set in it, a real component that uses it, its token and its jobs. */
+/**
+ * One card per font: its name, specimen and two retro game quotes set in it, a real component that uses it, its
+ * token and its jobs.
+ */
 function Fonts() {
   return (
     <Box className="gallery-grid gallery-grid--fonts">
-      {FONTS.map(({ face, name, use, inUse }) => (
+      {FONTS.map(({ face, name, use, quotes, inUse }) => (
         <Card key={face} role="article" aria-label={name}>
           <CardBody>
             <Stack gap={12} align="start">
@@ -129,6 +154,16 @@ function Fonts() {
               <Text className="gallery-face gallery-face--specimen" data-face={face}>
                 {SPECIMEN}
               </Text>
+              {quotes.map(({ text, from }) => (
+                <Stack key={text} gap={4} align="start" className="gallery-quote">
+                  <Text size={18} className="gallery-face gallery-face--specimen" data-face={face}>
+                    {`“${text}”`}
+                  </Text>
+                  <Text size={14} color="neutral">
+                    {from}
+                  </Text>
+                </Stack>
+              ))}
               <Stack gap={4} align="start">
                 <Text size={14} color="neutral">
                   In use
