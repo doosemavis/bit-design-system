@@ -9,9 +9,11 @@ export interface SearchEntry {
   /** Unique across the index, so a result can be an option id. */
   id: string;
   kind: SearchKind;
+  /** The sidebar section it sits under (Start here, Foundations, Components, Forms, Brand); a prop takes its component's. */
+  group: string;
   /** The line a result shows: the page or component name, or the prop name. */
   title: string;
-  /** The line under it: the page's sidebar group, a component's description, a prop's component and type. */
+  /** The line under it: "Page" for a docs page, a component's description, a prop's component and type. */
   detail: string;
   /** Where Enter goes: the page, or a component's Props section for a prop. */
   to: string;
@@ -33,11 +35,20 @@ const idFor = (...parts: readonly string[]) => `search-${parts.join('-').toLower
 
 function pageEntry(link: PageLink, manifest: Manifest | undefined): SearchEntry {
   if (!manifest) {
-    return { id: idFor('page', link.to), kind: 'page', title: link.label, detail: link.group, to: link.to, text: lower(link.label, link.group) };
+    return {
+      id: idFor('page', link.to),
+      kind: 'page',
+      group: link.group,
+      title: link.label,
+      detail: 'Page',
+      to: link.to,
+      text: lower(link.label, link.group),
+    };
   }
   return {
     id: idFor('component', manifest.slug),
     kind: 'component',
+    group: link.group,
     title: link.label,
     detail: manifest.description,
     to: link.to,
@@ -45,11 +56,12 @@ function pageEntry(link: PageLink, manifest: Manifest | undefined): SearchEntry 
   };
 }
 
-function propEntries(manifest: Manifest): SearchEntry[] {
+function propEntries(manifest: Manifest, group: string): SearchEntry[] {
   const to = `${routeFor(manifest)}#${SECTIONS.props.id}`;
   return manifest.docs.props.map((prop) => ({
     id: idFor('prop', manifest.slug, prop.name),
     kind: 'prop' as const,
+    group,
     title: prop.name,
     detail: `${manifest.name} prop · ${prop.type}`,
     to,
@@ -66,7 +78,7 @@ export function buildSearchIndex(nav: readonly PageLink[], manifests: readonly M
   const pages = nav.map((link) => pageEntry(link, byRoute.get(link.to)));
   const props = nav.flatMap((link) => {
     const manifest = byRoute.get(link.to);
-    return manifest ? propEntries(manifest) : [];
+    return manifest ? propEntries(manifest, link.group) : [];
   });
   return [...pages, ...props];
 }

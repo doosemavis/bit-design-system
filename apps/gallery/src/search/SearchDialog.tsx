@@ -8,15 +8,18 @@ import { NAV } from '../shell/Sidebar';
 import { focusRouteTarget, sectionIdOf } from '../shell/useFocusHeading';
 import { renderInline } from '../ui/renderInline';
 import { buildSearchIndex, searchEntries } from './searchIndex';
-import type { SearchEntry, SearchKind } from './searchIndex';
+import type { SearchEntry } from './searchIndex';
 
 /** Every page and every component prop, built once: the docs don't change while the page is open. */
 const INDEX = buildSearchIndex(NAV, MANIFESTS);
 
-const KIND: Record<SearchKind, { label: string; color: BadgeProps['color'] }> = {
-  page: { label: 'Page', color: 'neutral' },
-  component: { label: 'Component', color: 'primary' },
-  prop: { label: 'Prop', color: 'success' },
+/** A result's badge names its sidebar section, one color per section, so a result reads like the menu it's in. */
+const GROUP_COLOR: Readonly<Record<string, BadgeProps['color']>> = {
+  'Start here': 'neutral',
+  Foundations: 'warning',
+  Components: 'primary',
+  Forms: 'success',
+  Brand: 'danger',
 };
 
 /** The next active index for an arrow key, wrapping at both ends; null for any other key. */
@@ -90,7 +93,7 @@ function SearchPanel({ onGo }: SearchPanelProps) {
               id={entry.id}
               role="option"
               aria-selected={entry === current}
-              aria-label={`${entry.title}, ${KIND[entry.kind].label}`}
+              aria-label={`${entry.title}, ${entry.group}`}
               aria-describedby={`${entry.id}-detail`}
               className="gallery-search__option"
               onMouseMove={() => setActive(index)}
@@ -98,8 +101,8 @@ function SearchPanel({ onGo }: SearchPanelProps) {
             >
               <Stack direction="row" gap={8} align="center">
                 <Text weight="bold">{entry.title}</Text>
-                <Badge size="sm" variant="outline" color={KIND[entry.kind].color}>
-                  {KIND[entry.kind].label}
+                <Badge size="sm" variant="outline" color={GROUP_COLOR[entry.group] ?? 'neutral'}>
+                  {entry.group}
                 </Badge>
               </Stack>
               <Text id={`${entry.id}-detail`} color="neutral" className="gallery-search__detail">

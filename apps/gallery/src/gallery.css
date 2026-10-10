@@ -1103,6 +1103,16 @@ html {
   gap: var(--bit-space-4px);
   max-height: min(24rem, 50dvh);
   overflow-y: auto;
+  /* The list reaches into the dialog body's right padding, so its 14px scrollbar sits on the dialog's edge rather
+     than 16px in from it. The 2px left over keeps the results' right edge in line with the search box. */
+  margin-inline-end: calc(-1 * var(--bit-space-16px));
+  padding-inline-end: 2px;
+}
+
+/* The list fills the body's right padding, which would let the body scroll sideways by that much. It only ever
+   scrolls down. */
+.gallery-search .bit-dialog__body {
+  overflow-x: hidden;
 }
 
 /* One result: its name and kind, then one line of detail. The active one (keyboard or pointer) takes the line

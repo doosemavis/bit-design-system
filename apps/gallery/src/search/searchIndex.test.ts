@@ -68,4 +68,13 @@ describe('searchEntries', () => {
   it('returns nothing when nothing matches', () => {
     expect(searchEntries(INDEX, 'zzzz-no-such-thing')).toEqual([]);
   });
+  it('every entry is badged with its sidebar section; a prop takes its component\'s (Select props say Forms)', () => {
+    const groupOf = new Map(NAV.map((item) => [item.to, item.group]));
+    for (const entry of INDEX) {
+      const page = entry.to.split('#')[0]!;
+      expect(entry.group, entry.id).toBe(groupOf.get(page));
+    }
+    expect(INDEX.find((entry) => entry.kind === 'prop' && entry.to.startsWith('/components/select#'))?.group).toBe('Forms');
+    expect(INDEX.find((entry) => entry.kind === 'page' && entry.title === 'Spacing')).toMatchObject({ group: 'Foundations', detail: 'Page' });
+  });
 });

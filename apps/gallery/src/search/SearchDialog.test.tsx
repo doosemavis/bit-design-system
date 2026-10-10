@@ -75,7 +75,7 @@ describe('search dialog', () => {
     const list = within(dialog()).getByRole('listbox', { name: 'Results' });
     expect(box()).toHaveAttribute('aria-controls', list.id);
     expect(box()).toHaveAttribute('aria-expanded', 'true');
-    expect(within(list).getAllByRole('option')[0]).toHaveAccessibleName('Overview, Page');
+    expect(within(list).getAllByRole('option')[0]).toHaveAccessibleName('Overview, Start here');
     expect(activeOption()).toHaveAttribute('aria-selected', 'true');
     await expectNoA11yViolations(container);
     await userEvent.type(box(), 'size');
@@ -86,10 +86,10 @@ describe('search dialog', () => {
     await openAt('/', 'bit Design System');
     await userEvent.keyboard('{Control>}k{/Control}');
     await userEvent.type(box(), 'button');
-    expect(activeOption()).toHaveAccessibleName('Button, Component');
+    expect(activeOption()).toHaveAccessibleName('Button, Components');
     await userEvent.keyboard('{ArrowDown}');
     const second = activeOption();
-    expect(second).not.toHaveAccessibleName('Button, Component');
+    expect(second).not.toHaveAccessibleName('Button, Components');
     expect(second).toHaveAttribute('aria-selected', 'true');
     expect(screen.getAllByRole('option', { selected: true })).toHaveLength(1);
     await userEvent.keyboard('{ArrowUp}{ArrowUp}');
@@ -112,7 +112,7 @@ describe('search dialog', () => {
     const { router } = await openAt('/', 'bit Design System');
     await userEvent.keyboard('{Control>}k{/Control}');
     await userEvent.type(box(), 'tooltip describe');
-    expect(activeOption()).toHaveAccessibleName('describe, Prop');
+    expect(activeOption()).toHaveAccessibleName('describe, Components');
     await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(router.state.location.pathname).toBe('/components/tooltip'));
     expect(router.state.location.hash).toBe('#section-props');
@@ -123,7 +123,7 @@ describe('search dialog', () => {
     const { router } = await openAt('/', 'bit Design System');
     await userEvent.keyboard('{Control>}k{/Control}');
     await userEvent.type(box(), 'spacing');
-    await userEvent.click(screen.getByRole('option', { name: 'Spacing, Page' }));
+    await userEvent.click(screen.getByRole('option', { name: 'Spacing, Foundations' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/spacing'));
   });
 
