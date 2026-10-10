@@ -4,11 +4,11 @@ import { Disclosure } from '../ui/Disclosure';
 import { PageHeader } from '../ui/PageHeader';
 import { GetStarted, Step } from './getting-started/GetStarted';
 
-const HTML_EXAMPLE = `<!-- Follow the visitor's OS -->
-<html lang="en" data-mode="system">
+const HTML_EXAMPLE = `<!-- Name the theme and the mode -->
+<html lang="en" class="bit-theme-power-up bit-light">  <!-- or bit-dark -->
 
-<!-- Or fix the mode, and name the theme -->
-<html lang="en" class="bit-dark bit-theme-power-up">`;
+<!-- Or follow the visitor's OS until they pick -->
+<html lang="en" class="bit-theme-power-up" data-mode="system">`;
 
 const SUBTREE_EXAMPLE = `import { BitTheme } from '@bit-ds/react';
 
@@ -87,7 +87,11 @@ export function GettingStartedPage() {
           </BitTheme>
           <Alert color="primary" variant="outline" role="note" icon={false}>
             A subtree with its own mode paints its own background; <Code>BitTheme</Code> does it for you. Without React,
-            put the same classes on any element: <Code>class=&quot;bit-theme bit-dark&quot;</Code>.
+            put the same classes on any element: <Code>class=&quot;bit-theme bit-dark&quot;</Code>. The{' '}
+            <Link asChild>
+              <RouterLink to="/components/bittheme">BitTheme page</RouterLink>
+            </Link>{' '}
+            has every form: the whole app, following the OS, a scoped part, switching from code, and the data- attributes.
           </Alert>
         </Stack>
         <Disclosure title="Optional: use a saved choice before the page draws">

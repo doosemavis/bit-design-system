@@ -246,11 +246,11 @@ describe('GettingStartedPage', () => {
       await open();
       expect(screen.getByRole('region', { name: 'index.html' }).textContent).toBe(
         [
-          "<!-- Follow the visitor's OS -->",
-          '<html lang="en" data-mode="system">',
+          '<!-- Name the theme and the mode -->',
+          '<html lang="en" class="bit-theme-power-up bit-light">  <!-- or bit-dark -->',
           '',
-          '<!-- Or fix the mode, and name the theme -->',
-          '<html lang="en" class="bit-dark bit-theme-power-up">',
+          "<!-- Or follow the visitor's OS until they pick -->",
+          '<html lang="en" class="bit-theme-power-up" data-mode="system">',
         ].join('\n'),
       );
       expect(screen.getByRole('region', { name: 'Any file' }).textContent).toBe(
@@ -287,6 +287,7 @@ describe('GettingStartedPage', () => {
       const note = within(main()).getByRole('note');
       expect(note).toHaveClass('bit-alert', 'bit-primary', 'bit-outline');
       expect(note).toHaveTextContent('paints its own background');
+      expect(within(note).getByRole('link', { name: 'BitTheme page' })).toHaveAttribute('href', expect.stringContaining('/components/bittheme'));
     });
 
     it('the optional disclosure starts closed, then opens to the snippet and the COLOR_MODE_SCRIPT note', async () => {

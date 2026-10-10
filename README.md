@@ -280,6 +280,8 @@ import { BitTheme } from '@bit-ds/react';
 </BitTheme>
 ```
 
+The [BitTheme page](https://doosemavis.github.io/bit-design-system/#/components/bittheme) shows every form live: the whole app, following the OS, a scoped part, switching from code, and the `data-` attributes.
+
 It renders a `<div class="bit-theme bit-dark">` (or puts the classes on its child with `asChild`) and paints it in the theme's page color. `theme="power-up"` adds `bit-theme-power-up`. Without React, write the classes yourself. A subtree with its own mode or theme paints its own background; `bit-theme` does that for you.
 
 - A theme starts its subtree in its light mode: give it a mode to make it dark.

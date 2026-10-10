@@ -1,5 +1,6 @@
 import { BitTheme } from '@bit-ds/react';
 import type { Manifest } from './types';
+import { BitThemeExamples } from '../pages/theme/BitThemeExamples';
 
 export const bitTheme: Manifest = {
   name: 'BitTheme',
@@ -7,7 +8,7 @@ export const bitTheme: Manifest = {
   group: 'components',
   component: BitTheme,
   description:
-    'Themes a subtree: a wrapper with a theme class and a mode class, painted in that theme. A dark sidebar on a light page is one BitTheme.',
+    'Theme and mode for the whole page, or for part of it. On <html>, the classes bit-theme-power-up and bit-light or bit-dark pick them; BitTheme puts the same classes on a subtree, such as a dark sidebar on a light page.',
   controls: [
     { kind: 'select', prop: 'mode', values: ['none', 'light', 'dark'], default: 'dark', alwaysPrint: true },
     { kind: 'select', prop: 'theme', values: ['none', 'power-up'], default: 'none' },
@@ -32,17 +33,21 @@ export const bitTheme: Manifest = {
     { label: 'Light inside dark', state: { mode: 'light' } },
     { label: 'Theme by name', state: { theme: 'power-up' } },
   ],
+  extraSection: { id: 'section-examples', title: 'Examples', Component: BitThemeExamples },
   docs: {
     badges: ['Theme and mode classes', 'asChild'],
     usage: {
       do: [
-        'Wrap a part of the page that needs its own mode: a dark sidebar, a light card in a dark app.',
-        'Give it theme="<name>" to show a second theme you have loaded, beside the first.',
-        'Use asChild to put the classes on your own element (an <aside>, a router outlet) instead of a <div>.',
+        'Set the theme and mode on <html> (class="bit-theme-power-up bit-light"), so they apply before the body paints.',
+        'Put one theme class on the page root, once.',
+        'Use BitTheme for a section that must keep its own mode: a dark code panel, a promo band, a sidebar.',
+        'Let ModeToggle and colorMode own the class on <html> once the page has loaded; they write it and remember the choice.',
       ],
       dont: [
-        'Wrap the whole app in BitTheme to pick the page mode. Put the class on <html> (or call colorMode.set), so the page and its scrollbars match.',
-        'Nest a mode switch deep inside a second theme that itself sits inside another non-default theme. Put the mode on the BitTheme instead.',
+        'Put mode classes on <body>. The page background, the scrollbars and native controls take their colors from <html>.',
+        'Mix bit-dark and data-mode="light" on the same element. Use one form per element.',
+        'Use BitTheme to change one component’s color. Use its color and variant props.',
+        'Call light or dark a theme. power-up is the theme; light and dark are its modes.',
       ],
     },
     props: [
