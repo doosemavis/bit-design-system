@@ -6,7 +6,7 @@ import { InlineText } from '../../system/inlineText';
 import { dataValue, toClasses } from '../../system/toClasses';
 import { warnDeprecated } from '../../system/warnDeprecated';
 
-/** Only `neutral` (muted) is supported on Text in v1; see the plan note. */
+/** Text supports one color: `neutral`, for muted text. */
 const colors = ['neutral'] as const;
 
 /** @deprecated Text picks its element itself now. Removed in 0.2.0. */

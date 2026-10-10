@@ -51,7 +51,7 @@ export function TypeSection({ values }: { values: TokenValues }) {
         </TokenCard>
         <TokenCard name="text sizes">
           <TokenRows>
-            {/* The supported sizes only: the deprecated 11 goes in 0.2.0, so it isn't offered here. */}
+            {/* The supported sizes only: the deprecated 11, 13 and 15 go in 0.2.0, so they aren't offered here. */}
             {TEXT_SIZES.map((size) => (
               <TokenRow
                 key={size}

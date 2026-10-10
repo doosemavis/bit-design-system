@@ -16,7 +16,7 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   /** Color role. Class: `bit-{color}`. */
   color?: Color;
   variant?: (typeof variants)[number];
-  /** `lg` is the readable badge: body font, 15px bold. `sm` and `md` use the pixel font. */
+  /** `lg` is the readable badge: body font, 16px bold. `sm` and `md` use the pixel font. */
   size?: (typeof sizes)[number];
   /** Drops the hard shadow for a flat look. Class: `bit-flat`, so `className="bit-flat"` does the same. */
   flat?: boolean;
