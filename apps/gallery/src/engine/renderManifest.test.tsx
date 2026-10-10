@@ -39,7 +39,7 @@ describe('renderManifest', () => {
 
   it('renders nested ChildSpecs: Table head, rows and cells', () => {
     render(renderManifest(table, defaultState(table)));
-    expect(screen.getByRole('region', { name: 'Button props' })).toHaveClass('bit-table');
+    expect(screen.getByRole('table', { name: 'Button props' }).parentElement).toHaveClass('bit-table');
     expect(screen.getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Prop', 'Type', 'Default']);
     expect(screen.getAllByRole('row')).toHaveLength(4);
     expect(screen.getAllByRole('cell')[0]).toHaveTextContent('color');

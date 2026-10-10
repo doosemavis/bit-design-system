@@ -34,30 +34,30 @@ export interface TableProps extends Omit<TableHTMLAttributes<HTMLTableElement>, 
 /**
  * A native table in a bordered wrapper that scrolls sideways when the table is too wide. The wrapper
  * takes `className`. The wrapper is focusable only while the table is too wide and scrolls, so the scroll
- * works from the keyboard without an extra Tab stop the rest of the time. With an `aria-label` or
- * `aria-labelledby` it is also a named region. Without a name it has no role, because a region
- * with no name is not a landmark. Name any table that may scroll. The table takes the ref and every other prop.
+ * works from the keyboard without an extra Tab stop the rest of the time. The name (`aria-label` or
+ * `aria-labelledby`) goes on one element, so it is read once: on the wrapper, as a named region, while it
+ * scrolls (the stop focus lands on), and on the table the rest of the time. Name any table that may scroll.
+ * The table takes the ref and every other prop.
  */
 export const Table = forwardRef<HTMLTableElement, TableProps>(function Table(
   { striped = false, flat = false, className, ...rest },
   ref,
 ) {
   const [measureRef, overflows] = useOverflows();
-  const label = rest['aria-label'];
-  const labelledBy = rest['aria-labelledby'];
+  const { 'aria-label': label, 'aria-labelledby': labelledBy, ...tableProps } = rest;
   // An empty string names nothing, so it must not make an empty-named region.
-  const named = Boolean(label) || Boolean(labelledBy);
+  const region = overflows && (Boolean(label) || Boolean(labelledBy));
+  const name = { 'aria-label': label, 'aria-labelledby': labelledBy };
   return (
     <div
       ref={measureRef}
       className={toClasses('table', [], withFlat(flat, className))}
       data-striped={striped ? '' : undefined}
       tabIndex={overflows ? 0 : undefined}
-      role={named ? 'region' : undefined}
-      aria-label={label}
-      aria-labelledby={labelledBy}
+      role={region ? 'region' : undefined}
+      {...(region ? name : {})}
     >
-      <table ref={ref} className={element('table', 'table')} {...dropLegacyColor(rest)} />
+      <table ref={ref} className={element('table', 'table')} {...dropLegacyColor(tableProps)} {...(region ? {} : name)} />
     </div>
   );
 });

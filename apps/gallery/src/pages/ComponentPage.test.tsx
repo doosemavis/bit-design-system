@@ -16,6 +16,8 @@ async function open(path: string, name: string) {
 }
 
 const region = (name: string) => screen.getByRole('region', { name });
+/** A named bit Table: the name sits on the <table> while it fits (jsdom never overflows). */
+const table = (name: string) => screen.getByRole('table', { name });
 const main = () => screen.getByRole('main');
 
 describe('SegmentedControl page: segments and multiple', () => {
@@ -119,7 +121,7 @@ describe('ComponentPage (layout C)', () => {
 
   it('the Variants table has one cell per color × variant', async () => {
     await open('/components/button', 'Button');
-    expect(within(region('Button variants')).getAllByRole('button', { name: 'Save' })).toHaveLength(15);
+    expect(within(table('Button variants')).getAllByRole('button', { name: 'Save' })).toHaveLength(15);
   });
 
   it('Usage shows Do and Don\'t as soft success and danger notes', async () => {
@@ -133,18 +135,18 @@ describe('ComponentPage (layout C)', () => {
 
   it('Props is a Table of prop, type, default and description from docs.props', async () => {
     await open('/components/button', 'Button');
-    const table = region('Button props');
-    expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(PROP_COLUMNS.map((c) => c.header));
-    expect(within(table).getAllByRole('row')).toHaveLength(button.docs.props.length + 1);
-    const color = within(table).getByText('color').closest('tr')!;
+    const props = table('Button props');
+    expect(within(props).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(PROP_COLUMNS.map((c) => c.header));
+    expect(within(props).getAllByRole('row')).toHaveLength(button.docs.props.length + 1);
+    const color = within(props).getByText('color').closest('tr')!;
     // The Default cell; the Type cell has its own 'primary' chip (see the union test below).
     expect(within(color.cells[2]!).getByText("'primary'")).toHaveClass('bit-code');
   });
 
   it('a union type is one unbreakable chip per member, joined by a plain " | ", so lines break only between members', async () => {
     await open('/components/button', 'Button');
-    const table = region('Button props');
-    const typeCell = (name: string) => within(table).getByText(name, { selector: 'code' }).closest('tr')!.cells[1]!;
+    const props = table('Button props');
+    const typeCell = (name: string) => within(props).getByText(name, { selector: 'code' }).closest('tr')!.cells[1]!;
     const chips = [...typeCell('color').querySelectorAll('.bit-code')];
     expect(chips.map((chip) => chip.textContent)).toEqual(["'primary'", "'neutral'", "'success'", "'warning'", "'danger'"]);
     for (const chip of chips) expect(chip).toHaveClass('gallery-nowrap');
@@ -160,7 +162,7 @@ describe('ComponentPage (layout C)', () => {
 
   it('the Props Description column keeps a minimum width, so a phone scrolls the table instead of stacking tall rows', async () => {
     await open('/components/button', 'Button');
-    const rows = within(region('Button props')).getAllByRole('row').slice(1) as HTMLTableRowElement[];
+    const rows = within(table('Button props')).getAllByRole('row').slice(1) as HTMLTableRowElement[];
     // gallery-css.test.ts pins the 16rem this class sets.
     for (const row of rows) expect(row.cells[4]).toHaveClass('gallery-props__description');
     expect(rows[0]!.cells[1]).not.toHaveClass('gallery-props__description');
@@ -168,8 +170,8 @@ describe('ComponentPage (layout C)', () => {
 
   it('the Props table has a Class column: bit-{prop} on axis rows, — elsewhere', async () => {
     await open('/components/button', 'Button');
-    const table = region('Button props');
-    const classOf = (name: string) => within(table).getByText(name, { selector: 'code' }).closest('tr')!.cells[3]!;
+    const props = table('Button props');
+    const classOf = (name: string) => within(props).getByText(name, { selector: 'code' }).closest('tr')!.cells[3]!;
     expect(classOf('variant')).toHaveTextContent('bit-{variant}');
     expect(within(classOf('variant')).getByText('bit-{variant}')).toHaveClass('bit-code');
     expect(classOf('loading')).toHaveTextContent('—');
