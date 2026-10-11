@@ -122,7 +122,8 @@ test('the boards fill the sidebar’s height: taller than wide, and a resize mid
   const box = (await snake.board.boundingBox())!;
   expect(box.height).toBeGreaterThan(450);
   expect(box.height).toBeGreaterThan(2 * box.width);
-  await expect.poll(async () => (await gridOf(snake.board))[1]).toBeGreaterThan(40);
+  // A fixed number of columns, so the 50px-wider game sidebar means bigger cells and fewer rows: 34 at 1440x900.
+  await expect.poll(async () => (await gridOf(snake.board))[1]).toBeGreaterThan(30);
   const before = await gridOf(snake.board);
   // The instructions are folded away under the controls.
   await expect(snake.region.getByRole('button', { name: 'How to play' })).toHaveAttribute('aria-expanded', 'false');
@@ -138,6 +139,21 @@ test('the boards fill the sidebar’s height: taller than wide, and a resize mid
   const cheese = await openGame(page, 'Cheese Run');
   // At 1440x800 Cheese Run's taller HUD (five badges) leaves a board under twice as tall as wide: a 7 by 13 maze.
   await expect.poll(async () => (await gridOf(cheese.board))[1]).toBeGreaterThan(1.5 * (await gridOf(cheese.board))[0]);
+});
+
+test('a game widens the sidebar by 50px, and Back narrows it again', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('#/');
+  const width = (locator: Locator) => locator.evaluate((el) => el.getBoundingClientRect().width);
+  const mainStart = () => page.locator('main').evaluate((el) => el.getBoundingClientRect().left);
+  const menu = await width(nav(page));
+  const start = await mainStart();
+  const { region } = await openGame(page, 'Snake');
+  expect(await width(region)).toBe(menu + 50);
+  // Main moves over beside it rather than sitting under it.
+  expect(await mainStart()).toBe(start + 50);
+  await region.getByRole('button', { name: 'Back to menu' }).click();
+  expect(await width(nav(page))).toBe(menu);
 });
 
 test.describe('phone', () => {

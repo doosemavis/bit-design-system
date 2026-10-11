@@ -36,6 +36,12 @@ html,
     "sidebar main";
 }
 
+/* An open game takes the sidebar's place and gets 50px more of it (owner's call, 2026-10-11): a wider board, and
+   main moves over beside it. Phones are untouched: there the game runs in the full-width sheet. */
+.gallery-shell:has(> .gallery-sidebar--arcade) {
+  --_gallery-sidebar-width: calc(15rem + 50px);
+}
+
 .gallery-skip {
   position: absolute;
   left: var(--bit-space-8px);
