@@ -7,7 +7,7 @@ export const tooltip: Manifest = {
   group: 'components',
   related: ['dialog', 'iconbutton'],
   component: Tooltip,
-  description: 'A short label that appears above a control on hover or keyboard focus.',
+  description: 'A short hint that appears above a control on hover or keyboard focus, such as the name of an icon.',
   controls: [
     { kind: 'text', prop: 'content', default: 'Copy link', alwaysPrint: true },
     { kind: 'boolean', prop: 'pinned', default: false, label: 'Keep open', virtual: true },
@@ -17,7 +17,7 @@ export const tooltip: Manifest = {
   children: [{ component: 'Button', props: { variant: 'outline', color: 'neutral' }, children: 'Hover or focus me' }],
   interactive: true,
   docs: {
-    badges: ['Hover and focus', 'Esc closes'],
+    badges: ['Esc closes'],
     usage: {
       do: [
         "Label an icon-only control's action, such as \"Delete\" on a trash-can button.",

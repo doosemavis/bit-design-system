@@ -8,7 +8,8 @@ export const textarea: Manifest = {
   related: ['input', 'field'],
   group: 'forms',
   component: Textarea,
-  description: 'A native multi-line text box, recessed like Input. Put it in a Field for a visible label. People can drag it taller.',
+  description:
+    'A box for longer answers, such as a message or a comment. Put it in a Field for a visible label; people can drag it taller.',
   controls: [
     { kind: 'axis', prop: 'size', values: SIZES, default: 'md' },
     { kind: 'text', prop: 'aria-label', default: 'Message', label: 'aria-label' },

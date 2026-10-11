@@ -18,7 +18,8 @@ export const menu: Manifest = {
   group: 'components',
   related: ['select', 'dialog', 'iconbutton'],
   component: Menu,
-  description: 'A list of actions that opens from a button, in a small retro window with a purple title strip.',
+  description:
+    'A list of actions behind one button, for actions on one thing that would crowd the page as buttons. It opens in a small retro window with a purple title strip.',
   controls: [
     { kind: 'text', prop: 'title', default: 'File', alwaysPrint: true },
     { kind: 'axis', prop: 'size', values: ['sm', 'md'], default: 'md' },
@@ -38,7 +39,7 @@ export const menu: Manifest = {
   interactive: true,
   extraSection: { id: 'section-examples', title: 'Examples', Component: MenuExamples },
   docs: {
-    badges: ['WAI-ARIA menu button', 'Top layer', 'Retro window'],
+    badges: ['WAI-ARIA menu button', 'Top layer'],
     usage: {
       do: [
         'Use a Menu for actions on one thing (a file, a row, a card) that would crowd the page as buttons.',

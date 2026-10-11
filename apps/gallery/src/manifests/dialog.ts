@@ -39,7 +39,8 @@ export const dialog: Manifest = {
   group: 'components',
   related: ['tooltip', 'alert'],
   component: Dialog,
-  description: 'A modal window in the Retro window style. It opens over a dimmed page, keeps focus inside, and folds away when closed.',
+  description:
+    'A modal window in the Retro window style, for a decision or a short task that comes before anything else. It opens over a dimmed page, keeps focus inside, and folds away when closed.',
   controls: [
     { kind: 'text', prop: 'title', label: 'title', default: 'Save changes?', virtual: true },
     { kind: 'boolean', prop: 'alert', default: false },
@@ -60,7 +61,7 @@ export const dialog: Manifest = {
   },
   interactive: true,
   docs: {
-    badges: ['Native <dialog>', 'Focus kept inside', 'Pixel fold'],
+    badges: ['Native <dialog>', 'Pixel fold'],
     usage: {
       do: [
         'Use a Dialog for a short task or a decision that needs an answer before going on.',

@@ -224,10 +224,84 @@ html,
   gap: var(--bit-space-12px) var(--bit-space-16px);
 }
 
-/* The in-page links under a page header. */
+/* ---------- On this page ---------- */
+/* The in-page links under a page header, as one compact row: the "On this page" label, then the links. On wide
+   screens the row stays in view under the site header while the page scrolls. A sticky box only travels inside
+   its parent, so the header group around it (a Stack of the header and the bar) gives up its box, and the bar
+   moves through the whole page. The page's Stack then spaces it 64px from the header; the negative margin puts
+   back the group's 16px. The bar runs out into main's gutters, so nothing shows past its ends as the page scrolls
+   under it. */
+.bit-stack:has(> .gallery-section-bar) {
+  display: contents;
+}
+
 .gallery-section-bar {
-  padding-block: var(--bit-space-8px);
+  position: sticky;
+  top: var(--_gallery-header-height);
+  z-index: 4;
+  display: flex;
+  align-items: baseline;
+  gap: var(--bit-space-8px) var(--bit-space-24px);
+  margin-top: calc(var(--bit-space-16px) - var(--bit-space-64px));
+  margin-inline: calc(-1 * var(--_gallery-gutter));
+  padding: var(--bit-space-8px) var(--_gallery-gutter);
   border-block: var(--bit-border-width) solid var(--bit-color-line);
+  background: var(--bit-color-bg);
+}
+
+.gallery-section-bar > .bit-text {
+  flex: none;
+}
+
+/* A jump (a bar link, a "#" link, a deep link) stops below the sticky bar as well as the header. */
+html:has(.gallery-section-bar) {
+  --_gallery-section-bar-height: 3rem;
+  scroll-padding-top: calc(var(--_gallery-header-height) + var(--_gallery-section-bar-height) + var(--bit-space-16px));
+}
+
+/* A phone keeps the bar where it is, one row that scrolls sideways, so the Playground comes sooner. */
+@media (max-width: 720px) {
+  .gallery-section-bar {
+    position: static;
+    margin-bottom: calc(var(--bit-space-32px) - var(--bit-space-64px));
+  }
+
+  .gallery-section-bar .gallery-link-list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  html:has(.gallery-section-bar) {
+    --_gallery-section-bar-height: 0rem;
+  }
+}
+
+/* ---------- reading ---------- */
+/* Prose keeps a readable measure: a paragraph or a bulleted list in main stops at about 75 characters a line,
+   however wide main is. A ch is the width of "0", which in Nunito is about 1.3 average letters, so 56ch holds
+   about 75. Tables, code panels and cards keep their full width; only the text inside them is capped. A live
+   preview or sample shows Text as an app renders it, so it is left alone. */
+.gallery-main p.bit-text {
+  max-width: 56ch;
+}
+
+.gallery-main .gallery-bullets {
+  max-width: 56ch;
+}
+
+.gallery-main :is(.gallery-preview, .gallery-example__sample, .gallery-split__result, .gallery-tile__preview) p.bit-text {
+  max-width: none;
+}
+
+/* A Getting started step's accent bar starts under its number badge, not under the title after it: the title gives
+   up its place as the bar's anchor to the row that holds the badge and the title. */
+[data-step] > .bit-stack:first-child {
+  position: relative;
+}
+
+[data-step] > .bit-stack:first-child .gallery-section-title {
+  position: static;
 }
 
 @media (max-width: 720px) {

@@ -8,7 +8,8 @@ export const checkbox: Manifest = {
   related: ['switch', 'radiogroup', 'field'],
   group: 'forms',
   component: Checkbox,
-  description: 'A tick box for a yes or no that is part of a form. A real checkbox: click the label or press Space.',
+  description:
+    'A tick box for a yes or no inside a form, such as agreeing to the terms. Click its label or press Space to tick it.',
   controls: [
     { kind: 'axis', prop: 'size', values: SIZES, default: 'md' },
     { kind: 'boolean', prop: 'indeterminate', default: false },

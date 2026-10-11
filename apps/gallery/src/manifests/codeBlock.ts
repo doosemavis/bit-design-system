@@ -10,7 +10,8 @@ export const codeBlock: Manifest = {
   group: 'components',
   related: ['code'],
   component: CodeBlock,
-  description: 'A dark code panel with editor colors, a language label and a Copy button. JSX, TSX, TypeScript, HTML, CSS and shell.',
+  description:
+    'Shows a snippet people can read and copy: a dark panel with editor colors, a language label and a Copy button.',
   controls: [
     { kind: 'select', prop: 'language', values: LANGUAGES, default: 'jsx', alwaysPrint: true },
     { kind: 'text', prop: 'code', default: 'const coins = 42; // collected', alwaysPrint: true },
@@ -23,7 +24,7 @@ export const codeBlock: Manifest = {
     { label: 'No Copy button', state: { copy: false } },
   ],
   docs: {
-    badges: ['Copy button', 'jsx · tsx · ts · html · css · shell'],
+    badges: ['jsx, tsx, ts, html, css, shell'],
     usage: {
       do: [
         'Use CodeBlock for anything people should copy: install commands, snippets, config.',

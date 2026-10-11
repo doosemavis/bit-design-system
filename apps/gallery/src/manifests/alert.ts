@@ -19,7 +19,8 @@ export const alert: Manifest = {
   group: 'components',
   related: ['dialog', 'badge'],
   component: Alert,
-  description: 'A message with an optional heading. Outline uses the soft background; solid fills. Each color but neutral leads with its own icon.',
+  description:
+    'A message people should notice, from good news to an error. Each color but neutral leads with its own icon; add a title when the message needs a heading.',
   controls: [
     { kind: 'axis', prop: 'color', values: COLORS, default: 'neutral' },
     { kind: 'axis', prop: 'variant', values: ['solid', 'outline'], default: 'outline' },
@@ -47,7 +48,7 @@ export const alert: Manifest = {
   },
   interactive: dismissible,
   docs: {
-    badges: ['role="status"', 'Title in the display face', 'Severity icon'],
+    badges: ['role="status"', 'Outline or solid', 'Title in the display face'],
     usage: {
       do: [
         'Say what happened and what to do next: "Saved. You can close this tab."',

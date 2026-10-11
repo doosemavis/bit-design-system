@@ -6,7 +6,7 @@ import { chooseOption, chosenLabel, optionLabels } from '../test/select';
 import { button } from '../manifests/button';
 import { modeToggle } from '../manifests/modeToggle';
 import { switchManifest } from '../manifests/switch';
-import { MANIFESTS } from '../manifests';
+import { MANIFESTS, routeFor } from '../manifests';
 import { importChip } from './component/ComponentHeader';
 import { classTip, PROP_COLUMNS } from './component/DocsSections';
 
@@ -47,14 +47,45 @@ describe('SegmentedControl page: segments and multiple', () => {
 });
 
 describe('ComponentPage (layout C)', () => {
-  it('the header: h1, description, the import chip with Copy, and the badges', async () => {
+  it('the header: h1, description, one muted line of facts, and the import chip with Copy', async () => {
     await open('/components/card', 'Card');
     const chip = screen.getByText("import { Card, CardHeader, CardBody, CardFooter } from '@bit-ds/react';");
     expect(chip).toHaveClass('bit-code', 'gallery-import-code');
     expect(screen.getByRole('button', { name: 'Copy import line' })).toBeInTheDocument();
     // The row stretches its children, so the chip's background takes the Copy button's height.
     expect(chip.parentElement).toHaveAttribute('data-align', 'stretch');
-    expect(screen.getByText('Compound')).toHaveClass('bit-badge', 'bit-outline');
+  });
+
+  // Critique 2026-10-11: the facts were 3 or 4 pixel Badges at 8px, a stack of their own above the section bar.
+  it.each(MANIFESTS.filter((m) => m.docs.badges.length > 0).map((m) => [m.name, m] as const))(
+    '%s: the header facts are one muted line of body text, not a row of Badges',
+    async (_name, manifest) => {
+      await open(routeFor(manifest), manifest.name);
+      const header = screen.getByRole('heading', { level: 1 }).parentElement!;
+      expect(header.querySelector('.bit-badge')).toBeNull();
+      const meta = header.querySelectorAll('.gallery-meta');
+      expect(meta).toHaveLength(1);
+      expect(meta[0]!.tagName).toBe('P');
+      expect(meta[0]).toHaveClass('bit-text', 'bit-neutral');
+      expect(meta[0]).toHaveAttribute('data-size', '16');
+      expect(meta[0]!.textContent).toBe(manifest.docs.badges.join(' · '));
+    },
+  );
+
+  it('a component with no facts has no meta line', async () => {
+    const bare = MANIFESTS.find((m) => m.docs.badges.length === 0);
+    if (!bare) return;
+    await open(routeFor(bare), bare.name);
+    expect(document.querySelector('.gallery-meta')).toBeNull();
+  });
+
+  it('the header order is title, description, facts, then the import line', async () => {
+    await open('/components/button', 'Button');
+    const header = screen.getByRole('heading', { level: 1 }).parentElement!;
+    const kinds = [...header.children].map((el) =>
+      el.tagName === 'H1' ? 'title' : el.classList.contains('gallery-meta') ? 'meta' : el.querySelector('.gallery-import-code') ? 'import' : 'description',
+    );
+    expect(kinds).toEqual(['title', 'description', 'meta', 'import']);
   });
 
   it('importChip lists the component, then its parts', () => {
@@ -294,7 +325,7 @@ describe('ComponentPage (layout C)', () => {
 describe('inline code in manifest copy', () => {
   it("the Select subtitle shows `multiple` as Code, not raw backticks", async () => {
     await open('/components/select', 'Select');
-    const subtitle = screen.getByText((_, el) => el?.tagName === 'P' && /^Picks one option/.test(el.textContent ?? ''));
+    const subtitle = screen.getByText((_, el) => el?.tagName === 'P' && /^Lets people pick one option/.test(el.textContent ?? ''));
     expect(within(subtitle).getByText('multiple', { selector: 'code' })).toHaveClass('bit-code');
     expect(subtitle.textContent).not.toContain('`');
   });

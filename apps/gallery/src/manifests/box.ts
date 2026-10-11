@@ -11,7 +11,7 @@ export const box: Manifest = {
   related: ['stack', 'card'],
   component: Box,
   description:
-    'Padding and margin on the space scale, for one element. When props overlap, the most specific wins: a side beats an axis beats all four. The gallery draws the dashed outline, so you can see the space.',
+    "Adds space around one element: padding and margin on the space scale. The dashed outline is the gallery's, so you can see the space.",
   controls: [
     { kind: 'select', prop: 'padding', values: SPACES, default: '16', numeric: true, alwaysPrint: true },
     { kind: 'select', prop: 'paddingX', values: SPACES, default: 'none', numeric: true },
@@ -32,7 +32,7 @@ export const box: Manifest = {
     { label: 'Pushed down', state: { marginTop: '32' } },
   ],
   docs: {
-    badges: ['Layout', 'Most specific wins'],
+    badges: ['Layout', 'Most specific wins: a side, then an axis, then all four'],
     usage: {
       do: [
         'Use Box to pad or offset one element on the space scale.',

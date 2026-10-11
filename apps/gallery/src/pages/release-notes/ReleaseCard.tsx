@@ -1,10 +1,10 @@
 import { useId } from 'react';
-import { Badge, Button, Card, CardBody, CardHeader, Heading, Stack } from '@bit-ds/react';
+import { Badge, Button, Card, CardBody, CardHeader, Heading, Stack, Text } from '@bit-ds/react';
 import { CHANGE_KINDS } from '../../content/changelog';
 import type { ChangeKind } from '../../content/changelog';
 import { ChangeList } from '../../ui/ChangeList';
 import type { ReleaseStatus } from '../../shell/latestVersion';
-import { KIND_BADGE, releaseAnchor } from './kinds';
+import { formatReleaseDate, KIND_BADGE, releaseAnchor } from './kinds';
 
 interface ReleaseCardProps {
   version: string;
@@ -15,6 +15,8 @@ interface ReleaseCardProps {
   open: boolean;
   /** Show only this kind's section. */
   only: ChangeKind | null;
+  /** Each change in full, with its code; otherwise one plain headline per change. */
+  details: boolean;
   onToggle: () => void;
 }
 
@@ -22,7 +24,7 @@ interface ReleaseCardProps {
  * One release: a header that always shows the version, date and counts, and a body of per-kind lists. Flat:
  * notes to read, so the hard shadow stays on what you press.
  */
-export function ReleaseCard({ version, date, sections, status, open, only, onToggle }: ReleaseCardProps) {
+export function ReleaseCard({ version, date, sections, status, open, only, details, onToggle }: ReleaseCardProps) {
   const bodyId = useId();
   const kinds = CHANGE_KINDS.filter((kind) => (sections[kind]?.length ?? 0) > 0);
   return (
@@ -31,9 +33,9 @@ export function ReleaseCard({ version, date, sections, status, open, only, onTog
         <Stack direction="row" gap={12} align="center" wrap>
           <Heading id={releaseAnchor(version)} tabIndex={-1}>{`v${version}`}</Heading>
           {date ? (
-            <Badge color="neutral" variant="outline">
-              {date}
-            </Badge>
+            <Text color="neutral">
+              <time dateTime={date}>{formatReleaseDate(date)}</time>
+            </Text>
           ) : null}
           {status === 'latest' ? (
             <Badge color="primary" variant="solid">
@@ -62,7 +64,7 @@ export function ReleaseCard({ version, date, sections, status, open, only, onTog
               .map((kind) => (
                 <Stack key={kind} gap={8} align="start">
                   <Badge {...KIND_BADGE[kind]}>{kind}</Badge>
-                  <ChangeList items={sections[kind]!} label={`${kind} in v${version}`} />
+                  <ChangeList items={sections[kind]!} label={`${kind} in v${version}`} headlines={!details} />
                 </Stack>
               ))}
           </Stack>

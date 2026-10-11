@@ -15,7 +15,8 @@ export const icon: Manifest = {
   group: 'components',
   related: ['badge', 'iconbutton'],
   component: Icon,
-  description: 'A Material Symbols icon, as a React component or plain classes. 300 icons, each with a filled version.',
+  description:
+    'A small picture that labels or decorates, from 300 Material Symbols icons, each with a filled version. Use it as a React component or as plain classes.',
   controls: [
     { kind: 'select', prop: 'iconName', values: [...PLAYGROUND_ICONS], default: 'favorite', label: 'Icon', virtual: true },
     { kind: 'boolean', prop: 'iconFilled', default: false, label: 'Fill' },

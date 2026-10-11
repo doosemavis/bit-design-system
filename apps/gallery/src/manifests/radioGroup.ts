@@ -14,7 +14,7 @@ export const radioGroup: Manifest = {
   related: ['segmentedcontrol', 'checkbox', 'select'],
   group: 'forms',
   component: RadioGroup,
-  description: 'Pick exactly one of a few choices, all in view. Real radios in a fieldset: the arrow keys move the choice.',
+  description: 'Lets people pick exactly one of a few choices, all in view. The arrow keys move the choice.',
   controls: [
     { kind: 'text', prop: 'legend', default: 'Shipping', alwaysPrint: true },
     { kind: 'axis', prop: 'size', values: SIZES, default: 'md' },
@@ -33,7 +33,7 @@ export const radioGroup: Manifest = {
     { label: 'Small', state: { size: 'sm' } },
   ],
   docs: {
-    badges: ['Native radios', 'Arrow keys', 'Joins a Field'],
+    badges: ['Native radios in a fieldset', 'Joins a Field'],
     usage: {
       do: [
         'Use a RadioGroup for one choice out of two to six that people should compare side by side.',

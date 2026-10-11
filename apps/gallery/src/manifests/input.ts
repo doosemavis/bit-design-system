@@ -7,7 +7,8 @@ export const input: Manifest = {
   group: 'forms',
   related: ['field', 'textarea', 'select'],
   component: Input,
-  description: 'A native text input, recessed into the page. Put it in a Field for a visible label.',
+  description:
+    'A one-line text box for short answers, such as a name or an email. Put it in a Field to give it a visible label.',
   controls: [
     { kind: 'axis', prop: 'size', values: SIZES, default: 'md' },
     { kind: 'select', prop: 'type', values: ['text', 'email', 'search', 'password'], default: 'text' },

@@ -47,16 +47,23 @@ for (const mode of MODES) {
   });
 }
 
-test('a section bar jump, a "#" link and a deep link all land below the header', async ({ page }) => {
+test('a section bar jump, a "#" link and a deep link all land below the header and the sticky section bar', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('#/components/button');
   const header = await box(page, '.gallery-header');
   const props = page.locator('#section-props');
+  /** The bottom of the "On this page" bar, which sticks under the header once the page scrolls. */
+  const barBottom = async () => {
+    const bar = await box(page, '.gallery-section-bar');
+    return bar.y + bar.height;
+  };
 
   await page.getByRole('navigation', { name: 'On this page' }).getByRole('link', { name: 'Props' }).click();
   await expect(props).toBeFocused();
-  await expect.poll(async () => (await props.boundingBox())!.y).toBeGreaterThanOrEqual(header.height);
-  await expect.poll(async () => (await props.boundingBox())!.y).toBeLessThan(header.height + 40);
+  await expect.poll(async () => (await box(page, '.gallery-section-bar')).y).toBe(header.height);
+  const below = await barBottom();
+  await expect.poll(async () => (await props.boundingBox())!.y).toBeGreaterThanOrEqual(below);
+  await expect.poll(async () => (await props.boundingBox())!.y).toBeLessThan(below + 40);
 
   await scrollTo(page, 0);
   await page.getByRole('heading', { level: 2, name: 'Usage' }).hover();
@@ -64,14 +71,25 @@ test('a section bar jump, a "#" link and a deep link all land below the header',
   await expect(page).toHaveURL(/#\/components\/button#section-usage$/);
   const usage = page.locator('#section-usage');
   await expect(usage).toBeFocused();
-  await expect.poll(async () => (await usage.boundingBox())!.y).toBeGreaterThanOrEqual(header.height);
+  await expect.poll(async () => (await usage.boundingBox())!.y).toBeGreaterThanOrEqual(below);
 
   await page.goto('about:blank');
   await page.goto('#/components/badge#section-accessibility');
   const a11y = page.locator('#section-accessibility');
   await expect(a11y).toBeFocused();
-  await expect.poll(async () => (await a11y.boundingBox())!.y).toBeGreaterThanOrEqual(header.height);
+  await expect.poll(async () => (await a11y.boundingBox())!.y).toBeGreaterThanOrEqual(below);
   await expect(page).toHaveTitle('Badge · bit');
+});
+
+test('phone: the section bar is one row that scrolls sideways and stays in the page flow', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('#/components/button');
+  const list = page.locator('.gallery-section-bar .gallery-link-list');
+  const rows = await list.evaluate((ul) => new Set([...ul.children].map((li) => Math.round(li.getBoundingClientRect().top))).size);
+  expect(rows).toBe(1);
+  await scrollTo(page, 1200);
+  expect((await box(page, '.gallery-section-bar')).y).toBeLessThan(0);
+  await expectNoHorizontalScroll(page);
 });
 
 test('the "#" link shows on hover and on keyboard focus, and is hidden otherwise', async ({ page }) => {

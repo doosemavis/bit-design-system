@@ -46,7 +46,8 @@ export const field: Manifest = {
   group: 'forms',
   related: ['input', 'select', 'textarea', 'checkbox'],
   component: Field,
-  description: 'A label, an optional hint and an error around one form control. It wires the ids, so screen readers read them.',
+  description:
+    'Gives one form control its label, an optional hint and an error, and wires them up so screen readers read all three.',
   controls: [
     {
       kind: 'select',
@@ -72,7 +73,7 @@ export const field: Manifest = {
     { label: 'Radio group', state: { control: 'RadioGroup', label: 'Shipping', error: 'Pick a shipping option.', required: true } },
   ],
   docs: {
-    badges: ['Wires the ids', 'One control'],
+    badges: ['One control per Field'],
     usage: {
       do: [
         'Wrap every Input, Textarea, Select, RadioGroup and Slider in a Field, so it has a visible label.',

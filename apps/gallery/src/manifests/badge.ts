@@ -7,7 +7,7 @@ export const badge: Manifest = {
   group: 'components',
   related: ['icon'],
   component: Badge,
-  description: 'A small label. Solid or outline, three sizes, pill or square.',
+  description: 'A small label for a status, a count or a category, next to the thing it describes.',
   controls: [
     { kind: 'axis', prop: 'color', values: COLORS, default: 'neutral' },
     { kind: 'axis', prop: 'variant', values: ['solid', 'outline'], default: 'solid' },
@@ -22,7 +22,7 @@ export const badge: Manifest = {
     { label: 'Square tag', state: { shape: 'square', variant: 'outline' } },
   ],
   docs: {
-    badges: ['Static <span>', 'Pill or square'],
+    badges: ['Static <span>', 'Solid or outline', 'Three sizes', 'Pill or square'],
     usage: {
       do: [
         'Use a Badge for a short status or a count: "New", "Beta", "3".',
