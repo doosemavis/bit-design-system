@@ -28,7 +28,9 @@ function choicesFrom(file: VersionsFile, ownPath: string, ownChoice: Choice): Ch
 }
 
 /**
- * Version picker. Changing it goes to the same page in that copy; with nothing to pick from it is disabled.
+ * Version picker. Changing it goes to the same page in that copy. With nothing to pick from (one release line,
+ * still loading, or no list) it is read-only, not disabled: a disabled control is drawn at half strength, which
+ * read as broken in the header, while read-only keeps full-contrast text and stays focusable for its title.
  * In the header it has no visible label (the divider after the logo sets it apart) and is named "Version" for
  * screen readers; in the phone sheet it keeps its visible label.
  */
@@ -49,7 +51,7 @@ export function VersionSelect({ labelHidden = false }: { labelHidden?: boolean }
   let title: string | undefined;
   if (status === 'unavailable') title = 'The version list could not be loaded';
   else if (choices && choices.length < 2) title = 'Only one release line so far';
-  const disabled = !choices || choices.length < 2;
+  const readOnly = !choices || choices.length < 2;
 
   const select = (
     <Select
@@ -57,7 +59,7 @@ export function VersionSelect({ labelHidden = false }: { labelHidden?: boolean }
       aria-label={labelHidden ? 'Version' : undefined}
       options={options}
       value={ownPath}
-      disabled={disabled}
+      readOnly={readOnly}
       title={title}
       onValueChange={(next) => {
         // Only a path versions.json listed (and isVersionsFile vetted) is ever followed.

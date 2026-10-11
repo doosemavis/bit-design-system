@@ -4,6 +4,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { ThemeSelect } from './ThemeSelect';
 import { VersionSelect } from './VersionSelect';
 import { THEMES } from './themes';
+import { searchKeyLabel } from '../ui/keys';
 
 const REPO_URL = 'https://github.com/doosemavis/bit-design-system';
 
@@ -19,15 +20,10 @@ export function GitHubLink() {
   );
 }
 
-/** True on Apple platforms, where the search shortcut is ⌘K; elsewhere it is Ctrl K. */
-export function isApplePlatform(): boolean {
-  if (typeof navigator === 'undefined') return false;
-  return /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
-}
-
 /**
- * Opens the search dialog. The header shows it on wide screens, with the shortcut beside the word (hidden from
- * screen readers, which hear aria-keyshortcuts instead); at phone width it sits at the top of the sidebar sheet.
+ * Opens the search dialog. The header shows it on wide screens, with both shortcuts beside the word (⌘K or
+ * Ctrl K, and /; hidden from screen readers, which hear aria-keyshortcuts instead); at phone width it sits at
+ * the top of the sidebar sheet, without them.
  */
 export function SearchButton({ onClick, inSheet = false }: { onClick: () => void; inSheet?: boolean }) {
   return (
@@ -36,15 +32,20 @@ export function SearchButton({ onClick, inSheet = false }: { onClick: () => void
       color="neutral"
       size={inSheet ? 'md' : 'sm'}
       className="gallery-search-button"
-      aria-keyshortcuts="Meta+K Control+K"
+      aria-keyshortcuts="Meta+K Control+K /"
       onClick={onClick}
     >
       <Icon icon={iconSearch} size="sm" />
       Search
       {inSheet ? null : (
-        <Text color="neutral" aria-hidden="true">
-          {isApplePlatform() ? '⌘K' : 'Ctrl K'}
-        </Text>
+        <>
+          <Text color="neutral" aria-hidden="true">
+            {searchKeyLabel()}
+          </Text>
+          <Text color="neutral" aria-hidden="true">
+            /
+          </Text>
+        </>
       )}
     </Button>
   );

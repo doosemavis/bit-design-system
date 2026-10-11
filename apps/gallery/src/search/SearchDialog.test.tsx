@@ -45,6 +45,7 @@ describe('search dialog', () => {
   it.each([
     ['Control+K', '{Control>}k{/Control}'],
     ['Meta+K', '{Meta>}k{/Meta}'],
+    ['/', '/'],
   ])('%s opens it from anywhere, with focus in the query box', async (_name, keys) => {
     await openAt('/tokens', 'Tokens');
     await userEvent.keyboard(keys);
@@ -55,7 +56,9 @@ describe('search dialog', () => {
   it('the header Search button opens it, and says its shortcut to screen readers', async () => {
     await openAt('/', 'bit Design System');
     const button = within(screen.getByRole('banner')).getByRole('button', { name: 'Search' });
-    expect(button).toHaveAttribute('aria-keyshortcuts', 'Meta+K Control+K');
+    expect(button).toHaveAttribute('aria-keyshortcuts', 'Meta+K Control+K /');
+    // Both shortcuts show beside the word; screen readers hear aria-keyshortcuts instead.
+    expect(button).toHaveTextContent(/Search\s*Ctrl K\s*\//);
     await userEvent.click(button);
     expect(box()).toHaveFocus();
   });
@@ -75,21 +78,82 @@ describe('search dialog', () => {
     const list = within(dialog()).getByRole('listbox', { name: 'Results' });
     expect(box()).toHaveAttribute('aria-controls', list.id);
     expect(box()).toHaveAttribute('aria-expanded', 'true');
-    expect(within(list).getAllByRole('option')[0]).toHaveAccessibleName('Overview, Start here');
+    expect(within(list).getAllByRole('option')[0]).toHaveAccessibleName('Overview, page');
     expect(activeOption()).toHaveAttribute('aria-selected', 'true');
     await expectNoA11yViolations(container);
     await userEvent.type(box(), 'size');
     await expectNoA11yViolations(container);
   });
 
+  it('groups results under Components and Props headings, inside the one listbox', async () => {
+    const { container } = await openAt('/', 'bit Design System');
+    await userEvent.keyboard('{Control>}k{/Control}');
+    await userEvent.type(box(), 'sl');
+    const list = within(dialog()).getByRole('listbox', { name: 'Results' });
+    const groups = within(list).getAllByRole('group');
+    expect(groups[0]).toHaveAccessibleName('Components');
+    expect(groups[1]).toHaveAccessibleName('Props');
+    expect(groups).toHaveLength(2);
+    // Every option sits in a group; the first result is Slider, a component.
+    const options = within(list).getAllByRole('option');
+    expect(options.every((option) => option.closest('[role="group"]'))).toBe(true);
+    expect(within(groups[0]!).getAllByRole('option')[0]).toHaveAccessibleName('Slider, component');
+    await expectNoA11yViolations(container);
+  });
+
+  it('shows a kind chip on every result, and the component a prop belongs to', async () => {
+    await openAt('/', 'bit Design System');
+    await userEvent.keyboard('{Control>}k{/Control}');
+    await userEvent.type(box(), 'dismissLabel');
+    const option = screen.getByRole('option', { name: 'dismissLabel, Alert prop' });
+    expect(within(option).getByText('Prop')).toHaveClass('bit-badge');
+    expect(option).toHaveTextContent(/dismissLabel\s*· Alert/);
+    await userEvent.clear(box());
+    await userEvent.type(box(), 'button');
+    expect(within(screen.getByRole('option', { name: 'Button, component' })).getByText('Component')).toHaveClass('bit-badge');
+    await userEvent.clear(box());
+    await userEvent.type(box(), 'tokens');
+    expect(within(screen.getByRole('option', { name: 'Tokens, page' })).getByText('Page')).toHaveClass('bit-badge');
+  });
+
+  it('arrows move straight from the last result of one group to the first of the next', async () => {
+    await openAt('/', 'bit Design System');
+    await userEvent.keyboard('{Control>}k{/Control}');
+    await userEvent.type(box(), 'sl');
+    const [components, props] = within(dialog()).getAllByRole('group');
+    const lastComponent = within(components!).getAllByRole('option').length;
+    for (let i = 1; i < lastComponent; i++) await userEvent.keyboard('{ArrowDown}');
+    expect(activeOption()).toBe(within(components!).getAllByRole('option').at(-1));
+    await userEvent.keyboard('{ArrowDown}');
+    expect(activeOption()).toBe(within(props!).getAllByRole('option')[0]);
+    expect(screen.getAllByRole('option', { selected: true })).toHaveLength(1);
+  });
+
+  it('the footer lists the keys, including the search and copy shortcuts', async () => {
+    await openAt('/', 'bit Design System');
+    await userEvent.keyboard('{Control>}k{/Control}');
+    const footer = dialog().querySelector('.gallery-search__footer')!;
+    expect(footer).toHaveTextContent('↑ ↓ to move, Enter to open, Esc to close.');
+    expect(footer).toHaveTextContent('/ or Ctrl K: search. Alt C: copy the playground code.');
+  });
+
+  it('at phone width the footer leaves out the keyboard shortcuts', async () => {
+    restore = stubMatchMedia(NARROW_QUERY);
+    await openAt('/', 'bit Design System');
+    await userEvent.click(within(screen.getByRole('navigation', { name: 'Gallery' })).getByRole('button', { name: 'Search' }));
+    const footer = dialog().querySelector('.gallery-search__footer')!;
+    expect(footer).toHaveTextContent('↑ ↓ to move');
+    expect(footer).not.toHaveTextContent('copy the playground code');
+  });
+
   it('arrows move the active result, wrapping, and the box keeps focus', async () => {
     await openAt('/', 'bit Design System');
     await userEvent.keyboard('{Control>}k{/Control}');
     await userEvent.type(box(), 'button');
-    expect(activeOption()).toHaveAccessibleName('Button, Components');
+    expect(activeOption()).toHaveAccessibleName('Button, component');
     await userEvent.keyboard('{ArrowDown}');
     const second = activeOption();
-    expect(second).not.toHaveAccessibleName('Button, Components');
+    expect(second).not.toHaveAccessibleName('Button, component');
     expect(second).toHaveAttribute('aria-selected', 'true');
     expect(screen.getAllByRole('option', { selected: true })).toHaveLength(1);
     await userEvent.keyboard('{ArrowUp}{ArrowUp}');
@@ -112,7 +176,7 @@ describe('search dialog', () => {
     const { router } = await openAt('/', 'bit Design System');
     await userEvent.keyboard('{Control>}k{/Control}');
     await userEvent.type(box(), 'tooltip describe');
-    expect(activeOption()).toHaveAccessibleName('describe, Components');
+    expect(activeOption()).toHaveAccessibleName('describe, Tooltip prop');
     await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(router.state.location.pathname).toBe('/components/tooltip'));
     expect(router.state.location.hash).toBe('#section-props');
@@ -123,7 +187,7 @@ describe('search dialog', () => {
     const { router } = await openAt('/', 'bit Design System');
     await userEvent.keyboard('{Control>}k{/Control}');
     await userEvent.type(box(), 'spacing');
-    await userEvent.click(screen.getByRole('option', { name: 'Spacing, Foundations' }));
+    await userEvent.click(screen.getByRole('option', { name: 'Spacing, page' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/spacing'));
   });
 

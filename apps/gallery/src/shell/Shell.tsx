@@ -6,6 +6,7 @@ import { PageFooter } from './PageFooter';
 import { Sidebar, NAV } from './Sidebar';
 import type { NavItem } from './Sidebar';
 import { useFocusHeading } from './useFocusHeading';
+import { useShortcuts } from './useShortcuts';
 import { VersionSelect } from './VersionSelect';
 import { InPageLink } from '../ui/InPageLink';
 import { SearchDialog } from '../search/SearchDialog';
@@ -15,23 +16,6 @@ import type { GameId } from '../arcade/games';
 
 interface ShellProps {
   nav?: readonly NavItem[];
-}
-
-/** ⌘K on a Mac, Ctrl+K elsewhere (either works everywhere): open the search dialog from anywhere on the page. */
-function useSearchShortcut(open: () => void): void {
-  const latest = useRef(open);
-  useEffect(() => {
-    latest.current = open;
-  });
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== 'k') return;
-      event.preventDefault();
-      latest.current();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, []);
 }
 
 /** Three regions: header, sidebar, main. The skip link is the first focusable element. */
@@ -54,7 +38,7 @@ export function Shell({ nav = NAV }: ShellProps) {
     if (narrow) setOpenOn(pathname);
   };
   useFocusHeading();
-  useSearchShortcut(openSearch);
+  useShortcuts({ openSearch });
 
   useEffect(() => {
     if (!menuOpen) return;
