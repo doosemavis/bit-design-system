@@ -7,6 +7,11 @@ import { urlForLine, VersionSelect } from './VersionSelect';
 import { chooseOption, chosenLabel, optionLabels } from '../test/select';
 
 const picker = () => screen.getByRole('combobox', { name: 'Version' });
+/** With nothing to choose the picker is read-only, not disabled: full-contrast text, still focusable for its title. */
+const expectReadOnly = (element: HTMLElement) => {
+  expect(element).toBeEnabled();
+  expect(element).toHaveAttribute('aria-readonly', 'true');
+};
 
 const CURRENT = lineOf(__BIT_VERSION__);
 const entry = (line: string, version: string, path: string) => ({ line, version, date: '2026-10-04', path, react: '19.2.0', reactDom: '19.2.0' });
@@ -48,6 +53,7 @@ describe('VersionSelect', () => {
     expect(chosenLabel(picker())).toBe('0.2 (latest) · 0.2.0');
     expect(picker()).toHaveTextContent('0.2 (latest) · 0.2.0');
     expect(picker()).toBeEnabled();
+    expect(picker()).not.toHaveAttribute('aria-readonly');
   });
 
   it('chooses the archived copy it is served from', async () => {
@@ -100,18 +106,18 @@ describe('VersionSelect', () => {
     errors.mockRestore();
   });
 
-  it('is disabled with a title when there is one line', async () => {
+  it('is read-only with a title when there is one line', async () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(ONE)));
     render(<VersionSelect />);
-    await waitFor(() => expect(picker()).toBeDisabled());
-    expect(picker()).toHaveAttribute('title', 'Only one release line so far');
+    await waitFor(() => expect(picker()).toHaveAttribute('title', 'Only one release line so far'));
+    expectReadOnly(picker());
     expect(optionLabels(picker())).toHaveLength(1);
   });
 
-  it('shows only the current line, disabled, while loading', () => {
+  it('shows only the current line, read-only, while loading', () => {
     vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
     render(<VersionSelect />);
-    expect(picker()).toBeDisabled();
+    expectReadOnly(picker());
     expect(optionLabels(picker())).toEqual([`${CURRENT} · ${__BIT_VERSION__}`]);
     expect(chosenLabel(picker())).toBe(`${CURRENT} · ${__BIT_VERSION__}`);
   });
@@ -121,15 +127,15 @@ describe('VersionSelect', () => {
     render(<VersionSelect />);
     await waitFor(() => expect(optionLabels(picker())).toEqual(['dev (unreleased)']));
     expect(picker()).toHaveTextContent('dev (unreleased)');
-    expect(picker()).toBeDisabled();
+    expectReadOnly(picker());
   });
 
-  it('shows the current line, disabled, with a title when unavailable in production', async () => {
+  it('shows the current line, read-only, with a title when unavailable in production', async () => {
     vi.stubEnv('DEV', false);
     vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('404'))));
     render(<VersionSelect />);
     await waitFor(() => expect(picker()).toHaveAttribute('title', 'The version list could not be loaded'));
-    expect(picker()).toBeDisabled();
+    expectReadOnly(picker());
     expect(optionLabels(picker())).toEqual([`${CURRENT} · ${__BIT_VERSION__}`]);
   });
 
