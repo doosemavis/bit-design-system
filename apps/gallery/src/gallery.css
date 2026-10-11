@@ -374,16 +374,16 @@ html:has(.gallery-section-bar) {
   container-type: inline-size;
 }
 
-/* Beside a long controls list (Slider's runs past the fold), the bar and the stage stick under the site header,
-   so a control changed far down the list still shows its result. No taller than the window under the header: a
+/* Beside a long controls list (Slider's runs past the fold), the bar and the stage stick under the site header
+   and the "On this page" bar, so a control changed far down the list still shows its result. No taller than the window under the header: a
    tall preview scrolls inside the stage instead. */
 .gallery-preview__frame {
   position: sticky;
-  top: var(--_gallery-header-height);
+  top: calc(var(--_gallery-header-height) + var(--_gallery-section-bar-height, 0rem));
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - var(--_gallery-header-height));
-  max-height: calc(100dvh - var(--_gallery-header-height));
+  max-height: calc(100vh - var(--_gallery-header-height) - var(--_gallery-section-bar-height, 0rem));
+  max-height: calc(100dvh - var(--_gallery-header-height) - var(--_gallery-section-bar-height, 0rem));
 }
 
 /* The preview bar and the controls bar are one header strip across the card: one height, one paint, one

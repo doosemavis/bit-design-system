@@ -144,8 +144,9 @@ describe('gallery.css', () => {
   it('P1: beside the controls, the bar and stage stick under the site header while a long controls list scrolls', () => {
     const frame = ruleIn(galleryCss, '.gallery-preview__frame')!;
     expect(frame).toContain('position: sticky;');
-    expect(frame).toContain('top: var(--_gallery-header-height);');
-    expect(frame).toContain('max-height: calc(100dvh - var(--_gallery-header-height));');
+    // It stops under the sticky "On this page" bar as well as the header, so the bar never covers its top edge.
+    expect(frame).toContain('top: calc(var(--_gallery-header-height) + var(--_gallery-section-bar-height, 0rem));');
+    expect(frame).toContain('max-height: calc(100dvh - var(--_gallery-header-height) - var(--_gallery-section-bar-height, 0rem));');
     // The preview half itself still stretches to the card's floor, so the divider and the checkerboard reach it.
     expect(ruleIn(galleryCss, '.gallery-preview')).not.toContain('position: sticky;');
     expect(ruleIn(galleryCss, '.gallery-preview[data-checkerboard]')).toContain('background-size: 16px 16px;');
