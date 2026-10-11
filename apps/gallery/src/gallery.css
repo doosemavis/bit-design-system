@@ -290,14 +290,26 @@ html,
 }
 
 /* ---------- preview ---------- */
-/* The preview half of the playground card: the bar, then the stage. The stage takes the spare height, so it
-   reaches the card's floor however many controls stand beside it. It is a size container, so its bar can wrap
-   the presets by its own width. */
+/* The preview half of the playground card: a frame holding the bar, then the stage. The half reaches the card's
+   floor however many controls stand beside it. It is a size container, so its bar can wrap the presets by its
+   own width. */
 .gallery-preview {
   display: flex;
   flex-direction: column;
   min-width: 0;
   container-type: inline-size;
+}
+
+/* Beside a long controls list (Slider's runs past the fold), the bar and the stage stick under the site header,
+   so a control changed far down the list still shows its result. No taller than the window under the header: a
+   tall preview scrolls inside the stage instead. */
+.gallery-preview__frame {
+  position: sticky;
+  top: var(--_gallery-header-height);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--_gallery-header-height));
+  max-height: calc(100dvh - var(--_gallery-header-height));
 }
 
 /* The preview bar and the controls bar are one header strip across the card: one height, one paint, one
@@ -322,23 +334,28 @@ html,
   letter-spacing: 0.08em;
 }
 
+/* The live component sits at the top of the stage, centered across it, where the eye lands after changing a
+   control. Centered on the height too, it sank to the middle of the controls column, below the fold. */
 .gallery-preview__stage {
   flex: 1;
   min-width: 0;
   min-height: 12rem;
   display: grid;
-  place-items: center;
+  place-items: start center;
   padding: var(--bit-space-32px);
+  overflow: auto;
 }
 
-/* The previewed component is centred at its own width but never wider than the stage, so a wide one (a long
+/* The previewed component is centered at its own width but never wider than the stage, so a wide one (a long
    CodeBlock line, a Table) scrolls inside itself instead of spilling over the controls. */
 .gallery-preview__stage > * {
   min-width: 0;
   max-width: 100%;
 }
 
-.gallery-preview[data-checkerboard] .gallery-preview__stage {
+/* On the whole preview half, so the squares run to the card's floor under the stuck frame. The bar paints over
+   them. */
+.gallery-preview[data-checkerboard] {
   --_gallery-check: var(--bit-color-bg);
   background-image:
     linear-gradient(45deg, var(--_gallery-check) 25%, transparent 25%),
@@ -523,14 +540,20 @@ html,
    under the preview. The card draws the frame; this only splits it. Both halves stretch to the card's height
    and meet at the controls' divider, so there is no gap. */
 .gallery-playground {
+  /* How tall the preview may stay stuck over the controls on a phone: enough to see the change, never the
+     whole screen. */
+  --_gallery-preview-cap: 40dvh;
   display: grid;
   gap: var(--bit-space-16px);
 }
 
+/* bit Card's overflow: hidden makes the card a scroll container that never scrolls, so the sticky preview
+   inside would stick to the card and never move. clip keeps the rounded corners without one. */
 .gallery-playground__top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 16rem;
   align-items: stretch;
+  overflow: clip;
 }
 
 .gallery-codepanel {
@@ -621,25 +644,62 @@ html,
   min-width: calc(7 * var(--bit-space-32px));
 }
 
+/* Under 720px the controls stack under the preview, in a flex column rather than a one-column grid: a grid
+   item can stick only within its own row, a flex item within the whole card. */
 @media (max-width: 720px) {
   .gallery-playground__top {
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
   }
 }
 
-/* Stacked under the preview, the controls' divider moves from the start edge to the top edge. */
+/* Stacked, the whole preview sticks under the header, capped at --_gallery-preview-cap, and the controls scroll
+   under it, so a change shows without scrolling back up. It covers them, so it takes the card's own surface and
+   draws the divider on its bottom edge. Its frame stops sticking on its own and fills it; the stage gives up
+   height first and scrolls a tall preview inside. Nothing animates, and focus moves on past it as before. */
+@media (max-width: 720px) {
+  .gallery-preview {
+    position: sticky;
+    top: var(--_gallery-header-height);
+    z-index: 1;
+    max-height: var(--_gallery-preview-cap);
+    background-color: var(--bit-color-surface);
+    border-bottom: var(--bit-border-width) solid var(--bit-color-line);
+  }
+
+  .gallery-preview__frame {
+    position: static;
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .gallery-preview__stage {
+    min-height: 0;
+    padding: var(--bit-space-16px);
+  }
+
+  /* A control reached by Tab scrolls clear of the stuck preview instead of landing under it. */
+  .gallery-controls * {
+    scroll-margin-top: calc(var(--_gallery-header-height) + var(--_gallery-preview-cap) + var(--bit-space-16px));
+  }
+}
+
+/* Stacked under the preview, the controls drop their start-edge divider; the preview's bottom edge draws the
+   line between them instead (above), so it stays put while the controls scroll under the stuck preview. */
 @media (max-width: 720px) {
   .gallery-controls {
     border-inline-start: none;
-    border-top: var(--bit-border-width) solid var(--bit-color-line);
   }
 }
 
-/* When the preview half is under 40rem the presets get their own full-width row under the title and the
+/* When the preview half is under 52rem the presets get their own full-width row under the title and the
    Checkerboard switch: sharing one row left them about 95px on a phone and 14px on a tablet, where the controls
-   take a column beside the preview. The preview is a size container (see .gallery-preview), so this follows the
-   room the bar really has, not the window. The row still scrolls sideways, keeping the focus-ring padding above. */
-@container (max-width: 40rem) {
+   take a column beside the preview, and at 1200 to 1280px it still cut Slider's and Field's last chip mid-word
+   (Field's five chips take about 511px, the title and the switch about 290px more). The row wraps, so every
+   preset shows and none hides off an edge with no cue. The preview is a size container (see .gallery-preview),
+   so this follows the room the bar really has, not the window. */
+@container (max-width: 52rem) {
   .gallery-preview__bar {
     flex-wrap: wrap;
   }
@@ -647,6 +707,7 @@ html,
   .gallery-presets {
     order: 1;
     flex-basis: 100%;
+    flex-wrap: wrap;
   }
 }
 

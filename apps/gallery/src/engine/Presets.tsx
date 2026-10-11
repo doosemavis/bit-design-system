@@ -14,7 +14,8 @@ interface PresetsProps {
 
 /**
  * Quick states in the preview bar, as outline Buttons, so each reads as a button with its own hover. Each applies its values on top of the current state.
- * An active preset is pressed (aria-pressed="true") and solid. On a phone the row scrolls sideways.
+ * An active preset is pressed (aria-pressed="true") and solid. When the preview is narrow (a phone, or beside the
+ * controls on a small desktop) the row takes its own line under the title and wraps, so no preset is cut off.
  */
 export function Presets({ manifest, state, onApply }: PresetsProps) {
   if (!manifest.presets || manifest.presets.length === 0) return null;

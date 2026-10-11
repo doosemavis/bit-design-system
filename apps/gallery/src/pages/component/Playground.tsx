@@ -13,8 +13,9 @@ interface PlaygroundProps {
 }
 
 /**
- * Preview (with presets) beside the controls in one bit Card, and the code under both. Under 720px the
- * controls stack under the preview, still in the card.
+ * Preview (with presets) beside the controls in one bit Card, and the code under both. The preview sticks under
+ * the site header while a long controls list scrolls. Under 720px the controls stack under the preview, still in
+ * the card, and the preview sticks over them at a capped height, so a change shows without scrolling back up.
  */
 export function Playground({ manifest, controls }: PlaygroundProps) {
   const { state, setProp, apply, reset } = controls;
