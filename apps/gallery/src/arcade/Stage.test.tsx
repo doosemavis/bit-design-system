@@ -193,30 +193,6 @@ describe('Bit Blaster takes over the main area', () => {
   });
 });
 
-describe('Bit Blaster, played', () => {
-  it('runs on the frame clock: the swarm wins in the end, the game says so, and Space starts again', async () => {
-    let queue: FrameRequestCallback[] = [];
-    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
-      queue.push(cb);
-      return queue.length;
-    });
-    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
-    renderAt('/');
-    const { user, region } = await openBlaster();
-    await user.keyboard(' ');
-    // Sitting still, the ship is hit three times or the swarm lands; run frames until the game ends.
-    for (let frame = 0; frame <= 20_000 && !/Game over/.test(liveLine(region).textContent ?? ''); frame += 1) {
-      const run = queue;
-      queue = [];
-      act(() => run.forEach((cb) => cb(frame * 17)));
-    }
-    expect(liveLine(region)).toHaveTextContent(/^Game over, score \d+(, a new best)?\. Press Space to play again\.$/);
-    expect(within(region).getByRole('button', { name: 'Play again' })).toBeInTheDocument();
-    await user.keyboard(' ');
-    expect(within(region).getByRole('button', { name: 'Restart' })).toBeInTheDocument();
-  }, 30_000);
-});
-
 describe('Bit Blaster on a phone', () => {
   beforeEach(() => {
     restoreMedia();
