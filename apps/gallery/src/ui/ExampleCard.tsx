@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import type { CodeLanguage } from '@bit-ds/react';
 import { Alert, Box, Card, CardBody, CardHeader, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
 
-/** One worked example: a titled card with the live sample, framed in a Box, beside the code that makes it. */
+/** One worked example: a titled flat card with the live sample, framed in a Box, beside the code that makes it. */
 export interface Example {
   title: string;
   /** One line on when to reach for it. */
@@ -21,7 +21,7 @@ export interface Example {
 function ExampleCard({ title, when, sample, code, language = 'jsx', note, wide = false }: Example) {
   const titleId = useId();
   return (
-    <Card role="article" aria-labelledby={titleId}>
+    <Card flat role="article" aria-labelledby={titleId}>
       {/* The header's bottom border divides the title and its line from the example. */}
       <CardHeader>
         <Stack gap={4}>

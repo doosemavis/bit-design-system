@@ -57,7 +57,7 @@ export function Step({ n, title, aside, help, children }: StepProps) {
         </SectionHead>
         {aside}
       </Stack>
-      <Card>
+      <Card flat>
         <CardBody>
           <Stack gap={24}>
             <Text>{help}</Text>
@@ -152,7 +152,7 @@ export function GetStarted() {
                 <Text weight="bold" className="gallery-caption">
                   It renders:
                 </Text>
-                <Card role="region" aria-label="What it renders" className="gallery-split__result">
+                <Card flat role="region" aria-label="What it renders" className="gallery-split__result">
                   <CardBody>
                     <Stack direction="row" gap={8} wrap>
                       <Button>Save</Button>

@@ -39,7 +39,7 @@ describe('HomePage', () => {
     await expectNoA11yViolations(container);
   });
 
-  it('beside the hero, a quick start card: the install line and a first component, from the shared snippets', async () => {
+  it('beside the hero, the quick start: the install line and a first component, from the shared snippets', async () => {
     await open();
     const card = screen.getByRole('group', { name: 'quick start' });
     expect(card.closest('.gallery-hero')).not.toBeNull();

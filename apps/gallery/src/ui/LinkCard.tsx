@@ -20,10 +20,12 @@ interface LinkCardProps {
 /**
  * A bit Card that is one link to another page: the name is the link, and its ::after covers the card, so the
  * whole card clicks while screen readers hear one link. Its keyboard focus ring goes around the card.
+ * Flat: it is a text link with room around it (Related, Previous and Next), and the link's own hover underline
+ * says it clicks. The hard shadow stays on Buttons, the component tiles and the playground.
  */
 export function LinkCard({ to, title, eyebrow, description, label, rel, align = 'start' }: LinkCardProps) {
   return (
-    <Card className="gallery-link-card" data-align={align}>
+    <Card flat className="gallery-link-card" data-align={align}>
       <CardBody>
         <Stack gap={4} align={align}>
           {eyebrow ? (

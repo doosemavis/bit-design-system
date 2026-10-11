@@ -14,10 +14,10 @@ interface TokenCardProps {
   children: ReactNode;
 }
 
-/** A card of tokens: the same frame for the color roles and for every family below them. */
+/** A flat card of tokens: the same frame for the color roles and for every family below them. */
 export function TokenCard({ name, header = PAGE_HEADER, full = false, children }: TokenCardProps) {
   return (
-    <Card aria-label={`${name} tokens`} role="group" className={full ? 'gallery-token-card--full' : undefined}>
+    <Card flat aria-label={`${name} tokens`} role="group" className={full ? 'gallery-token-card--full' : undefined}>
       <CardHeader style={header}>{name}</CardHeader>
       <CardBody>{children}</CardBody>
     </Card>
