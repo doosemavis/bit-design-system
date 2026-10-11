@@ -141,6 +141,46 @@ test('the boards fill the sidebar’s height: taller than wide, and a resize mid
   await expect.poll(async () => (await gridOf(cheese.board))[1]).toBeGreaterThan(1.5 * (await gridOf(cheese.board))[0]);
 });
 
+/** The board's box, rounded: where it sits and how big it is. */
+const boxOf = (board: Locator) =>
+  board.evaluate((el) => {
+    const { top, left, width, height } = el.getBoundingClientRect();
+    return [top, left, width, height].map(Math.round);
+  });
+
+// Owner, 2026-10-11: the game shouldn't move when the messages or stats are there or changing.
+for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+  test(`at ${viewport.width}px the board never moves for a message: ready, paused, game over`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('#/');
+    if (viewport.width < 720) await page.getByRole('button', { name: 'Menu' }).click();
+    const { region, board } = await openGame(page, 'Snake');
+    const ready = await boxOf(board);
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Space');
+    await expect(region.getByRole('status')).toHaveText('Paused. Press Space to go on.');
+    expect(await boxOf(board)).toEqual(ready);
+    // Heading right from the middle, the snake soon meets the wall.
+    await page.keyboard.press('Space');
+    await expect(region.getByRole('status')).toHaveText(/^Game over/, { timeout: 15_000 });
+    expect(await boxOf(board)).toEqual(ready);
+    // The sentence is for screen readers; on screen the board's banner says it.
+    expect((await region.getByRole('status').boundingBox())!.height).toBeLessThanOrEqual(1);
+  });
+}
+
+test('the stats never move the board: a number gaining digits keeps every badge where it was', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('#/');
+  const { region, board } = await openGame(page, 'Cheese Run');
+  const before = await boxOf(board);
+  // Stand-ins for a long game: every count at five digits.
+  await region.locator('.gallery-game__hud .bit-badge').evaluateAll((badges) => {
+    for (const badge of badges) badge.textContent = (badge.textContent ?? '').replace(/\d+/, '99999');
+  });
+  expect(await boxOf(board)).toEqual(before);
+});
+
 test('a game widens the sidebar by 50px, and Back narrows it again', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('#/');

@@ -1508,6 +1508,25 @@ html:has(.gallery-section-bar) {
   padding: var(--bit-space-8px);
 }
 
+/* The stats: columns set by the width alone (two in the sidebar, three on a phone), so a count gaining a digit
+   never re-wraps them and pushes the board down. Each badge fills its cell. */
+.gallery-game__hud {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: var(--bit-space-8px);
+}
+
+/* The live line, for screen readers only: the board's banner shows each state, so the sentence takes no room and
+   the board never grows or shrinks as it comes and goes. */
+.gallery-game__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* At least 12rem tall, so a short window still gets a playable board (the sidebar scrolls instead). The canvas sits
    over the board rather than in its flow, so its own size never feeds back into the measurement. */
 .gallery-game__board {
