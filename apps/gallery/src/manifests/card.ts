@@ -7,7 +7,7 @@ export const card: Manifest = {
   group: 'components',
   related: ['stack', 'box', 'table'],
   component: Card,
-  description: 'A surface with header, body, and footer parts. The parts are their own exports.',
+  description: 'Groups related content on one surface, with an optional header and footer.',
   controls: [
     { kind: 'axis', prop: 'variant', values: ['solid', 'outline'], default: 'solid' },
     { kind: 'boolean', prop: 'flat', default: false },
@@ -20,7 +20,7 @@ export const card: Manifest = {
   parts: ['CardHeader', 'CardBody', 'CardFooter'],
   presets: [{ label: 'Outline', state: { variant: 'outline' } }],
   docs: {
-    badges: ['Compound', 'Header, body, footer'],
+    badges: ['Compound: the parts are their own exports', 'Header, body, footer'],
     usage: {
       do: [
         'Group one topic: a title in CardHeader, the content in CardBody, actions in CardFooter.',

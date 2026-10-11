@@ -15,6 +15,11 @@ interface Choice {
   label: string;
 }
 
+/** An option's label: "(latest)" on the root copy, then the version with its v ("(latest) v0.1.9", "v0.1.0"). */
+function versionLabel(version: string, latest = false): string {
+  return `${latest ? '(latest) ' : ''}v${version}`;
+}
+
 /**
  * One option per entry, valued by path (two entries can share a line), in versions.json order.
  * The root entry is the latest. This copy is added if the file does not list its path.
@@ -22,18 +27,20 @@ interface Choice {
 function choicesFrom(file: VersionsFile, ownPath: string, ownChoice: Choice): Choice[] {
   const choices = file.lines.map((entry) => ({
     value: entry.path,
-    label: `${entry.line}${entry.path === SITE_BASE ? ' (latest)' : ''} · ${entry.version}`,
+    label: versionLabel(entry.version, entry.path === SITE_BASE),
   }));
   return choices.some((choice) => choice.value === ownPath) ? choices : [...choices, ownChoice];
 }
 
 /**
- * Version picker. Changing it goes to the same page in that copy; with nothing to pick from it is disabled.
- * In the header it has no visible label (the divider after the logo sets it apart) and is named "Version" for
- * screen readers; in the phone sheet it keeps its visible label.
+ * Version picker. Changing it goes to the same page in that copy. With nothing to pick from (one release line,
+ * still loading, or no list) it is disabled and greyed out (owner's call, 2026-10-11): it plainly can't be
+ * opened yet, rather than looking like a picker that does nothing. In the header it has no visible label (the
+ * divider after the logo sets it apart) and is named "Version" for screen readers; in the phone sheet it keeps
+ * its visible label.
  */
 export function VersionSelect({ labelHidden = false }: { labelHidden?: boolean }) {
-  const { status, file, currentLine, ownPath } = useVersions();
+  const { status, file, ownPath } = useVersions();
 
   // index.html already sets the attribute, so version-banner.js never races the mount; this keeps it
   // true wherever the picker renders without that page (tests, a future shell).
@@ -41,7 +48,7 @@ export function VersionSelect({ labelHidden = false }: { labelHidden?: boolean }
     document.documentElement.dataset.bitVersionPicker = '';
   }, []);
 
-  const ownChoice: Choice = { value: ownPath, label: `${currentLine} · ${BUILD_VERSION}` };
+  const ownChoice: Choice = { value: ownPath, label: versionLabel(BUILD_VERSION) };
   const choices = status === 'ready' && file ? choicesFrom(file, ownPath, ownChoice) : null;
   const unavailableLabel = import.meta.env.DEV ? 'dev (unreleased)' : ownChoice.label;
   const options: Choice[] = choices ?? [{ value: ownPath, label: status === 'unavailable' ? unavailableLabel : ownChoice.label }];

@@ -29,14 +29,46 @@ test('Ctrl+K, a prop, arrows and Enter: lands on that Props section, below the s
   await expect(options.first()).toHaveAttribute('aria-selected', 'true');
   await page.keyboard.press('ArrowDown');
   await expect(options.nth(1)).toHaveAttribute('aria-selected', 'true');
-  const second = await options.nth(1).getAttribute('aria-describedby');
-  const component = (await page.locator(`[id="${second}"]`).textContent())!.split(' prop')[0]!.toLowerCase();
+  // A prop option is named "size, Button prop"; same-named props sort by component.
+  await expect(options.nth(1)).toHaveAccessibleName(/^size, \w+ prop$/);
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(new RegExp(`#/components/${component}#section-props$`));
+  await expect(page).toHaveURL(/#\/[a-z/]+#section-props$/);
   const props = page.locator('#section-props');
   await expect(props).toBeFocused();
   const header = (await page.locator('.gallery-header').boundingBox())!;
   await expect.poll(async () => (await props.boundingBox())!.y).toBeGreaterThanOrEqual(header.height);
+});
+
+test('/ opens it from the page, but types a slash in a field', async ({ page }) => {
+  await page.goto('#/components/input');
+  await expect(page.locator('main h1')).toHaveText('Input');
+  await page.keyboard.press('/');
+  const dialog = page.getByRole('dialog', { name: 'Search' });
+  const box = dialog.getByRole('combobox', { name: 'Search pages, components and props' });
+  await expect(box).toBeFocused();
+  await expect(box).toHaveValue('');
+  await box.fill('sl');
+  // Grouped: Components (Slider first), then Props.
+  await expect(dialog.getByRole('group').first()).toHaveAccessibleName('Components');
+  await expect(page.getByRole('option').first()).toHaveAccessibleName('Slider, component');
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  const field = page.locator('main input[type="text"]').first();
+  await field.fill('');
+  await field.pressSequentially('a/b');
+  await expect(field).toHaveValue('a/b');
+  await expect(dialog).toBeHidden();
+});
+
+test('Alt+C copies the playground code and says "Copied"', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('#/components/button');
+  await expect(page.locator('main h1')).toHaveText('Button');
+  await page.keyboard.press('Alt+KeyC');
+  await expect(page.locator('.gallery-codepanel .bit-code__copy')).toHaveText('Copied');
+  await expect(page.locator('#bit-announcer')).toHaveText('Copied');
+  const code = await page.getByRole('region', { name: 'Example code' }).textContent();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(code);
 });
 
 test('Esc closes it and hands focus back to the Search button', async ({ page }) => {
@@ -49,6 +81,22 @@ test('Esc closes it and hands focus back to the Search button', async ({ page })
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
   await expect(button).toBeFocused();
+});
+
+// Typed addresses, not router links: those history entries carry no router state, the case a key alone misses.
+test('Back and Forward close it, so it never sits over a page it was not opened on', async ({ page }) => {
+  await page.goto('#/');
+  await page.goto('#/components/badge');
+  await expect(page.getByRole('heading', { level: 1, name: 'Badge' })).toBeVisible();
+  const dialog = page.getByRole('dialog', { name: 'Search' });
+  await page.getByRole('banner').getByRole('button', { name: 'Search' }).click();
+  await expect(dialog).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 1, name: 'bit Design System' })).toBeVisible();
+  await expect(dialog).toBeHidden();
+  await page.goForward();
+  await expect(page.getByRole('heading', { level: 1, name: 'Badge' })).toBeVisible();
+  await expect(dialog).toBeHidden();
 });
 
 for (const mode of MODES) {

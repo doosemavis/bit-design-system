@@ -19,7 +19,7 @@ export const table: Manifest = {
   group: 'components',
   related: ['card'],
   component: Table,
-  description: 'A native table in a card frame. Head cells are th, body cells td. Wide tables scroll sideways, from the keyboard too.',
+  description: 'Shows data in rows and columns, in a card frame. A wide table scrolls sideways, from the keyboard too.',
   controls: [
     { kind: 'boolean', prop: 'striped', default: false },
     { kind: 'boolean', prop: 'flat', default: false },
@@ -51,7 +51,7 @@ export const table: Manifest = {
   parts: ['TableHead', 'TableBody', 'TableRow', 'TableCell'],
   presets: [{ label: 'Striped', state: { striped: true } }],
   docs: {
-    badges: ['Native <table>', 'Scrolls sideways'],
+    badges: ['Native <table>', 'Head cells th, body cells td'],
     usage: {
       do: [
         'Use a Table for data people compare across rows: props, prices, scores.',

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SegmentedControl, Stack, Text } from '@bit-ds/react';
+import { SegmentedControl, Stack, Switch, Text } from '@bit-ds/react';
 import { RELEASES } from '../content/changelog';
 import type { ChangeKind } from '../content/changelog';
 import { PageHeader } from '../ui/PageHeader';
@@ -23,6 +23,8 @@ export function ReleaseNotesPage() {
   // Choices made while a kind is chosen live apart from the All view, and start over with each new filter.
   const [filteredOpened, setFilteredOpened] = useState<Readonly<Record<string, boolean>>>({});
   const [chosen, setChosen] = useState<string | undefined>(undefined);
+  // Plain headlines first; the switch brings back each change in full, with its props and code.
+  const [details, setDetails] = useState(false);
   // Latest is the newest published release (versions.json), not the top of CHANGELOG, which can run ahead of its tag.
   const latest = useLatestVersion();
   const kind = filter === ALL ? null : (filter as ChangeKind);
@@ -50,7 +52,12 @@ export function ReleaseNotesPage() {
       <PageHeader title="Release notes">
         <Text>What changed in each release.</Text>
       </PageHeader>
-      <SegmentedControl legend="Show" options={FILTER_OPTIONS} value={filter} onValueChange={choose} />
+      <Stack direction="row" gap={24} align="end" wrap>
+        <SegmentedControl className="gallery-release-filter" legend="Show" options={FILTER_OPTIONS} value={filter} onValueChange={choose} />
+        <Switch checked={details} onChange={(event) => setDetails(event.currentTarget.checked)}>
+          Show API details
+        </Switch>
+      </Stack>
       {shown.length === 0 ? (
         <Text>No changes of this kind yet.</Text>
       ) : (
@@ -64,6 +71,7 @@ export function ReleaseNotesPage() {
                 status={releaseStatus(release.version, latest)}
                 open={isOpen(release.version, RELEASES.indexOf(release))}
                 only={kind}
+                details={details}
                 onToggle={() => setOpen(release.version, !isOpen(release.version, RELEASES.indexOf(release)))}
               />
             ))}

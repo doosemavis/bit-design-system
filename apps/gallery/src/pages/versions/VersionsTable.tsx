@@ -4,7 +4,7 @@ import type { VersionRow } from './versionRows';
 /** bit / React / react-dom / Status, one row per release line. */
 export function VersionsTable({ rows }: { rows: readonly VersionRow[] }) {
   return (
-    <Table aria-label="Versions">
+    <Table flat aria-label="Versions">
       <TableHead>
         <TableRow>
           <TableCell>bit</TableCell>
@@ -27,9 +27,9 @@ export function VersionsTable({ rows }: { rows: readonly VersionRow[] }) {
             </TableCell>
             <TableCell>
               <Stack direction="row" gap={8} wrap>
-                {row.latest ? <Badge color="success">Latest</Badge> : null}
+                {row.latest ? <Badge size="lg" color="success">Latest</Badge> : null}
                 {row.viewing && !row.latest ? (
-                  <Badge color="primary" variant="outline">
+                  <Badge size="lg" color="primary" variant="outline">
                     Viewing
                   </Badge>
                 ) : null}

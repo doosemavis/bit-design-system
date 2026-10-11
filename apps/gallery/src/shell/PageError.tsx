@@ -26,3 +26,15 @@ export function PageError({ onReload = reloadTab }: PageErrorProps) {
     </Stack>
   );
 }
+
+/**
+ * The top route's errorElement: shown when the shell itself throws, so there's no header or sidebar to keep.
+ * Without it React Router shows its own developer screen. The same message and Reload, in a main of its own.
+ */
+export function ShellError({ onReload = reloadTab }: PageErrorProps) {
+  return (
+    <main id="main" className="gallery-main">
+      <PageError onReload={onReload} />
+    </main>
+  );
+}

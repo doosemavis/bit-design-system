@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { CopyButton } from './CopyButton';
 import { expectNoA11yViolations } from '../test/a11y';
@@ -39,6 +39,21 @@ describe('CopyButton', () => {
     expect(screen.getByRole('button')).toHaveTextContent('Copied');
     act(() => vi.advanceTimersByTime(1));
     expect(screen.getByRole('button', { name: 'Copy import line' })).toHaveTextContent('Copy');
+  });
+
+  it('when the clipboard fails, selects the text it shows beside it so it can be copied by hand, and says so', async () => {
+    stubClipboard(() => Promise.reject(new Error('denied')));
+    render(
+      <div>
+        <code>import {'{'} Button {'}'} from '@bit-ds/react';</code>
+        <CopyButton text="import { Button } from '@bit-ds/react';" label="Copy import line" />
+      </div>,
+    );
+    await click(screen.getByRole('button'));
+    expect(document.getSelection()?.toString()).toBe("import { Button } from '@bit-ds/react';");
+    expect(screen.getByRole('button')).toHaveTextContent('Selected: press Ctrl+C');
+    await waitFor(() => expect(document.getElementById('bit-announcer')).toHaveTextContent('Copy failed. The text is selected: press Ctrl+C to copy it.'));
+    document.getSelection()?.removeAllRanges();
   });
 
   it('a blocked or missing clipboard shows "Copy failed" in danger, without throwing', async () => {

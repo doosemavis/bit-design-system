@@ -7,6 +7,9 @@ import { renderAt } from '../test/renderRoute';
 import { expectNoA11yViolations } from '../test/a11y';
 import { MANIFESTS, routeFor } from '../manifests';
 import { NAV } from '../shell/Sidebar';
+import { COMPONENT_GROUPS } from '../shell/navGroups';
+import { GAMES } from '../arcade/games';
+import { bestKey } from '../arcade/bestScore';
 import { INSTALL_COMMANDS, STYLE_IMPORTS } from '../content/snippets.mjs';
 import { NAMING_COLUMNS } from './home/NamingRule';
 import { BROWSE_TARGET } from './HomePage';
@@ -39,7 +42,7 @@ describe('HomePage', () => {
     await expectNoA11yViolations(container);
   });
 
-  it('beside the hero, a quick start card: the install line and a first component, from the shared snippets', async () => {
+  it('beside the hero, the quick start: the install line and a first component, from the shared snippets', async () => {
     await open();
     const card = screen.getByRole('group', { name: 'quick start' });
     expect(card.closest('.gallery-hero')).not.toBeNull();
@@ -80,19 +83,59 @@ describe('HomePage', () => {
     ]);
   });
 
-  it('Browse components goes to the first component in the sidebar', () => {
-    expect(BROWSE_TARGET).toBe(NAV.find((item) => item.group === 'Components')!.to);
+  it('Browse components goes to Button, the first item of the first component group', () => {
+    expect(BROWSE_TARGET).toBe('/components/button');
+    const first = NAV.find((item) => item.group === COMPONENT_GROUPS[0].label)!;
+    expect(first).toMatchObject({ label: 'Button', to: BROWSE_TARGET });
   });
 
-  it('Components and Forms are h2s with counts from the manifests, and a one-line lead', async () => {
+  it('Components is one h2 with the total count and a one-line lead, then an h3 per sidebar group, in sidebar order', async () => {
     await open();
-    for (const [title, group] of [
-      ['Components', 'components'],
-      ['Forms', 'forms'],
-    ] as const) {
-      const heading = within(main()).getByRole('heading', { level: 2, name: title });
-      expect(heading.parentElement).toHaveTextContent(`${title}${MANIFESTS.filter((m) => m.group === group).length}`);
+    const heading = within(main()).getByRole('heading', { level: 2, name: 'Components' });
+    expect(heading.parentElement).toHaveTextContent(`Components${TILED.length}`);
+    const section = screen.getByRole('region', { name: 'Components' });
+    expect(within(section).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(COMPONENT_GROUPS.map((g) => g.label));
+    expect(within(main()).queryByRole('heading', { name: 'Forms' })).toBeNull();
+  });
+
+  it('each group\'s tiles are the links under that group in the sidebar, in the same order', async () => {
+    await open();
+    for (const group of COMPONENT_GROUPS) {
+      const grid = within(main()).getByRole('list', { name: group.label });
+      // The tile's own link: the inert previews hold links of their own (Link, Navbar).
+      const names = [...grid.querySelectorAll('.gallery-tile__link')].map((link) => link.textContent!.replace(' →', ''));
+      expect(names, group.label).toEqual(NAV.filter((item) => item.group === group.label).map((item) => item.label));
     }
+  });
+
+  it('Press start: an Arcade section with a Card per game, after the hero and before the components', async () => {
+    const { container } = await open();
+    const arcade = screen.getByRole('region', { name: 'Press start' });
+    expect(within(arcade).getByRole('heading', { level: 2, name: 'Press start' })).toBeInTheDocument();
+    for (const game of GAMES) {
+      const card = within(arcade).getByRole('group', { name: game.label });
+      expect(card).toHaveClass('bit-card');
+      expect(within(card).getByRole('heading', { level: 3, name: game.label })).toBeInTheDocument();
+      expect(within(card).getByText(game.blurb)).toBeInTheDocument();
+      expect(within(card).getByRole('button', { name: `Play ${game.label}` })).toHaveClass('bit-button');
+    }
+    const sections = [...container.querySelectorAll('main section[aria-labelledby]')].map((s) => s.getAttribute('aria-labelledby'));
+    expect(sections.indexOf('home-arcade')).toBeLessThan(sections.indexOf('home-components'));
+    await expectNoA11yViolations(arcade);
+  });
+
+  it('a game card shows the best score the game keeps, and no badge before there is one', async () => {
+    localStorage.setItem(bestKey('snake'), '12');
+    await open();
+    const arcade = screen.getByRole('region', { name: 'Press start' });
+    expect(within(within(arcade).getByRole('group', { name: 'Snake' })).getByText('Best 12')).toHaveClass('bit-badge');
+    expect(within(within(arcade).getByRole('group', { name: 'Cheese Run' })).queryByText(/^Best/)).toBeNull();
+  });
+
+  it.each(GAMES.map((game) => [game.label, game.id] as const))('Play %s opens that game in the sidebar, where the Arcade runs', async (label) => {
+    await open();
+    await userEvent.click(screen.getByRole('button', { name: `Play ${label}` }));
+    expect(await screen.findByRole('region', { name: `Arcade: ${label}` })).toHaveAttribute('id', 'gallery-nav');
   });
 
   it('one tile per manifest except the logo, each one Link to its page', async () => {
@@ -116,7 +159,7 @@ describe('HomePage', () => {
     }
     expect(container.querySelector('.gallery-chips, .gallery-chip')).toBeNull();
     const grids = [...container.querySelectorAll('.gallery-tiles')].map((grid) => grid.children.length);
-    expect(grids).toEqual([MANIFESTS.filter((m) => m.group === 'components').length, MANIFESTS.filter((m) => m.group === 'forms').length]);
+    expect(grids).toEqual(COMPONENT_GROUPS.map((g) => g.slugs.length));
   });
 
   it('demos too big for a tile get a compact sample of the real component: CodeBlock, Table, Tabs and Stack', async () => {

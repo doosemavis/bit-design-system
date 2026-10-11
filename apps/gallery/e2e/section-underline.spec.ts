@@ -49,7 +49,7 @@ test("the current section underline has filled the title once its animation ends
 
 test("a section that is not current keeps the 22px bar", async ({ page }) => {
   await page.goto("#/tokens");
-  const width = await navTitle(page, "Components")
+  const width = await navTitle(page, "Actions")
     .evaluate((title) => parseFloat(getComputedStyle(title, "::after").width));
   expect(width).toBe(22);
 });

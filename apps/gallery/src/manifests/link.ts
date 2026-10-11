@@ -7,7 +7,8 @@ export const link: Manifest = {
   group: 'components',
   related: ['button', 'iconbutton'],
   component: Link,
-  description: 'A bold, underlined text link. primary or neutral; asChild lends the look to a router link.',
+  description:
+    'Takes people to another page or place. Bold and underlined, in primary or neutral; asChild lends the look to a router link.',
   controls: [
     { kind: 'axis', prop: 'color', values: ['primary', 'neutral'], default: 'primary' },
     { kind: 'text', prop: 'href', default: 'https://github.com/doosemavis/bit-design-system', alwaysPrint: true },
@@ -15,7 +16,7 @@ export const link: Manifest = {
   children: 'Read the install guide',
   presets: [{ label: 'Neutral', state: { color: 'neutral' } }],
   docs: {
-    badges: ['Native <a>', 'asChild for router links'],
+    badges: ['Native <a>'],
     usage: {
       do: [
         'Use a Link to go somewhere: another page, a section, a site.',

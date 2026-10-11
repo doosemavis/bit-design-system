@@ -4,7 +4,7 @@ import { createHashRouter } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import { Shell } from './shell/Shell';
 import { ComponentLoading, PageLoading } from './shell/PageLoading';
-import { PageError } from './shell/PageError';
+import { PageError, ShellError } from './shell/PageError';
 import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -42,6 +42,8 @@ export function buildRoutes(): RouteObject[] {
   return [
     {
       element: <Shell />,
+      // If the shell itself throws, our message, not React Router's developer screen.
+      errorElement: <ShellError />,
       children: [
         {
           // Pathless, so a page that throws or fails to load shows PageError inside the shell.

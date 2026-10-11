@@ -4,6 +4,8 @@ import { act } from 'react';
 import { describe, it, expect } from 'vitest';
 import { NAV, Sidebar } from './Sidebar';
 import type { NavItem } from './Sidebar';
+import { COMPONENT_GROUPS } from './navGroups';
+import { MANIFESTS } from '../manifests';
 
 function renderSidebar(items: readonly NavItem[]) {
   render(
@@ -43,15 +45,51 @@ describe('Sidebar', () => {
     expect(groupTitles().find((h) => h.textContent === 'Foundations')).toHaveClass('bit-text', 'bit-neutral');
   });
 
-  it('lists Foundations, Components, Forms and Brand, with Forms between Components and Brand', () => {
-    expect(renderSidebar(NAV)).toEqual(['Start here', 'Foundations', 'Components', 'Forms', 'Brand']);
+  it('lists Start here, Foundations, the component groups by task, then Brand', () => {
+    expect(renderSidebar(NAV)).toEqual([
+      'Start here',
+      'Foundations',
+      'Actions',
+      'Text inputs',
+      'Choice inputs',
+      'Feedback',
+      'Navigation',
+      'Layout',
+      'Type',
+      'Theming',
+      'Brand',
+    ]);
     expect(screen.getByRole('link', { name: 'Button' })).toHaveAttribute('href', '/components/button');
   });
 
-  it('Forms holds the form controls, routed like any component', () => {
+  it('lists every component exactly once, in groups of at most seven', () => {
     renderSidebar(NAV);
-    expect(linksUnder('Forms')).toEqual(['Checkbox', 'Field', 'Input', 'RadioGroup', 'Select', 'Slider', 'Switch', 'Textarea']);
+    const listed = COMPONENT_GROUPS.flatMap((group) => {
+      const labels = linksUnder(group.label);
+      expect(labels.length, group.label).toBeLessThanOrEqual(7);
+      return labels;
+    });
+    const components = MANIFESTS.filter((m) => m.group !== 'brand').map((m) => m.name);
+    expect([...listed].sort()).toEqual([...components].sort());
+    expect(new Set(listed).size).toBe(listed.length);
+  });
+
+  it('groups components by the job they do: actions, inputs, feedback, navigation, layout, type and theming', () => {
+    renderSidebar(NAV);
+    expect(linksUnder('Actions')).toEqual(['Button', 'IconButton', 'Menu']);
+    expect(linksUnder('Text inputs')).toEqual(['Field', 'Input', 'Textarea']);
+    expect(linksUnder('Choice inputs')).toEqual(['Checkbox', 'RadioGroup', 'SegmentedControl', 'Select', 'Slider', 'Switch']);
+    expect(linksUnder('Feedback')).toEqual(['Alert', 'Badge', 'Dialog', 'Spinner', 'Tooltip']);
+    expect(linksUnder('Navigation')).toEqual(['Link', 'Navbar', 'Tabs']);
+    expect(linksUnder('Layout')).toEqual(['Box', 'Card', 'Stack', 'Table']);
+    expect(linksUnder('Type')).toEqual(['Code', 'CodeBlock', 'Heading', 'Text']);
+    expect(linksUnder('Theming')).toEqual(['BitTheme', 'Icon', 'ModeToggle']);
     expect(screen.getByRole('link', { name: 'Input' })).toHaveAttribute('href', '/components/input');
+  });
+
+  it('NAV runs group by group, so the previous and next links walk the sidebar top to bottom', () => {
+    const groups = NAV.map((item) => item.group).filter((group, i, all) => group !== all[i - 1]);
+    expect(groups).toEqual(['Start here', 'Foundations', ...COMPONENT_GROUPS.map((g) => g.label), 'Brand']);
   });
 
   it('Foundations lists the guide pages: Spacing, Tokens, then Typography', () => {
@@ -100,7 +138,7 @@ describe('Sidebar', () => {
   });
 
   it('hides a group with no items', () => {
-    expect(renderSidebar(NAV.filter((item) => item.group !== 'Forms'))).toEqual(['Start here', 'Foundations', 'Components', 'Brand']);
+    expect(renderSidebar(NAV.filter((item) => item.group !== 'Text inputs'))).not.toContain('Text inputs');
   });
 });
 
@@ -125,7 +163,7 @@ describe('Sidebar current section', () => {
   it('marks the group of the current page with data-current', () => {
     renderAt('/tokens');
     expect(sectionOf('Foundations')).toHaveAttribute('data-current');
-    expect(sectionOf('Components')).not.toHaveAttribute('data-current');
+    expect(sectionOf('Actions')).not.toHaveAttribute('data-current');
   });
 
   it('marks Start here on the home page, and only there', () => {
@@ -153,10 +191,10 @@ describe('Sidebar current section', () => {
 
   it('moves data-current and gives the new current title a fresh node when the section changes', () => {
     renderAt('/typography');
-    const components = title('Components');
+    const actions = title('Actions');
     act(() => go('/components/button'));
     expect(sectionOf('Foundations')).not.toHaveAttribute('data-current');
-    expect(sectionOf('Components')).toHaveAttribute('data-current');
-    expect(title('Components')).not.toBe(components);
+    expect(sectionOf('Actions')).toHaveAttribute('data-current');
+    expect(title('Actions')).not.toBe(actions);
   });
 });

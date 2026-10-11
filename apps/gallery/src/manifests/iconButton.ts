@@ -16,7 +16,8 @@ export const iconButton: Manifest = {
   group: 'components',
   related: ['button', 'icon', 'tooltip'],
   component: IconButton,
-  description: 'A square button with one icon. Its label is the name screen readers hear; a tooltip can show it on hover.',
+  description:
+    'An action shown as one icon, for tight spots like a toolbar. Its label is the name screen readers hear; a tooltip can show it on hover.',
   controls: [
     { kind: 'select', prop: 'iconName', values: [...PLAYGROUND_ICONS], default: 'delete', label: 'Icon', virtual: true },
     { kind: 'text', prop: 'label', default: 'Delete', alwaysPrint: true },

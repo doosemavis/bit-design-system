@@ -83,7 +83,7 @@ export interface Preset {
   state: Partial<ControlState>;
 }
 
-/** Sidebar group. Forms holds Field, Input, Select and Switch from PR2. */
+/** Kind of page: a component, a form control (Field, Input, Select, Switch...), or the brand page. The sidebar groups components by task in shell/navGroups.ts. */
 export type ManifestGroup = 'components' | 'forms' | 'brand';
 
 /** One row of a component page's Props table. */

@@ -9,21 +9,31 @@ import type { GameId } from '../arcade/games';
 import { NAV } from '../shell/Sidebar';
 import { focusRouteTarget, sectionIdOf } from '../shell/useFocusHeading';
 import { renderInline } from '../ui/renderInline';
-import { buildSearchIndex, searchEntries } from './searchIndex';
-import type { SearchEntry } from './searchIndex';
+import { NARROW_QUERY, useMediaQuery } from '../ui/useMediaQuery';
+import { buildSearchIndex, groupResults, KIND_LABEL, searchEntries } from './searchIndex';
+import type { SearchEntry, SearchKind } from './searchIndex';
+import { copyKeyLabel, searchKeyLabel } from '../ui/keys';
 
 /** Every page and every component prop, built once: the docs don't change while the page is open. */
 const INDEX = buildSearchIndex(NAV, MANIFESTS, GAMES);
 
-/** A result's badge names its sidebar section, one color per section, so a result reads like the menu it's in. */
-const GROUP_COLOR: Readonly<Record<string, BadgeProps['color']>> = {
-  'Start here': 'neutral',
-  Foundations: 'warning',
-  Components: 'primary',
-  Forms: 'success',
-  Brand: 'danger',
-  Arcade: 'primary',
+/** A result's chip says what it is, one color per kind: a page, a component, one of a component's props, a game. */
+const KIND_COLOR: Readonly<Record<SearchKind, BadgeProps['color']>> = {
+  page: 'neutral',
+  component: 'primary',
+  prop: 'success',
+  game: 'warning',
 };
+
+/**
+ * What an option is called: its title and kind ("Button, component"), a prop's component ("dismissLabel, Alert
+ * prop"), and for a game the sidebar section it opens in ("Snake, Arcade").
+ */
+export function optionName(entry: SearchEntry): string {
+  if (entry.owner) return `${entry.title}, ${entry.owner} prop`;
+  if (entry.kind === 'game') return `${entry.title}, ${entry.group}`;
+  return `${entry.title}, ${KIND_LABEL[entry.kind].toLowerCase()}`;
+}
 
 /** The next active index for an arrow key, wrapping at both ends; null for any other key. */
 export function moveActive(key: string, active: number, count: number): number | null {
@@ -46,7 +56,9 @@ interface SearchPanelProps {
 function SearchPanel({ onGo, hintId }: SearchPanelProps) {
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
-  const results = useMemo(() => searchEntries(INDEX, query), [query]);
+  // Grouped by kind; the flat list, read group by group, is the order the arrows move in.
+  const groups = useMemo(() => groupResults(searchEntries(INDEX, query)), [query]);
+  const results = useMemo(() => groups.flatMap((group) => group.entries), [groups]);
   const listId = useId();
   const current = results[Math.min(active, results.length - 1)];
 
@@ -90,31 +102,43 @@ function SearchPanel({ onGo, hintId }: SearchPanelProps) {
         onKeyDown={onKeyDown}
       />
       {results.length > 0 ? (
-        <ul id={listId} role="listbox" aria-label="Results" className="gallery-search__results">
-          {results.map((entry, index) => (
-            <li
-              key={entry.id}
-              id={entry.id}
-              role="option"
-              aria-selected={entry === current}
-              aria-label={`${entry.title}, ${entry.group}`}
-              aria-describedby={`${entry.id}-detail`}
-              className="gallery-search__option"
-              onMouseMove={() => setActive(index)}
-              onClick={() => onGo(entry)}
-            >
-              <Stack direction="row" gap={8} align="center">
-                <Text weight="bold">{entry.title}</Text>
-                <Badge size="sm" variant="outline" color={GROUP_COLOR[entry.group] ?? 'neutral'}>
-                  {entry.group}
-                </Badge>
-              </Stack>
-              <Text id={`${entry.id}-detail`} color="neutral" className="gallery-search__detail">
-                {renderInline(entry.detail)}
+        // One listbox, a group per kind (APG "listbox with grouped options"): each group is named by its heading,
+        // and the options run on across groups, so the arrows never stop at a heading.
+        <div id={listId} role="listbox" aria-label="Results" className="gallery-search__results">
+          {groups.map((group) => (
+            <div key={group.kind} role="group" aria-labelledby={`${listId}-${group.kind}`} className="gallery-search__group">
+              <Text id={`${listId}-${group.kind}`} color="neutral" className="gallery-search__heading">
+                {group.label}
               </Text>
-            </li>
+              {group.entries.map((entry) => (
+                <div
+                  key={entry.id}
+                  id={entry.id}
+                  role="option"
+                  aria-selected={entry === current}
+                  aria-label={optionName(entry)}
+                  aria-describedby={`${entry.id}-detail`}
+                  className="gallery-search__option"
+                  onMouseMove={() => setActive(results.indexOf(entry))}
+                  onClick={() => onGo(entry)}
+                >
+                  <Stack direction="row" gap={8} align="center">
+                    <Text weight="bold">
+                      {entry.title}
+                      {entry.owner ? <Text color="neutral">{` · ${entry.owner}`}</Text> : null}
+                    </Text>
+                    <Badge size="lg" variant="outline" color={KIND_COLOR[entry.kind]}>
+                      {KIND_LABEL[entry.kind]}
+                    </Badge>
+                  </Stack>
+                  <Text id={`${entry.id}-detail`} color="neutral" className="gallery-search__detail">
+                    {renderInline(entry.detail)}
+                  </Text>
+                </div>
+              ))}
+            </div>
           ))}
-        </ul>
+        </div>
       ) : null}
       {/* Announced as it changes; shown only when nothing matches. */}
       <div role="status">{results.length === 0 ? <Text>{`No results for “${query.trim()}”. Try a component or prop name.`}</Text> : null}</div>
@@ -189,6 +213,7 @@ export function SearchDialog({ open, onOpenChange, onPlay }: SearchDialogProps) 
   }
 
   const hintId = useId();
+  const narrow = useMediaQuery(NARROW_QUERY);
   if (!mounted) return null;
   return (
     <Dialog ref={dialogRef} open={open} onOpenChange={onOpenChange} size="lg" className="gallery-search">
@@ -199,6 +224,8 @@ export function SearchDialog({ open, onOpenChange, onPlay }: SearchDialogProps) 
       {/* The keys hint sits in a purple band, closing the window the way the title bar opens it. */}
       <DialogFooter className="gallery-search__footer">
         <Text id={hintId}>↑ ↓ to move, Enter to open, Esc to close.</Text>
+        {/* The page-wide shortcuts, for next time (Shell's useShortcuts wires them). A phone has no keyboard for them. */}
+        {narrow ? null : <Text>{`/ or ${searchKeyLabel()}: search. ${copyKeyLabel()}: copy the playground code.`}</Text>}
       </DialogFooter>
     </Dialog>
   );

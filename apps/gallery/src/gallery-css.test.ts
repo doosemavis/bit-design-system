@@ -107,9 +107,11 @@ describe('gallery.css', () => {
 
   it('the playground puts the controls beside the preview, and under it below 720px', () => {
     expect(galleryCss).toMatch(/\.gallery-playground__top \{[^}]*grid-template-columns: minmax\(0, 1fr\) 16rem;/);
-    expect(galleryCss).toMatch(
-      /@media \(max-width: 720px\) \{\s*\.gallery-playground__top \{\s*grid-template-columns: minmax\(0, 1fr\);\s*\}\s*\}/,
-    );
+    // A flex column, not a one-column grid: a grid item's sticky range is only its own row, so the preview
+    // could not stay up while the controls under it scroll.
+    const stacked = ruleIn(mediaBody('(max-width: 720px)'), '.gallery-playground__top')!;
+    expect(stacked).toContain('display: flex;');
+    expect(stacked).toContain('flex-direction: column;');
   });
 
   it('B3: the playground card stretches both halves to one height, and the preview stage takes the spare height', () => {
@@ -125,6 +127,56 @@ describe('gallery.css', () => {
     expect(ruleIn(galleryCss, '.gallery-preview__stage')).toContain('flex: 1;');
   });
 
+  it('P1: the card clips without scrolling, so a sticky preview inside it can stick to the page', () => {
+    // bit Card sets overflow: hidden, which makes the card a scroll container that never scrolls: sticky would
+    // stick to the card and never move. clip keeps the rounded corners and makes no scroll container.
+    expect(ruleIn(galleryCss, '.gallery-playground__top')).toContain('overflow: clip;');
+  });
+
+  it('P1: the live component is centered in what you can see: the playground, or the window beside a long list', () => {
+    // Owner review 2026-10-11: start-aligned stages left short components (Button) hugging the top. The frame
+    // fills the preview half instead, capped at the window under the header, and the stage centers inside it:
+    // centered in the playground when the controls are short, centered in the window while a long list scrolls.
+    expect(ruleIn(galleryCss, '.gallery-preview__frame')).toContain('flex: 1;');
+    const stage = ruleIn(galleryCss, '.gallery-preview__stage')!;
+    expect(stage).toContain('place-items: center;');
+    expect(stage).not.toMatch(/place-items: start/);
+    // A preview taller than the window scrolls inside the stage instead of hanging past the fold.
+    expect(stage).toContain('overflow: auto;');
+  });
+
+  it('P1: beside the controls, the bar and stage stick under the site header while a long controls list scrolls', () => {
+    const frame = ruleIn(galleryCss, '.gallery-preview__frame')!;
+    expect(frame).toContain('position: sticky;');
+    // It stops under the sticky "On this page" bar as well as the header, so the bar never covers its top edge.
+    expect(frame).toContain('top: calc(var(--_gallery-header-height) + var(--_gallery-section-bar-height, 0rem));');
+    expect(frame).toContain('max-height: calc(100dvh - var(--_gallery-header-height) - var(--_gallery-section-bar-height, 0rem));');
+    // The preview half itself still stretches to the card's floor, so the divider and the checkerboard reach it.
+    expect(ruleIn(galleryCss, '.gallery-preview')).not.toContain('position: sticky;');
+    expect(ruleIn(galleryCss, '.gallery-preview[data-checkerboard]')).toContain('background-size: 16px 16px;');
+  });
+
+  it('P1: stacked on a phone, the whole preview sticks under the header at a capped height, the controls scrolling under it', () => {
+    const narrow = mediaBody('(max-width: 720px)');
+    expect(ruleIn(galleryCss, '.gallery-playground')).toContain('--_gallery-preview-cap: 40dvh;');
+    const preview = ruleIn(narrow, '.gallery-preview')!;
+    expect(preview).toContain('position: sticky;');
+    expect(preview).toContain('top: var(--_gallery-header-height);');
+    expect(preview).toContain('max-height: var(--_gallery-preview-cap);');
+    expect(preview).toMatch(/z-index: 1;/);
+    // Opaque, so the controls scrolling under it do not show through: the card's own surface.
+    expect(preview).toContain('background-color: var(--bit-color-surface);');
+    // The frame stops sticking on its own and fills the capped preview; the stage gives up the height.
+    const frame = ruleIn(narrow, '.gallery-preview__frame')!;
+    expect(frame).toContain('position: static;');
+    expect(frame).toContain('min-height: 0;');
+    expect(ruleIn(narrow, '.gallery-preview__stage')).toContain('min-height: 0;');
+    // A control reached by Tab scrolls clear of the stuck preview instead of hiding under it.
+    expect(ruleIn(narrow, '.gallery-controls *')).toContain(
+      'scroll-margin-top: calc(var(--_gallery-header-height) + var(--_gallery-preview-cap) + var(--bit-space-16px));',
+    );
+  });
+
   it('a previewed component never outgrows the stage: the preview half, the stage and its child can all shrink', () => {
     // A long CodeBlock line or a wide Table scrolls inside itself instead of spilling over the controls.
     expect(ruleIn(galleryCss, '.gallery-preview')).toContain('min-width: 0;');
@@ -134,12 +186,16 @@ describe('gallery.css', () => {
     expect(child).toContain('max-width: 100%;');
   });
 
-  it('B3: a divider on the start edge of the controls, which moves to their top edge under 720px', () => {
+  it('B3: a divider on the start edge of the controls, which moves to the stacked preview\'s bottom edge under 720px', () => {
     const line = 'var(--bit-border-width) solid var(--bit-color-line);';
     expect(ruleIn(galleryCss, '.gallery-controls')).toContain(`border-inline-start: ${line}`);
-    const narrow = ruleIn(mediaBody('(max-width: 720px)'), '.gallery-controls')!;
-    expect(narrow).toContain('border-inline-start: none;');
-    expect(narrow).toContain(`border-top: ${line}`);
+    const narrow = mediaBody('(max-width: 720px)');
+    const controls = ruleIn(narrow, '.gallery-controls')!;
+    expect(controls).toContain('border-inline-start: none;');
+    // On the preview, not the controls' top edge: the preview sticks while the controls scroll under it, so
+    // the line has to travel with the preview to keep marking where it ends.
+    expect(controls).not.toContain('border-top');
+    expect(ruleIn(narrow, '.gallery-preview')).toContain(`border-bottom: ${line}`);
   });
 
   it('B3: the preview bar and the controls bar are one strip: one height, one paint rule, one title face', () => {
@@ -181,7 +237,7 @@ describe('gallery.css', () => {
     expect(galleryCss).toMatch(/\.gallery-sidebar::-webkit-scrollbar \{\s*display: none;\s*\}/);
   });
 
-  it('the presets scroll sideways in one row instead of widening the page', () => {
+  it('in the bar beside the title, the presets scroll sideways in one row instead of widening the page', () => {
     const presets = /\.gallery-presets \{([^}]*)\}/.exec(galleryCss)![1]!;
     expect(presets).toContain('overflow-x: auto;');
     expect(presets).toContain('min-width: 0;');
@@ -194,18 +250,22 @@ describe('gallery.css', () => {
     expect(presets).toContain('margin: calc(-1 * var(--bit-space-4px));');
   });
 
-  it('when the preview half is under 40rem, the presets take their own full-width row under the title and the switch', () => {
+  it('when the preview half is under 52rem, the presets take their own full-width row under the title and the switch, and wrap', () => {
     // At 390px the bar's one row left the presets about 95px; at 834px, beside the controls column, about 14px.
+    // At 1200 and 1280px the shared row still clipped Slider's and Field's last chip ("Notc…") with no cue:
+    // Field's five chips take about 511px, the title and the switch about 290px more, so under 52rem they get
+    // their own row, and that row wraps instead of hiding a chip off its edge.
     // A container query follows the preview's own width, which a media query can't see.
     expect(ruleIn(galleryCss, '.gallery-preview')).toContain('container-type: inline-size;');
-    const narrow = mediaBody('(max-width: 40rem)', '@container');
+    expect(galleryCss).not.toContain('@container (max-width: 40rem)');
+    const narrow = mediaBody('(max-width: 52rem)', '@container');
     expect(ruleIn(narrow, '.gallery-preview__bar')).toContain('flex-wrap: wrap;');
     const presets = ruleIn(narrow, '.gallery-presets');
     expect(presets).toContain('order: 1;');
     expect(presets).toContain('flex-basis: 100%;');
-    // Still one row that scrolls sideways, with the focus-ring padding kept (pinned by the tests above).
-    expect(presets).not.toContain('flex-wrap');
-    expect(presets).not.toMatch(/padding|margin|overflow/);
+    expect(presets).toContain('flex-wrap: wrap;');
+    // The focus-ring padding is kept (pinned by the tests above).
+    expect(presets).not.toMatch(/padding|margin/);
   });
 
   it('the import chip centres its text in the Copy-button-tall box, with layout properties only', () => {

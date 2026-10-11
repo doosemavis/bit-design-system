@@ -25,7 +25,7 @@ export const slider: Manifest = {
   group: 'forms',
   component: Slider,
   description:
-    'Pick a number on a range by dragging or with the arrow keys. A real range input, drawn three ways: a square thumb, a health bar of blocks, or a round thumb with a value bubble. Add notches or a number box when the exact value matters.',
+    'Picks a number on a range, by dragging or with the arrow keys. Add notches or a number box when the exact value matters.',
   related: ['input', 'segmentedcontrol', 'field'],
   controls: [
     { kind: 'axis', prop: 'variant', values: ['square', 'blocks', 'round'], default: 'square' },
@@ -61,7 +61,7 @@ export const slider: Manifest = {
   // The drawn fill follows the value through React, so the markup alone doesn't move.
   interactive: true,
   docs: {
-    badges: ['Native <input type="range">', 'Three looks', 'Smooth or notched', 'Joins a Field'],
+    badges: ['Native <input type="range">', 'Square, blocks or round', 'Smooth or notched', 'Joins a Field'],
     usage: {
       do: [
         'Use a Slider for a value where about right is right: volume, brightness, a rough budget.',

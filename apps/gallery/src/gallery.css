@@ -36,6 +36,12 @@ html,
     "sidebar main";
 }
 
+/* An open game takes the sidebar's place and gets 50px more of it (owner's call, 2026-10-11): a wider board, and
+   main moves over beside it. Phones are untouched: there the game runs in the full-width sheet. */
+.gallery-shell:has(> .gallery-sidebar--arcade) {
+  --_gallery-sidebar-width: calc(15rem + 50px);
+}
+
 .gallery-skip {
   position: absolute;
   left: var(--bit-space-8px);
@@ -224,10 +230,90 @@ html,
   gap: var(--bit-space-12px) var(--bit-space-16px);
 }
 
-/* The in-page links under a page header. */
+/* ---------- On this page ---------- */
+/* The in-page links under a page header, as one compact row: the "On this page" label, then the links. On wide
+   screens the row stays in view under the site header while the page scrolls. A sticky box only travels inside
+   its parent, so the header group around it (a Stack of the header and the bar) gives up its box, and the bar
+   moves through the whole page. The page's Stack then spaces it 64px from the header; the negative margin puts
+   back the group's 16px. The bar runs out into main's gutters, so nothing shows past its ends as the page scrolls
+   under it. */
+.bit-stack:has(> .gallery-section-bar) {
+  display: contents;
+}
+
 .gallery-section-bar {
-  padding-block: var(--bit-space-8px);
+  position: sticky;
+  top: var(--_gallery-header-height);
+  z-index: 4;
+  display: flex;
+  align-items: baseline;
+  gap: var(--bit-space-8px) var(--bit-space-24px);
+  margin-top: calc(var(--bit-space-16px) - var(--bit-space-64px));
+  margin-inline: calc(-1 * var(--_gallery-gutter));
+  padding: var(--bit-space-8px) var(--_gallery-gutter);
   border-block: var(--bit-border-width) solid var(--bit-color-line);
+  background: var(--bit-color-bg);
+  /* main stops at 72rem, so on a wide window the bar would end short of the window edge. Its lines and surface
+     carry on to the right as ink only (no scroll width); the clip keeps the extension off the sidebar and off the
+     content above and below. */
+  border-image: linear-gradient(var(--bit-color-line) 0 0) 1 / var(--bit-border-width) 0 / 0 100vw 0 0;
+  box-shadow: 0 0 0 100vw var(--bit-color-bg);
+  clip-path: inset(0 -100vw 0 0);
+}
+
+.gallery-section-bar > .bit-text {
+  flex: none;
+}
+
+/* A jump (a bar link, a "#" link, a deep link) stops below the sticky bar as well as the header. */
+html:has(.gallery-section-bar) {
+  --_gallery-section-bar-height: 3rem;
+  scroll-padding-top: calc(var(--_gallery-header-height) + var(--_gallery-section-bar-height) + var(--bit-space-16px));
+}
+
+/* A phone keeps the bar where it is, one row that scrolls sideways, so the Playground comes sooner. */
+@media (max-width: 720px) {
+  .gallery-section-bar {
+    position: static;
+    margin-bottom: calc(var(--bit-space-32px) - var(--bit-space-64px));
+  }
+
+  .gallery-section-bar .gallery-link-list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  html:has(.gallery-section-bar) {
+    --_gallery-section-bar-height: 0rem;
+  }
+}
+
+/* ---------- reading ---------- */
+/* Prose keeps a readable measure: a paragraph or a bulleted list in main stops at about 75 characters a line,
+   however wide main is. A ch is the width of "0", which in Nunito is about 1.3 average letters, so 56ch holds
+   about 75. Tables, code panels and cards keep their full width; only the text inside them is capped. A live
+   preview or sample shows Text as an app renders it, so it is left alone. */
+.gallery-main p.bit-text {
+  max-width: 56ch;
+}
+
+.gallery-main .gallery-bullets {
+  max-width: 56ch;
+}
+
+.gallery-main :is(.gallery-preview, .gallery-example__sample, .gallery-split__result, .gallery-tile__preview) p.bit-text {
+  max-width: none;
+}
+
+/* A Getting started step's accent bar starts under its number badge, not under the title after it: the title gives
+   up its place as the bar's anchor to the row that holds the badge and the title. */
+[data-step] > .bit-stack:first-child {
+  position: relative;
+}
+
+[data-step] > .bit-stack:first-child .gallery-section-title {
+  position: static;
 }
 
 @media (max-width: 720px) {
@@ -290,14 +376,29 @@ html,
 }
 
 /* ---------- preview ---------- */
-/* The preview half of the playground card: the bar, then the stage. The stage takes the spare height, so it
-   reaches the card's floor however many controls stand beside it. It is a size container, so its bar can wrap
-   the presets by its own width. */
+/* The preview half of the playground card: a frame holding the bar, then the stage. The half reaches the card's
+   floor however many controls stand beside it. It is a size container, so its bar can wrap the presets by its
+   own width. */
 .gallery-preview {
   display: flex;
   flex-direction: column;
   min-width: 0;
   container-type: inline-size;
+}
+
+/* Beside a long controls list (Slider's runs past the fold), the bar and the stage stick under the site header
+   and the "On this page" bar, so a control changed far down the list still shows its result. The frame fills the
+   preview half but is no taller than the window under those bars, so the stage centers the component in what you
+   can see: the whole playground when the controls are short, the window while a long list scrolls. A preview
+   taller than that scrolls inside the stage instead. */
+.gallery-preview__frame {
+  position: sticky;
+  flex: 1;
+  top: calc(var(--_gallery-header-height) + var(--_gallery-section-bar-height, 0rem));
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--_gallery-header-height) - var(--_gallery-section-bar-height, 0rem));
+  max-height: calc(100dvh - var(--_gallery-header-height) - var(--_gallery-section-bar-height, 0rem));
 }
 
 /* The preview bar and the controls bar are one header strip across the card: one height, one paint, one
@@ -322,6 +423,8 @@ html,
   letter-spacing: 0.08em;
 }
 
+/* The live component sits at the top of the stage, centered across it, where the eye lands after changing a
+   control. Centered on the height too, it sank to the middle of the controls column, below the fold. */
 .gallery-preview__stage {
   flex: 1;
   min-width: 0;
@@ -329,16 +432,19 @@ html,
   display: grid;
   place-items: center;
   padding: var(--bit-space-32px);
+  overflow: auto;
 }
 
-/* The previewed component is centred at its own width but never wider than the stage, so a wide one (a long
+/* The previewed component is centered at its own width but never wider than the stage, so a wide one (a long
    CodeBlock line, a Table) scrolls inside itself instead of spilling over the controls. */
 .gallery-preview__stage > * {
   min-width: 0;
   max-width: 100%;
 }
 
-.gallery-preview[data-checkerboard] .gallery-preview__stage {
+/* On the whole preview half, so the squares run to the card's floor under the stuck frame. The bar paints over
+   them. */
+.gallery-preview[data-checkerboard] {
   --_gallery-check: var(--bit-color-bg);
   background-image:
     linear-gradient(45deg, var(--_gallery-check) 25%, transparent 25%),
@@ -523,14 +629,20 @@ html,
    under the preview. The card draws the frame; this only splits it. Both halves stretch to the card's height
    and meet at the controls' divider, so there is no gap. */
 .gallery-playground {
+  /* How tall the preview may stay stuck over the controls on a phone: enough to see the change, never the
+     whole screen. */
+  --_gallery-preview-cap: 40dvh;
   display: grid;
   gap: var(--bit-space-16px);
 }
 
+/* bit Card's overflow: hidden makes the card a scroll container that never scrolls, so the sticky preview
+   inside would stick to the card and never move. clip keeps the rounded corners without one. */
 .gallery-playground__top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 16rem;
   align-items: stretch;
+  overflow: clip;
 }
 
 .gallery-codepanel {
@@ -621,25 +733,62 @@ html,
   min-width: calc(7 * var(--bit-space-32px));
 }
 
+/* Under 720px the controls stack under the preview, in a flex column rather than a one-column grid: a grid
+   item can stick only within its own row, a flex item within the whole card. */
 @media (max-width: 720px) {
   .gallery-playground__top {
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
   }
 }
 
-/* Stacked under the preview, the controls' divider moves from the start edge to the top edge. */
+/* Stacked, the whole preview sticks under the header, capped at --_gallery-preview-cap, and the controls scroll
+   under it, so a change shows without scrolling back up. It covers them, so it takes the card's own surface and
+   draws the divider on its bottom edge. Its frame stops sticking on its own and fills it; the stage gives up
+   height first and scrolls a tall preview inside. Nothing animates, and focus moves on past it as before. */
+@media (max-width: 720px) {
+  .gallery-preview {
+    position: sticky;
+    top: var(--_gallery-header-height);
+    z-index: 1;
+    max-height: var(--_gallery-preview-cap);
+    background-color: var(--bit-color-surface);
+    border-bottom: var(--bit-border-width) solid var(--bit-color-line);
+  }
+
+  .gallery-preview__frame {
+    position: static;
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .gallery-preview__stage {
+    min-height: 0;
+    padding: var(--bit-space-16px);
+  }
+
+  /* A control reached by Tab scrolls clear of the stuck preview instead of landing under it. */
+  .gallery-controls * {
+    scroll-margin-top: calc(var(--_gallery-header-height) + var(--_gallery-preview-cap) + var(--bit-space-16px));
+  }
+}
+
+/* Stacked under the preview, the controls drop their start-edge divider; the preview's bottom edge draws the
+   line between them instead (above), so it stays put while the controls scroll under the stuck preview. */
 @media (max-width: 720px) {
   .gallery-controls {
     border-inline-start: none;
-    border-top: var(--bit-border-width) solid var(--bit-color-line);
   }
 }
 
-/* When the preview half is under 40rem the presets get their own full-width row under the title and the
+/* When the preview half is under 52rem the presets get their own full-width row under the title and the
    Checkerboard switch: sharing one row left them about 95px on a phone and 14px on a tablet, where the controls
-   take a column beside the preview. The preview is a size container (see .gallery-preview), so this follows the
-   room the bar really has, not the window. The row still scrolls sideways, keeping the focus-ring padding above. */
-@container (max-width: 40rem) {
+   take a column beside the preview, and at 1200 to 1280px it still cut Slider's and Field's last chip mid-word
+   (Field's five chips take about 511px, the title and the switch about 290px more). The row wraps, so every
+   preset shows and none hides off an edge with no cue. The preview is a size container (see .gallery-preview),
+   so this follows the room the bar really has, not the window. */
+@container (max-width: 52rem) {
   .gallery-preview__bar {
     flex-wrap: wrap;
   }
@@ -647,6 +796,7 @@ html,
   .gallery-presets {
     order: 1;
     flex-basis: 100%;
+    flex-wrap: wrap;
   }
 }
 
@@ -991,6 +1141,15 @@ html,
 }
 
 /* The count: the pixel face, larger, in the link color (violet by day, lilac at night). */
+/* On a phone the cards are too narrow for some labels to share the line ("31 components" wrapped while "112
+   tokens" didn't), so every fact stacks the same way: the count over its label. */
+@media (max-width: 720px) {
+  .gallery-fact {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 .gallery-fact__count {
   font-family: var(--bit-font-pixel);
   font-size: var(--bit-text-24px);
@@ -1096,6 +1255,15 @@ html,
 }
 
 /* Release notes: the version rail sits beside the cards on wide screens and stacks above them below 960px. */
+/* The release filter never runs past the page: on a phone its options scroll sideways inside their frame. */
+.gallery-release-filter {
+  max-width: 100%;
+}
+
+.gallery-release-filter .bit-segmented-control__options {
+  overflow-x: auto;
+}
+
 .gallery-releases {
   display: grid;
   grid-template-columns: 12rem minmax(0, 1fr);
@@ -1146,8 +1314,12 @@ html,
   margin-top: max(var(--bit-space-16px), calc((100dvh - 680px) / 2));
 }
 
-/* The footer band: the title bar's purple and contrast text, with the line above it, as the bar has below. */
+/* The footer band: the title bar's purple and contrast text, with the line above it, as the bar has below. Two
+   lines: the dialog's own keys, then the page-wide shortcuts. */
 .gallery-search__footer.bit-dialog__footer {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--bit-space-4px);
   justify-content: flex-start;
   padding: var(--bit-space-8px) var(--bit-space-16px);
   color: var(--bit-color-primary-contrast);
@@ -1178,6 +1350,21 @@ html,
      than 16px in from it. The 2px left over keeps the results' right edge in line with the search box. */
   margin-inline-end: calc(-1 * var(--bit-space-16px));
   padding-inline-end: 2px;
+}
+
+/* One group per kind (Pages, Components, Games, Props): its heading lines up with the results' text (their
+   10px padding and 2px border), and a group after another gets more room above its heading than below it. */
+.gallery-search__group {
+  display: grid;
+  gap: var(--bit-space-4px);
+}
+
+.gallery-search__group + .gallery-search__group {
+  margin-top: var(--bit-space-12px);
+}
+
+.gallery-search__heading {
+  padding-inline: var(--bit-space-12px);
 }
 
 /* The list fills the body's right padding, which would let the body scroll sideways by that much. It only ever
@@ -1321,6 +1508,25 @@ html,
   padding: var(--bit-space-8px);
 }
 
+/* The stats: columns set by the width alone (two in the sidebar, three on a phone), so a count gaining a digit
+   never re-wraps them and pushes the board down. Each badge fills its cell. */
+.gallery-game__hud {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: var(--bit-space-8px);
+}
+
+/* The live line, for screen readers only: the board's banner shows each state, so the sentence takes no room and
+   the board never grows or shrinks as it comes and goes. */
+.gallery-game__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* At least 12rem tall, so a short window still gets a playable board (the sidebar scrolls instead). The canvas sits
    over the board rather than in its flow, so its own size never feeds back into the measurement. */
 .gallery-game__board {
@@ -1358,3 +1564,24 @@ html,
 .gallery-game__pad-left { grid-area: left; }
 .gallery-game__pad-down { grid-area: down; }
 .gallery-game__pad-right { grid-area: right; }
+
+/* Press start (home): the two game cards stretch to one height, and each Play button sits on its card's
+   floor, so the buttons line up whatever the blurb's length. */
+.gallery-home-arcade__card {
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-home-arcade__card > .bit-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-home-arcade__body {
+  flex: 1;
+}
+
+.gallery-home-arcade__play {
+  margin-top: auto;
+}

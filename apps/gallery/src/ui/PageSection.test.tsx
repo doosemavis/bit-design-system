@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
@@ -65,6 +65,15 @@ describe('PageSection', () => {
       expect(screen.getByRole('heading', { level: 2 })).toHaveAccessibleName('Usage');
       expect(link.closest('h2')).toBeNull();
       expect(link.parentElement).toHaveClass('gallery-section-head');
+    });
+
+    // Critique 2026-10-11: the anchor reads as "#" on screen; its name must still say where it goes.
+    it('is named for its section, and the visible "#" is hidden from screen readers', () => {
+      renderInRouter('/page');
+      const link = screen.getByRole('link', { name: 'Link to the Usage section' });
+      expect(link).toHaveAccessibleName('Link to the Usage section');
+      const glyph = within(link).getByText('#');
+      expect(glyph).toHaveAttribute('aria-hidden', 'true');
     });
 
     it('links to the page with its query and the section as the hash, and following it sets that hash', async () => {

@@ -171,9 +171,8 @@ export function GameFrame(props: GameFrameProps) {
       <CardHeader className="gallery-game__title">{title}</CardHeader>
       <CardBody className="gallery-game__body">
         <Stack gap={12} className="gallery-game__stack">
-          <Stack direction="row" gap={8} wrap className="gallery-game__hud">
-            {hud}
-          </Stack>
+          {/* A grid whose columns follow the width alone, so a count gaining a digit never re-wraps the stats. */}
+          <div className="gallery-game__hud">{hud}</div>
           <div
             ref={boardRef}
             className="gallery-game__board"
@@ -205,6 +204,8 @@ export function GameFrame(props: GameFrameProps) {
               {`${howToMove} Space or P pauses. Esc pauses, then Esc again goes back.`}
             </Text>
           </Disclosure>
+          {/* For screen readers only: on screen the board's own banner says it (PAUSED, GAME OVER and the score,
+              LEVEL 2), so the sentence never takes the board's height as it comes and goes. */}
           <Text role="status" className="gallery-game__status">
             {message}
           </Text>

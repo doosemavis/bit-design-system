@@ -15,7 +15,8 @@ export const segmentedControl: Manifest = {
   group: 'components',
   related: ['tabs', 'select', 'switch'],
   component: SegmentedControl,
-  description: 'Joined segments that pick one option, or several with multiple.',
+  description:
+    'A row of joined segments for picking one of two to four options that should all be visible, or any mix of them with multiple.',
   controls: [
     { kind: 'text', prop: 'legend', default: 'Range', alwaysPrint: true },
     { kind: 'axis', prop: 'color', values: COLORS, default: 'primary' },

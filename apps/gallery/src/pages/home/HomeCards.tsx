@@ -31,19 +31,18 @@ const FIRST_COMPONENT = `${STYLE_IMPORTS}\nimport { Button } from '${PACKAGE_NAM
 
 /**
  * The hero's right side: install the package (with Getting started's pnpm / npm / yarn switcher, which shares
- * its remembered pick) and use a first component, each block with its Copy button.
+ * its remembered pick) and use a first component, each block with its Copy button. One layer: the two code
+ * panels are the frames, under a plain caption, with no card around them (a card of panels nests frames).
  */
 export function QuickStart() {
   return (
-    <Card role="group" aria-label="quick start">
-      <CardHeader style={PAGE_HEADER}>quick start</CardHeader>
-      <CardBody>
-        <Stack gap={12}>
-          <InstallCommand />
-          <CodeBlock language="jsx" code={FIRST_COMPONENT} label="Your first component" />
-        </Stack>
-      </CardBody>
-    </Card>
+    <Stack gap={8} role="group" aria-label="quick start">
+      <Text weight="bold">Quick start</Text>
+      <Stack gap={12}>
+        <InstallCommand />
+        <CodeBlock language="jsx" code={FIRST_COMPONENT} label="Your first component" />
+      </Stack>
+    </Stack>
   );
 }
 
@@ -57,13 +56,16 @@ const FACTS: readonly (readonly [number, string])[] = [
   [COLOR_MODES.length, 'color modes'],
 ];
 
-/** Two by two under the hero's buttons: each count in the pixel face and the link color, its label beside it. */
+/**
+ * Two by two under the hero's buttons: each count in the pixel face and the link color, its label beside it.
+ * Outline cards, with no fill or shadow: facts to read, so they sit back from the Buttons above them.
+ */
 export function Facts() {
   return (
     <ul className="gallery-facts" aria-label="At a glance">
       {FACTS.map(([count, label]) => (
         <li key={label}>
-          <Card>
+          <Card variant="outline">
             <CardBody>
               <div className="gallery-fact">
                 <span className="gallery-fact__count">{count}</span>
@@ -79,10 +81,13 @@ export function Facts() {
   );
 }
 
-/** One "start building" card: a dark header like the Tokens page, its content, and a link pinned to the bottom. */
+/**
+ * One "start building" card: a dark header like the Tokens page, its content, and a link pinned to the bottom.
+ * Flat: only the link clicks, so the card reads as a surface, not a button.
+ */
 function StartCard({ name, to, link, children }: { name: string; to: string; link: string; children: ReactNode }) {
   return (
-    <Card role="group" aria-label={name} className="gallery-start-card">
+    <Card flat role="group" aria-label={name} className="gallery-start-card">
       <CardHeader style={PAGE_HEADER}>{name}</CardHeader>
       <CardBody>
         {children}

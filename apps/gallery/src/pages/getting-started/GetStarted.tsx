@@ -47,7 +47,7 @@ export function Step({ n, title, aside, help, children }: StepProps) {
   return (
     <Stack gap={16} data-step={n} className={SECTION_CLASS}>
       <Stack direction="row" gap={8} align="center" wrap>
-        <Badge color="warning" shape="square">
+        <Badge size="lg" color="warning" shape="square">
           {String(n)}
         </Badge>
         <SectionHead id={id} title={title}>
@@ -57,7 +57,7 @@ export function Step({ n, title, aside, help, children }: StepProps) {
         </SectionHead>
         {aside}
       </Stack>
-      <Card>
+      <Card flat>
         <CardBody>
           <Stack gap={24}>
             <Text>{help}</Text>
@@ -82,7 +82,7 @@ export function GetStarted() {
         n={1}
         title="Install"
         aside={
-          <Badge variant="outline" shape="square">
+          <Badge size="lg" variant="outline" shape="square">
             {`v${latest}`}
           </Badge>
         }
@@ -152,7 +152,7 @@ export function GetStarted() {
                 <Text weight="bold" className="gallery-caption">
                   It renders:
                 </Text>
-                <Card role="region" aria-label="What it renders" className="gallery-split__result">
+                <Card flat role="region" aria-label="What it renders" className="gallery-split__result">
                   <CardBody>
                     <Stack direction="row" gap={8} wrap>
                       <Button>Save</Button>

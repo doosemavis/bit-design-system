@@ -1,14 +1,17 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { lineOf } from '../content/versionLines.mjs';
 import { resetVersionsCache } from './useVersions';
 import { urlForLine, VersionSelect } from './VersionSelect';
 import { chooseOption, chosenLabel, optionLabels } from '../test/select';
 
 const picker = () => screen.getByRole('combobox', { name: 'Version' });
+/** With nothing to choose the picker is disabled and greyed out (owner, 2026-10-11), not read-only. */
+const expectDisabled = (element: HTMLElement) => {
+  expect(element).toBeDisabled();
+  expect(element).not.toHaveAttribute('aria-readonly');
+};
 
-const CURRENT = lineOf(__BIT_VERSION__);
 const entry = (line: string, version: string, path: string) => ({ line, version, date: '2026-10-04', path, react: '19.2.0', reactDom: '19.2.0' });
 const ROOT = '/bit-design-system/';
 const V01 = '/bit-design-system/v0.1/';
@@ -44,10 +47,11 @@ describe('VersionSelect', () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
     render(<VersionSelect />);
     await waitFor(() => expect(optionLabels(picker())).toHaveLength(2));
-    expect(optionLabels(picker())).toEqual(['0.2 (latest) · 0.2.0', '0.1 · 0.1.0']);
-    expect(chosenLabel(picker())).toBe('0.2 (latest) · 0.2.0');
-    expect(picker()).toHaveTextContent('0.2 (latest) · 0.2.0');
+    expect(optionLabels(picker())).toEqual(['(latest) v0.2.0', 'v0.1.0']);
+    expect(chosenLabel(picker())).toBe('(latest) v0.2.0');
+    expect(picker()).toHaveTextContent('(latest) v0.2.0');
     expect(picker()).toBeEnabled();
+    expect(picker()).not.toHaveAttribute('aria-readonly');
   });
 
   it('chooses the archived copy it is served from', async () => {
@@ -55,7 +59,7 @@ describe('VersionSelect', () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
     render(<VersionSelect />);
     await waitFor(() => expect(optionLabels(picker())).toHaveLength(2));
-    expect(chosenLabel(picker())).toBe('0.1 · 0.1.0');
+    expect(chosenLabel(picker())).toBe('v0.1.0');
   });
 
   it('goes to the chosen copy, keeping the hash route', async () => {
@@ -63,7 +67,7 @@ describe('VersionSelect', () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
     render(<VersionSelect />);
     await waitFor(() => expect(picker()).toBeEnabled());
-    await chooseOption(userEvent.setup(), picker(), '0.1 · 0.1.0');
+    await chooseOption(userEvent.setup(), picker(), 'v0.1.0');
     expect(assign).toHaveBeenCalledWith('/bit-design-system/v0.1/#/release-notes');
   });
 
@@ -82,7 +86,7 @@ describe('VersionSelect', () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
     render(<VersionSelect />);
     await waitFor(() => expect(picker()).toBeEnabled());
-    await chooseOption(userEvent.setup(), picker(), '0.2 (latest) · 0.2.0');
+    await chooseOption(userEvent.setup(), picker(), '(latest) v0.2.0');
     expect(assign).not.toHaveBeenCalled();
   });
 
@@ -92,28 +96,28 @@ describe('VersionSelect', () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(AS_OLDER)));
     render(<VersionSelect />);
     await waitFor(() => expect(picker()).toBeEnabled());
-    expect(optionLabels(picker())).toEqual(['0.1 (latest) · 0.1.0', '0.1 · 0.1.0']);
-    expect(chosenLabel(picker())).toBe('0.1 (latest) · 0.1.0');
-    await chooseOption(userEvent.setup(), picker(), '0.1 · 0.1.0');
+    expect(optionLabels(picker())).toEqual(['(latest) v0.1.0', 'v0.1.0']);
+    expect(chosenLabel(picker())).toBe('(latest) v0.1.0');
+    await chooseOption(userEvent.setup(), picker(), 'v0.1.0');
     expect(assign).toHaveBeenCalledWith('/bit-design-system/v0.1/#/versions');
     expect(errors).not.toHaveBeenCalled();
     errors.mockRestore();
   });
 
-  it('is disabled with a title when there is one line', async () => {
+  it('is disabled, with a title, when there is one line', async () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(ONE)));
     render(<VersionSelect />);
-    await waitFor(() => expect(picker()).toBeDisabled());
-    expect(picker()).toHaveAttribute('title', 'Only one release line so far');
+    await waitFor(() => expect(picker()).toHaveAttribute('title', 'Only one release line so far'));
+    expectDisabled(picker());
     expect(optionLabels(picker())).toHaveLength(1);
   });
 
   it('shows only the current line, disabled, while loading', () => {
     vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
     render(<VersionSelect />);
-    expect(picker()).toBeDisabled();
-    expect(optionLabels(picker())).toEqual([`${CURRENT} · ${__BIT_VERSION__}`]);
-    expect(chosenLabel(picker())).toBe(`${CURRENT} · ${__BIT_VERSION__}`);
+    expectDisabled(picker());
+    expect(optionLabels(picker())).toEqual([`v${__BIT_VERSION__}`]);
+    expect(chosenLabel(picker())).toBe(`v${__BIT_VERSION__}`);
   });
 
   it('shows dev (unreleased) when unavailable in dev', async () => {
@@ -121,7 +125,7 @@ describe('VersionSelect', () => {
     render(<VersionSelect />);
     await waitFor(() => expect(optionLabels(picker())).toEqual(['dev (unreleased)']));
     expect(picker()).toHaveTextContent('dev (unreleased)');
-    expect(picker()).toBeDisabled();
+    expectDisabled(picker());
   });
 
   it('shows the current line, disabled, with a title when unavailable in production', async () => {
@@ -129,8 +133,8 @@ describe('VersionSelect', () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('404'))));
     render(<VersionSelect />);
     await waitFor(() => expect(picker()).toHaveAttribute('title', 'The version list could not be loaded'));
-    expect(picker()).toBeDisabled();
-    expect(optionLabels(picker())).toEqual([`${CURRENT} · ${__BIT_VERSION__}`]);
+    expectDisabled(picker());
+    expect(optionLabels(picker())).toEqual([`v${__BIT_VERSION__}`]);
   });
 
   it('adds this copy when the file does not list its path, and chooses it', async () => {
@@ -138,8 +142,8 @@ describe('VersionSelect', () => {
     vi.stubGlobal('fetch', vi.fn(() => ok(TWO)));
     render(<VersionSelect />);
     await waitFor(() => expect(optionLabels(picker())).toHaveLength(3));
-    expect(optionLabels(picker())[2]).toBe(`${CURRENT} · ${__BIT_VERSION__}`);
-    expect(chosenLabel(picker())).toBe(`${CURRENT} · ${__BIT_VERSION__}`);
+    expect(optionLabels(picker())[2]).toBe(`v${__BIT_VERSION__}`);
+    expect(chosenLabel(picker())).toBe(`v${__BIT_VERSION__}`);
   });
 
   it('marks the document once mounted', () => {

@@ -6,13 +6,16 @@ import { PageSection } from '../ui/PageSection';
 import { ComponentTiles } from './home/ComponentTiles';
 import { Facts, QuickStart, StartBuilding } from './home/HomeCards';
 import { NamingRule } from './home/NamingRule';
+import { PressStart } from './home/PressStart';
+import { COMPONENT_GROUPS } from '../shell/navGroups';
 
-/** Where "Browse components" goes: the first component in the sidebar, whatever that becomes. */
-export const BROWSE_TARGET = NAV.find((item) => item.group === 'Components')!.to;
+/** Where "Browse components" goes: the first component of the first sidebar group (Button, under Actions). */
+export const BROWSE_TARGET = NAV.find((item) => item.group === COMPONENT_GROUPS[0].label)!.to;
 
 /**
- * The Overview: the logo, tagline, buttons and four facts beside a quick start card; every component as an
- * equal live tile; three ways to start building; and the naming rule. Every block is a bit Card, as on Tokens.
+ * The Overview: the logo, tagline, buttons and four facts beside the quick start code; the Arcade's two games;
+ * every component as an equal live tile, grouped as the sidebar groups them; three ways to start building; and
+ * the naming rule. Only what you press keeps the hard shadow (the tiles, the buttons); the rest is flat.
  */
 export function HomePage() {
   useDocumentTitle(null);
@@ -40,6 +43,7 @@ export function HomePage() {
           <QuickStart />
         </div>
       </Stack>
+      <PressStart />
       <ComponentTiles />
       <PageSection id="home-start" title="Start building">
         <Text color="neutral">Install it, see every token, and find an icon.</Text>

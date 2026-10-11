@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, describe, it, expect, vi } from 'vitest';
-import { PageError } from './PageError';
+import { PageError, ShellError } from './PageError';
 import { Shell } from './Shell';
 import { buildRoutes } from '../router';
 import { expectNoA11yViolations } from '../test/a11y';
@@ -37,8 +37,24 @@ describe('PageError', () => {
     await expectNoA11yViolations(container);
   });
 
-  it('the real route table catches page errors one level under the shell', () => {
+  it('when the shell itself throws, our page shows in place of React Router’s developer screen', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onReload = vi.fn();
+    const router = createMemoryRouter([{ element: <Broken />, errorElement: <ShellError onReload={onReload} /> }], {
+      initialEntries: ['/'],
+    });
+    const { container } = render(<RouterProvider router={router} />);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Something went wrong' })).toBeInTheDocument();
+    expect(screen.getByRole('main')).toContainElement(screen.getByRole('alert'));
+    expect(screen.queryByText(/Hey developer/)).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Reload page' }));
+    expect(onReload).toHaveBeenCalledTimes(1);
+    await expectNoA11yViolations(container);
+  });
+
+  it('the real route table catches a shell error at the top, and page errors one level under the shell', () => {
     const [shell] = buildRoutes();
+    expect((shell!.errorElement as { type: unknown }).type).toBe(ShellError);
     const [pages] = shell!.children!;
     expect(pages!.path).toBeUndefined();
     expect((pages!.errorElement as { type: unknown }).type).toBe(PageError);

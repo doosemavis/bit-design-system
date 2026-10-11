@@ -35,7 +35,8 @@ export const stack: Manifest = {
   group: 'components',
   related: ['box', 'card'],
   component: Stack,
-  description: 'Flex layout. gap is a px value on the space scale. Every prop is a data attribute, never a class.',
+  description:
+    'Lines things up in a row or a column, with even space between them. gap is a px value on the space scale.',
   controls: [
     { kind: 'select', prop: 'direction', values: ['column', 'row'], default: 'column' },
     { kind: 'select', prop: 'gap', values: SPACE_STEPS.map(String), default: '12', numeric: true },
@@ -71,7 +72,7 @@ export const stack: Manifest = {
     { label: 'Row, space between', state: { direction: 'row', justify: 'between' } },
   ],
   docs: {
-    badges: ['Layout', 'Layout props'],
+    badges: ['Layout', 'Every prop is a data attribute, never a class'],
     usage: {
       do: [
         'Use Stack for the space between things: a column of fields, a row of Buttons.',

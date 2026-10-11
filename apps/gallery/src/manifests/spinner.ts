@@ -7,7 +7,7 @@ export const spinner: Manifest = {
   group: 'components',
   related: ['button'],
   component: Spinner,
-  description: 'A loading indicator. The aria-label is required so screen readers announce it.',
+  description: 'Shows that something is loading. Give it an aria-label: it is required, so screen readers announce it.',
   controls: [
     { kind: 'axis', prop: 'color', values: COLORS, default: 'primary' },
     { kind: 'axis', prop: 'size', values: SIZES, default: 'md' },
@@ -15,7 +15,7 @@ export const spinner: Manifest = {
   ],
   presets: [{ label: 'Large neutral', state: { color: 'neutral', size: 'lg' } }],
   docs: {
-    badges: ['role="status"', 'aria-label required'],
+    badges: ['role="status"'],
     usage: {
       do: [
         "Show a Spinner when something takes more than a moment and you can't say how long.",

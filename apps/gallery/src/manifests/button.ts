@@ -7,7 +7,7 @@ export const button: Manifest = {
   group: 'components',
   related: ['iconbutton', 'link'],
   component: Button,
-  description: 'The primary action. Three axes, two booleans, and asChild for links.',
+  description: 'Starts an action, such as Save or Send. Its color and variant set how much it stands out.',
   controls: [
     { kind: 'axis', prop: 'color', values: COLORS, default: 'primary' },
     { kind: 'axis', prop: 'variant', values: VARIANTS, default: 'solid' },

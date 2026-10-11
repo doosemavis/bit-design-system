@@ -8,7 +8,8 @@ export const switchManifest: Manifest = {
   group: 'forms',
   related: ['checkbox', 'field', 'modetoggle'],
   component: Switch,
-  description: 'An on/off switch. A real checkbox announced as a switch: click the label or press Space. Green when on.',
+  description:
+    'Turns a setting on or off at once, such as "Sound". Click its label or press Space; it is green when on.',
   controls: [
     { kind: 'axis', prop: 'size', values: ['sm', 'md'], default: 'md' },
     { kind: 'boolean', prop: 'invalid', default: false },
@@ -20,7 +21,7 @@ export const switchManifest: Manifest = {
     { label: 'Disabled', state: { disabled: true } },
   ],
   docs: {
-    badges: ['role="switch"', 'Own label', 'Joins a Field'],
+    badges: ['Native checkbox, role="switch"', 'Own label', 'Joins a Field'],
     usage: {
       do: [
         'Use a Switch for a setting that takes effect at once: "Sound", "Wi-Fi".',

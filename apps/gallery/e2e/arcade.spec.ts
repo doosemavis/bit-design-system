@@ -122,7 +122,8 @@ test('the boards fill the sidebar’s height: taller than wide, and a resize mid
   const box = (await snake.board.boundingBox())!;
   expect(box.height).toBeGreaterThan(450);
   expect(box.height).toBeGreaterThan(2 * box.width);
-  await expect.poll(async () => (await gridOf(snake.board))[1]).toBeGreaterThan(40);
+  // A fixed number of columns, so the 50px-wider game sidebar means bigger cells and fewer rows: 34 at 1440x900.
+  await expect.poll(async () => (await gridOf(snake.board))[1]).toBeGreaterThan(30);
   const before = await gridOf(snake.board);
   // The instructions are folded away under the controls.
   await expect(snake.region.getByRole('button', { name: 'How to play' })).toHaveAttribute('aria-expanded', 'false');
@@ -138,6 +139,61 @@ test('the boards fill the sidebar’s height: taller than wide, and a resize mid
   const cheese = await openGame(page, 'Cheese Run');
   // At 1440x800 Cheese Run's taller HUD (five badges) leaves a board under twice as tall as wide: a 7 by 13 maze.
   await expect.poll(async () => (await gridOf(cheese.board))[1]).toBeGreaterThan(1.5 * (await gridOf(cheese.board))[0]);
+});
+
+/** The board's box, rounded: where it sits and how big it is. */
+const boxOf = (board: Locator) =>
+  board.evaluate((el) => {
+    const { top, left, width, height } = el.getBoundingClientRect();
+    return [top, left, width, height].map(Math.round);
+  });
+
+// Owner, 2026-10-11: the game shouldn't move when the messages or stats are there or changing.
+for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+  test(`at ${viewport.width}px the board never moves for a message: ready, paused, game over`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('#/');
+    if (viewport.width < 720) await page.getByRole('button', { name: 'Menu' }).click();
+    const { region, board } = await openGame(page, 'Snake');
+    const ready = await boxOf(board);
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Space');
+    await expect(region.getByRole('status')).toHaveText('Paused. Press Space to go on.');
+    expect(await boxOf(board)).toEqual(ready);
+    // Heading right from the middle, the snake soon meets the wall.
+    await page.keyboard.press('Space');
+    await expect(region.getByRole('status')).toHaveText(/^Game over/, { timeout: 15_000 });
+    expect(await boxOf(board)).toEqual(ready);
+    // The sentence is for screen readers; on screen the board's banner says it.
+    expect((await region.getByRole('status').boundingBox())!.height).toBeLessThanOrEqual(1);
+  });
+}
+
+test('the stats never move the board: a number gaining digits keeps every badge where it was', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('#/');
+  const { region, board } = await openGame(page, 'Cheese Run');
+  const before = await boxOf(board);
+  // Stand-ins for a long game: every count at five digits.
+  await region.locator('.gallery-game__hud .bit-badge').evaluateAll((badges) => {
+    for (const badge of badges) badge.textContent = (badge.textContent ?? '').replace(/\d+/, '99999');
+  });
+  expect(await boxOf(board)).toEqual(before);
+});
+
+test('a game widens the sidebar by 50px, and Back narrows it again', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('#/');
+  const width = (locator: Locator) => locator.evaluate((el) => el.getBoundingClientRect().width);
+  const mainStart = () => page.locator('main').evaluate((el) => el.getBoundingClientRect().left);
+  const menu = await width(nav(page));
+  const start = await mainStart();
+  const { region } = await openGame(page, 'Snake');
+  expect(await width(region)).toBe(menu + 50);
+  // Main moves over beside it rather than sitting under it.
+  expect(await mainStart()).toBe(start + 50);
+  await region.getByRole('button', { name: 'Back to menu' }).click();
+  expect(await width(nav(page))).toBe(menu);
 });
 
 test.describe('phone', () => {
