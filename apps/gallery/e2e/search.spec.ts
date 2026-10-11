@@ -83,6 +83,22 @@ test('Esc closes it and hands focus back to the Search button', async ({ page })
   await expect(button).toBeFocused();
 });
 
+// Typed addresses, not router links: those history entries carry no router state, the case a key alone misses.
+test('Back and Forward close it, so it never sits over a page it was not opened on', async ({ page }) => {
+  await page.goto('#/');
+  await page.goto('#/components/badge');
+  await expect(page.getByRole('heading', { level: 1, name: 'Badge' })).toBeVisible();
+  const dialog = page.getByRole('dialog', { name: 'Search' });
+  await page.getByRole('banner').getByRole('button', { name: 'Search' }).click();
+  await expect(dialog).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 1, name: 'bit Design System' })).toBeVisible();
+  await expect(dialog).toBeHidden();
+  await page.goForward();
+  await expect(page.getByRole('heading', { level: 1, name: 'Badge' })).toBeVisible();
+  await expect(dialog).toBeHidden();
+});
+
 for (const mode of MODES) {
   test(`the open dialog has no axe violations (${mode})`, async ({ page }) => {
     await seedColorMode(page, mode);

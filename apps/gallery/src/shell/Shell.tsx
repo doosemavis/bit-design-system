@@ -21,7 +21,7 @@ interface ShellProps {
 
 /** Three regions: header, sidebar, main. The skip link is the first focusable element. */
 export function Shell({ nav = NAV }: ShellProps) {
-  const { pathname } = useLocation();
+  const { pathname, search, hash, key } = useLocation();
   const narrow = useMediaQuery(NARROW_QUERY);
   // The sheet stays open only on the page it was opened on, so any navigation closes it. Forget that page
   // as soon as we leave it, so Forward back onto it doesn't reopen a sheet that Back closed.
@@ -29,7 +29,14 @@ export function Shell({ nav = NAV }: ShellProps) {
   if (openOn !== null && openOn !== pathname) setOpenOn(null);
   const menuOpen = openOn === pathname;
   const menuButton = useRef<HTMLButtonElement>(null);
-  const [searchOpen, setSearchOpen] = useState(false);
+  // Search too belongs to the history entry it was opened on, so Back, Forward or an edited address closes it
+  // rather than leaving it over another page. The URL as well as the key: an entry the router didn't make (a
+  // typed address, a plain link) has no state, so every such entry shares the key "default".
+  const entry = `${key} ${pathname}${search}${hash}`;
+  const [searchOn, setSearchOn] = useState<string | null>(null);
+  if (searchOn !== null && searchOn !== entry) setSearchOn(null);
+  const searchOpen = searchOn === entry;
+  const setSearchOpen = (open: boolean) => setSearchOn(open ? entry : null);
   const openSearch = () => setSearchOpen(true);
   // The open Arcade game, if any. It lives in the sidebar, not in the route, so pages and prev/next never see it.
   const [game, setGame] = useState<GameId | null>(null);

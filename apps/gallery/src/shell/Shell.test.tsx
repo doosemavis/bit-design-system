@@ -111,4 +111,18 @@ describe('Shell', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Badge' })).toBeInTheDocument();
     expect(button).toHaveAttribute('aria-expanded', 'false');
   });
+
+  it('Back or Forward closes search, so the dialog never sits over a page it did not open', async () => {
+    const { router } = renderAt('/');
+    expect(await screen.findByRole('heading', { level: 1, name: 'bit Design System' })).toBeInTheDocument();
+    await act(() => router.navigate('/components/badge'));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Badge' })).toBeInTheDocument();
+    await userEvent.keyboard('{Control>}k{/Control}');
+    expect(screen.getByRole('dialog')).toHaveAttribute('open');
+    await act(() => router.navigate(-1));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await act(() => router.navigate(1));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Badge' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
 });
