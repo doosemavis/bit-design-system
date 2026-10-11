@@ -133,10 +133,14 @@ describe('gallery.css', () => {
     expect(ruleIn(galleryCss, '.gallery-playground__top')).toContain('overflow: clip;');
   });
 
-  it('P1: the live component sits at the top of the stage, not centered against the controls column', () => {
+  it('P1: the live component is centered in what you can see: the playground, or the window beside a long list', () => {
+    // Owner review 2026-10-11: start-aligned stages left short components (Button) hugging the top. The frame
+    // fills the preview half instead, capped at the window under the header, and the stage centers inside it:
+    // centered in the playground when the controls are short, centered in the window while a long list scrolls.
+    expect(ruleIn(galleryCss, '.gallery-preview__frame')).toContain('flex: 1;');
     const stage = ruleIn(galleryCss, '.gallery-preview__stage')!;
-    expect(stage).toContain('place-items: start center;');
-    expect(stage).not.toMatch(/place-items: center;/);
+    expect(stage).toContain('place-items: center;');
+    expect(stage).not.toMatch(/place-items: start/);
     // A preview taller than the window scrolls inside the stage instead of hanging past the fold.
     expect(stage).toContain('overflow: auto;');
   });

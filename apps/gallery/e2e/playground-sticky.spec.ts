@@ -29,15 +29,29 @@ function presetsAllShow(page: Page) {
 }
 
 test.describe('the Slider playground keeps the live component in view while a control changes', () => {
-  test('desktop: the component sits at the top of the stage, which sticks under the header', async ({ page }) => {
+  test('desktop: the stage sticks under the header bars and centers the component in the part you can see', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('#/components/slider');
     await expect(page.getByRole('heading', { level: 1, name: 'Slider' })).toBeVisible();
     const at = await editLastControl(page);
-    // At the top of the stage, past its padding, not centered on the controls column's height.
-    expect(at.live.top - at.stage.top).toBeLessThanOrEqual(48);
     expect(at.live.top).toBeGreaterThanOrEqual(at.header);
     expect(at.live.bottom).toBeLessThanOrEqual(at.viewport);
+    // Centered in the visible stretch of the stage (owner review 2026-10-11), not hugging its top edge.
+    const seen = { top: Math.max(at.stage.top, at.header), bottom: Math.min(at.stage.bottom, at.viewport) };
+    const middle = (box: { top: number; bottom: number }) => (box.top + box.bottom) / 2;
+    expect(Math.abs(middle(at.live) - middle(seen))).toBeLessThanOrEqual(64);
+  });
+
+  test('desktop: with a short controls list (Button) the component is centered in the whole stage', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('#/components/button');
+    await expect(page.getByRole('heading', { level: 1, name: 'Button' })).toBeVisible();
+    const at = await page.evaluate(() => {
+      const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+      return { stage: box('.gallery-preview__stage'), live: box('.gallery-preview__stage > *') };
+    });
+    const middle = (box: { top: number; bottom: number }) => (box.top + box.bottom) / 2;
+    expect(Math.abs(middle(at.live) - middle(at.stage))).toBeLessThanOrEqual(2);
   });
 
   test('phone: the preview sticks under the header at no more than 40% of the window, over the controls', async ({ page }) => {
