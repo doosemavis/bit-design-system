@@ -153,6 +153,7 @@ describe('Arcade games in search', () => {
     expect(games.map((entry) => [entry.title, entry.group, entry.game, entry.to])).toEqual([
       ['Snake', 'Arcade', 'snake', ''],
       ['Cheese Run', 'Arcade', 'cheese-run', ''],
+      ['Bit Blaster', 'Arcade', 'bit-blaster', ''],
     ]);
     const firstGame = withGames.indexOf(games[0]!);
     expect(withGames.slice(0, firstGame).every((entry) => entry.kind === 'page' || entry.kind === 'component')).toBe(true);
@@ -161,9 +162,10 @@ describe('Arcade games in search', () => {
 
   it('are found by name, by "arcade" and "game", and listed with the pages on an empty query', () => {
     expect(searchEntries(withGames, 'snake')[0]).toMatchObject({ kind: 'game', title: 'Snake' });
-    expect(searchEntries(withGames, 'arcade').map((entry) => entry.title)).toEqual(['Snake', 'Cheese Run']);
+    expect(searchEntries(withGames, 'arcade').map((entry) => entry.title)).toEqual(['Snake', 'Cheese Run', 'Bit Blaster']);
+    expect(searchEntries(withGames, 'swarm').map((entry) => entry.title)).toEqual(['Bit Blaster']);
     expect(searchEntries(withGames, 'maze').map((entry) => entry.title)).toEqual(['Cheese Run']);
-    expect(searchEntries(withGames, '').filter((entry) => entry.kind === 'game')).toHaveLength(2);
+    expect(searchEntries(withGames, '').filter((entry) => entry.kind === 'game')).toHaveLength(3);
   });
 
   it('are left out when no games are given', () => {

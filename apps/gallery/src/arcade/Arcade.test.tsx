@@ -32,13 +32,13 @@ async function openGame(name: 'Snake' | 'Cheese Run') {
 }
 
 describe('the Arcade in the sidebar', () => {
-  it('is the last section, after Brand: Snake and Cheese Run, as buttons, and not in the pages’ previous and next', async () => {
+  it('is the last section, after Brand: Snake, Cheese Run and Bit Blaster, as buttons, and not in the pages’ previous and next', async () => {
     renderAt('/brand/logo');
     await screen.findByRole('heading', { level: 1 });
     const titles = [...document.querySelectorAll('.gallery-sidebar__title')].map((t) => t.textContent);
     expect(titles.slice(-2)).toEqual(['Brand', 'Arcade']);
     const list = within(nav()!).getByRole('list', { name: 'Arcade' });
-    expect(within(list).getAllByRole('button').map((b) => b.textContent)).toEqual(['Snake', 'Cheese Run']);
+    expect(within(list).getAllByRole('button').map((b) => b.textContent)).toEqual(['Snake', 'Cheese Run', 'Bit Blaster']);
     expect(within(list).queryAllByRole('link')).toEqual([]);
     // Logo is still the last page: its pager has a Previous and no Next.
     expect(screen.getByRole('link', { name: /^Previous:/ })).toBeInTheDocument();

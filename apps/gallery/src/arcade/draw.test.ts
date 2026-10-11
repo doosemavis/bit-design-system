@@ -17,6 +17,11 @@ const PALETTE: Palette = {
   rat: 'rat',
   cheese: 'cheese',
   cat: 'cat',
+  space: 'space',
+  shield: 'shield',
+  alienTop: 'alienTop',
+  alienMid: 'alienMid',
+  alienLow: 'alienLow',
   font: 'PixelFace',
 };
 const SIZE = { width: 180, height: 180 };

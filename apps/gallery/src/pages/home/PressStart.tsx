@@ -25,15 +25,16 @@ function GameCard({ id, label, blurb, onPlay }: { id: GameId; label: string; blu
 }
 
 /**
- * The Arcade, up front: Snake and Cheese Run are real games built from bit, so they are the proof it builds
- * more than demos. Each card's Play button opens its game in the sidebar (the sheet on a phone), as the
- * sidebar's own Arcade items do; the best score is the one the game keeps.
+ * The Arcade, up front: Snake, Cheese Run and Bit Blaster are real games built from bit, so they are the proof it
+ * builds more than demos. Each card's Play button opens its game where it plays (Snake and Cheese Run in the sidebar,
+ * the sheet on a phone; Bit Blaster in the main area), as the sidebar's own Arcade items do; the best score is the
+ * one the game keeps.
  */
 export function PressStart() {
   const play = usePlayGame();
   return (
     <PageSection id="home-arcade" title="Press start">
-      <Text color="neutral">Real games, built from bit: Card cabinets, Badge scores, Button controls. Pick one and it plays in the sidebar.</Text>
+      <Text color="neutral">Real games, built from bit: Card cabinets, Badge scores, Button controls. Snake and Cheese Run play in the sidebar; Bit Blaster takes over the page.</Text>
       <div className="gallery-token-grid">
         {GAMES.map((game) => (
           <GameCard key={game.id} id={game.id} label={game.label} blurb={game.blurb} onPlay={play} />

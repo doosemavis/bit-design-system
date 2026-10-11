@@ -132,10 +132,19 @@ describe('HomePage', () => {
     expect(within(within(arcade).getByRole('group', { name: 'Cheese Run' })).queryByText(/^Best/)).toBeNull();
   });
 
-  it.each(GAMES.map((game) => [game.label, game.id] as const))('Play %s opens that game in the sidebar, where the Arcade runs', async (label) => {
+  const SIDEBAR_GAMES = GAMES.filter((game) => game.place === 'sidebar');
+  it.each(SIDEBAR_GAMES.map((game) => [game.label, game.id] as const))('Play %s opens that game in the sidebar, where it runs', async (label) => {
     await open();
     await userEvent.click(screen.getByRole('button', { name: `Play ${label}` }));
     expect(await screen.findByRole('region', { name: `Arcade: ${label}` })).toHaveAttribute('id', 'gallery-nav');
+  });
+
+  it('Play Bit Blaster opens it over the main area, with the page out of reach under it', async () => {
+    await open();
+    await userEvent.click(screen.getByRole('button', { name: 'Play Bit Blaster' }));
+    expect(await screen.findByRole('region', { name: 'Arcade: Bit Blaster' })).toHaveAttribute('id', 'gallery-stage');
+    expect(main()).toHaveAttribute('inert');
+    expect(screen.getByRole('navigation', { name: 'Gallery' })).toBeInTheDocument();
   });
 
   it('one tile per manifest except the logo, each one Link to its page', async () => {
