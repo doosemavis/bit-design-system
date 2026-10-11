@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Header, GitHubLink } from './Header';
 import { OldVersionBanner } from './OldVersionBanner';
-import { PageFooter } from './PageFooter';
 import { Sidebar, NAV } from './Sidebar';
 import type { NavItem } from './Sidebar';
 import { useFocusHeading } from './useFocusHeading';
@@ -149,8 +148,8 @@ export function Shell({ nav = NAV }: ShellProps) {
       {/* Under a stage game the page is out of reach (inert): only the game, the header and the sidebar are live. */}
       <main id="main" className="gallery-main" tabIndex={-1} inert={stageGame !== null}>
         <OldVersionBanner />
-        <Outlet context={{ play } satisfies ShellOutletContext} />
-        <PageFooter items={nav} />
+        {/* Each page brings its own previous and next (see router.tsx), so they arrive with it, never before. */}
+        <Outlet context={{ play, nav } satisfies ShellOutletContext} />
       </main>
       <ArcadeStage game={stageGame} onBack={closeStage} />
     </div>

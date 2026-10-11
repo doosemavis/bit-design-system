@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { findManifest, MANIFESTS, relatedManifests, routeFor } from '../manifests';
@@ -31,6 +31,18 @@ describe('neighbors', () => {
 });
 
 describe('previous and next', () => {
+  it('waits for its page: while a page’s code loads, the pager isn’t shown at the top of an empty main', async () => {
+    const { router } = await openAt('/', 'bit Design System');
+    await act(() => router.navigate('/spacing'));
+    // Until the page is there, nothing of it is: no pager on its own.
+    if (!screen.queryByRole('heading', { level: 1, name: 'Spacing' })) expect(pager()).toBeNull();
+    await screen.findByRole('heading', { level: 1, name: 'Spacing' });
+    expect(pager()).not.toBeNull();
+    // Main holds the page first and the pager last.
+    const main = document.getElementById('main')!;
+    expect(main.lastElementChild).toBe(pager());
+  });
+
   it('a component page links back and on, named for screen readers, and has no axe violations', async () => {
     const { container } = await openAt('/components/button', 'Button');
     const nav = pager()!;
