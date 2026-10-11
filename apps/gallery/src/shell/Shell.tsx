@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Header, GitHubLink } from './Header';
 import { OldVersionBanner } from './OldVersionBanner';
-import { PageFooter } from './PageFooter';
 import { Sidebar, NAV } from './Sidebar';
 import type { NavItem } from './Sidebar';
 import { useFocusHeading } from './useFocusHeading';
@@ -91,8 +90,8 @@ export function Shell({ nav = NAV }: ShellProps) {
       />
       <main id="main" className="gallery-main" tabIndex={-1}>
         <OldVersionBanner />
-        <Outlet context={{ play } satisfies ShellOutletContext} />
-        <PageFooter items={nav} />
+        {/* Each page brings its own previous and next (see router.tsx), so they arrive with it, never before. */}
+        <Outlet context={{ play, nav } satisfies ShellOutletContext} />
       </main>
     </div>
   );

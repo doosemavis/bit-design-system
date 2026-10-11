@@ -5,6 +5,7 @@ import type { RouteObject } from 'react-router-dom';
 import { Shell } from './shell/Shell';
 import { ComponentLoading, PageLoading } from './shell/PageLoading';
 import { PageError, ShellError } from './shell/PageError';
+import { PageFooter } from './shell/PageFooter';
 import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -24,7 +25,8 @@ const LogoRoute = lazy(() => import('./pages/ComponentRoute').then((m) => ({ def
  * transition keeps an already-shown boundary's old content on screen instead of its fallback. Keying the
  * boundary on the route pattern makes every route's boundary a new one, so moving between two lazy pages
  * shows the new page's loading state. Component pages share the one pattern, so moving between them keeps
- * the boundary (their code is the same chunk, already loaded).
+ * the boundary (their code is the same chunk, already loaded). The previous and next pager is inside the
+ * boundary, after the page, so it arrives with the page rather than sitting alone at the top while it loads.
  */
 function lazyPage(path: string, page: ReactNode, fallback: ReactNode): RouteObject {
   return {
@@ -32,6 +34,7 @@ function lazyPage(path: string, page: ReactNode, fallback: ReactNode): RouteObje
     element: (
       <Suspense key={path} fallback={fallback}>
         {page}
+        <PageFooter />
       </Suspense>
     ),
   };
@@ -49,7 +52,15 @@ export function buildRoutes(): RouteObject[] {
           // Pathless, so a page that throws or fails to load shows PageError inside the shell.
           errorElement: <PageError />,
           children: [
-            { index: true, element: <HomePage /> },
+            {
+              index: true,
+              element: (
+                <>
+                  <HomePage />
+                  <PageFooter />
+                </>
+              ),
+            },
             lazyPage('getting-started', <GettingStartedPage />, <PageLoading name="Getting started" />),
             lazyPage('versions', <VersionsPage />, <PageLoading name="Versions" />),
             lazyPage('accessibility', <AccessibilityPage />, <PageLoading name="Accessibility" />),
