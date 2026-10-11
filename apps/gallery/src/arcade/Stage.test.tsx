@@ -78,6 +78,32 @@ describe('Bit Blaster takes over the main area', () => {
     await waitFor(() => expect(within(nav()).getByRole('button', { name: 'Bit Blaster' })).toHaveFocus());
   });
 
+  it('a double-click on Back to page goes back once, to the page, not past it', async () => {
+    const { router } = renderAt('/spacing');
+    await screen.findByRole('heading', { level: 1, name: 'Spacing' });
+    await act(() => router.navigate('/tokens'));
+    await screen.findByRole('heading', { level: 1, name: 'Tokens' });
+    const { region } = await openBlaster();
+    const back = within(region).getByRole('button', { name: 'Back to page' });
+    fireEvent.click(back);
+    fireEvent.click(back);
+    await waitFor(() => expect(stage()).toBeNull());
+    expect(router.state.location.pathname).toBe('/tokens');
+  });
+
+  it('a held key’s repeats never undo a pause, skip the game over, or leave the game', async () => {
+    renderAt('/');
+    const { user, board, region } = await openBlaster();
+    await user.keyboard(' ');
+    await user.keyboard('p');
+    fireEvent.keyDown(board, { key: 'ArrowLeft', repeat: true });
+    expect(pauseButton(region)).toHaveTextContent('Resume');
+    fireEvent.keyDown(board, { key: 'Escape', repeat: true });
+    expect(stage()).not.toBeNull();
+    fireEvent.keyDown(board, { key: 'ArrowLeft' });
+    expect(pauseButton(region)).toHaveTextContent('Pause');
+  });
+
   it('the browser’s Back closes it and Forward opens it again', async () => {
     const { router } = renderAt('/spacing');
     await screen.findByRole('heading', { level: 1, name: 'Spacing' });

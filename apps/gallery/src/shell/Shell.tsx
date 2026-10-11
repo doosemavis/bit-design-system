@@ -37,8 +37,9 @@ function useStageFocus(stageGame: string | null, opener: { current: HTMLElement 
     if (target === 'stay') return;
     // checkVisibility: an item in the closed phone sheet is still in the page, just not shown.
     const shown = target?.isConnected && (typeof target.checkVisibility !== 'function' || target.checkVisibility());
-    if (target && shown) target.focus();
-    else document.getElementById('main')?.focus();
+    // Without scrolling: the page is back where it was left, and focus mustn't move it.
+    if (target && shown) target.focus({ preventScroll: true });
+    else document.getElementById('main')?.focus({ preventScroll: true });
   }, [stageGame, opener]);
 }
 
@@ -68,7 +69,14 @@ export function Shell({ nav = NAV }: ShellProps) {
   const stageGame = stageGameOf(state);
   // What had focus when the stage game opened, to have it back after; 'stay' when a sidebar game takes over.
   const stageOpener = useRef<HTMLElement | 'stay' | null>(null);
+  // Going back takes a moment (popstate, then a render), so a double-click mustn't go back twice, past the page.
+  const closing = useRef(false);
+  useEffect(() => {
+    closing.current = false;
+  }, [stageGame]);
   const closeStage = () => {
+    if (closing.current) return;
+    closing.current = true;
     // The stage's entry was pushed over the page's own, so Back is the way out; a first entry (a reload) is replaced.
     if (key !== 'default') navigate(-1);
     else navigate({ pathname, search, hash }, { replace: true, state: null });

@@ -120,6 +120,13 @@ export default function BitBlasterGame({ onBack }: { onBack: () => void }) {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
     const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
     const side = sideOf(key);
+    // A held key repeats: that keeps Space firing in play, but must never undo a pause, skip the game-over screen or
+    // (Esc) leave the game. The repeat is still the board's, so it doesn't scroll anything either.
+    if (event.repeat && (side || key === 'Escape' || key === 'p' || key === 'Enter' || (key === ' ' && state.status !== 'running'))) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     if (side) dispatch({ type: 'hold', side, down: true });
     else if (over && (key === ' ' || key === 'Enter')) restart();
     else if (key === ' ') dispatch({ type: 'fire' });
@@ -138,7 +145,7 @@ export default function BitBlasterGame({ onBack }: { onBack: () => void }) {
     if (event.key !== 'Escape' || event.defaultPrevented) return;
     event.preventDefault();
     event.stopPropagation();
-    onBack();
+    if (!event.repeat) onBack();
   };
   const onBlur = (event: FocusEvent<HTMLDivElement>) => {
     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) dispatch({ type: 'pause' });
@@ -189,9 +196,17 @@ export default function BitBlasterGame({ onBack }: { onBack: () => void }) {
       </div>
       {touch ? (
         <Pad
-          onHold={(side, down) => dispatch({ type: 'hold', side, down })}
+          // Each press puts focus back on the board too, in case a browser moved it to the button anyway.
+          onHold={(side, down) => {
+            dispatch({ type: 'hold', side, down });
+            if (down) board.current?.focus();
+          }}
           onNudge={(side) => dispatch({ type: 'nudge', side })}
-          onFire={() => (over ? restart() : dispatch({ type: 'fire' }))}
+          onFire={() => {
+            if (over) restart();
+            else dispatch({ type: 'fire' });
+            board.current?.focus();
+          }}
         />
       ) : null}
       <Text id={helpId} color="neutral" className="gallery-blaster__keys">

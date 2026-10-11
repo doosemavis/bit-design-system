@@ -129,12 +129,31 @@ export function ArcadeStage({ game, onBack }: ArcadeStageProps) {
     if (phase === 'in' && current) void LOADERS[current]().catch(() => {});
   }, [phase, current]);
   useHoldScroll(phase !== 'hidden');
+  // Opened from inside the page (a Play button), focus would fall to nothing while the page goes inert and the game
+  // isn't there yet: hold it on the stage during the swipe, where Esc still goes back.
+  const cabinet = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (phase !== 'in') return;
+    const active = document.activeElement;
+    if (!active || active === document.body || document.getElementById('main')?.contains(active)) cabinet.current?.focus({ preventScroll: true });
+  }, [phase]);
 
   if (phase === 'hidden' || current === null) return null;
   const Game = GAME_COMPONENTS[current];
   const label = gameLabel(current);
   return (
-    <div className="gallery-stage bit-dark" data-phase={phase}>
+    <div
+      ref={cabinet}
+      className="gallery-stage bit-dark"
+      data-phase={phase}
+      tabIndex={-1}
+      aria-busy={phase === 'shown' ? undefined : true}
+      onKeyDown={(event) => {
+        if (phase !== 'in' || event.key !== 'Escape') return;
+        event.preventDefault();
+        onBack();
+      }}
+    >
       {phase === 'shown' ? (
         <section id={STAGE_ID} className="gallery-stage__game" aria-label={`Arcade: ${label}`} tabIndex={-1}>
           <GameLoadBoundary key={current}>
