@@ -53,7 +53,7 @@ export function ReleaseNotesPage() {
         <Text>What changed in each release.</Text>
       </PageHeader>
       <Stack direction="row" gap={24} align="end" wrap>
-        <SegmentedControl legend="Show" options={FILTER_OPTIONS} value={filter} onValueChange={choose} />
+        <SegmentedControl className="gallery-release-filter" legend="Show" options={FILTER_OPTIONS} value={filter} onValueChange={choose} />
         <Switch checked={details} onChange={(event) => setDetails(event.currentTarget.checked)}>
           Show API details
         </Switch>

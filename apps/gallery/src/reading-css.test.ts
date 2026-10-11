@@ -43,3 +43,36 @@ describe('gallery.css: prose measure', () => {
     expect(capped).toEqual(['.gallery-main p.bit-text', '.gallery-main .gallery-bullets']);
   });
 });
+
+/** The body of `selector { … }` inside the first `@media (max-width: 720px)` block that holds it. */
+function narrowRule(selector: string): string {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  for (const block of css.matchAll(/@media \(max-width: 720px\) \{([\s\S]*?)\n\}/g)) {
+    const body = new RegExp(`${escaped} \\{([^}]*)\\}`).exec(block[1]!)?.[1];
+    if (body) return body;
+  }
+  return '';
+}
+
+// Polish 2026-10-11, after the critique fixes merged.
+describe('gallery.css: polish', () => {
+  it('the On this page bar runs its lines and surface to the window edge past main, without widening the page', () => {
+    const bar = rule('.gallery-section-bar');
+    // Ink overflow only: border-image-outset and a spread shadow never add scroll width; the clip keeps the
+    // extension to the right, so the bar never paints over the sidebar or the content above and below it.
+    expect(bar).toContain('border-image: linear-gradient(var(--bit-color-line) 0 0) 1 / var(--bit-border-width) 0 / 0 100vw 0 0;');
+    expect(bar).toContain('box-shadow: 0 0 0 100vw var(--bit-color-bg);');
+    expect(bar).toContain('clip-path: inset(0 -100vw 0 0);');
+  });
+
+  it('a phone stacks every fact the same way: the count over its label', () => {
+    const fact = narrowRule('.gallery-fact');
+    expect(fact).toContain('flex-direction: column;');
+    expect(fact).toContain('align-items: flex-start;');
+  });
+
+  it('a phone scrolls the release filter sideways instead of cutting off its last options', () => {
+    expect(rule('.gallery-release-filter')).toContain('max-width: 100%;');
+    expect(rule('.gallery-release-filter .bit-segmented-control__options')).toContain('overflow-x: auto;');
+  });
+});

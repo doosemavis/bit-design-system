@@ -247,6 +247,12 @@ html,
   padding: var(--bit-space-8px) var(--_gallery-gutter);
   border-block: var(--bit-border-width) solid var(--bit-color-line);
   background: var(--bit-color-bg);
+  /* main stops at 72rem, so on a wide window the bar would end short of the window edge. Its lines and surface
+     carry on to the right as ink only (no scroll width); the clip keeps the extension off the sidebar and off the
+     content above and below. */
+  border-image: linear-gradient(var(--bit-color-line) 0 0) 1 / var(--bit-border-width) 0 / 0 100vw 0 0;
+  box-shadow: 0 0 0 100vw var(--bit-color-bg);
+  clip-path: inset(0 -100vw 0 0);
 }
 
 .gallery-section-bar > .bit-text {
@@ -1126,6 +1132,15 @@ html:has(.gallery-section-bar) {
 }
 
 /* The count: the pixel face, larger, in the link color (violet by day, lilac at night). */
+/* On a phone the cards are too narrow for some labels to share the line ("31 components" wrapped while "112
+   tokens" didn't), so every fact stacks the same way: the count over its label. */
+@media (max-width: 720px) {
+  .gallery-fact {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 .gallery-fact__count {
   font-family: var(--bit-font-pixel);
   font-size: var(--bit-text-24px);
@@ -1231,6 +1246,15 @@ html:has(.gallery-section-bar) {
 }
 
 /* Release notes: the version rail sits beside the cards on wide screens and stacks above them below 960px. */
+/* The release filter never runs past the page: on a phone its options scroll sideways inside their frame. */
+.gallery-release-filter {
+  max-width: 100%;
+}
+
+.gallery-release-filter .bit-segmented-control__options {
+  overflow-x: auto;
+}
+
 .gallery-releases {
   display: grid;
   grid-template-columns: 12rem minmax(0, 1fr);
