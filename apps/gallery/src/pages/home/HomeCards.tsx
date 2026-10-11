@@ -57,7 +57,8 @@ const FACTS: readonly (readonly [number, string])[] = [
 ];
 
 /**
- * Two by two under the hero's buttons: each count in the pixel face and the link color, its label beside it.
+ * Two by two under the hero's buttons: each count in the pixel face and the link color, its label beside it as a
+ * small pixel caption (like the sidebar's section titles), both resting on one line (owner's pick B, 2026-10-11).
  * Outline cards, with no fill or shadow: facts to read, so they sit back from the Buttons above them.
  */
 export function Facts() {
@@ -69,7 +70,7 @@ export function Facts() {
             <CardBody>
               <div className="gallery-fact">
                 <span className="gallery-fact__count">{count}</span>
-                <Text color="neutral">
+                <Text color="neutral" className="gallery-fact__label">
                   {label}
                 </Text>
               </div>

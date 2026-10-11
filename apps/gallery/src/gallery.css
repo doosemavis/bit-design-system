@@ -1120,6 +1120,7 @@ html:has(.gallery-section-bar) {
 /* Four facts, two by two under the hero's buttons, so the intro is about as tall as the quick start card
    beside it. A list for screen readers. Each card is compact: the count and its label share one line. */
 .gallery-facts {
+  container-type: inline-size;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--bit-space-12px);
@@ -1140,20 +1141,35 @@ html:has(.gallery-section-bar) {
   column-gap: var(--bit-space-8px);
 }
 
-/* The count: the pixel face, larger, in the link color (violet by day, lilac at night). */
-/* On a phone the cards are too narrow for some labels to share the line ("31 components" wrapped while "112
-   tokens" didn't), so every fact stacks the same way: the count over its label. */
-@media (max-width: 720px) {
+/* Where the cards are too narrow for the longest fact to share its line ("31 COMPONENTS" would wrap while "112
+   TOKENS" didn't: a phone, or a laptop just wide enough for the hero's two columns), every fact stacks the same
+   way, the count over its label. It goes by the list's own width, so it holds wherever the facts sit. */
+@container (max-width: 27rem) {
   .gallery-fact {
     flex-direction: column;
     align-items: flex-start;
   }
 }
 
+/* The count: the pixel face, larger, in the link color (violet by day, lilac at night). Its label: a small pixel
+   caption, uppercase like the sidebar's section titles. Press Start 2P draws on an 8 by 8 grid with the bottom row
+   empty, so its glyphs float 1/8em over the baseline; each drops that much, so the two rest on one line. */
 .gallery-fact__count {
   font-family: var(--bit-font-pixel);
   font-size: var(--bit-text-24px);
   color: var(--bit-color-link);
+}
+
+.gallery-fact__label {
+  font-family: var(--bit-font-pixel);
+  font-size: calc(var(--bit-text-24px) / 2);
+  text-transform: uppercase;
+}
+
+.gallery-fact__count,
+.gallery-fact__label {
+  position: relative;
+  top: 0.125em;
 }
 
 /* A "start building" card: its body fills the card and its link sits on the floor, so the three links line up. */

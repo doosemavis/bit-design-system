@@ -44,16 +44,6 @@ describe('gallery.css: prose measure', () => {
   });
 });
 
-/** The body of `selector { … }` inside the first `@media (max-width: 720px)` block that holds it. */
-function narrowRule(selector: string): string {
-  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  for (const block of css.matchAll(/@media \(max-width: 720px\) \{([\s\S]*?)\n\}/g)) {
-    const body = new RegExp(`${escaped} \\{([^}]*)\\}`).exec(block[1]!)?.[1];
-    if (body) return body;
-  }
-  return '';
-}
-
 // Polish 2026-10-11, after the critique fixes merged.
 describe('gallery.css: polish', () => {
   it('the On this page bar runs its lines and surface to the window edge past main, without widening the page', () => {
@@ -65,8 +55,10 @@ describe('gallery.css: polish', () => {
     expect(bar).toContain('clip-path: inset(0 -100vw 0 0);');
   });
 
-  it('a phone stacks every fact the same way: the count over its label', () => {
-    const fact = narrowRule('.gallery-fact');
+  it('cards too narrow for one line (a phone, a just-two-column laptop) stack every fact the same way: the count over its label', () => {
+    // By the list's own width: the facts list is the size container.
+    expect(rule('.gallery-facts')).toContain('container-type: inline-size;');
+    const fact = /@container \(max-width: 27rem\) \{\s*\.gallery-fact \{([^}]*)\}/.exec(css)?.[1] ?? '';
     expect(fact).toContain('flex-direction: column;');
     expect(fact).toContain('align-items: flex-start;');
   });
