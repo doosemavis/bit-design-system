@@ -21,8 +21,10 @@ import {
 } from '@bit-ds/react';
 import { SECTION_CLASS, SECTION_TITLE_CLASS } from '../../ui/PageSection';
 import { Link as RouterLink } from 'react-router-dom';
-import { MANIFESTS, routeFor } from '../../manifests';
+import { routeFor } from '../../manifests';
 import type { Manifest } from '../../manifests';
+import { COMPONENT_GROUPS, groupManifests } from '../../shell/navGroups';
+import type { ComponentGroup } from '../../shell/navGroups';
 import { renderManifest } from '../../engine/renderManifest';
 import { defaultState } from '../../engine/state';
 
@@ -86,11 +88,11 @@ const previewOf = (manifest: Manifest): ReactNode => COMPACT[manifest.slug]?.() 
 /**
  * A live preview on top, the name and → below; the whole tile is one Link. The preview is inert: it shows
  * the component but takes no clicks or focus, so the tile stays a single link. Every component gets the
- * same tile, so the grid has even rows.
+ * same tile, so the grid has even rows. Each tile is an item of its group's list.
  */
 function Tile({ manifest }: { manifest: Manifest }) {
   return (
-    <Card className="gallery-tile">
+    <Card role="listitem" className="gallery-tile">
       <div className="gallery-tile__preview" inert>
         {previewOf(manifest)}
       </div>
@@ -103,16 +105,16 @@ function Tile({ manifest }: { manifest: Manifest }) {
   );
 }
 
-function TileGroup({ title, lead, manifests }: { title: string; lead: string; manifests: readonly Manifest[] }) {
+/** One sidebar group: its h3, then its tiles as a list the h3 names, so a screen reader hears "Actions, list, 3 items". */
+function TileGroup({ group }: { group: ComponentGroup }) {
+  const id = `home-group-${group.label.toLowerCase().replace(/\s+/g, '-')}`;
   return (
-    <Stack gap={16} className={SECTION_CLASS}>
-      <Stack direction="row" gap={8} align="center">
-        <Heading className={SECTION_TITLE_CLASS}>{title}</Heading>
-        <Badge variant="outline">{String(manifests.length)}</Badge>
-      </Stack>
-      <Text color="neutral">{lead}</Text>
-      <div className="gallery-tiles">
-        {manifests.map((m) => (
+    <Stack gap={12}>
+      <Heading size={26} id={id}>
+        {group.label}
+      </Heading>
+      <div role="list" aria-labelledby={id} className="gallery-tiles">
+        {groupManifests(group).map((m) => (
           <Tile key={m.slug} manifest={m} />
         ))}
       </div>
@@ -120,21 +122,29 @@ function TileGroup({ title, lead, manifests }: { title: string; lead: string; ma
   );
 }
 
-/** Every component and form control as a live tile, from the manifests, so a new one shows up by itself. */
+const TILE_COUNT = COMPONENT_GROUPS.reduce((n, group) => n + groupManifests(group).length, 0);
+
+/**
+ * Every component as a live tile, grouped and ordered as the sidebar groups them (navGroups), so a reader who
+ * learns one map has learned both, and a new component shows up once it is placed in a group.
+ */
 export function ComponentTiles() {
-  // A fragment, so each group is a section of the home page and gets the same break as the rest.
   return (
-    <>
-      <TileGroup
-        title="Components"
-        lead="Every component with a live preview. Pick one for its props, variants and examples."
-        manifests={MANIFESTS.filter((m) => m.group === 'components')}
-      />
-      <TileGroup
-        title="Forms"
-        lead="Inputs that behave like native ones in a form: name, required and reset all work."
-        manifests={MANIFESTS.filter((m) => m.group === 'forms')}
-      />
-    </>
+    <section aria-labelledby="home-components" className={SECTION_CLASS}>
+      <Stack gap={16}>
+        <Stack direction="row" gap={8} align="center">
+          <Heading id="home-components" className={SECTION_TITLE_CLASS}>
+            Components
+          </Heading>
+          <Badge variant="outline">{String(TILE_COUNT)}</Badge>
+        </Stack>
+        <Text color="neutral">Every component with a live preview, grouped by the job it does. Pick one for its props, variants and examples.</Text>
+        <Stack gap={48}>
+          {COMPONENT_GROUPS.map((group) => (
+            <TileGroup key={group.label} group={group} />
+          ))}
+        </Stack>
+      </Stack>
+    </section>
   );
 }

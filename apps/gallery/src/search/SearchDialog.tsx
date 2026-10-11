@@ -7,6 +7,7 @@ import { MANIFESTS } from '../manifests';
 import { GAMES } from '../arcade/games';
 import type { GameId } from '../arcade/games';
 import { NAV } from '../shell/Sidebar';
+import { COMPONENT_GROUPS } from '../shell/navGroups';
 import { focusRouteTarget, sectionIdOf } from '../shell/useFocusHeading';
 import { renderInline } from '../ui/renderInline';
 import { buildSearchIndex, searchEntries } from './searchIndex';
@@ -15,12 +16,14 @@ import type { SearchEntry } from './searchIndex';
 /** Every page and every component prop, built once: the docs don't change while the page is open. */
 const INDEX = buildSearchIndex(NAV, MANIFESTS, GAMES);
 
-/** A result's badge names its sidebar section, one color per section, so a result reads like the menu it's in. */
+/**
+ * A result's badge names its sidebar section, one color per kind of section, so a result reads like the menu it's
+ * in: the input groups in success, the other component groups in primary.
+ */
 const GROUP_COLOR: Readonly<Record<string, BadgeProps['color']>> = {
   'Start here': 'neutral',
   Foundations: 'warning',
-  Components: 'primary',
-  Forms: 'success',
+  ...Object.fromEntries(COMPONENT_GROUPS.map((group) => [group.label, group.label.endsWith('inputs') ? 'success' : 'primary'])),
   Brand: 'danger',
   Arcade: 'primary',
 };
