@@ -5,7 +5,7 @@ import { Button, Link, Text } from '@bit-ds/react';
 import { routeFor } from '../manifests';
 import { ArcadePanel } from '../arcade/ArcadePanel';
 import { GAMES, gameLabel } from '../arcade/games';
-import type { GameId } from '../arcade/games';
+import type { GameId, SidebarGameId } from '../arcade/games';
 import { COMPONENT_GROUPS, groupManifests } from './navGroups';
 import type { ComponentGroupLabel } from './navGroups';
 
@@ -44,9 +44,9 @@ interface SidebarProps {
   header?: ReactNode;
   /** Shown after the groups when the header is too narrow: the GitHub button and the version picker. */
   footer?: ReactNode;
-  /** The open game, which takes the sidebar's place; null shows the menu. */
-  game?: GameId | null;
-  /** Opens a game. Without it the Arcade section isn't listed. */
+  /** The open sidebar game, which takes the sidebar's place; null shows the menu. */
+  game?: SidebarGameId | null;
+  /** Opens a game (in the sidebar, or a stage game in the main area). Without it the Arcade section isn't listed. */
   onPlay?: (game: GameId) => void;
   /** Leaves the game for the menu. */
   onBack?: () => void;
@@ -71,7 +71,8 @@ function GroupTitle({ group }: { group: string }) {
 }
 
 /**
- * The last section: games, not pages. Each item is a Button (it opens the game in the sidebar; it goes nowhere),
+ * The last section: games, not pages. Each item is a Button (it opens the game in the sidebar, or in the main area
+ * for a stage game; it goes nowhere),
  * kept out of NAV so the pages' previous and next links and the routes never see it.
  */
 function ArcadeGroup({ onPlay }: { onPlay: (game: GameId) => void }) {

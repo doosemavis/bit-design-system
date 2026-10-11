@@ -110,7 +110,7 @@ export function useTouchControls(): boolean {
 }
 
 /** Reports the board's content size on mount and on every resize (where ResizeObserver exists). */
-function useBoardSize(board: HTMLElement | null, onSize: (size: { width: number; height: number }) => void): void {
+export function useBoardSize(board: HTMLElement | null, onSize: (size: { width: number; height: number }) => void): void {
   const latest = useRef(onSize);
   useEffect(() => {
     latest.current = onSize;
@@ -126,7 +126,7 @@ function useBoardSize(board: HTMLElement | null, onSize: (size: { width: number;
 }
 
 /** Pause when the tab is hidden. */
-function useHiddenPause(onLeave: () => void): void {
+export function useHiddenPause(onLeave: () => void): void {
   const latest = useRef(onLeave);
   useEffect(() => {
     latest.current = onLeave;

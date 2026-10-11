@@ -2,16 +2,16 @@ import { Component, lazy, Suspense } from 'react';
 import type { ComponentType, KeyboardEvent, LazyExoticComponent, ReactNode } from 'react';
 import { Button, Icon, iconArrowBack, Spinner, Stack, Text } from '@bit-ds/react';
 import { gameLabel } from './games';
-import type { GameId } from './games';
+import type { SidebarGameId } from './games';
 
 /** Each game is its own chunk, loaded the first time it is opened: the docs never pay for the Arcade. */
-const GAME_COMPONENTS: Readonly<Record<GameId, LazyExoticComponent<ComponentType>>> = {
+const GAME_COMPONENTS: Readonly<Record<SidebarGameId, LazyExoticComponent<ComponentType>>> = {
   snake: lazy(() => import('./snake/SnakeGame')),
   'cheese-run': lazy(() => import('./cheese/CheeseRunGame')),
 };
 
 /** A game whose chunk fails to load (offline, a deploy in between) says so instead of breaking the page. */
-class GameLoadBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+export class GameLoadBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
 
   static getDerivedStateFromError() {
@@ -25,7 +25,7 @@ class GameLoadBoundary extends Component<{ children: ReactNode }, { failed: bool
 }
 
 interface ArcadePanelProps {
-  game: GameId;
+  game: SidebarGameId;
   onBack: () => void;
 }
 

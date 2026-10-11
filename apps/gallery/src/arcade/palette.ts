@@ -8,6 +8,12 @@ export interface Palette {
   readonly rat: string;
   readonly cheese: string;
   readonly cat: string;
+  /** Bit Blaster: the black of space, the shields, and the swarm's three rows (top to bottom). */
+  readonly space: string;
+  readonly shield: string;
+  readonly alienTop: string;
+  readonly alienMid: string;
+  readonly alienLow: string;
   readonly font: string;
 }
 
@@ -26,6 +32,12 @@ export const TOKEN_COLORS: Readonly<Record<ColorRole, string>> = {
   rat: 'var(--bit-color-primary)',
   cheese: 'var(--bit-color-warning)',
   cat: 'var(--bit-color-danger)',
+  // Bit Blaster plays in a .bit-dark stage, so these resolve to the night colors: CodeBlock black, coin yellow, lilac.
+  space: 'var(--bit-code-bg)',
+  shield: 'var(--bit-color-success)',
+  alienTop: 'var(--bit-color-danger)',
+  alienMid: 'var(--bit-color-link)',
+  alienLow: 'var(--bit-color-warning)',
 };
 
 /**
@@ -41,6 +53,11 @@ export const FORCED_COLORS: Readonly<Record<ColorRole, string>> = {
   rat: 'CanvasText',
   cheese: 'Highlight',
   cat: 'LinkText',
+  space: 'Canvas',
+  shield: 'CanvasText',
+  alienTop: 'LinkText',
+  alienMid: 'Highlight',
+  alienLow: 'CanvasText',
 };
 
 /** Used only where a value can't be resolved (no layout engine, as in unit tests). The light theme's colors. */
@@ -53,6 +70,11 @@ const FALLBACK: Readonly<Record<ColorRole, string>> = {
   rat: '#7c3aed',
   cheese: '#ffc800',
   cat: '#d91a1a',
+  space: '#0b0b10',
+  shield: '#1fa34a',
+  alienTop: '#d91a1a',
+  alienMid: '#b79bff',
+  alienLow: '#ffc800',
 };
 
 const ROLES = Object.keys(TOKEN_COLORS) as ColorRole[];
