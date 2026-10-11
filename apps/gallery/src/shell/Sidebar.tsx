@@ -2,51 +2,39 @@ import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { matchPath, NavLink, useLocation } from 'react-router-dom';
 import { Button, Link, Text } from '@bit-ds/react';
-import { MANIFESTS, routeFor } from '../manifests';
-import type { Manifest, ManifestGroup } from '../manifests';
+import { routeFor } from '../manifests';
 import { ArcadePanel } from '../arcade/ArcadePanel';
 import { GAMES, gameLabel } from '../arcade/games';
 import type { GameId } from '../arcade/games';
+import { COMPONENT_GROUPS, groupManifests } from './navGroups';
+import type { ComponentGroupLabel } from './navGroups';
 
-type NavGroup = 'Start here' | 'Foundations' | 'Components' | 'Forms' | 'Brand';
+type NavGroup = 'Start here' | 'Foundations' | ComponentGroupLabel | 'Brand';
 export interface NavItem {
   group: NavGroup;
   label: string;
   to: string;
 }
 
-type PageGroup = Exclude<ManifestGroup, 'brand'>;
-const GROUP_LABELS: Record<PageGroup, NavGroup> = { components: 'Components', forms: 'Forms' };
+const GROUPS: readonly NavGroup[] = ['Start here', 'Foundations', ...COMPONENT_GROUPS.map((group) => group.label), 'Brand'];
 
-const GROUPS: readonly NavGroup[] = ['Start here', 'Foundations', 'Components', 'Forms', 'Brand'];
-
-/** Sections listed in their written order, not alphabetically (owner ruling 2026-10-08). */
-const UNSORTED_GROUPS: ReadonlySet<NavGroup> = new Set(['Start here']);
-
-const UNSORTED_NAV: readonly NavItem[] = [
+/**
+ * Every page, in sidebar order: Start here in its written order (owner ruling 2026-10-08), every other
+ * section alphabetical: Foundations, the components by task (navGroups: Actions first, so Button leads), alphabetical inside each
+ * group, then Brand. The pages' previous and next links walk this same order.
+ */
+export const NAV: readonly NavItem[] = [
   { group: 'Start here', label: 'Overview', to: '/' },
   { group: 'Start here', label: 'Getting started', to: '/getting-started' },
   { group: 'Start here', label: 'Versions', to: '/versions' },
   { group: 'Start here', label: 'Accessibility', to: '/accessibility' },
   { group: 'Start here', label: 'Release notes', to: '/release-notes' },
+  { group: 'Foundations', label: 'Spacing', to: '/spacing' },
   { group: 'Foundations', label: 'Tokens', to: '/tokens' },
   { group: 'Foundations', label: 'Typography', to: '/typography' },
-  { group: 'Foundations', label: 'Spacing', to: '/spacing' },
-  ...MANIFESTS.filter((m): m is Manifest & { group: PageGroup } => m.group !== 'brand').map((m) => ({
-    group: GROUP_LABELS[m.group],
-    label: m.name,
-    to: routeFor(m),
-  })),
+  ...COMPONENT_GROUPS.flatMap((group) => groupManifests(group).map((m) => ({ group: group.label, label: m.name, to: routeFor(m) }))),
   { group: 'Brand', label: 'Logo', to: '/brand/logo' },
 ];
-
-const byLabel = (a: NavItem, b: NavItem) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' });
-
-/** Items in the order GROUPS lists their sections (Start here, Foundations, Components, Forms, Brand), alphabetical by label inside each section except Start here. Start here is listed in written order (owner ruling 2026-10-08). MANIFESTS keeps its own order. */
-export const NAV: readonly NavItem[] = GROUPS.flatMap((group) => {
-  const items = UNSORTED_NAV.filter((item) => item.group === group);
-  return UNSORTED_GROUPS.has(group) ? items : [...items].sort(byLabel);
-});
 
 interface SidebarProps {
   items: readonly NavItem[];

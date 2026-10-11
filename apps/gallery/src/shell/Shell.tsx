@@ -12,6 +12,7 @@ import { SearchDialog } from '../search/SearchDialog';
 import { SearchButton } from './Header';
 import { NARROW_QUERY, useMediaQuery } from '../ui/useMediaQuery';
 import type { GameId } from '../arcade/games';
+import type { ShellOutletContext } from './usePlayGame';
 
 interface ShellProps {
   nav?: readonly NavItem[];
@@ -99,7 +100,7 @@ export function Shell({ nav = NAV }: ShellProps) {
       />
       <main id="main" className="gallery-main" tabIndex={-1}>
         <OldVersionBanner />
-        <Outlet />
+        <Outlet context={{ play } satisfies ShellOutletContext} />
         <PageFooter items={nav} />
       </main>
     </div>

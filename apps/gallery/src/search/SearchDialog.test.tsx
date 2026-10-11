@@ -86,10 +86,10 @@ describe('search dialog', () => {
     await openAt('/', 'bit Design System');
     await userEvent.keyboard('{Control>}k{/Control}');
     await userEvent.type(box(), 'button');
-    expect(activeOption()).toHaveAccessibleName('Button, Components');
+    expect(activeOption()).toHaveAccessibleName('Button, Actions');
     await userEvent.keyboard('{ArrowDown}');
     const second = activeOption();
-    expect(second).not.toHaveAccessibleName('Button, Components');
+    expect(second).not.toHaveAccessibleName('Button, Actions');
     expect(second).toHaveAttribute('aria-selected', 'true');
     expect(screen.getAllByRole('option', { selected: true })).toHaveLength(1);
     await userEvent.keyboard('{ArrowUp}{ArrowUp}');
@@ -112,7 +112,7 @@ describe('search dialog', () => {
     const { router } = await openAt('/', 'bit Design System');
     await userEvent.keyboard('{Control>}k{/Control}');
     await userEvent.type(box(), 'tooltip describe');
-    expect(activeOption()).toHaveAccessibleName('describe, Components');
+    expect(activeOption()).toHaveAccessibleName('describe, Feedback');
     await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(router.state.location.pathname).toBe('/components/tooltip'));
     expect(router.state.location.hash).toBe('#section-props');

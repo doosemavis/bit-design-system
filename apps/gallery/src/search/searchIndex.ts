@@ -10,7 +10,7 @@ export interface SearchEntry {
   /** Unique across the index, so a result can be an option id. */
   id: string;
   kind: SearchKind;
-  /** The sidebar section it sits under (Start here, Foundations, Components, Forms, Brand); a prop takes its component's. */
+  /** The sidebar section it sits under (Start here, Foundations, a component group such as Actions, Brand); a prop takes its component's. */
   group: string;
   /** The line a result shows: the page or component name, or the prop name. */
   title: string;

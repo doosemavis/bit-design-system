@@ -1419,3 +1419,24 @@ html,
 .gallery-game__pad-left { grid-area: left; }
 .gallery-game__pad-down { grid-area: down; }
 .gallery-game__pad-right { grid-area: right; }
+
+/* Press start (home): the two game cards stretch to one height, and each Play button sits on its card's
+   floor, so the buttons line up whatever the blurb's length. */
+.gallery-home-arcade__card {
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-home-arcade__card > .bit-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-home-arcade__body {
+  flex: 1;
+}
+
+.gallery-home-arcade__play {
+  margin-top: auto;
+}
