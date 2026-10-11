@@ -15,9 +15,9 @@ interface Choice {
   label: string;
 }
 
-/** An option's label: the release line, "(latest)" on the root copy, and the version with its v ("0.1 (latest) · v0.1.9"). */
-function versionLabel(line: string, version: string, latest = false): string {
-  return `${line}${latest ? ' (latest)' : ''} · v${version}`;
+/** An option's label: "(latest)" on the root copy, then the version with its v ("(latest) v0.1.9", "v0.1.0"). */
+function versionLabel(version: string, latest = false): string {
+  return `${latest ? '(latest) ' : ''}v${version}`;
 }
 
 /**
@@ -27,7 +27,7 @@ function versionLabel(line: string, version: string, latest = false): string {
 function choicesFrom(file: VersionsFile, ownPath: string, ownChoice: Choice): Choice[] {
   const choices = file.lines.map((entry) => ({
     value: entry.path,
-    label: versionLabel(entry.line, entry.version, entry.path === SITE_BASE),
+    label: versionLabel(entry.version, entry.path === SITE_BASE),
   }));
   return choices.some((choice) => choice.value === ownPath) ? choices : [...choices, ownChoice];
 }
@@ -35,11 +35,12 @@ function choicesFrom(file: VersionsFile, ownPath: string, ownChoice: Choice): Ch
 /**
  * Version picker. Changing it goes to the same page in that copy. With nothing to pick from (one release line,
  * still loading, or no list) it is disabled and greyed out (owner's call, 2026-10-11): it plainly can't be
- * opened yet, rather than looking like a picker that does nothing. In the header it has no visible label (the divider after the logo sets it apart) and is named "Version" for
- * screen readers; in the phone sheet it keeps its visible label.
+ * opened yet, rather than looking like a picker that does nothing. In the header it has no visible label (the
+ * divider after the logo sets it apart) and is named "Version" for screen readers; in the phone sheet it keeps
+ * its visible label.
  */
 export function VersionSelect({ labelHidden = false }: { labelHidden?: boolean }) {
-  const { status, file, currentLine, ownPath } = useVersions();
+  const { status, file, ownPath } = useVersions();
 
   // index.html already sets the attribute, so version-banner.js never races the mount; this keeps it
   // true wherever the picker renders without that page (tests, a future shell).
@@ -47,7 +48,7 @@ export function VersionSelect({ labelHidden = false }: { labelHidden?: boolean }
     document.documentElement.dataset.bitVersionPicker = '';
   }, []);
 
-  const ownChoice: Choice = { value: ownPath, label: versionLabel(currentLine, BUILD_VERSION) };
+  const ownChoice: Choice = { value: ownPath, label: versionLabel(BUILD_VERSION) };
   const choices = status === 'ready' && file ? choicesFrom(file, ownPath, ownChoice) : null;
   const unavailableLabel = import.meta.env.DEV ? 'dev (unreleased)' : ownChoice.label;
   const options: Choice[] = choices ?? [{ value: ownPath, label: status === 'unavailable' ? unavailableLabel : ownChoice.label }];
