@@ -151,7 +151,7 @@ function Fonts() {
   return (
     <Box className="gallery-grid gallery-grid--fonts">
       {FONTS.map(({ face, name, use, quotes, inUse }) => (
-        <Card key={face} role="article" aria-label={name}>
+        <Card flat key={face} role="article" aria-label={name}>
           <CardHeader>
             <Stack direction="row" gap={12} justify="between" align="center" wrap>
               <Text size={24} className="gallery-face gallery-face--name" data-face={face}>
@@ -204,7 +204,7 @@ const TAG_ROWS: Readonly<Record<string, number>> = HEADINGS.reduce<Record<string
  */
 function HeadingSizes() {
   return (
-    <Table aria-label="Headings">
+    <Table flat aria-label="Headings">
       <HeadRow values={['Size', 'Tag']} />
       <TableBody>
         {HEADINGS.map((size, i) => {
@@ -237,7 +237,7 @@ function HeadingSizes() {
 
 function TextSizes() {
   return (
-    <Table aria-label="Text sizes">
+    <Table flat aria-label="Text sizes">
       <HeadRow values={['Size', 'Token']} />
       <TableBody>
         {TEXT_SIZES.map(({ props, example, size, code }) => (
@@ -260,7 +260,7 @@ function TextSizes() {
 /** Each style on one word of a sentence, so it shows inline, the way it's used. */
 function TextStyles() {
   return (
-    <Table aria-label="Text styles">
+    <Table flat aria-label="Text styles">
       <HeadRow values={['Prop']} />
       <TableBody>
         {TEXT_STYLES.map(({ prop, props, code }) => (

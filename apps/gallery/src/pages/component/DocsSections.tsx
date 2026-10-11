@@ -106,7 +106,7 @@ export function ClassTip({ tip }: { tip: { prop: string; value: string } }) {
 
 export function PropsTable({ manifest }: { manifest: Manifest }) {
   return (
-    <Table aria-label={`${manifest.name} props`}>
+    <Table flat aria-label={`${manifest.name} props`}>
         <TableHead>
           <TableRow>
             {PROP_COLUMNS.map((column) => (
@@ -129,10 +129,10 @@ export function PropsTable({ manifest }: { manifest: Manifest }) {
   );
 }
 
-/** The Accessibility notes, framed in a Card like the Props table and the Usage boxes around them. */
+/** The Accessibility notes, framed in a flat Card like the flat Props table above them. */
 export function A11yList({ lines }: { lines: readonly string[] }) {
   return (
-    <Card>
+    <Card flat>
       <CardBody>
         <ul className="gallery-bullets">
           {lines.map((line) => (

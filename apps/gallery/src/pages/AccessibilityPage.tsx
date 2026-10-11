@@ -92,7 +92,7 @@ function BuiltIn() {
   return (
     <Box className="gallery-grid gallery-grid--a11y">
       {BUILT_IN.map(({ title, body }) => (
-        <Card key={title} role="article" aria-label={title}>
+        <Card flat key={title} role="article" aria-label={title}>
           <CardHeader>{title}</CardHeader>
           <CardBody>
             <Text>{body}</Text>
@@ -106,7 +106,7 @@ function BuiltIn() {
 /** Each component name links to its page. */
 function Keyboard() {
   return (
-    <Table aria-label="Keys by component">
+    <Table flat aria-label="Keys by component">
       <TableHead>
         <TableRow>
           <TableCell>Component</TableCell>

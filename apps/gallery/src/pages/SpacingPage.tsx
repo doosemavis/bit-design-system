@@ -38,7 +38,7 @@ const BOX_PROPS = [
 /** Each bar is a Box with paddingLeft set to the step and no content, so the scale draws itself. */
 function Ruler() {
   return (
-    <Card>
+    <Card flat>
       <CardBody>
         <Stack gap={8}>
           {SPACE_STEPS.map((step) => (
@@ -59,7 +59,7 @@ function Ruler() {
 function StackOrBox() {
   return (
     <Box className="gallery-grid">
-      <Card>
+      <Card flat>
         <CardBody>
           <Stack gap={12}>
             <Heading size={26}>
@@ -74,7 +74,7 @@ function StackOrBox() {
           </Stack>
         </CardBody>
       </Card>
-      <Card>
+      <Card flat>
         <CardBody>
           <Stack gap={12}>
             <Heading size={26}>
@@ -96,7 +96,7 @@ function StackOrBox() {
 
 function BoxProps() {
   return (
-    <Table aria-label="Box props">
+    <Table flat aria-label="Box props">
       <TableHead>
         <TableRow>
           <TableCell>Props</TableCell>

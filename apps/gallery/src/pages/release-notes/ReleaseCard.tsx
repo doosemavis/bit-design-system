@@ -18,12 +18,15 @@ interface ReleaseCardProps {
   onToggle: () => void;
 }
 
-/** One release: a header that always shows the version, date and counts, and a body of per-kind lists. */
+/**
+ * One release: a header that always shows the version, date and counts, and a body of per-kind lists. Flat:
+ * notes to read, so the hard shadow stays on what you press.
+ */
 export function ReleaseCard({ version, date, sections, status, open, only, onToggle }: ReleaseCardProps) {
   const bodyId = useId();
   const kinds = CHANGE_KINDS.filter((kind) => (sections[kind]?.length ?? 0) > 0);
   return (
-    <Card>
+    <Card flat>
       <CardHeader>
         <Stack direction="row" gap={12} align="center" wrap>
           <Heading id={releaseAnchor(version)} tabIndex={-1}>{`v${version}`}</Heading>

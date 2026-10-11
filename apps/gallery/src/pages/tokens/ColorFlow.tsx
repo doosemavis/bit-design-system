@@ -112,7 +112,7 @@ export function ColorFlow({ flows, mode }: { flows: ColorFlows; mode: ColorMode 
   const accentFrom = wiring.find((flow) => flow.to === '--bit-color-accent')?.from;
   const total = Object.keys(flows.palette).length;
   return (
-    <Card role="group" aria-labelledby={titleId}>
+    <Card flat role="group" aria-labelledby={titleId}>
       <CardBody>
         <Stack gap={8}>
           <Heading size={26} id={titleId}>
