@@ -7,11 +7,11 @@ export const code: Manifest = {
   group: 'components',
   related: ['text', 'codeblock'],
   component: Code,
-  description: 'Inline code: a small mono chip inside running text, in its own color: light violet in light mode, yellow in dark.',
+  description: 'Marks a bit of code inside a sentence, such as a prop name or a file path.',
   controls: [],
   children: 'color="danger"',
   docs: {
-    badges: ['Inline <code>', 'Mono'],
+    badges: ['Inline <code>', 'Mono', 'Light violet in light mode, yellow in dark'],
     usage: {
       do: [
         'Use Code for a prop, a value or a file name inside a sentence: color="danger".',

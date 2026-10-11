@@ -41,7 +41,8 @@ export const tabs: Manifest = {
   group: 'components',
   related: ['segmentedcontrol'],
   component: Tabs,
-  description: 'Tabs that plug in like game cartridges: choose one and it seats into the slot, powers up, and shows its panel.',
+  description:
+    'Switches between panels of related content in one place. Tabs plug in like game cartridges: choose one and it seats into the slot, powers up, and shows its panel.',
   controls: [
     { kind: 'number', prop: 'tabCount', label: 'tabs', default: TAB_COUNT.default, min: TAB_COUNT.min, max: TAB_COUNT.max, step: 1, virtual: true },
     { kind: 'select', prop: 'activation', values: ['automatic', 'manual'], default: 'automatic' },

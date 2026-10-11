@@ -17,7 +17,8 @@ export const text: Manifest = {
   group: 'components',
   related: ['heading', 'code'],
   component: Text,
-  description: 'Body copy, labels and captions. size is the look, in px. A Text inside another Text renders inline. For titles, use Heading.',
+  description:
+    'For body copy, labels and captions. Pick a size in px; a Text inside another Text runs on inside its sentence. For titles, use Heading.',
   controls: [
     { kind: 'select', prop: 'size', values: TEXT_SIZES.map(String), default: '16', numeric: true },
     { kind: 'select', prop: 'color', values: ['default', 'neutral'], default: 'default', label: 'color' },
@@ -33,7 +34,7 @@ export const text: Manifest = {
     { label: 'Muted caption', state: { size: '14', color: 'neutral' } },
   ],
   docs: {
-    badges: ['Typography', 'size in px'],
+    badges: ['Typography', 'Renders <p>, or <span> inside a Text'],
     usage: {
       do: [
         'Use Text for body copy, labels and captions; pick the look with size.',

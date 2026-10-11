@@ -6,6 +6,8 @@ import userEvent from '@testing-library/user-event';
 import { CHANGE_KINDS, RELEASES } from '../content/changelog';
 import type { ChangeKind } from '../content/changelog';
 import { renderInline } from '../ui/renderInline';
+import { changeHeadline } from '../ui/ChangeList';
+import { formatReleaseDate } from './release-notes/kinds';
 import { render, waitFor } from '@testing-library/react';
 import { resetVersionsCache } from '../shell/useVersions';
 
@@ -39,14 +41,24 @@ describe('ReleaseNotesPage', () => {
     await expectNoA11yViolations(container);
   });
 
-  it('has one heading per release, newest first, each with a date badge', async () => {
+  it('has one heading per release, newest first, each with its date and year as a <time>', async () => {
     await open();
     const headings = within(screen.getByRole('main')).getAllByRole('heading', { level: 2 });
     expect(headings.map((h) => h.textContent)).toEqual(RELEASES.map((r) => `v${r.version}`));
     headings.forEach((h, i) => {
-      const badge = within(h.parentElement!).getByText(RELEASES[i]!.date);
-      expect(badge).toHaveClass('bit-badge');
+      const time = within(h.parentElement!).getByText(formatReleaseDate(RELEASES[i]!.date));
+      expect(time.tagName).toBe('TIME');
+      expect(time).toHaveAttribute('datetime', RELEASES[i]!.date);
+      expect(time.textContent).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
     });
+  });
+
+  it('the rail dates carry the year too', async () => {
+    await open();
+    const rail = within(screen.getByRole('navigation', { name: 'Versions' }));
+    const dates = rail.getAllByRole('link').map((a) => a.querySelector('.bit-text')?.textContent);
+    expect(dates).toEqual(RELEASES.map((r) => formatReleaseDate(r.date)));
+    for (const date of dates) expect(date).toMatch(/\d{4}$/);
   });
 
   it('labels each section list with its badge', async () => {
@@ -189,8 +201,28 @@ describe('ReleaseNotesPage', () => {
     });
   });
 
-  it('keeps inline backticks as code elements in the list items', async () => {
+  // Critique 2026-10-11: a code chip on nearly every noun. Headlines first; the API detail is one switch away.
+  it('reads as plain headlines at first, with no code chips', async () => {
     await open();
+    const items = within(screen.getByRole('list', { name: `Added in v${RELEASES[0]!.version}` })).getAllByRole('listitem');
+    expect(items.map((li) => li.textContent)).toEqual(
+      RELEASES[0]!.sections.Added!.map((item) => {
+        const { subject, text } = changeHeadline(item);
+        return subject ? `${subject}: ${text}` : text;
+      }),
+    );
+    expect(screen.getByRole('main').querySelector('li code')).toBeNull();
+    expect(screen.getByRole('switch', { name: 'Show API details' })).not.toBeChecked();
+  });
+
+  it('Show API details brings back every item in full, inline backticks as code', async () => {
+    const user = userEvent.setup();
+    await open();
+    await user.click(screen.getByRole('switch', { name: 'Show API details' }));
+    const list = screen.getByRole('list', { name: `Added in v${RELEASES[0]!.version}` });
+    expect(within(list).getAllByRole('listitem').map((li) => li.textContent)).toEqual(
+      RELEASES[0]!.sections.Added!.map((item) => item.replaceAll('`', '')),
+    );
     const withCode = [...document.querySelectorAll('li')].filter((li) => li.querySelector('code'));
     expect(withCode.length).toBeGreaterThan(0);
     expect(withCode[0]!.querySelector('code')).toHaveClass('bit-code');

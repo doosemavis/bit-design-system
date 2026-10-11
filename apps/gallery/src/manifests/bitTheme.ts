@@ -9,7 +9,7 @@ export const bitTheme: Manifest = {
   group: 'components',
   component: BitTheme,
   description:
-    'Theme and mode for the whole page, or for part of it. On <html>, the classes bit-theme-power-up and bit-light or bit-dark pick them; BitTheme puts the same classes on a subtree, such as a dark sidebar on a light page.',
+    'Gives part of a page its own theme or light/dark mode, such as a dark sidebar on a light page. It puts the classes you would put on <html> on its subtree instead.',
   controls: [
     { kind: 'select', prop: 'mode', values: ['none', 'light', 'dark'], default: 'dark', alwaysPrint: true },
     { kind: 'select', prop: 'theme', values: ['none', 'power-up'], default: 'none' },
@@ -36,7 +36,7 @@ export const bitTheme: Manifest = {
   ],
   extraSection: { id: 'section-examples', title: 'Examples', Component: BitThemeExamples },
   docs: {
-    badges: ['Theme and mode classes', 'asChild'],
+    badges: ['bit-theme-power-up, bit-light, bit-dark', 'asChild'],
     usage: {
       do: [
         'Set the theme and mode on <html> (class="bit-theme-power-up bit-light"), so they apply before the body paints.',

@@ -323,7 +323,7 @@ describe('manifest contract', () => {
     const control = codeBlock.controls.find((c) => c.kind === 'select' && c.prop === 'language');
     expect(control?.kind === 'select' ? control.values : null).toEqual(languages);
     expect(codeBlock.docs.props.find((p) => p.name === 'language')?.type).toBe(languages.map((l) => `'${l}'`).join(' | '));
-    expect(codeBlock.docs.badges).toContain(languages.join(' · '));
+    expect(codeBlock.docs.badges).toContain(languages.join(', '));
   });
 
   it('CodeBlock documents its actions slot', () => {

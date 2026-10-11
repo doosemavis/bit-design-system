@@ -7,7 +7,8 @@ export const heading: Manifest = {
   group: 'components',
   related: ['text'],
   component: Heading,
-  description: 'A section title. size is the look, in px, every 2px from 20 to 44, and it picks the tag (h1 to h6) for the page outline.',
+  description:
+    'A title for a page or a section. Pick a size from 20 to 44px; the size picks the tag too, h1 to h6, so the page outline follows the look.',
   controls: [{ kind: 'select', prop: 'size', values: HEADING_SIZES.map(String), default: '32', numeric: true, alwaysPrint: true }],
   children: 'Build with bit',
   // The sample is a picture of a title, not one of this page's: it stays out of the outline (and its h1 preset
@@ -18,7 +19,7 @@ export const heading: Manifest = {
     { label: 'Card title', state: { size: '26' } },
   ],
   docs: {
-    badges: ['size in px', 'size picks h1 to h6'],
+    badges: ['Every 2px from 20 to 44', 'Display face'],
     usage: {
       do: [
         'Pick size by where the title sits: 40 and up for the page title (one per page), 32 to 38 for sections, 26 to 30 inside them.',

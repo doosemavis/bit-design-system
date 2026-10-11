@@ -109,6 +109,7 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-fact__count', property: 'font-size', reason: 'Overview fact: the count in the pixel face' },
   { selector: '.gallery-fact__count', property: 'color', reason: 'Overview fact: the count in the link color' },
   { selector: '.gallery-section-bar', property: 'border-block', reason: 'frame: divider lines around a section heading' },
+  { selector: '.gallery-section-bar', property: 'background', reason: 'frame: the sticky "On this page" bar covers the page that scrolls under it' },
   { selector: '.gallery-preview__bar, .gallery-controls__bar', property: 'border-bottom', reason: 'frame: the playground header strip (preview and controls bars) surface and divider' },
   { selector: '.gallery-preview__bar, .gallery-controls__bar', property: 'background', reason: 'frame: the playground header strip (preview and controls bars) surface and divider' },
   { selector: '.gallery-preview__title, .gallery-controls__title', property: 'font-family', reason: 'label face: Text has no face prop (spec amendment 2)' },

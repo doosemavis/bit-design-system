@@ -1,5 +1,5 @@
 import { Link, Stack, Text } from '@bit-ds/react';
-import { releaseAnchor } from './kinds';
+import { formatReleaseDate, releaseAnchor } from './kinds';
 
 interface RailEntry {
   version: string;
@@ -34,7 +34,7 @@ export function VersionRail({ entries, current, onSelect }: VersionRailProps) {
               <>
                 {' '}
                 <Text color='neutral'>
-                  {entry.date.slice(5)}
+                  {formatReleaseDate(entry.date)}
                 </Text>
               </>
             ) : null}

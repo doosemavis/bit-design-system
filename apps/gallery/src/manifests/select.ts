@@ -40,7 +40,7 @@ export const select: Manifest = {
   related: ['input', 'field', 'segmentedcontrol'],
   component: Select,
   description:
-    'Picks one option, or several with `multiple`, from a list that bit draws itself, so it slides down in the bit theme and looks the same in every browser.',
+    'Lets people pick one option, or several with `multiple`, from a list. bit draws the list itself, so it slides down in the bit theme and looks the same in every browser.',
   controls: [
     { kind: 'axis', prop: 'size', values: SIZES, default: 'md' },
     {
@@ -71,7 +71,7 @@ export const select: Manifest = {
     { label: 'Disabled', state: { disabled: true } },
   ],
   docs: {
-    badges: ['Combobox and listbox', 'Single or multi', 'Full keyboard', 'Themed list'],
+    badges: ['Combobox and listbox', 'Full keyboard'],
     usage: {
       do: [
         'Use Select to pick one of five or more options. Put it in a Field for a visible label.',

@@ -7,13 +7,14 @@ export const modeToggle: Manifest = {
   group: 'components',
   related: ['bittheme', 'switch', 'segmentedcontrol'],
   component: ModeToggle,
-  description: 'The light/dark switch. It follows your system until you click, then remembers. Try it: it switches this whole site.',
+  description:
+    'Lets people switch between light and dark. It follows their system until they click, then remembers. Try it: it switches this whole site.',
   controls: [
     { kind: 'axis', prop: 'size', values: ['sm', 'md'], default: 'md' },
     { kind: 'boolean', prop: 'iconOnly', default: false },
   ],
   docs: {
-    badges: ['Remembers the choice', 'Needs React'],
+    badges: ['Needs React'],
     usage: {
       do: [
         'Put one ModeToggle in your header. Every ModeToggle on the page shares one store, so they always agree.',

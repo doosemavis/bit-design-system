@@ -23,7 +23,8 @@ export const navbar: Manifest = {
   group: 'components',
   related: ['menu', 'link', 'modetoggle'],
   component: Navbar,
-  description: "An app's top bar: brand, links with the current page marked, and actions. Narrow, the links fold into a Menu.",
+  description:
+    "An app's top bar: brand, links with the current page marked, and actions. Narrow, the links fold into a Menu.",
   controls: [
     { kind: 'axis', prop: 'variant', values: ['pill', 'bar'], default: 'pill' },
     { kind: 'axis', prop: 'size', values: ['sm', 'md'], default: 'md' },
@@ -58,7 +59,7 @@ export const navbar: Manifest = {
     { label: 'Small', state: { size: 'sm' } },
   ],
   docs: {
-    badges: ['<nav> landmark', 'aria-current', 'Folds into a Menu', 'Same height in both looks'],
+    badges: ['<nav> landmark', 'aria-current', 'Same height in both looks'],
     usage: {
       do: [
         'Use one Navbar at the top of an app, for its main pages, with the page you are on marked current.',

@@ -11,11 +11,11 @@ vi.mock('../content/changelog', async (importOriginal) => ({
 }));
 
 describe('ReleaseNotesPage without a date', () => {
-  it('renders a date badge only for releases that have a date', () => {
+  it('renders a date only for releases that have one', () => {
     render(<ReleaseNotesPage />);
     const [first, second] = screen.getAllByRole('heading', { level: 2 });
     expect(within(first!.parentElement!).queryByText(/\d{4}/)).toBeNull();
-    expect(within(first!.parentElement!).queryByText('', { selector: '.bit-badge' })).toBeNull();
-    expect(within(second!.parentElement!).getByText('2026-10-04')).toHaveClass('bit-badge');
+    expect(first!.parentElement!.querySelector('time')).toBeNull();
+    expect(within(second!.parentElement!).getByText('Oct 4, 2026').tagName).toBe('TIME');
   });
 });
