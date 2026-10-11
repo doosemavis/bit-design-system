@@ -8,7 +8,7 @@ export interface DrawCall {
 }
 
 /**
- * A stand-in 2D context (jsdom has none) that records what is drawn: fillRect, strokeRect and fillText, each with
+ * A stand-in 2D context (jsdom has none) that records what is drawn: fillRect, strokeRect, fillText and clearRect, each with
  * the fill color in force. measureText says every character is 8px wide per 8px of font size.
  */
 export function recordingContext(): { ctx: CanvasRenderingContext2D; calls: DrawCall[] } {
@@ -40,6 +40,7 @@ export function recordingContext(): { ctx: CanvasRenderingContext2D; calls: Draw
     fillRect: record('fillRect'),
     strokeRect: record('strokeRect'),
     fillText: record('fillText'),
+    clearRect: record('clearRect'),
     setTransform: record('setTransform'),
     measureText: (text: string) => ({ width: text.length * Number.parseInt(state.font, 10) }),
   };
