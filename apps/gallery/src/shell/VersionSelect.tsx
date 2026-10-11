@@ -15,6 +15,11 @@ interface Choice {
   label: string;
 }
 
+/** An option's label: the release line, "(latest)" on the root copy, and the version with its v ("0.1 (latest) · v0.1.9"). */
+function versionLabel(line: string, version: string, latest = false): string {
+  return `${line}${latest ? ' (latest)' : ''} · v${version}`;
+}
+
 /**
  * One option per entry, valued by path (two entries can share a line), in versions.json order.
  * The root entry is the latest. This copy is added if the file does not list its path.
@@ -22,16 +27,15 @@ interface Choice {
 function choicesFrom(file: VersionsFile, ownPath: string, ownChoice: Choice): Choice[] {
   const choices = file.lines.map((entry) => ({
     value: entry.path,
-    label: `${entry.line}${entry.path === SITE_BASE ? ' (latest)' : ''} · ${entry.version}`,
+    label: versionLabel(entry.line, entry.version, entry.path === SITE_BASE),
   }));
   return choices.some((choice) => choice.value === ownPath) ? choices : [...choices, ownChoice];
 }
 
 /**
  * Version picker. Changing it goes to the same page in that copy. With nothing to pick from (one release line,
- * still loading, or no list) it is read-only, not disabled: a disabled control is drawn at half strength, which
- * read as broken in the header, while read-only keeps full-contrast text and stays focusable for its title.
- * In the header it has no visible label (the divider after the logo sets it apart) and is named "Version" for
+ * still loading, or no list) it is disabled and greyed out (owner's call, 2026-10-11): it plainly can't be
+ * opened yet, rather than looking like a picker that does nothing. In the header it has no visible label (the divider after the logo sets it apart) and is named "Version" for
  * screen readers; in the phone sheet it keeps its visible label.
  */
 export function VersionSelect({ labelHidden = false }: { labelHidden?: boolean }) {
@@ -43,7 +47,7 @@ export function VersionSelect({ labelHidden = false }: { labelHidden?: boolean }
     document.documentElement.dataset.bitVersionPicker = '';
   }, []);
 
-  const ownChoice: Choice = { value: ownPath, label: `${currentLine} · ${BUILD_VERSION}` };
+  const ownChoice: Choice = { value: ownPath, label: versionLabel(currentLine, BUILD_VERSION) };
   const choices = status === 'ready' && file ? choicesFrom(file, ownPath, ownChoice) : null;
   const unavailableLabel = import.meta.env.DEV ? 'dev (unreleased)' : ownChoice.label;
   const options: Choice[] = choices ?? [{ value: ownPath, label: status === 'unavailable' ? unavailableLabel : ownChoice.label }];
@@ -51,7 +55,7 @@ export function VersionSelect({ labelHidden = false }: { labelHidden?: boolean }
   let title: string | undefined;
   if (status === 'unavailable') title = 'The version list could not be loaded';
   else if (choices && choices.length < 2) title = 'Only one release line so far';
-  const readOnly = !choices || choices.length < 2;
+  const disabled = !choices || choices.length < 2;
 
   const select = (
     <Select
@@ -59,7 +63,7 @@ export function VersionSelect({ labelHidden = false }: { labelHidden?: boolean }
       aria-label={labelHidden ? 'Version' : undefined}
       options={options}
       value={ownPath}
-      readOnly={readOnly}
+      disabled={disabled}
       title={title}
       onValueChange={(next) => {
         // Only a path versions.json listed (and isVersionsFile vetted) is ever followed.
