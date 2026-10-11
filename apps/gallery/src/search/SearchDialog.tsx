@@ -127,7 +127,7 @@ function SearchPanel({ onGo, hintId }: SearchPanelProps) {
                       {entry.title}
                       {entry.owner ? <Text color="neutral">{` · ${entry.owner}`}</Text> : null}
                     </Text>
-                    <Badge size="md" variant="outline" color={KIND_COLOR[entry.kind]}>
+                    <Badge size="lg" variant="outline" color={KIND_COLOR[entry.kind]}>
                       {KIND_LABEL[entry.kind]}
                     </Badge>
                   </Stack>

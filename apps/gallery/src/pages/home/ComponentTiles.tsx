@@ -136,7 +136,7 @@ export function ComponentTiles() {
           <Heading id="home-components" className={SECTION_TITLE_CLASS}>
             Components
           </Heading>
-          <Badge variant="outline">{String(TILE_COUNT)}</Badge>
+          <Badge size="lg" variant="outline">{String(TILE_COUNT)}</Badge>
         </Stack>
         <Text color="neutral">Every component with a live preview, grouped by the job it does. Pick one for its props, variants and examples.</Text>
         <Stack gap={48}>

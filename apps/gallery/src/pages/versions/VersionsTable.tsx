@@ -27,9 +27,9 @@ export function VersionsTable({ rows }: { rows: readonly VersionRow[] }) {
             </TableCell>
             <TableCell>
               <Stack direction="row" gap={8} wrap>
-                {row.latest ? <Badge color="success">Latest</Badge> : null}
+                {row.latest ? <Badge size="lg" color="success">Latest</Badge> : null}
                 {row.viewing && !row.latest ? (
-                  <Badge color="primary" variant="outline">
+                  <Badge size="lg" color="primary" variant="outline">
                     Viewing
                   </Badge>
                 ) : null}

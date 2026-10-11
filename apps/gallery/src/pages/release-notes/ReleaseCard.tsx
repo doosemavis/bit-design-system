@@ -38,17 +38,17 @@ export function ReleaseCard({ version, date, sections, status, open, only, detai
             </Text>
           ) : null}
           {status === 'latest' ? (
-            <Badge color="primary" variant="solid">
+            <Badge size="lg" color="primary" variant="solid">
               Latest
             </Badge>
           ) : null}
           {status === 'unreleased' ? (
-            <Badge color="warning" variant="outline">
+            <Badge size="lg" color="warning" variant="outline">
               Unreleased
             </Badge>
           ) : null}
           {kinds.map((kind) => (
-            <Badge key={kind} {...KIND_BADGE[kind]}>{`${kind} ${sections[kind]!.length}`}</Badge>
+            <Badge key={kind} size="lg" {...KIND_BADGE[kind]}>{`${kind} ${sections[kind]!.length}`}</Badge>
           ))}
           <Button variant="ghost" aria-label={`${open ? 'Hide' : 'Show'} changes in v${version}`} aria-expanded={open} aria-controls={open ? bodyId : undefined} onClick={onToggle}>
             {open ? 'Hide changes' : 'Show changes'}
@@ -63,7 +63,7 @@ export function ReleaseCard({ version, date, sections, status, open, only, detai
               .filter((kind) => only === null || kind === only)
               .map((kind) => (
                 <Stack key={kind} gap={8} align="start">
-                  <Badge {...KIND_BADGE[kind]}>{kind}</Badge>
+                  <Badge size="lg" {...KIND_BADGE[kind]}>{kind}</Badge>
                   <ChangeList items={sections[kind]!} label={`${kind} in v${version}`} headlines={!details} />
                 </Stack>
               ))}

@@ -47,7 +47,7 @@ export function Step({ n, title, aside, help, children }: StepProps) {
   return (
     <Stack gap={16} data-step={n} className={SECTION_CLASS}>
       <Stack direction="row" gap={8} align="center" wrap>
-        <Badge color="warning" shape="square">
+        <Badge size="lg" color="warning" shape="square">
           {String(n)}
         </Badge>
         <SectionHead id={id} title={title}>
@@ -82,7 +82,7 @@ export function GetStarted() {
         n={1}
         title="Install"
         aside={
-          <Badge variant="outline" shape="square">
+          <Badge size="lg" variant="outline" shape="square">
             {`v${latest}`}
           </Badge>
         }
