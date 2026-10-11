@@ -4,7 +4,7 @@ import type { VersionRow } from './versionRows';
 /** bit / React / react-dom / Status, one row per release line. */
 export function VersionsTable({ rows }: { rows: readonly VersionRow[] }) {
   return (
-    <Table aria-label="Versions">
+    <Table flat aria-label="Versions">
       <TableHead>
         <TableRow>
           <TableCell>bit</TableCell>

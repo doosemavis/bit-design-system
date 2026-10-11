@@ -38,6 +38,7 @@ describe('surfaces: the hard shadow is only on what you press', () => {
     ['/typography', 'Typography'],
     ['/spacing', 'Spacing'],
     ['/accessibility', 'Accessibility'],
+    ['/versions', 'Versions'],
   ])('%s: every card and table is flat', async (path, h1) => {
     await openAt(path, h1);
     expect(raised(main())).toEqual([]);
@@ -72,6 +73,7 @@ describe('surfaces: the hard shadow is only on what you press', () => {
     expect(playground).not.toHaveClass('bit-flat');
     const region = (name: string) => within(main()).getByRole('region', { name });
     expect(within(region('Props')).getByRole('table').parentElement).toHaveClass('bit-table', 'bit-flat');
+    expect(within(region('Variants')).getByRole('table', { name: 'Button variants' }).parentElement).toHaveClass('bit-table', 'bit-flat');
     expect(region('Accessibility').querySelector('.bit-card')).toHaveClass('bit-flat');
     const related = region('Related').querySelectorAll('.bit-card');
     expect(related.length).toBeGreaterThan(0);

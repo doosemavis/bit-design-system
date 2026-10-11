@@ -13,9 +13,9 @@ import { COMPONENT_GROUPS } from '../shell/navGroups';
 export const BROWSE_TARGET = NAV.find((item) => item.group === COMPONENT_GROUPS[0].label)!.to;
 
 /**
- * The Overview: the logo, tagline, buttons and four facts beside a quick start card; the Arcade's two games;
+ * The Overview: the logo, tagline, buttons and four facts beside the quick start code; the Arcade's two games;
  * every component as an equal live tile, grouped as the sidebar groups them; three ways to start building; and
- * the naming rule. Every block is a bit Card, as on Tokens.
+ * the naming rule. Only what you press keeps the hard shadow (the tiles, the buttons); the rest is flat.
  */
 export function HomePage() {
   useDocumentTitle(null);

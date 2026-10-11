@@ -38,7 +38,7 @@ export function VariantsTable({ manifest, axes, state }: VariantsTableProps) {
     return <TableCell key={columnValue}>{renderManifest(manifest, cellState, { sample: true })}</TableCell>;
   };
   return (
-    <Table aria-label={`${manifest.name} variants`} className={stacked ? 'gallery-variants-stack' : undefined}>
+    <Table flat aria-label={`${manifest.name} variants`} className={stacked ? 'gallery-variants-stack' : undefined}>
       <TableHead>
         {stacked ? (
           <TableRow>

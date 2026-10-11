@@ -9,7 +9,7 @@ import { PageSection } from '../../ui/PageSection';
 function GameCard({ id, label, blurb, onPlay }: { id: GameId; label: string; blurb: string; onPlay?: (game: GameId) => void }) {
   const best = readBest(id);
   return (
-    <Card role="group" aria-label={label} className="gallery-home-arcade__card">
+    <Card flat role="group" aria-label={label} className="gallery-home-arcade__card">
       <CardBody>
         <Stack gap={12} align="start" className="gallery-home-arcade__body">
           <Stack direction="row" gap={8} align="center" wrap>
