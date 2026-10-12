@@ -29,6 +29,8 @@ test('dependabot: weekly npm and github-actions updates, dev dependencies groupe
     npm.ignore.filter((i) => i['update-types']?.includes('version-update:semver-major')).map((i) => i['dependency-name']),
   );
   for (const peer of ['react', 'react-dom']) assert.ok(majorIgnored.has(peer), `${peer} majors are never automatic`);
+  // TypeScript 7 drops the JS API tsup and typescript-eslint need; @types/node tracks the Node major CI runs.
+  for (const tool of ['typescript', '@types/node']) assert.ok(majorIgnored.has(tool), `${tool} majors move by hand`);
   assert.ok(npm.ignore.every((i) => Array.isArray(i['update-types'])), 'only majors are ignored, never a whole package');
 });
 

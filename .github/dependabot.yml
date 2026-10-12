@@ -26,6 +26,13 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: '@types/react-dom'
         update-types: ['version-update:semver-major']
+      # TypeScript 7 has no classic JS API, which tsup's dts build and typescript-eslint (peer
+      # <6.1.0) both need, so a major is a planned move: 6 by hand, 7 after tsup is replaced.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+      # The types follow the Node major CI and the gallery run (22), not the newest Node.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
