@@ -349,8 +349,15 @@ describe('Menu asChild items', () => {
 });
 
 describe('Menu in the top layer', () => {
-  const show = vi.fn();
-  const hide = vi.fn();
+  // jsdom hides a [popover] that isn't open and has no popover API, and since 30.1.2 it won't focus
+  // into a hidden element. So the stand-in shows the window the way a browser would, or focus never
+  // reaches the list and Escape never closes it.
+  const show = vi.fn(function (this: HTMLElement) {
+    this.style.display = 'block';
+  });
+  const hide = vi.fn(function (this: HTMLElement) {
+    this.style.removeProperty('display');
+  });
   beforeEach(() => {
     show.mockClear();
     hide.mockClear();
