@@ -32,10 +32,10 @@ const NOT_TAG_PUSH = [BRANCH_PUSH, PULL_REQUEST, DISPATCH_MAIN, DISPATCH_BRANCH,
  * workflow files name each SHA's release in a comment, which Dependabot keeps current.
  */
 const ACTIONS = {
-  checkout: 'actions/checkout@11d5960a326750d5838078e36cf38b85af677262',
-  pnpmSetup: 'pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320',
+  checkout: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
+  pnpmSetup: 'pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413',
   setupNode: 'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020',
-  cache: 'actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830',
+  cache: 'actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9',
   uploadArtifact: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a',
   downloadArtifact: 'actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c',
   uploadPagesArtifact: 'actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9',
