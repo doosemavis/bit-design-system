@@ -1721,3 +1721,443 @@ html:has(.gallery-section-bar) {
 .gallery-home-arcade__play {
   margin-top: auto;
 }
+
+/* Architecture: bit by the numbers, an arcade scoreboard. The cabinet's dotted bezel frames a solid screen, so the
+   dots never sit behind text. Counts are 32px pixel digits padded with unlit zeros (hidden from screen readers);
+   four across, two by two when the board is narrow. */
+.gallery-arch-scoreboard {
+  container-type: inline-size;
+  width: 100%;
+  padding: var(--bit-space-12px);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-14px);
+  /* The cabinet in the code panel's near-black, darker than any page, so it stands apart in dark mode too. */
+  background-color: var(--bit-code-bg);
+  background-image: radial-gradient(var(--bit-color-line) 1px, transparent 1px);
+  background-size: var(--bit-space-12px) var(--bit-space-12px);
+}
+
+.gallery-arch-scoreboard__screen {
+  display: grid;
+  gap: var(--bit-space-16px);
+  padding: var(--bit-space-16px) var(--bit-space-24px);
+  background: var(--bit-color-surface);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-6px);
+}
+
+.gallery-arch-scoreboard__title {
+  color: var(--bit-color-warning-text);
+}
+
+.gallery-arch-scoreboard__scores {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--bit-space-16px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@container (max-width: 36rem) {
+  .gallery-arch-scoreboard__scores {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: var(--bit-space-24px);
+  }
+}
+
+.gallery-arch-scoreboard__scores > li {
+  display: grid;
+  gap: var(--bit-space-8px);
+  align-content: start;
+}
+
+.gallery-arch-scoreboard__count {
+  font-family: var(--bit-font-pixel);
+  font-size: var(--bit-text-32px);
+  line-height: 1;
+  color: var(--bit-color-text);
+}
+
+/* Unlit digits: the board's padding zeros, dimmed like segments that are off. Hidden from screen readers, but still
+   text people see, so dimmed only to large-text contrast (3:1 at 32px): muted text mixed halfway toward the screen. */
+.gallery-arch-scoreboard__unlit {
+  color: color-mix(in srgb, var(--bit-color-text-muted) 60%, var(--bit-color-surface));
+}
+
+/* Architecture: the layer diagram. A figure of bit cards stacked top to bottom, joined by accent connectors. The
+   package boxes tint their background (core neutral, react primary) so the boundary reads at a glance.
+   The diagram owns its geometry: these four values set the padding of every box and level, the icon tile and the
+   connector, and the connector's offset is computed from the same four, so the spine sits under the icons by
+   construction, whatever Card's own padding is. The geometry e2e test checks it.
+   The figure is one grid of named areas. The not-built box comes after the app in the markup (the reading order, and
+   where a phone shows it); when there is room, the grid seats it beside the react box. */
+.gallery-arch {
+  --_gallery-arch-pad: var(--bit-space-16px);
+  --_gallery-arch-icon: var(--bit-space-32px);
+  --_gallery-arch-line: var(--bit-space-16px);
+  --_gallery-arch-gap: var(--bit-space-12px);
+  container: gallery-arch / inline-size;
+  display: grid;
+  gap: var(--bit-space-16px);
+  margin: 0;
+}
+
+.gallery-arch__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  grid-template-areas:
+    "core core"
+    "into-published into-published"
+    "published future"
+    "into-app into-app"
+    "app app";
+  column-gap: var(--bit-space-16px);
+}
+
+.gallery-arch__grid > [data-zone="core"] {
+  grid-area: core;
+}
+
+.gallery-arch__grid > [data-edge="into-published"] {
+  grid-area: into-published;
+}
+
+.gallery-arch__grid > [data-zone="react"] {
+  grid-area: published;
+}
+
+.gallery-arch__grid > [data-zone="future"] {
+  grid-area: future;
+}
+
+.gallery-arch__grid > [data-edge="into-app"] {
+  grid-area: into-app;
+}
+
+.gallery-arch__grid > [data-zone="app"] {
+  grid-area: app;
+}
+
+/* Narrow: one column, in markup order; the not-built box, after the app, stands apart from the stack. A container
+   query styles only descendants, which is why the grid is the figure's child rather than the figure itself. */
+@container gallery-arch (max-width: 48rem) {
+  .gallery-arch__grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "core" "into-published" "published" "into-app" "app" "future";
+  }
+
+  .gallery-arch__grid > [data-zone="future"] {
+    margin-top: var(--bit-space-24px);
+  }
+}
+
+.gallery-arch-zone > .bit-card__body,
+.gallery-arch-level > .bit-card__body {
+  padding: var(--_gallery-arch-pad);
+}
+
+.gallery-arch-zone[data-zone="core"] {
+  background: var(--bit-color-neutral-soft);
+}
+
+.gallery-arch-zone[data-zone="react"] {
+  background: var(--bit-color-primary-soft);
+}
+
+/* A level: its name and job beside a live specimen, stacking when the level is narrow (a phone, a split screen). */
+.gallery-arch-level {
+  container-type: inline-size;
+}
+
+.gallery-arch-level__grid {
+  display: grid;
+  /* A fixed name column, so every level's specimen starts on the same line, in any box width. */
+  grid-template-columns: 16rem minmax(0, 1fr);
+  gap: var(--bit-space-24px);
+  align-items: start;
+}
+
+@container (max-width: 36rem) {
+  .gallery-arch-level__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.gallery-arch-level__specimen {
+  min-width: 0;
+}
+
+.gallery-arch-level__icon {
+  display: grid;
+  place-items: center;
+  width: var(--_gallery-arch-icon);
+  height: var(--_gallery-arch-icon);
+  background: var(--bit-color-primary-soft);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-6px);
+}
+
+/* A diagram label (a level's number, a pipe's verb, a chain step): the Overview facts' pixel caption, 12px and
+   uppercase, so it reads as a label and never as reading text. */
+.gallery-arch-label {
+  font-family: var(--bit-font-pixel);
+  font-size: calc(var(--bit-text-24px) / 2);
+  text-transform: uppercase;
+}
+
+.gallery-arch-icon {
+  color: var(--bit-color-link);
+}
+
+/* The connectors run down a spine under the level icons: one line the border's width, in the accent, with a drawn
+   arrowhead, touching the box above and the box below, one height everywhere. The line's column centers on the icon
+   tile: the tile's center (border + padding + half the tile) less the column gap and half the line's column. Between
+   boxes, the box's border and padding come first. */
+.gallery-arch-pipe {
+  --_gallery-pipe-x: calc(
+    var(--bit-border-width) + var(--_gallery-arch-pad) + var(--_gallery-arch-icon) / 2 - var(--_gallery-arch-gap) -
+      var(--_gallery-arch-line) / 2
+  );
+  display: grid;
+  grid-template-columns: var(--_gallery-pipe-x) var(--_gallery-arch-line) 1fr;
+  column-gap: var(--_gallery-arch-gap);
+  align-items: center;
+  height: calc(var(--bit-space-32px) + var(--bit-space-8px));
+}
+
+.gallery-arch__grid > .gallery-arch-pipe {
+  --_gallery-pipe-x: calc(
+    var(--bit-border-width) * 2 + var(--_gallery-arch-pad) * 2 + var(--_gallery-arch-icon) / 2 -
+      var(--_gallery-arch-gap) - var(--_gallery-arch-line) / 2
+  );
+}
+
+.gallery-arch-pipe__line {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  align-self: stretch;
+  position: relative;
+  width: var(--bit-border-width);
+  background: var(--bit-color-accent);
+}
+
+.gallery-arch-pipe__line::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: var(--_gallery-arch-line);
+  height: var(--bit-space-12px);
+  margin-left: calc(var(--_gallery-arch-line) / -2);
+  background: var(--bit-color-accent);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* Forced colors drop backgrounds, which would erase the connector: draw it in the text color instead. */
+@media (forced-colors: active) {
+  .gallery-arch-pipe__line,
+  .gallery-arch-pipe__line::after {
+    background: CanvasText;
+    forced-color-adjust: none;
+  }
+}
+
+.gallery-arch-pipe__verb {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: start;
+}
+
+/* Not built: the package box with a dashed edge and divider, so it never reads as a shipped package. Only the
+   divider's own side is dashed: setting border-style on all of the header's sides would draw the medium (3px) default
+   on the three sides it has no border, a second dashed box inside the first. */
+.gallery-arch-zone[data-zone="future"] {
+  border-style: dashed;
+}
+
+.gallery-arch-zone[data-zone="future"] > .bit-card__header {
+  border-bottom-style: dashed;
+}
+
+.gallery-arch-swatches,
+.gallery-arch-token-list,
+.gallery-arch-chain {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gallery-arch-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(5.5rem, 100%), 1fr));
+  gap: var(--bit-space-12px);
+}
+
+.gallery-arch-swatches > li {
+  display: grid;
+  gap: var(--bit-space-4px);
+  justify-items: start;
+}
+
+/* A palette tile: the color as a block the width of its column, edged so the light colors show on white. */
+.gallery-arch-tile {
+  justify-self: stretch;
+  height: var(--bit-space-48px);
+  border: var(--bit-border-width) solid var(--bit-color-line);
+  border-radius: var(--bit-radius-6px);
+}
+
+/* A narrow level: five tiles would be slivers and two-up leaves one alone, so the palette becomes five even rows,
+   swatch, name and hex, like the token rows under it. */
+@container (max-width: 36rem) {
+  .gallery-arch-swatches {
+    grid-template-columns: var(--bit-space-48px) minmax(0, 1fr) auto;
+    gap: var(--bit-space-8px) var(--bit-space-12px);
+  }
+
+  .gallery-arch-swatches > li {
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+  }
+
+  .gallery-arch-tile {
+    height: var(--bit-space-32px);
+  }
+}
+
+/* Token rows across the whole level: swatch, chip, a dotted leader, then the palette color it reads at the end. */
+.gallery-arch-token-list {
+  display: grid;
+  grid-template-columns: auto auto minmax(var(--bit-space-24px), 1fr) auto;
+  gap: var(--bit-space-8px) var(--bit-space-12px);
+  align-items: center;
+}
+
+/* Every row shares the list's columns (subgrid), so the chips, leaders and palette names line up. */
+.gallery-arch-token-list > li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  justify-items: start;
+}
+
+/* The leader is the one item that stretches: it is the dots that fill the gap. */
+.gallery-arch-token-list .gallery-token-row__leader {
+  justify-self: stretch;
+}
+
+/* A narrow level: no room for a leader, so every row puts "reads …" under its chip, all the same way. */
+@container (max-width: 36rem) {
+  .gallery-arch-token-list {
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: var(--bit-space-12px);
+  }
+
+  .gallery-arch-token-list .gallery-token-row__leader {
+    display: none;
+  }
+
+  .gallery-arch-token-list > li > :last-child {
+    grid-column: 2;
+  }
+}
+
+/* The naming rule, live: the picker, then the chain from prop to pixels in one row, then the theme lines. A size
+   container, so the chain stacks by its own width: steps in a column, the arrows turned to point down. */
+.gallery-arch-naming {
+  container-type: inline-size;
+  display: grid;
+  /* One column no wider than the card: without the 0 minimum the picker's full width sets the column, nothing wraps,
+     and the code panel and caption run past the card's edge. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bit-space-24px);
+}
+
+/* Steps align at the top, so every label sits on one line though the last step (a Button) is taller than a chip. */
+.gallery-arch-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--bit-space-12px);
+}
+
+.gallery-arch-chain__step {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--bit-space-12px);
+}
+
+.gallery-arch-chain__arrow[data-dir="column"] {
+  display: none;
+}
+
+@container (max-width: 42rem) {
+  .gallery-arch-chain,
+  .gallery-arch-chain__step {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .gallery-arch-chain__arrow[data-dir="row"] {
+    display: none;
+  }
+
+  .gallery-arch-chain__arrow[data-dir="column"] {
+    display: block;
+  }
+}
+
+.gallery-arch-chain__arrow {
+  color: var(--bit-color-accent);
+}
+
+.gallery-arch-zone__levels {
+  display: grid;
+}
+
+/* On a narrow card the five options don't fit one row: they sit in an even grid, three to a row, every one visible,
+   the dividers redrawn for a grid (one across the top of the second row, none at the start of a row). */
+@container (max-width: 42rem) {
+  .gallery-arch-picker .bit-segmented-control {
+    width: 100%;
+  }
+
+  .gallery-arch-picker .bit-segmented-control__options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .gallery-arch-picker .bit-segmented-control__label {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .gallery-arch-picker .bit-segmented-control__option:nth-child(3n + 1) {
+    border-left: 0;
+  }
+
+  .gallery-arch-picker .bit-segmented-control__option:nth-child(n + 4) {
+    border-top: var(--bit-border-width) solid var(--bit-color-line);
+  }
+}
+
+/* What kind of design system this is: each row reads from the top, so the axis, the choice and the why start on
+   one line. On a phone the columns keep their widths (as the Props table's do) and the table scrolls sideways
+   inside its border, instead of squeezing every cell into a tall, narrow strip. */
+.gallery-arch-kind .bit-table__body .bit-table__cell {
+  vertical-align: top;
+}
+
+.gallery-arch-kind__axis {
+  min-width: calc(3 * var(--bit-space-64px));
+}
+
+.gallery-arch-kind__choice,
+.gallery-arch-kind__why {
+  min-width: calc(4 * var(--bit-space-64px));
+}

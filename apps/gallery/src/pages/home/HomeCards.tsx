@@ -25,6 +25,8 @@ import { InstallCommand } from '../../content/InstallCommand';
 import { PACKAGE_NAME, STYLE_IMPORTS } from '../../content/snippets.mjs';
 import { MANIFESTS, routeFor } from '../../manifests';
 import { PAGE_HEADER } from '../tokens/TokenCard';
+import { FactList } from '../../ui/FactList';
+import type { Fact } from '../../ui/FactList';
 
 /** The first component, as Getting started writes it: the styles once, then a Button. */
 const FIRST_COMPONENT = `${STYLE_IMPORTS}\nimport { Button } from '${PACKAGE_NAME}';\n\n<Button color="primary">Save</Button>`;
@@ -49,37 +51,16 @@ export function QuickStart() {
 const ICON_COUNT = ICON_GROUPS.reduce((n, group) => n + group.icons.length, 0);
 
 /** Four facts, each counted from its source, so they stay true as the system grows. */
-const FACTS: readonly (readonly [number, string])[] = [
+const FACTS: readonly Fact[] = [
   [MANIFESTS.filter((m) => m.group !== 'brand').length, 'components'],
   [CURRENT_TOKENS.length, 'tokens'],
   [ICON_COUNT, 'icons'],
   [COLOR_MODES.length, 'color modes'],
 ];
 
-/**
- * Two by two under the hero's buttons: each count in the pixel face and the link color, its label beside it as a
- * small pixel caption (like the sidebar's section titles), both resting on one line (owner's pick B, 2026-10-11).
- * Outline cards, with no fill or shadow: facts to read, so they sit back from the Buttons above them.
- */
+/** Two by two under the hero's buttons. Outline cards, with no fill or shadow: facts to read, so they sit back from the Buttons above them. */
 export function Facts() {
-  return (
-    <ul className="gallery-facts" aria-label="At a glance">
-      {FACTS.map(([count, label]) => (
-        <li key={label}>
-          <Card variant="outline">
-            <CardBody>
-              <div className="gallery-fact">
-                <span className="gallery-fact__count">{count}</span>
-                <Text color="neutral" className="gallery-fact__label">
-                  {label}
-                </Text>
-              </div>
-            </CardBody>
-          </Card>
-        </li>
-      ))}
-    </ul>
-  );
+  return <FactList facts={FACTS} label="At a glance" />;
 }
 
 /**
