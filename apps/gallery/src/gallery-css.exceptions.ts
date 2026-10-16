@@ -188,6 +188,8 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-arch-scoreboard__count', property: 'line-height', reason: 'scoreboard: score digits sit tight on their label' },
   { selector: '.gallery-arch-scoreboard__count', property: 'color', reason: 'scoreboard: lit digits in the text color' },
   { selector: '.gallery-arch-scoreboard__unlit', property: 'color', reason: 'scoreboard: unlit padding zeros, dimmed' },
+  { selector: '.gallery-arch-kind', property: 'container-type', reason: 'layout: the kind table is a size container, so its rows stack by the table\'s own width' },
+  { selector: '@container (max-width: 44rem) .gallery-arch-kind .bit-table__body .bit-table__cell + .bit-table__cell', property: 'border-top', reason: 'kind table, stacked: one row reads as one block, so the hairline sits only between rows' },
   { selector: '.gallery-arch', property: 'container', reason: 'layout: the diagram is a named size container, so the packages row stacks by its width, not the window\'s' },
   { selector: '.gallery-arch-level', property: 'container-type', reason: 'layout: a level is a size container, so its specimen stacks under its name by the level\'s own width' },
   { selector: '.gallery-arch-zone[data-zone="core"]', property: 'background', reason: 'diagram: tints the @bit-ds/core package box' },

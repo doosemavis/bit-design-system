@@ -1,9 +1,27 @@
-import { BitTheme, Text } from '@bit-ds/react';
+import { Link as RouterLink } from 'react-router-dom';
+import { BitTheme, Link, Text } from '@bit-ds/react';
 
-/** One count on the board and what it counts. */
+/** Where a count can be checked: a gallery page (`to`) or a page elsewhere (`href`). */
+export type ScoreLink = { readonly to: string } | { readonly href: string };
+
+/** One count on the board, what it counts, and where to see it counted. */
 export interface Score {
   readonly count: number;
   readonly label: string;
+  readonly link: ScoreLink;
+}
+
+/** A score's label as a link to where the count can be checked, in the board's caption face. */
+function ScoreLabel({ label, link }: Pick<Score, 'label' | 'link'>) {
+  return 'to' in link ? (
+    <Link asChild color="neutral" className="gallery-arch-label">
+      <RouterLink to={link.to}>{label}</RouterLink>
+    </Link>
+  ) : (
+    <Link color="neutral" className="gallery-arch-label" href={link.href}>
+      {label}
+    </Link>
+  );
 }
 
 /** Digits on the board: every count is padded to the widest (three at least), like an arcade score. */
@@ -14,7 +32,8 @@ export function scoreDigits(scores: readonly Score[]): number {
 /**
  * bit by the numbers, as an arcade scoreboard: a dark cabinet (a BitTheme subtree in dark mode, whatever the page's
  * mode) whose dotted bezel frames a solid screen, so the dots never sit behind text. Each count is padded with unlit
- * zeros (032) that are hidden from screen readers, which hear "32 components".
+ * zeros (032) that are hidden from screen readers, which hear "32 components". Each label links to where its count can
+ * be checked.
  */
 export function Scoreboard({ scores, label }: { scores: readonly Score[]; label: string }) {
   const width = scoreDigits(scores);
@@ -25,7 +44,7 @@ export function Scoreboard({ scores, label }: { scores: readonly Score[]; label:
           {label}
         </Text>
         <ul role="list" className="gallery-arch-scoreboard__scores" aria-label={label}>
-          {scores.map(({ count, label: name }) => {
+          {scores.map(({ count, label: name, link }) => {
             const digits = String(count);
             return (
               <li key={name}>
@@ -35,9 +54,7 @@ export function Scoreboard({ scores, label }: { scores: readonly Score[]; label:
                   </span>
                   {digits}
                 </span>{' '}
-                <Text color="neutral" className="gallery-arch-label">
-                  {name}
-                </Text>
+                <ScoreLabel label={name} link={link} />
               </li>
             );
           })}

@@ -151,6 +151,24 @@ for (const [name, width] of [
         expect(react!.top).toBeLessThan(app!.top);
         expect(app!.bottom).toBeLessThan(future!.top);
       });
+
+      test('the kind table fits the phone: no sideways scroll, and each row stacks axis over choice over why', async ({ page }) => {
+        const table = page.locator('.gallery-arch-kind');
+        const [scrollWidth, clientWidth] = await table.evaluate((wrapper) => [wrapper.scrollWidth, wrapper.clientWidth]);
+        expect(scrollWidth).toBeLessThanOrEqual(clientWidth!);
+        for (const row of await table.locator('tbody tr').all()) {
+          const [axis, choice, why] = await row.locator('td').evaluateAll((cells) =>
+            cells.map((cell) => {
+              const r = cell.getBoundingClientRect();
+              return { top: r.top, bottom: r.bottom };
+            }),
+          );
+          expect(choice!.top).toBeGreaterThanOrEqual(axis!.bottom - 1);
+          expect(why!.top).toBeGreaterThanOrEqual(choice!.bottom - 1);
+        }
+        // Still a table to a screen reader, its column headers heard though not shown.
+        await expect(page.getByRole('table', { name: 'What kind of design system this is' }).getByRole('columnheader')).toHaveCount(3);
+      });
     }
   });
 }

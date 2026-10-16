@@ -2167,8 +2167,14 @@ html:has(.gallery-section-bar) {
 }
 
 /* What kind of design system this is: each row reads from the top, so the axis, the choice and the why start on
-   one line. On a phone the columns keep their widths (as the Props table's do) and the table scrolls sideways
-   inside its border, instead of squeezing every cell into a tall, narrow strip. */
+   one line. The table is a size container: when it is too narrow for its three columns (a phone), each row stacks
+   into one block, axis over choice over why, instead of scrolling sideways. The header stays for screen readers
+   only, and the hairline bit draws above every body cell divides rows, not the cells of one row. KindTable gives
+   every part its role, so the stacked table is still a table to assistive tech. */
+.gallery-arch-kind {
+  container-type: inline-size;
+}
+
 .gallery-arch-kind .bit-table__body .bit-table__cell {
   vertical-align: top;
 }
@@ -2180,4 +2186,39 @@ html:has(.gallery-section-bar) {
 .gallery-arch-kind__choice,
 .gallery-arch-kind__why {
   min-width: calc(4 * var(--bit-space-64px));
+}
+
+@container (max-width: 44rem) {
+  .gallery-arch-kind .bit-table__table,
+  .gallery-arch-kind .bit-table__body,
+  .gallery-arch-kind .bit-table__row,
+  .gallery-arch-kind .bit-table__body .bit-table__cell {
+    display: block;
+  }
+
+  .gallery-arch-kind .bit-table__head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .gallery-arch-kind .bit-table__body .bit-table__cell {
+    min-width: 0;
+    padding-block: var(--bit-space-4px);
+  }
+
+  .gallery-arch-kind .bit-table__body .bit-table__cell:first-child {
+    padding-top: var(--bit-space-16px);
+  }
+
+  .gallery-arch-kind .bit-table__body .bit-table__cell:last-child {
+    padding-bottom: var(--bit-space-16px);
+  }
+
+  .gallery-arch-kind .bit-table__body .bit-table__cell + .bit-table__cell {
+    border-top: 0;
+  }
 }

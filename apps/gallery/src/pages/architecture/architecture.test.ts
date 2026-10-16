@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { MANIFESTS } from '../../manifests';
-import { AXES, parseAxes } from './architectureDoc';
+import { AXES, parseAxes, REPO_FILES, splitLinks } from './architectureDoc';
+import { missingRepoLink } from '../../test/repoLinks';
 import { AXIS_ICONS } from './KindTable';
 import { EDGES, FUTURE, LAYERS } from './model';
 import { ARCHITECTURE_FACTS, paletteNames, parseLayerOrder, runtimeDependencies } from './facts';
@@ -171,5 +172,33 @@ describe('Architecture: parseAxes', () => {
     const md = '## 4. What kind of design system this is\n| **A** | one | x; y | why | cost | later |\n\n## 5. Next';
     expect(parseAxes(md)).toEqual([{ axis: 'A', choice: 'one', over: ['x', 'y'], why: 'why', cost: 'cost', revisit: 'later' }]);
     expect(() => parseAxes('## 4. What kind of design system this is\n| **A** | one | two |\n## 5.')).toThrow(/has 3 cells, not 6/);
+  });
+});
+
+describe('Architecture: §4 citations are links that land', () => {
+  it('splitLinks cuts a cell into text and links, resolving a relative href against the repo\'s files', () => {
+    expect(splitLinks('see [`a.mjs`](scripts/a.mjs) and [b](https://example.com/b).')).toEqual([
+      { text: 'see ' },
+      { text: '`a.mjs`', href: `${REPO_FILES}scripts/a.mjs` },
+      { text: ' and ' },
+      { text: 'b', href: 'https://example.com/b' },
+      { text: '.' },
+    ]);
+    expect(splitLinks('no links, only `code`')).toEqual([{ text: 'no links, only `code`' }]);
+    expect(splitLinks('[only](x.md#y)')).toEqual([{ text: 'only', href: `${REPO_FILES}x.md#y` }]);
+  });
+
+  it('every link in the six rows names a file the repo has and a heading in it, or this repo on GitHub', () => {
+    const hrefs = AXES.flatMap((row) => [row.choice, ...row.over, row.why, row.cost].flatMap(splitLinks)).flatMap((span) => (span.href ? [span.href] : []));
+    // The citations the design review found looking like links: spec §12 and §2, the commit, the CHANGELOG, three scripts.
+    expect(hrefs.length).toBeGreaterThanOrEqual(8);
+    expect(hrefs.map(missingRepoLink).filter(Boolean)).toEqual([]);
+  });
+
+  it('missingRepoLink says why a link would not land', () => {
+    expect(missingRepoLink(`${REPO_FILES}README.md#components`)).toBeNull();
+    expect(missingRepoLink(`${REPO_FILES}README.md#no-such-heading`)).toBe('README.md has no heading #no-such-heading');
+    expect(missingRepoLink(`${REPO_FILES}NOPE.md`)).toBe('NOPE.md is not a file in the repo');
+    expect(missingRepoLink('https://example.com/')).toBe('https://example.com/ is not a page of this repo');
   });
 });

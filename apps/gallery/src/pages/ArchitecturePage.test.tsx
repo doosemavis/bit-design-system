@@ -4,8 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { colorMode, COLORS } from '@bit-ds/react';
 import { CURRENT_TOKENS } from '../content/currentTokens';
 import { MANIFESTS } from '../manifests';
+import { missingRepoLink } from '../test/repoLinks';
 import { renderAt } from '../test/renderRoute';
-import { AXES } from './architecture/architectureDoc';
+import { AXES, REPO_FILES } from './architecture/architectureDoc';
 import { ARCHITECTURE_DOC_URL } from './ArchitecturePage';
 
 // jsdom reads a `?raw` CSS import as empty, so hand the page the real theme, read from disk.
@@ -83,6 +84,21 @@ describe('Architecture page', () => {
     expect(shown).toEqual([String(MANIFESTS.length).padStart(3, '0'), '000', '003', String(CURRENT_TOKENS.length).padStart(3, '0')]);
     // A dark cabinet in either page mode: a BitTheme subtree.
     expect(board.closest('.bit-theme')).toHaveClass('bit-dark', 'gallery-arch-scoreboard');
+  });
+
+  it('each score links to where its count can be checked, and every link lands', async () => {
+    await renderArchitecture();
+    const board = screen.getByRole('list', { name: 'bit by the numbers' });
+    const links = within(board).getAllByRole('link');
+    expect(links.map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+      ['components', `${REPO_FILES}README.md#components`],
+      ['dependencies', 'https://www.npmjs.com/package/@bit-ds/react?activeTab=dependencies'],
+      ['CSS layers', `${REPO_FILES}README.md#your-css-wins`],
+      // A gallery route: the test's memory router writes it bare; the app's hash router writes #/tokens.
+      ['tokens', '/tokens'],
+    ]);
+    for (const link of links.slice(0, 3)) expect(link).toHaveClass('bit-link', 'bit-neutral');
+    expect([links[0]!, links[2]!].map((link) => missingRepoLink(link.getAttribute('href')!))).toEqual([null, null]);
   });
 
   it('the diagram is a named figure whose caption says the whole flow in words', async () => {
@@ -164,6 +180,18 @@ describe('Architecture page', () => {
     expect(table).not.toHaveTextContent(/revisit/i);
     // Every row shows what its choice costs, from the doc's Cost column.
     for (const row of AXES) expect(table).toHaveTextContent(row.cost.replaceAll('`', ''));
+  });
+
+  it('the kind table\'s citations are the doc\'s own links, not text that only looks like one', async () => {
+    await renderArchitecture();
+    const table = screen.getByRole('table', { name: 'What kind of design system this is' });
+    const link = (name: string) => within(table).getByRole('link', { name }).getAttribute('href');
+    expect(link('f3fd5eb')).toBe('https://github.com/doosemavis/bit-design-system/commit/f3fd5eb');
+    expect(link('verify-dist.mjs')).toBe(`${REPO_FILES}packages/react/scripts/verify-dist.mjs`);
+    expect(link('CHANGELOG 0.1.9')).toBe(`${REPO_FILES}CHANGELOG.md#019--2026-10-10`);
+    expect(link('spec §12')).toBe(`${REPO_FILES}docs/superpowers/specs/2026-09-06-bit-design-system-design.md#12-decisions-log`);
+    // The markdown is drawn, never shown.
+    expect(table).not.toHaveTextContent(/\]\(/);
   });
 
   it('links the full rationale in ARCHITECTURE.md, in a purple note', async () => {

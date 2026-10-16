@@ -1,6 +1,7 @@
 import { Alert, Code, Link, Stack, Text } from '@bit-ds/react';
 import { PageHeader } from '../ui/PageHeader';
 import { PageSection } from '../ui/PageSection';
+import { REPO_FILES } from './architecture/architectureDoc';
 import { ARCHITECTURE_FACTS } from './architecture/facts';
 import { KindTable } from './architecture/KindTable';
 import { LayerStack } from './architecture/LayerStack';
@@ -9,16 +10,20 @@ import { Scoreboard } from './architecture/Scoreboard';
 import type { Score } from './architecture/Scoreboard';
 
 /** The living architecture record. The page is its visual companion, not a copy. */
-export const ARCHITECTURE_DOC_URL = 'https://github.com/doosemavis/bit-design-system/blob/main/ARCHITECTURE.md';
+export const ARCHITECTURE_DOC_URL = `${REPO_FILES}ARCHITECTURE.md`;
 
 const { components, runtimeDependencies, layers, tokens, packageName, version } = ARCHITECTURE_FACTS;
 
-/** Each read from its source (architecture/facts.ts). `dependencies` is the package.json field bit leaves empty. */
+/**
+ * Each read from its source (architecture/facts.ts), and each linked to where a reader can count it: the README's
+ * component list, npm's dependencies tab (`dependencies` is the package.json field bit leaves empty), the README
+ * section that names the layers, and the Tokens page.
+ */
 const SCORES: readonly Score[] = [
-  { count: components, label: 'components' },
-  { count: runtimeDependencies, label: 'dependencies' },
-  { count: layers.length, label: 'CSS layers' },
-  { count: tokens, label: 'tokens' },
+  { count: components, label: 'components', link: { href: `${REPO_FILES}README.md#components` } },
+  { count: runtimeDependencies, label: 'dependencies', link: { href: `https://www.npmjs.com/package/${packageName}?activeTab=dependencies` } },
+  { count: layers.length, label: 'CSS layers', link: { href: `${REPO_FILES}README.md#your-css-wins` } },
+  { count: tokens, label: 'tokens', link: { to: '/tokens' } },
 ];
 
 /**
