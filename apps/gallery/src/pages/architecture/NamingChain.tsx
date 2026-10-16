@@ -63,6 +63,28 @@ function Step({ n, label, last = false, children }: { n: number; label: string; 
   );
 }
 
+/** The longest of a step's values across the five colors: what its slot reserves room for. */
+const longest = (values: readonly string[]) => values.reduce((a, b) => (b.length > a.length ? b : a), '');
+
+/**
+ * A chip that holds its width whichever color is picked: it shares one grid cell with an invisible copy of the step's
+ * longest value, so the slot is always that wide and the steps after it never move.
+ */
+function Slot({ value, widest }: { value: string; widest: string }) {
+  return (
+    <span className="gallery-arch-slot">
+      <Code aria-hidden="true" className="gallery-arch-slot__sizer">
+        {widest}
+      </Code>
+      <Code>{value}</Code>
+    </span>
+  );
+}
+
+const PROP = (color: Color) => `color="${color}"`;
+const CLASS = (color: Color) => `bit-${color}`;
+const TOKEN = (color: Color) => `--bit-color-${color}`;
+
 const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
 
 /** What the caption says about the other mode: the hex it changes to, or that this color doesn't change. */
@@ -103,13 +125,13 @@ export function NamingChain() {
           </div>
           <ol role="list" className="gallery-arch-chain" aria-label="From the prop to the pixels">
             <Step n={1} label="prop">
-              <Code>{`color="${color}"`}</Code>
+              <Slot value={PROP(color)} widest={longest(COLORS.map(PROP))} />
             </Step>
             <Step n={2} label="class">
-              <Code>{`bit-${color}`}</Code>
+              <Slot value={CLASS(color)} widest={longest(COLORS.map(CLASS))} />
             </Step>
             <Step n={3} label="token">
-              <Code>{fill.token}</Code>
+              <Slot value={fill.token} widest={longest(COLORS.map(TOKEN))} />
             </Step>
             {fill.hex ? (
               <Step n={4} label="hex">
@@ -126,10 +148,19 @@ export function NamingChain() {
           {fill.hex ? (
             <Stack gap={8}>
               <CodeBlock code={themeLines(fill, mode)} language="css" label={`power-up theme, ${mode} mode`} />
-              <Text color="neutral">
-                In {mode} mode, power-up sets <Code>{fill.token}</Code> to the palette’s {fill.palette},{' '}
-                <Code>{fill.hex}</Code>.{otherMode(color, mode, fill)}
-              </Text>
+              {/* Every color's caption in one grid cell, only the chosen one visible: the cell is as tall as the
+                  longest, so the card never changes height and nothing under it moves. */}
+              <div className="gallery-arch-slot gallery-arch-slot--block">
+                {COLORS.map((each) => {
+                  const its = resolveFill(THEME_FLOWS, each, mode);
+                  return its.hex ? (
+                    <Text key={each} color="neutral" className="gallery-arch-slot__caption" data-current={each === color ? '' : undefined}>
+                      In {mode} mode, power-up sets <Code>{its.token}</Code> to the palette’s {its.palette},{' '}
+                      <Code>{its.hex}</Code>.{otherMode(each, mode, its)}
+                    </Text>
+                  ) : null;
+                })}
+              </div>
             </Stack>
           ) : null}
         </div>

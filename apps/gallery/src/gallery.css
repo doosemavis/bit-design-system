@@ -2095,6 +2095,26 @@ html:has(.gallery-section-bar) {
   display: none;
 }
 
+/* A slot that holds its size whichever color is picked: its children share one grid cell, and an invisible copy
+   of the widest value (or every caption but the chosen one) holds the room, so nothing beside or below moves. */
+.gallery-arch-slot {
+  display: inline-grid;
+  justify-items: start;
+}
+
+.gallery-arch-slot--block {
+  display: grid;
+}
+
+.gallery-arch-slot > * {
+  grid-area: 1 / 1;
+}
+
+.gallery-arch-slot__sizer,
+.gallery-arch-slot__caption:not([data-current]) {
+  visibility: hidden;
+}
+
 @container (max-width: 42rem) {
   .gallery-arch-chain,
   .gallery-arch-chain__step {

@@ -29,6 +29,16 @@ async function renderArchitecture() {
 
 const chain = () => screen.getByRole('list', { name: 'From the prop to the pixels' });
 
+/** What a reader gets from an element: its text without the aria-hidden parts (the slots' invisible size-holders). */
+function shown(element: Element): string {
+  const copy = element.cloneNode(true) as HTMLElement;
+  for (const hidden of copy.querySelectorAll('[aria-hidden="true"]')) hidden.remove();
+  return copy.textContent ?? '';
+}
+
+/** The caption under the theme lines that is showing now (the others hold the room, hidden). */
+const caption = () => document.querySelector('.gallery-arch-slot__caption[data-current]');
+
 describe('Architecture page', () => {
   beforeEach(() => {
     document.documentElement.dataset.theme = 'power-up';
@@ -111,16 +121,14 @@ describe('Architecture page', () => {
 
   it('the naming chain starts at neutral and walks prop, class, token, the hex the theme assigns, then the pixels', async () => {
     await renderArchitecture();
-    const steps = within(chain())
-      .getAllByRole('listitem')
-      .map((li) => li.textContent);
+    const steps = within(chain()).getAllByRole('listitem').map(shown);
     expect(steps).toEqual(['1 · propcolor="neutral"', '2 · classbit-neutral', '3 · token--bit-color-neutral', '4 · hex#5F6372', '5 · pixelsSave']);
     expect(within(chain()).getByRole('button', { name: 'Save' })).toHaveClass('bit-button', 'bit-neutral');
     expect(screen.getByRole('region', { name: 'power-up theme, light mode' })).toHaveTextContent(
       '.bit-theme-power-up { --bit-palette-steel: #5F6372; --bit-color-neutral: var(--bit-palette-steel); }',
     );
     // Neutral is the fill that changes with the mode, so the caption can promise it.
-    expect(document.querySelector('.gallery-arch-naming')).toHaveTextContent('In dark mode it reads steel-light, #9A9EB0: switch the mode in the header to watch it change.');
+    expect(caption()).toHaveTextContent('In dark mode it reads steel-light, #9A9EB0: switch the mode in the header to watch it change.');
   });
 
   it('picking a color repaints the Button in the chain and moves every step, down to the hex', async () => {
@@ -128,7 +136,7 @@ describe('Architecture page', () => {
     await renderArchitecture();
     await user.click(screen.getByRole('radio', { name: 'danger' }));
     expect(within(chain()).getByRole('button', { name: 'Save' })).toHaveClass('bit-button', 'bit-danger');
-    expect(within(chain()).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+    expect(within(chain()).getAllByRole('listitem').map(shown)).toEqual([
       '1 · propcolor="danger"',
       '2 · classbit-danger',
       '3 · token--bit-color-danger',
@@ -136,7 +144,7 @@ describe('Architecture page', () => {
       '5 · pixelsSave',
     ]);
     // Danger is the same red in both modes, and the caption says so rather than promising a change.
-    expect(document.querySelector('.gallery-arch-naming')).toHaveTextContent('In light mode, power-up sets --bit-color-danger to the palette’s red, #D91A1A. Red is the same in light and dark.');
+    expect(caption()).toHaveTextContent('In light mode, power-up sets --bit-color-danger to the palette’s red, #D91A1A. Red is the same in light and dark.');
   });
 
   it('in dark mode the chain follows the dark block: neutral reads steel-light', async () => {

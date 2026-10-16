@@ -90,6 +90,29 @@ for (const [name, width] of [
       }
     });
 
+    test('the naming rule holds still: picking any color moves no step, arrow or Button, and the card keeps its height', async ({ page }) => {
+      const naming = page.locator('.gallery-arch-naming');
+      const layout = () =>
+        naming.evaluate((root) => {
+          // Relative to the card, so a click that scrolls the page doesn't count as movement.
+          const card = root.getBoundingClientRect();
+          // Only what is drawn: each arrow is in the markup twice (right and down), one of them display: none.
+          const at = (selector: string) =>
+            [...root.querySelectorAll(selector)]
+              .map((element) => element.getBoundingClientRect())
+              .filter((r) => r.width > 0)
+              .map((r) => `${Math.round(r.left - card.left)},${Math.round(r.top - card.top)},${Math.round(r.width)}`);
+          return { steps: at('.gallery-arch-chain__step'), arrows: at('.gallery-arch-chain__arrow'), button: at('.gallery-arch-chain .bit-button'), height: Math.round(root.getBoundingClientRect().height) };
+        });
+      const first = await layout();
+      for (const color of ['primary', 'success', 'warning', 'danger', 'neutral']) {
+        // The segment's visible label, as a person clicks it (the radio itself is visually hidden).
+        await page.locator('.gallery-arch-picker').getByText(color, { exact: true }).click();
+        await expect(naming.locator('.gallery-arch-chain .bit-button')).toHaveClass(new RegExp(`\\bbit-${color}\\b`));
+        expect(await layout(), `after picking ${color}`).toEqual(first);
+      }
+    });
+
     test('the not-built box has one dashed border: its header draws only its divider', async ({ page }) => {
       const sides = await page.locator('[data-zone="future"] > .bit-card__header').evaluate((header) => {
         const style = getComputedStyle(header);
