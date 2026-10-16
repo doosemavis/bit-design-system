@@ -6,8 +6,7 @@ import { CURRENT_TOKENS } from '../content/currentTokens';
 import { renderAt } from '../test/renderRoute';
 import { expectNoA11yViolations } from '../test/a11y';
 import { MANIFESTS, routeFor } from '../manifests';
-import { NAV } from '../shell/Sidebar';
-import { COMPONENT_GROUPS } from '../shell/navGroups';
+import { COMPONENT_GROUPS, groupManifests } from '../shell/navGroups';
 import { GAMES } from '../arcade/games';
 import { bestKey } from '../arcade/bestScore';
 import { INSTALL_COMMANDS, STYLE_IMPORTS } from '../content/snippets.mjs';
@@ -83,13 +82,12 @@ describe('HomePage', () => {
     ]);
   });
 
-  it('Browse components goes to Button, the first item of the first component group', () => {
+  it('Browse components goes to Button, the first tile of the first component group', () => {
     expect(BROWSE_TARGET).toBe('/components/button');
-    const first = NAV.find((item) => item.group === COMPONENT_GROUPS[0].label)!;
-    expect(first).toMatchObject({ label: 'Button', to: BROWSE_TARGET });
+    expect(groupManifests(COMPONENT_GROUPS[0])[0]).toMatchObject({ name: 'Button' });
   });
 
-  it('Components is one h2 with the total count and a one-line lead, then an h3 per sidebar group, in sidebar order', async () => {
+  it('Components is one h2 with the total count and a one-line lead, then an h3 per task group, in navGroups order', async () => {
     await open();
     const heading = within(main()).getByRole('heading', { level: 2, name: 'Components' });
     expect(heading.parentElement).toHaveTextContent(`Components${TILED.length}`);
@@ -98,13 +96,24 @@ describe('HomePage', () => {
     expect(within(main()).queryByRole('heading', { name: 'Forms' })).toBeNull();
   });
 
-  it('each group\'s tiles are the links under that group in the sidebar, in the same order', async () => {
+  it('every component is in exactly one task group, of at most seven', () => {
+    const placed = COMPONENT_GROUPS.flatMap((group) => {
+      const names = groupManifests(group).map((m) => m.name);
+      expect(names.length, group.label).toBeLessThanOrEqual(7);
+      return names;
+    });
+    const components = MANIFESTS.filter((m) => m.group !== 'brand').map((m) => m.name);
+    expect([...placed].sort()).toEqual([...components].sort());
+    expect(new Set(placed).size).toBe(placed.length);
+  });
+
+  it('each group\'s tiles are its components, alphabetical', async () => {
     await open();
     for (const group of COMPONENT_GROUPS) {
       const grid = within(main()).getByRole('list', { name: group.label });
       // The tile's own link: the inert previews hold links of their own (Link, Navbar).
       const names = [...grid.querySelectorAll('.gallery-tile__link')].map((link) => link.textContent!.replace(' →', ''));
-      expect(names, group.label).toEqual(NAV.filter((item) => item.group === group.label).map((item) => item.label));
+      expect(names, group.label).toEqual(groupManifests(group).map((m) => m.name));
     }
   });
 

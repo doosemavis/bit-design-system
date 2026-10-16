@@ -1,16 +1,16 @@
 import { BitLogo, Button, Heading, Stack, Text } from '@bit-ds/react';
 import { Link } from 'react-router-dom';
-import { NAV } from '../shell/Sidebar';
 import { useDocumentTitle } from '../shell/useDocumentTitle';
 import { PageSection } from '../ui/PageSection';
 import { ComponentTiles } from './home/ComponentTiles';
 import { Facts, QuickStart, StartBuilding } from './home/HomeCards';
 import { NamingRule } from './home/NamingRule';
 import { PressStart } from './home/PressStart';
-import { COMPONENT_GROUPS } from '../shell/navGroups';
+import { routeFor } from '../manifests';
+import { COMPONENT_GROUPS, groupManifests } from '../shell/navGroups';
 
-/** Where "Browse components" goes: the first component of the first sidebar group (Button, under Actions). */
-export const BROWSE_TARGET = NAV.find((item) => item.group === COMPONENT_GROUPS[0].label)!.to;
+/** Where "Browse components" goes: the first tile of the home page's first group (Button, under Actions). */
+export const BROWSE_TARGET = routeFor(groupManifests(COMPONENT_GROUPS[0])[0]!);
 
 /**
  * The Overview: the logo, tagline, buttons and four facts beside the quick start code; the Arcade's two games;

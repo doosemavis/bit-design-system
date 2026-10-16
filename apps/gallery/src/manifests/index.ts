@@ -32,7 +32,7 @@ import { tooltip } from './tooltip';
 import { menu } from './menu';
 import { navbar } from './navbar';
 
-/** Every manifest. The sidebar's groups and order come from shell/navGroups.ts, not from this list. */
+/** Every manifest. The sidebar lists them alphabetically under Components; the home page groups them by task (shell/navGroups.ts). */
 export const MANIFESTS: readonly Manifest[] = [button, badge, alert, card, stack, box, text, heading, spinner, modeToggle, bitTheme, link, code, codeBlock, segmentedControl, table, dialog, tabs, icon, iconButton, tooltip, menu, navbar, field, input, textarea, select, checkbox, radioGroup, switchManifest, slider, bitLogo];
 
 export function findManifest(slug: string): Manifest | undefined {
