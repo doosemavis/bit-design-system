@@ -1,6 +1,6 @@
 # Dark mode for bit: design
 
-**Status:** approved in brainstorming on 2026-10-03, section by section. Awaiting the owner's review of this written spec.
+**Status:** historical. Approved in brainstorming on 2026-10-03, section by section, and merged as PR #6 on 2026-10-03. This file is the dated record of the design and is not kept current. The current architecture is in [`/ARCHITECTURE.md`](../../../ARCHITECTURE.md).
 **Ships as:** its own PR, after PR1 (#5, merged) and before PR2 (nine new components). PR2's components are then built and tested in both modes from the start.
 **Visual reference:** the locked board is `~/.gstack/projects/doosemavis-bit-design-system/designs/dark-mode-20261003/board-v3.html`. Rounds 1–2 and `light-focus.html` record the options that were considered.
 

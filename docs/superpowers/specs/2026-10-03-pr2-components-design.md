@@ -1,6 +1,6 @@
 # PR2: nine new components, design
 
-**Status:** the looks were approved by the owner on boards on 2026-10-03, and the design in chat. This written spec awaits the owner's review.
+**Status:** historical. The looks were approved by the owner on boards on 2026-10-03, and the design in chat; merged as PR #8 on 2026-10-03. This file is the dated record of the design and is not kept current. The current architecture is in [`/ARCHITECTURE.md`](../../../ARCHITECTURE.md).
 
 **Ships as:** PR2, on branch `feat/components`, after the logo (#7, merged). Next comes PR3: final pages, the dogfooding lint, release, and the first npm publish.
 

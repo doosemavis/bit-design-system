@@ -2,6 +2,8 @@
 
 This repo is a pnpm workspace. Install its dependencies with `pnpm install` (run `corepack enable` once if you don't have pnpm). After that you can run any script with `npm run <name>` or `pnpm <name>`. `npm install` doesn't work inside this repo. People using the published package can install it with npm, pnpm or yarn.
 
+How bit is designed, and why, is in [ARCHITECTURE.md](ARCHITECTURE.md). Read it before changing a layer, a token tier or a convention, and update it in the same pull request when a decision changes.
+
 ## Working on bit
 
 Clone the repo, run `pnpm install`, then `npm run dev` to start the gallery at http://localhost:5173.

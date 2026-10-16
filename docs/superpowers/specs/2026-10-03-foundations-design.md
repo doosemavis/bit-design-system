@@ -1,6 +1,6 @@
 # Foundations: Heading, Box, and the Typography and Spacing pages, design
 
-**Status:** approved in brainstorming on 2026-10-03, on two boards. This written spec awaits the owner's review.
+**Status:** historical. Approved in brainstorming on 2026-10-03, on two boards, and merged as PR #9 on 2026-10-03. This file is the dated record of the design and is not kept current. The current architecture is in [`/ARCHITECTURE.md`](../../../ARCHITECTURE.md).
 
 **Ships as:** its own PR on `feat/foundations`, after PR2 (#8, merged) and before PR3, which brings the final pages, the dogfooding lint, the release and the first npm publish.
 

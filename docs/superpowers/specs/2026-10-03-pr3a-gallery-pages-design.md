@@ -1,6 +1,6 @@
 # PR3a: Gallery pages, design
 
-**Status:** approved in brainstorming on 2026-10-03 with one board. This written spec awaits the owner's review.
+**Status:** historical. Approved in brainstorming on 2026-10-03 with one board, and merged as PR #10 on 2026-10-03. This file is the dated record of the design and is not kept current. The current architecture is in [`/ARCHITECTURE.md`](../../../ARCHITECTURE.md).
 
 **Ships as:** its own PR on `feat/gallery-pages`. It is the first of three PRs that replace the original PR3:
 - **3a:** pages (this spec)
