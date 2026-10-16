@@ -19,28 +19,30 @@ bit is a React component library and design system built on a CSS core that does
 
 ## 2. System at a glance
 
-Data flows top to bottom. Each box is one layer; the outer boxes are package boundaries.
+Data flows top to bottom. Each box is one layer; the outer boxes are package boundaries. The gallery's Architecture page draws the same graph from `apps/gallery/src/pages/architecture/model.ts`, and a test fails if the two disagree.
 
 ```mermaid
 flowchart TB
   subgraph core["@bit-ds/core · private, inlined into @bit-ds/react at build"]
     direction TB
-    theme["Theme file · tier 1 palette<br/>private to the theme"]
-    tokens["Semantic tokens · tier 2<br/>the public API (SEMANTIC_TOKENS)"]
-    css["Component CSS · @layer bit.components<br/>BEM blocks and elements + shared decorators"]
-    theme --> tokens --> css
+    theme["Palette<br/>tier 1, private to the theme file"]
+    tokens["Semantic tokens<br/>tier 2, the public API (SEMANTIC_TOKENS)"]
+    css["Component CSS<br/>@layer bit.components · BEM blocks and elements + shared decorators"]
+    theme -->|maps onto| tokens
+    tokens -->|read by| css
   end
   subgraph published["@bit-ds/react · published on npm"]
-    react["React components<br/>emit the classes; own behavior, focus and ARIA"]
+    components["Components<br/>emit the classes; own behavior, focus and ARIA"]
   end
   angular["Future: @bit-ds/angular<br/>not built"]:::future
-  css --> react
-  css -.-> angular
-  react --> app["Consumer app"]
+  app["Your app<br/>imports a theme and the styles once"]
+  css -->|styles the classes| components
+  css -.->|would style| angular
+  components -->|imported by| app
   classDef future stroke-dasharray: 6 4
 ```
 
-- **Theme file** (`packages/core/src/themes/power-up.css`). Tier 1 is the raw palette (`--bit-palette-violet`), and only the theme file reads it. Tier 2 maps the palette onto roles (`--bit-color-primary: var(--bit-palette-violet)`). A dark block overrides exactly the tokens listed in `MODE_TOKENS`.
+- **Palette, in the theme file** (`packages/core/src/themes/power-up.css`). Tier 1 is the raw palette (`--bit-palette-violet`), and only the theme file reads it. Tier 2 maps the palette onto roles (`--bit-color-primary: var(--bit-palette-violet)`). A dark block overrides exactly the tokens listed in `MODE_TOKENS`.
 - **Semantic tokens** (`packages/core/src/tokens.ts`). `SEMANTIC_TOKENS` lists every public token name. A completeness test fails any theme that leaves one out.
 - **Component CSS** (`packages/core/src/components/*.css`). This CSS reads only tier-2 tokens and bit's private variables, never the palette. A system test fails if a component file isn't imported into `index.css` in the `bit.components` layer.
 - **`@bit-ds/react`** (`packages/react/src/`). It renders `bit-*` classes through one helper, `toClasses`, and owns everything CSS can't do: focus management, keyboard models, ARIA wiring and form behavior. Its build (tsup) inlines `@bit-ds/core`, so the published package's types and CSS stand alone.
