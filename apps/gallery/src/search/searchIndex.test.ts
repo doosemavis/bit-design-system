@@ -103,13 +103,13 @@ describe('searchEntries', () => {
     expect(sizes.map((entry) => entry.owner)).toEqual(sizes.map((entry) => entry.owner).sort());
     expect(searchEntries(INDEX, 'sl')).toEqual(searchEntries(INDEX, 'SL '));
   });
-  it('every entry is badged with its sidebar section; a prop takes its component\'s (Select props say Choice inputs)', () => {
+  it('every entry is badged with its sidebar section; a prop takes its component\'s (Select props say Components)', () => {
     const groupOf = new Map(NAV.map((item) => [item.to, item.group]));
     for (const entry of INDEX) {
       const page = entry.to.split('#')[0]!;
       expect(entry.group, entry.id).toBe(groupOf.get(page));
     }
-    expect(INDEX.find((entry) => entry.kind === 'prop' && entry.to.startsWith('/components/select#'))?.group).toBe('Choice inputs');
+    expect(INDEX.find((entry) => entry.kind === 'prop' && entry.to.startsWith('/components/select#'))?.group).toBe('Components');
     expect(INDEX.find((entry) => entry.kind === 'page' && entry.title === 'Spacing')).toMatchObject({ group: 'Foundations', detail: 'In Foundations' });
   });
 });

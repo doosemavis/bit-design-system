@@ -2,10 +2,10 @@ import { findManifest } from '../manifests';
 import type { Manifest } from '../manifests';
 
 /**
- * The components, grouped by the job they do, in sidebar order: what a reader reaches for first comes first.
- * Each group lists manifest slugs and holds seven at most, so a group reads at a glance. Every component (the
- * logo aside, which is Brand) is in exactly one group: Sidebar.test checks it, so a new manifest must be placed.
- * The home page's tiles follow the same groups and order.
+ * The components, grouped by the job they do, in the home page's order: what a reader reaches for first comes
+ * first. Each group lists manifest slugs and holds seven at most, so a group reads at a glance. Every component
+ * (the logo aside, which is Brand) is in exactly one group: HomePage.test checks it, so a new manifest must be
+ * placed. The sidebar doesn't use these groups: it lists every component under one Components section.
  */
 export const COMPONENT_GROUPS = [
   { label: 'Actions', slugs: ['button', 'iconbutton', 'menu'] },
