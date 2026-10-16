@@ -1,0 +1,63 @@
+/* Exempt from --bit-border-width for circle and square: a 2px line, like Badge, so a 32px Avatar keeps its
+   face. pixel takes the full border width. The pixel font reads large, so pixel's initials use sub-scale sizes. */
+/* Avatar: a person, as a photo or their initials, at the control height of its size. */
+.bit-avatar {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--_bit-size-height);
+  height: var(--_bit-size-height);
+  overflow: hidden;
+  border: 2px solid var(--bit-color-line);
+  border-radius: var(--bit-radius-full);
+  box-shadow: var(--bit-shadow-sm);
+  background: var(--_bit-color);
+  color: var(--_bit-color-contrast);
+  font-family: var(--bit-font-body);
+  font-size: var(--_bit-size-text);
+  font-weight: var(--bit-weight-bold);
+  line-height: 1;
+  vertical-align: middle;
+  user-select: none;
+}
+
+/* The initials and the photo share one cell; the photo comes later, so it covers them once it loads. */
+.bit-avatar__initials {
+  grid-area: 1 / 1;
+}
+
+.bit-avatar__image {
+  grid-area: 1 / 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bit-avatar[data-shape="square"] {
+  border-radius: var(--bit-radius-6px);
+}
+
+.bit-avatar[data-shape="pixel"] {
+  border-radius: 0;
+  border-width: var(--bit-border-width);
+  font-family: var(--bit-font-pixel);
+  letter-spacing: 0.04em;
+}
+
+.bit-avatar[data-shape="pixel"].bit-sm {
+  font-size: 8px;
+}
+
+.bit-avatar[data-shape="pixel"].bit-md {
+  font-size: 10px;
+}
+
+.bit-avatar[data-shape="pixel"].bit-lg {
+  font-size: 12px;
+}
+
+.bit-avatar.bit-flat {
+  box-shadow: none;
+}

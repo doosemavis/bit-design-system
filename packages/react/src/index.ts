@@ -8,6 +8,9 @@ export type { ButtonProps } from './components/Button/Button';
 export { Badge } from './components/Badge/Badge';
 export type { BadgeProps } from './components/Badge/Badge';
 
+export { Avatar } from './components/Avatar/Avatar';
+export type { AvatarProps } from './components/Avatar/Avatar';
+
 export { Alert } from './components/Alert/Alert';
 export type { AlertProps } from './components/Alert/Alert';
 

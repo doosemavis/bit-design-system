@@ -44,7 +44,7 @@ Versions and release notes: [all versions](https://doosemavis.github.io/bit-desi
 Every pull request runs all of this in CI ([workflow](https://github.com/doosemavis/bit-design-system/blob/main/.github/workflows/ci.yml)). Releases publish only from a tagged commit on `main`, and the release job runs the package checks again before publishing:
 
 - **Unit tests** (Vitest and Testing Library) for every component, with 100% statement, branch, function and line coverage on `@bit-ds/react`.
-- **Accessibility in unit tests:** all 32 components listed under [Components](#components) run [axe-core](https://github.com/dequelabs/axe-core) on what they render. Select and Menu are checked both closed and open, Navbar with its links in a row and folded into its Menu.
+- **Accessibility in unit tests:** all 33 components listed under [Components](#components) run [axe-core](https://github.com/dequelabs/axe-core) on what they render. Select and Menu are checked both closed and open, Navbar with its links in a row and folded into its Menu.
 - **Accessibility in a real browser:** Playwright opens every docs page in light and dark mode and fails on any axe violation of the WCAG 2.0, 2.1 and 2.2 A and AA rules.
 - **Keyboard and focus:** Select's keyboard model (arrows, Home and End, Page Up and Page Down, typeahead, Enter, Space, Escape, Tab) is tested key by key, along with where focus goes and how it behaves in a form (`required`, reset, `form="id"`). Menu's is too (opening keys, arrows that wrap, Home and End, typeahead, Enter, Space, Esc, Tab and Shift+Tab), with where focus lands each time.
 - **Dialog and Tabs:** Dialog is tested for focus moving in (to `data-autofocus`), Esc and the × closing it, focus returning to the opener, and an `alert` dialog ignoring clicks on the dimmed page; in a real browser, Playwright checks the page behind is inert and won't take focus. Tabs are tested for the one Tab stop, arrows (swapped right-to-left), Home and End, skipping disabled tabs, and manual activation.
@@ -167,6 +167,7 @@ The package is MIT. The icon artwork is Apache 2.0: Material Symbols by Google, 
 <p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 - **Actions and status:** Button, Badge, Alert, Spinner
+- **People:** Avatar, a photo or the person's initials
 - **Layout and type:** Card (+ CardHeader, CardBody, CardFooter), Stack, Box, Text, Heading
 - **Forms:** Field, Input, Textarea, Select, Checkbox, RadioGroup (+ Radio), Switch, Slider
 - **Content:** Link, Code, CodeBlock, Table (+ TableHead, TableBody, TableRow, TableCell)
@@ -187,6 +188,7 @@ Every one works in light and dark mode, and anything focusable shows the one foc
 - `Slider` is a native `<input type="range">` under the drawn track, so the arrow keys, Home, End, Page Up and Page Down move it, and `name` and form reset work. It takes `value` or `defaultValue`, `onValueChange(number)`, `min`, `max`, `step` and three looks: `variant="square"` (default), `"blocks"` (a health bar, one block per step, 20 at most) and `"round"` (with a value bubble while you drag or focus it). `formatValue` gives screen readers and the bubble the words for the value. Outside a Field, give it an `aria-label`.
 - `SegmentedControl` is native radios (checkboxes with `multiple`), so the arrow keys move the choice. With `multiple`, each segment is a Tab stop and Space toggles it.
 - `Link` takes `color="primary"` or `color="neutral"` only.
+- `Avatar` takes a required `name` (screen readers hear it, and the initials come from it) and an optional `src`. With no photo, or one that fails to load, the initials show. `shape` is `circle` (default), `square` or `pixel`; pass `aria-hidden` when the name is written beside it.
 - `CodeBlock` takes an optional `label` (default `` `${language} code` ``). Its code area is a named region, so give each CodeBlock a unique `label` when a page has several in the same language. A failed copy turns the Copy button solid danger red.
 
 ## Utilities

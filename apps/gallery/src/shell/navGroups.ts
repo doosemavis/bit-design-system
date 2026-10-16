@@ -11,7 +11,7 @@ export const COMPONENT_GROUPS = [
   { label: 'Actions', slugs: ['button', 'iconbutton', 'menu'] },
   { label: 'Text inputs', slugs: ['field', 'input', 'textarea'] },
   { label: 'Choice inputs', slugs: ['checkbox', 'radiogroup', 'segmentedcontrol', 'select', 'slider', 'switch'] },
-  { label: 'Feedback', slugs: ['alert', 'badge', 'dialog', 'spinner', 'tooltip'] },
+  { label: 'Feedback', slugs: ['alert', 'avatar', 'badge', 'dialog', 'spinner', 'tooltip'] },
   { label: 'Navigation', slugs: ['link', 'navbar', 'tabs'] },
   { label: 'Layout', slugs: ['box', 'card', 'stack', 'table'] },
   { label: 'Type', slugs: ['code', 'codeblock', 'heading', 'text'] },
