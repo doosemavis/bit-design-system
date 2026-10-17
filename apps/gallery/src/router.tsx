@@ -10,6 +10,7 @@ import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 // Pages other than home are lazy so the first paint ships only the shell and home.
+const ArchitecturePage = lazy(() => import('./pages/ArchitecturePage').then((m) => ({ default: m.ArchitecturePage })));
 const TokensPage = lazy(() => import('./pages/TokensPage').then((m) => ({ default: m.TokensPage })));
 const TypographyPage = lazy(() => import('./pages/TypographyPage').then((m) => ({ default: m.TypographyPage })));
 const SpacingPage = lazy(() => import('./pages/SpacingPage').then((m) => ({ default: m.SpacingPage })));
@@ -65,6 +66,7 @@ export function buildRoutes(): RouteObject[] {
             lazyPage('versions', <VersionsPage />, <PageLoading name="Versions" />),
             lazyPage('accessibility', <AccessibilityPage />, <PageLoading name="Accessibility" />),
             lazyPage('release-notes', <ReleaseNotesPage />, <PageLoading name="Release notes" />),
+            lazyPage('architecture', <ArchitecturePage />, <PageLoading name="Architecture" />),
             lazyPage('tokens', <TokensPage />, <PageLoading name="Tokens" />),
             lazyPage('typography', <TypographyPage />, <PageLoading name="Typography" />),
             lazyPage('spacing', <SpacingPage />, <PageLoading name="Spacing" />),

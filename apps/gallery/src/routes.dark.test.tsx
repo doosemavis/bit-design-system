@@ -20,4 +20,10 @@ describe('dark mode', () => {
     const dark = within(screen.getByRole('banner')).getByRole('button', { name: 'Dark' });
     expect(dark).toHaveAttribute('aria-pressed', 'true');
   });
+
+  it('the Architecture diagram draws the palette for the mode on screen: dark', async () => {
+    renderAt('/architecture');
+    await screen.findByRole('heading', { level: 1, name: 'Architecture' });
+    expect(screen.getByRole('list', { name: 'Palette colors behind the five fills, dark mode' })).toBeInTheDocument();
+  });
 });

@@ -10,6 +10,7 @@ export const PAGE_ROUTES = [
   ['/versions', 'Versions'],
   ['/accessibility', 'Accessibility'],
   ['/release-notes', 'Release notes'],
+  ['/architecture', 'Architecture'],
   ['/tokens', 'Tokens'],
   ['/typography', 'Typography'],
   ['/spacing', 'Spacing'],

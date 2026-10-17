@@ -34,6 +34,7 @@ describe('surfaces: the hard shadow is only on what you press', () => {
   it.each([
     ['/getting-started', 'Getting started'],
     ['/release-notes', 'Release notes'],
+    ['/architecture', 'Architecture'],
     ['/tokens', 'Tokens'],
     ['/typography', 'Typography'],
     ['/spacing', 'Spacing'],

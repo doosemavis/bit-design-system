@@ -64,6 +64,7 @@ describe('PageError', () => {
       'versions',
       'accessibility',
       'release-notes',
+      'architecture',
       'tokens',
       'typography',
       'spacing',

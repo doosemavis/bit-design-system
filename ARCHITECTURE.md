@@ -19,28 +19,30 @@ bit is a React component library and design system built on a CSS core that does
 
 ## 2. System at a glance
 
-Data flows top to bottom. Each box is one layer; the outer boxes are package boundaries.
+Data flows top to bottom. Each box is one layer; the outer boxes are package boundaries. The gallery's Architecture page draws the same graph from `apps/gallery/src/pages/architecture/model.ts`, and a test fails if the two disagree.
 
 ```mermaid
 flowchart TB
   subgraph core["@bit-ds/core · private, inlined into @bit-ds/react at build"]
     direction TB
-    theme["Theme file · tier 1 palette<br/>private to the theme"]
-    tokens["Semantic tokens · tier 2<br/>the public API (SEMANTIC_TOKENS)"]
-    css["Component CSS · @layer bit.components<br/>BEM blocks and elements + shared decorators"]
-    theme --> tokens --> css
+    theme["Palette<br/>tier 1, private to the theme file"]
+    tokens["Semantic tokens<br/>tier 2, the public API (SEMANTIC_TOKENS)"]
+    css["Component CSS<br/>@layer bit.components · BEM blocks and elements + shared decorators"]
+    theme -->|maps onto| tokens
+    tokens -->|read by| css
   end
   subgraph published["@bit-ds/react · published on npm"]
-    react["React components<br/>emit the classes; own behavior, focus and ARIA"]
+    components["Components<br/>emit the classes; own behavior, focus and ARIA"]
   end
   angular["Future: @bit-ds/angular<br/>not built"]:::future
-  css --> react
-  css -.-> angular
-  react --> app["Consumer app"]
+  app["Your app<br/>imports a theme and the styles once"]
+  css -->|styles the classes| components
+  css -.->|would style| angular
+  components -->|imported by| app
   classDef future stroke-dasharray: 6 4
 ```
 
-- **Theme file** (`packages/core/src/themes/power-up.css`). Tier 1 is the raw palette (`--bit-palette-violet`), and only the theme file reads it. Tier 2 maps the palette onto roles (`--bit-color-primary: var(--bit-palette-violet)`). A dark block overrides exactly the tokens listed in `MODE_TOKENS`.
+- **Palette, in the theme file** (`packages/core/src/themes/power-up.css`). Tier 1 is the raw palette (`--bit-palette-violet`), and only the theme file reads it. Tier 2 maps the palette onto roles (`--bit-color-primary: var(--bit-palette-violet)`). A dark block overrides exactly the tokens listed in `MODE_TOKENS`.
 - **Semantic tokens** (`packages/core/src/tokens.ts`). `SEMANTIC_TOKENS` lists every public token name. A completeness test fails any theme that leaves one out.
 - **Component CSS** (`packages/core/src/components/*.css`). This CSS reads only tier-2 tokens and bit's private variables, never the palette. A system test fails if a component file isn't imported into `index.css` in the `bit.components` layer.
 - **`@bit-ds/react`** (`packages/react/src/`). It renders `bit-*` classes through one helper, `toClasses`, and owns everything CSS can't do: focus management, keyboard models, ARIA wiring and form behavior. Its build (tsup) inlines `@bit-ds/core`, so the published package's types and CSS stand alone.
@@ -85,12 +87,12 @@ Six choices define bit's kind. Each row says what we chose, what we turned down,
 
 | Axis | bit's choice | Rejected alternatives | Why | Cost we accept | Revisit when |
 | --- | --- | --- | --- | --- | --- |
-| **Implementation model** | A shared CSS core plus one implementation per framework (React today) | Web Components; React and Angular at once; CSS only | "Fastest path to a good v1" (spec §12, Frameworks). CSS alone can't enforce keyboard behavior or ARIA. Web Components would put ARIA ID references (`aria-labelledby`, `aria-controls`) behind shadow roots they can't cross, and theming and SSR need extra work across Shadow DOM. | Every framework needs its own behavior layer, written and tested again. | A second framework is actually needed. |
-| **Distribution** | One published package, `@bit-ds/react`, with the core inlined; no runtime dependencies; React 19 as a peer | Per-component packages; copy-in source (shadcn style) | One maintainer gets one version to reason about. Copied-in source doesn't receive fixes. Zero dependencies since 0.1.3 (commit `f3fd5eb`), checked by `verify-dist.mjs`. | Consumers can't pin one component's version; they take the whole package. | A second framework package needs `@bit-ds/core` published on its own. |
-| **Tokens** | Three tiers as runtime CSS custom properties, written by hand, with no token build pipeline | Style Dictionary (JSON source to many outputs) | There is one output target: CSS. A completeness test, a per-mode contrast test and a frozen-value test (`px-rename.test.ts`) guard the hand-written file. | No JSON source of truth; tokens can't be exported to other platforms. | A second platform target exists: a Tailwind preset, native apps, or a Figma variables sync. |
-| **Styling** | Plain CSS in cascade layers; BEM-style blocks and elements; shared decorators instead of BEM modifiers | Runtime CSS-in-JS; utility-first classes; Shadow DOM | Plain CSS has no runtime cost and works with React Server Components. Utility-first would make the consumer's markup the API. Layers let any unlayered consumer style win without `!important` (CHANGELOG 0.1.9). | Selectors need discipline that a scoped style system would enforce for us. bit's guard tests do that job instead. | A consumer needs style isolation that layers can't give. |
-| **Component API** | Configuration through three shared axes (`color`, `variant`, `size`), plus composition through compound parts and `asChild` | Per-component prop vocabularies; render props | One vocabulary at every layer is the naming rule (spec §2). Union types catch a wrong value at compile time. At run time, an unknown value is dropped with a dev-only warning, and nothing throws. | Some components can't take every axis value, and plain-JS callers get a warning, not an error. | A component needs an option that doesn't fit an axis. Then it gets its own prop, as `Slider`'s `variant` did. |
-| **Governance** | Centralized, with one maintainer. The contribution recipes in CONTRIBUTING (add a component, a color, a theme, an icon) are checked by CI, not only by review. | Federated contributions from product teams | bit has one maintainer. The recipes fail loudly when a step is missed: theme completeness, the class contract, the manifest contract, `expected-exports.mjs`, the icon drift test. | Throughput is one person. | A second team contributes components. |
+| **Implementation model** | A shared CSS core plus one implementation per framework (React today) | Web Components; React and Angular at once; CSS only | "Fastest path to a good v1" ([spec §12](docs/superpowers/specs/2026-09-06-bit-design-system-design.md#12-decisions-log), Frameworks). CSS alone can't enforce keyboard behavior or ARIA. Web Components would put ARIA ID references (`aria-labelledby`, `aria-controls`) behind shadow roots they can't cross, and theming and SSR need extra work across Shadow DOM. | Every framework needs its own behavior layer, written and tested again. | A second framework is actually needed. |
+| **Distribution** | One published package, `@bit-ds/react`, with the core inlined; no runtime dependencies; React 19 as a peer | Per-component packages; copy-in source (shadcn style) | One maintainer gets one version to reason about. Copied-in source doesn't receive fixes. Zero dependencies since 0.1.3 (commit [`f3fd5eb`](https://github.com/doosemavis/bit-design-system/commit/f3fd5eb)), checked by [`verify-dist.mjs`](packages/react/scripts/verify-dist.mjs). | Consumers can't pin one component's version; they take the whole package. | A second framework package needs `@bit-ds/core` published on its own. |
+| **Tokens** | Three tiers as runtime CSS custom properties, written by hand, with no token build pipeline | Style Dictionary (JSON source to many outputs) | There is one output target: CSS. A completeness test, a per-mode contrast test and a frozen-value test ([`px-rename.test.ts`](packages/core/src/__tests__/px-rename.test.ts)) guard the hand-written file. | No JSON source of truth; tokens can't be exported to other platforms. | A second platform target exists: a Tailwind preset, native apps, or a Figma variables sync. |
+| **Styling** | Plain CSS in cascade layers; BEM-style blocks and elements; shared decorators instead of BEM modifiers | Runtime CSS-in-JS; utility-first classes; Shadow DOM | Plain CSS has no runtime cost and works with React Server Components. Utility-first would make the consumer's markup the API. Layers let any unlayered consumer style win without `!important` ([CHANGELOG 0.1.9](CHANGELOG.md#019--2026-10-10)). | Selectors need discipline that a scoped style system would enforce for us. bit's guard tests do that job instead. | A consumer needs style isolation that layers can't give. |
+| **Component API** | Configuration through three shared axes (`color`, `variant`, `size`), plus composition through compound parts and `asChild` | Per-component prop vocabularies; render props | One vocabulary at every layer is the naming rule ([spec §2](docs/superpowers/specs/2026-09-06-bit-design-system-design.md#2-the-naming-rule)). Union types catch a wrong value at compile time. At run time, an unknown value is dropped with a dev-only warning, and nothing throws. | Some components can't take every axis value, and plain-JS callers get a warning, not an error. | A component needs an option that doesn't fit an axis. Then it gets its own prop, as `Slider`'s `variant` did. |
+| **Governance** | Centralized, with one maintainer. The contribution recipes in [CONTRIBUTING](CONTRIBUTING.md) (add a component, a color, a theme, an icon) are checked by CI, not only by review. | Federated contributions from product teams | bit has one maintainer. The recipes fail loudly when a step is missed: theme completeness, the class contract, the manifest contract, [`expected-exports.mjs`](packages/react/scripts/expected-exports.mjs), the icon drift test. | Throughput is one person. | A second team contributes components. |
 
 Four rules sit under the component API row:
 

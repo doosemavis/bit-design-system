@@ -61,9 +61,9 @@ describe('Sidebar', () => {
     expect(groups).toEqual(['Start here', 'Foundations', 'Components', 'Brand']);
   });
 
-  it('Foundations lists the guide pages: Spacing, Tokens, then Typography', () => {
+  it('Foundations lists the guide pages: Architecture, Spacing, Tokens, then Typography', () => {
     renderSidebar(NAV);
-    expect(linksUnder('Foundations')).toEqual(['Spacing', 'Tokens', 'Typography']);
+    expect(linksUnder('Foundations')).toEqual(['Architecture', 'Spacing', 'Tokens', 'Typography']);
     expect(screen.getByRole('link', { name: 'Typography' })).toHaveAttribute('href', '/typography');
     expect(screen.getByRole('link', { name: 'Spacing' })).toHaveAttribute('href', '/spacing');
   });

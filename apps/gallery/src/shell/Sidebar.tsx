@@ -29,6 +29,7 @@ export const NAV: readonly NavItem[] = [
   { group: 'Start here', label: 'Versions', to: '/versions' },
   { group: 'Start here', label: 'Accessibility', to: '/accessibility' },
   { group: 'Start here', label: 'Release notes', to: '/release-notes' },
+  { group: 'Foundations', label: 'Architecture', to: '/architecture' },
   { group: 'Foundations', label: 'Spacing', to: '/spacing' },
   { group: 'Foundations', label: 'Tokens', to: '/tokens' },
   { group: 'Foundations', label: 'Typography', to: '/typography' },
