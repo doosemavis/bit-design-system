@@ -2,6 +2,13 @@
 
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
+## 0.1.10 — 2026-10-17
+### Added
+- `Avatar`: a person, as a photo or their initials. `name` is required: screen readers hear it (the Avatar is one `role="img"`), and the initials come from it, the first letter of the first and last word. New exports: `Avatar`, `AvatarProps`.
+- Avatar `src`: a photo over the initials. A photo that fails to load is dropped, so no broken-image icon shows, and a new `src` is tried again.
+- Avatar `color` (`neutral` by default), `size` (32, 40 and 48px, the control heights, so an Avatar lines up with a Button) and `flat`.
+- Avatar `shape` (`data-shape`): `circle` (the default), `square` (6px corners) or `pixel` (square corners and the pixel font).
+
 ## 0.1.9 — 2026-10-10
 ### Added
 - `Slider`: pick a number on a range, on a native `<input type="range">`. Three looks: `variant="square"` (a square thumb), `"blocks"` (a health bar, one block per step, 20 at most) and `"round"` (a round thumb with a value bubble). Takes `min`, `max`, `step`, `value`/`defaultValue`/`onValueChange`, `formatValue` (read as `aria-valuetext` and shown in the bubble), `color`, `size`, `invalid`, `readOnly`, `disabled`, `name` and `form`, and joins a Field.
