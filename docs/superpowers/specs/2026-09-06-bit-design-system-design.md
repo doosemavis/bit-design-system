@@ -1,7 +1,7 @@
 # bit design system — design spec
 
 **Date:** 2026-09-06
-**Status:** approved in brainstorming, pending written review
+**Status:** historical. Approved in brainstorming on 2026-09-06 as the v1 design, then built and shipped as `@bit-ds/react` 0.1.0 on 2026-10-04. This file is the dated record of the plan and is not kept current. Dated _Superseded_ notes mark where the build moved away from it. The current architecture is in [`/ARCHITECTURE.md`](../../../ARCHITECTURE.md), and where the two disagree, ARCHITECTURE.md and the code win.
 **Repo:** `github.com/doosemavis/bit-design-system` (public, MIT)
 
 ## 1. Purpose and constraints
@@ -13,9 +13,9 @@ Its visual identity is retro video games. The system ships **themes**, one per r
 Constraints that shaped every decision below:
 
 - **Demo and portfolio purposes.** Optimize for clarity and showing the conventions off, not for production hardening (no i18n, no RTL, no SSR edge cases in v1).
-- **Junior-first naming.** One vocabulary at every layer. No themed component names, no abbreviations, no value-based token names.
+- **Junior-first naming.** One vocabulary at every layer. No themed component names, no abbreviations, no value-based token names.  _Superseded (2026-10-03, D13): space, radius and text tokens are named by their value (`--bit-space-16px`); see §3.2._
 - **React only in v1.** Tokens and component CSS live in a framework-agnostic package so a second framework can be added later without a rewrite.
-- **Open source, unpublished for now.** Packages carry `"private": true` until a publish decision is made.
+- **Open source, unpublished for now.** Packages carry `"private": true` until a publish decision is made.  _Superseded (2026-10-04, 0.1.0): `@bit-ds/react` is public on npm, published with provenance (`publishConfig` in `packages/react/package.json`). `@bit-ds/core` stays private and is inlined at build._
 
 ## 2. The naming rule
 
@@ -70,7 +70,7 @@ Raw values named by what they are. Each theme defines its own set; only that the
 
 ### 3.2 Tier 2: semantic (the public API)
 
-Grammar: `--bit-{category}-{role}[-{modifier}]`. This is the complete list. Every theme must define every name; a test enforces it (§8.3).
+Grammar: `--bit-{category}-{role}[-{modifier}]`. This is the complete list. Every theme must define every name; a test enforces it (§8.3).  _Superseded (2026-10-10, 0.1.9): `SEMANTIC_TOKENS` in `packages/core/src/tokens.ts` is the canonical list, and the tables below are out of date. The changes are in the notes under each table._
 
 **Color**
 
@@ -87,17 +87,17 @@ Grammar: `--bit-{category}-{role}[-{modifier}]`. This is the complete list. Ever
 | `--bit-color-{color}-hover` | fill on hover |
 | `--bit-color-{color}-soft` | tinted background (alerts, ghost hover) |
 
-`{color}` ∈ `primary | neutral | success | warning | danger` (4 tokens × 5 colors = 20).
+`{color}` ∈ `primary | neutral | success | warning | danger` (4 tokens × 5 colors = 20).  _Superseded (2026-10-03, dark mode and PR2): new roles `line`, `shadow` and `selection`, plus component color roles `accent`, `link`, `link-visited`, `danger-text`, `warning-text` (0.1.9), `knob`, `stripe` and `code-text`. `--bit-color-focus` became `--bit-focus-ring-color`, `-width` and `-offset` (`tokens.test.ts` checks that it's gone)._
 
 **Shape** (this is where the retro look lives)
 
 | Token | power-up value |
 |---|---|
 | `--bit-border-width` | `3px` |
-| `--bit-radius-sm` / `-md` / `-lg` / `-full` | `6px` / `10px` / `14px` / `999px` |
+| `--bit-radius-sm` / `-md` / `-lg` / `-full` | `6px` / `10px` / `14px` / `999px`  _Superseded (2026-10-03, D13): `--bit-radius-6px`, `-10px`, `-14px`, and `-full` for the pill._ |
 | `--bit-shadow-sm` / `-md` / `-lg` | `2px 2px 0 ink` / `4px 4px 0 ink` / `6px 6px 0 ink` |
 | `--bit-shadow-inset` | `inset 3px 3px 0 rgba(ink, .12)` on inputs |
-| `--bit-gloss` | `inset 0 3px 0 rgba(255,255,255,.4)` highlight lip on buttons |
+| `--bit-gloss` | `inset 0 3px 0 rgba(255,255,255,.4)` highlight lip on buttons  _Superseded (2026-10-03, dark mode spec): removed; buttons are flat (`tokens.test.ts` checks that it's gone)._ |
 
 **Typography**
 
@@ -110,7 +110,9 @@ Grammar: `--bit-{category}-{role}[-{modifier}]`. This is the complete list. Ever
 | `--bit-leading-tight` / `-normal` | `1.1` / `1.5` |
 | `--bit-weight-normal` / `-bold` | `600` / `800` |
 
-**Space**: `--bit-space-1` … `--bit-space-8` = `4, 8, 12, 16, 24, 32, 48, 64px`.
+_Superseded (2026-10-10, 0.1.8): text tokens are named in px on an even scale, `--bit-text-14px` to `--bit-text-40px` (11, 13 and 15 are deprecated aliases). Heading has its own scale, `--bit-heading-20px` to `--bit-heading-44px`. `--bit-font-mono` was added for code._
+
+**Space**: `--bit-space-1` … `--bit-space-8` = `4, 8, 12, 16, 24, 32, 48, 64px`.  _Superseded (2026-10-03, D13): `--bit-space-4px` … `--bit-space-64px`, same values. The frozen table in `packages/core/src/__tests__/px-rename.test.ts` proves the rename changed no rendered size. Decision record: `docs/superpowers/plans/2026-09-13-gallery.md` (D13, §C)._
 
 **Controls** (shared by Button, Input, Select, etc.)
 
@@ -125,7 +127,7 @@ Grammar: `--bit-{category}-{role}[-{modifier}]`. This is the complete list. Ever
 |---|---|
 | `--bit-press-offset` | how far a pressed control translates (`2px`) |
 | `--bit-duration-fast` / `-normal` | `80ms` / `160ms` |
-| `--bit-motion-power-up` | keyframe name for the stepped grow (§7) |
+| `--bit-motion-power-up` | keyframe name for the stepped grow (§7)  _Superseded (2026-09-08, phase 1): never shipped as a token (`tokens.test.ts` checks that it's absent)._ |
 
 ### 3.3 Tier 3: component tokens
 
@@ -163,7 +165,7 @@ Adding a variant to one component = add it to that array + add a CSS rule in the
 - Appends the caller's `className` **last**, so `<Button className="bit-danger">` overrides the default color.
 - Forwards its `ref` to the root DOM node.
 - Spreads unknown props onto the root DOM node.
-- Booleans become **attributes, never classes**: native where they exist (`disabled`, `aria-invalid`), `data-` otherwise (`data-loading`, Radix's `data-state`).
+- Booleans become **attributes, never classes**: native where they exist (`disabled`, `aria-invalid`), `data-` otherwise (`data-loading`, Radix's `data-state`).  _Superseded (2026-10-08, 0.1.6): no Radix, so no `data-state`. Two shipped boolean classes, `bit-flat` and `bit-iconFilled`, break this rule and are kept until 0.2.0 (CONTRIBUTING "Conventions")._
 - Compound parts are **separate named exports** (`Card`, `CardHeader`, `CardBody`, `CardFooter`), each mapping to a BEM element class.
 - Form controls shadow the native `size` attribute; ours means sm / md / lg.
 - Layout-only props (Stack direction, gap) are `data-` attributes, not decorators, because they are not design axes.
@@ -171,21 +173,25 @@ Adding a variant to one component = add it to that array + add a CSS rule in the
 
 ### 4.3 The 20 components
 
+_Superseded (2026-10-10, 0.1.9): the table below has 21 rows. 32 components shipped. Modal shipped as **Dialog** on the native `<dialog>` and `showModal()` (0.1.5). Avatar is not built yet and is still planned. Added: Box, Heading, Slider, Link, Code, CodeBlock, SegmentedControl, ModeToggle, BitTheme, Navbar, Icon and IconButton. The current list is the README's "Components" section and `packages/react/src/index.ts`. No Phase 3 component uses Radix._
+
+_Superseded (2026-10-16, PR #76): Avatar is built, so 33 components. It takes `src` and `name` with the initials fallback, as planned, plus `shape` (circle, square, pixel). It doesn't use Radix Avatar: the component drops a photo that fails to load itself. It isn't in a published release yet._
+
 | Component | color | variant | size | Notes |
 |---|---|---|---|---|
 | **Phase 1: Foundation** | | | | |
-| Button | ✓ default `primary` | ✓ | ✓ | `loading` → `data-loading`; `asChild` via Radix Slot |
+| Button | ✓ default `primary` | ✓ | ✓ | `loading` → `data-loading`; `asChild` via Radix Slot  _Superseded (2026-10-06, 0.1.3): bit's own `createSlot` (`packages/react/src/system/Slot.tsx`) keeps the Radix Slot rules, pinned by tests first, with no runtime dependency._ |
 | Badge | ✓ default `neutral` | solid, outline | sm, md | |
 | Alert | ✓ default `neutral` | solid, outline | | `title` prop; outline uses `-soft` bg |
 | Card | | solid, outline | | `CardHeader`, `CardBody`, `CardFooter` |
 | Stack | | | | `direction`, `gap`, `align`, `justify`, `wrap` as data attrs |
-| Text | muted via color `neutral` | | xs … 2xl | `as` (p, span, h1–h6), `weight` |
+| Text | muted via color `neutral` | | xs … 2xl | `as` (p, span, h1–h6), `weight`  _Superseded (2026-10-10, 0.1.8): `size` is 14 to 40 in px; `as` is deprecated, and titles use Heading._ |
 | Spinner | ✓ | | ✓ | `aria-label` required |
 | BitLogo | | | ✓ | see §7 |
 | **Phase 2: Forms** (native elements, styled) | | | | |
 | Input | | | ✓ | `invalid` → `aria-invalid` |
 | Textarea | | | ✓ | |
-| Select | | | ✓ | native `<select>` + chevron |
+| Select | | | ✓ | native `<select>` + chevron  _Superseded (2026-10-07, 0.1.4): a bit-drawn WAI-ARIA select-only combobox (`role="combobox"` plus a `role="listbox"` in the top layer). Hidden native inputs carry the value for forms. `multiple` was added in 0.1.5. See `docs/superpowers/specs/2026-10-07-select-dropdown-design.md`._ |
 | Checkbox | | | ✓ | native input, `appearance: none` |
 | RadioGroup / Radio | | | ✓ | group supplies `name`, layout |
 | Switch | | | ✓ | native checkbox with `role="switch"` |
@@ -201,13 +207,13 @@ Adding a variant to one component = add it to that array + add a CSS rule in the
 ## 5. Theming
 
 - **A theme is one CSS file** that defines its primitives and the complete semantic set under `[data-theme="{name}"]`. The first theme is also applied to `:root`, so a consumer with no attribute set still gets a fully styled app.
-- **Switching** is one attribute on the root element. No JavaScript required. Storybook gets a toolbar dropdown.  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
+- **Switching** is one attribute on the root element. No JavaScript required.  _Superseded (2026-10-10, 0.1.9): a class (`bit-theme-<name>`, `bit-light`, `bit-dark`) or the attribute, on the root or on any element; `<BitTheme>` themes a subtree._ Storybook gets a toolbar dropdown.  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
 - **Names are descriptive, never trademarks.** `power-up`, not `mario`.
 - **Effects are tokens even when unwanted.** A flat theme sets `--bit-gloss: none` and `--bit-shadow-md: none`. Component CSS never knows which theme is active.
-- **Fonts ship with the theme.** Each theme file starts with the Google Fonts `@import` for its faces. All power-up faces (Lilita One, Nunito, Press Start 2P, Bungee for the logo) are SIL Open Font License. Self-hosting is a Phase 4 improvement.
+- **Fonts ship with the theme.** Each theme file starts with the Google Fonts `@import` for its faces. All power-up faces (Lilita One, Nunito, Press Start 2P, Bungee for the logo) are SIL Open Font License. Self-hosting is a Phase 4 improvement.  _Superseded (2026-10-06, 0.1.3): fonts are self-hosted from the package (`themes/fonts/`), with no third-party request._
 - **Completeness is tested.** See §8.3.
 - **Adding a theme:** copy `power-up.css`, change values, run the test, add it to the package `exports`.
-- **Dark mode is reserved, not built:** a second attribute `data-mode="dark"` layered under the theme. v1 ships light only.
+- **Dark mode is reserved, not built:** a second attribute `data-mode="dark"` layered under the theme. v1 ships light only.  _Superseded (2026-10-03, PR #6): dark mode ("Arcade Night") shipped before 0.1.0; `data-mode="system"` follows the OS in CSS alone (0.1.1)._
 
 ### 5.1 power-up theme direction (approved mockup: "C · Power-Up")
 
@@ -227,7 +233,7 @@ bit-design-system/
 │   │       ├── system/               reset.css, colors.css, sizes.css, motion.css
 │   │       ├── components/           button.css, card.css, … one per component
 │   │       └── index.css             imports system + every component file
-│   └── react/                    @bit-ds/react  inlines core at build (core is a devDependency), depends on Radix; React is a peer dep
+│   └── react/                    @bit-ds/react  inlines core at build (core is a devDependency), depends on Radix; React is a peer dep  _Superseded (2026-10-06, 0.1.3): zero runtime dependencies._
 │       └── src/
 │           ├── system/               axes.ts (unions), toClasses(), warnUnknown()
 │           ├── components/           Button/Button.tsx, Button.test.tsx, Button.stories.tsx
@@ -243,10 +249,10 @@ bit-design-system/
 
 **Package contract for `@bit-ds/react`:**
 
-- `exports`: `.`, `./styles.css` (core index), `./themes/*.css`
+- `exports`: `.`, `./styles.css` (core index), `./themes/*.css`  _Superseded (2026-10-08, 0.1.6): adds `./icons.css` (opt-in icon classes) and `./package.json`._
 - `sideEffects: ["*.css"]`
 - `peerDependencies`: `react`, `react-dom`
-- `"private": true` until a publish decision
+- `"private": true` until a publish decision  _Superseded (2026-10-04, 0.1.0): public, with `publishConfig.provenance`. `verify-dist.mjs` checks the package has no `dependencies`._
 
 Consumer experience, the whole thing:
 
@@ -282,7 +288,7 @@ The wordmark is `#-bit`. **`-bit` never changes**; the number cycles through con
 
 ## 8. Testing and error handling
 
-Every component ships three sibling files: `X.tsx`, `X.test.tsx`, `X.stories.tsx`. Tests are written first (TDD). Coverage threshold **80%**, enforced in CI.
+Every component ships three sibling files: `X.tsx`, `X.test.tsx`, `X.stories.tsx`. Tests are written first (TDD). Coverage threshold **80%**, enforced in CI.  _Superseded (2026-10-04, PR3c): no stories; each component has a gallery manifest instead. The 80% CI gate still stands (`packages/react/vitest.config.ts`). Measured coverage on `@bit-ds/react` at `6e9a745`: 100% of lines and functions, 99.85% of statements, 99.42% of branches._
 
 ### 8.1 Per-component unit tests (Vitest + RTL)
 
@@ -293,7 +299,7 @@ Every component ships three sibling files: `X.tsx`, `X.test.tsx`, `X.stories.tsx
 
 ### 8.2 Accessibility tests
 
-`vitest-axe` against every component's default render and each color × variant. Contrast failures in a theme fail the build.
+`vitest-axe` against every component's default render and each color × variant. Contrast failures in a theme fail the build.  _Superseded (2026-10-10, 0.1.9): axe-core directly in unit tests (Select and Menu open and closed); Playwright runs axe on every docs page in light and dark against WCAG 2.0, 2.1 and 2.2 A and AA; contrast is computed from the theme tokens in both modes; forced-colors runs; a published-package smoke test (README "How it's tested", `.github/workflows/ci.yml`)._
 
 ### 8.3 System tests (guard the conventions)
 
@@ -312,7 +318,7 @@ Each phase gets its own implementation plan.
 1. **Foundation.** Repo scaffold, tooling, core system CSS, power-up theme, `tokens.ts`, axes + `toClasses`, Button, Badge, Alert, Card, Stack, Text, Spinner, BitLogo, Storybook with theme switcher, CI (typecheck, test, axe), README, CONTRIBUTING, LICENSE.  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
 2. **Forms.** Input, Textarea, Select, Checkbox, RadioGroup, Switch, Field.
 3. **Interactive.** Modal, Tabs, Tooltip, Menu, Avatar, Table.
-4. **Distribution (documented, not built in v1).** Changesets + GitHub Actions publish, Style Dictionary token pipeline (JSON source → CSS / TS / Tailwind preset), Storybook deploy + Chromatic, `npx bit init`, self-hosted fonts, dark mode, canary builds.  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
+4. **Distribution (documented, not built in v1).**  _Superseded (2026-10-04 to 2026-10-10): **built:** a tag-triggered release with manual approval, a tarball hash check, provenance and a post-publish integrity check (`.github/workflows/release.yml`); self-hosted fonts; dark mode; a versioned docs site. **Not built:** Changesets, Style Dictionary, Chromatic, `npx bit init`, canary builds._ Changesets + GitHub Actions publish, Style Dictionary token pipeline (JSON source → CSS / TS / Tailwind preset), Storybook deploy + Chromatic, `npx bit init`, self-hosted fonts, dark mode, canary builds.  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
 
 ## 10. Repo hygiene (Phase 1)
 
@@ -320,7 +326,7 @@ MIT license. README with the animated logo and the three-line install. `CONTRIBU
 
 ## 11. Out of scope for v1
 
-Angular or other frameworks, dark mode, i18n / RTL, npm publishing, Style Dictionary, IconButton, Toast, visual regression testing.
+Angular or other frameworks, dark mode, i18n / RTL, npm publishing, Style Dictionary, IconButton, Toast, visual regression testing.  _Superseded (2026-10-08): dark mode, npm publishing and IconButton shipped. The rest is still out of scope; the README says there is no visual-regression suite yet._
 
 ## 12. Decisions log
 
@@ -329,12 +335,18 @@ Angular or other frameworks, dark mode, i18n / RTL, npm publishing, Style Dictio
 | Naming methodology | one-vocabulary decorators + BEM block/element | pure BEM modifiers, utility-first, themed vocabulary | junior readability; grep-ability across layers |
 | Element case | `bit-card__header` | `bit-cardHeader` | kebab is the HTML/CSS norm; silent case typos |
 | Frameworks | React v1, CSS core separable | Web Components, React+Angular now | fastest path to a good v1 |
-| Interactive a11y | Radix Primitives | hand-rolled | weeks saved, fewer a11y bugs, documented |
+| Interactive a11y | Radix Primitives | hand-rolled | weeks saved, fewer a11y bugs, documented. _Superseded (2026-10-06, 0.1.3): see "Interactive behavior" below._ |
 | Repo shape | pnpm monorepo, 2 packages + docs app | single package, Style Dictionary now | smallest layout that keeps the separation |
 | Docs | Storybook 9 | custom Vite playground | autodocs from types; juniors know it. _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._ |
-| Form controls | styled native elements | Radix Select/Checkbox | simpler, accessible by default |
+| Form controls | styled native elements | Radix Select/Checkbox | simpler, accessible by default. _Superseded (2026-10-07, 0.1.4) for Select only: see "Select" below. The other form controls are still styled native elements._ |
 | Visual direction | C · Power-Up | A · Party Board, B · Ink & Cream | distinctive without hurting readability |
 | Logo transition | A2 three-size stepped grow, no fades | hard cut w/ flicker, pop, roll, two-size | matches NES power-up exactly |
-| Privacy | `"private": true` guard flag | private npm package | open-source repo makes a hidden package pointless |
+| Privacy | `"private": true` guard flag | private npm package | open-source repo makes a hidden package pointless. _Superseded (2026-10-04, 0.1.0): `@bit-ds/react` is public; only `@bit-ds/core` and the gallery stay private._ |
 | Name | `bit`, prefix `bit-`, repo `bit-design-system` | 32-bit, Lexicon, Sprite | themes per game under one name |
 | Axis name | `color` | `tone` | the word people already use; aligns with `--bit-color-*` (addendum 2026-09-12) |
+| Interactive behavior | Built by hand on native elements first (`<dialog>` with `showModal()`, `<input type="range">`, native checkboxes and radios); WAI-ARIA patterns only where no native element fits (select-only combobox, menu button, tabs, tooltip) | Radix Primitives | 2026-10-06 (0.1.3, commit `f3fd5eb`): the last Radix package (`@radix-ui/react-slot`) went away, leaving `@bit-ds/react` with no runtime dependencies; `verify-dist.mjs` checks this. Dialog went on the native `<dialog>` in 0.1.5 (`specs/2026-10-07-dialog-tabs-design.md`). `TODO(owner): confirm rationale` for building every interactive component without Radix. |
+| Select | A bit-drawn select-only combobox, with hidden native inputs carrying the value | Native `<select>` | 2026-10-07 (0.1.4): the owner wanted the list styled to match bit, and "every browser must look the same", so `appearance: base-select` was ruled out (`specs/2026-10-07-select-dropdown-design.md`). The hidden inputs keep `name`, `required`, `form` and reset working (CHANGELOG 0.1.4). |
+| Scale token names | Named by value (`--bit-space-16px`, `--bit-radius-10px`, `--bit-text-16px`) | Ordinal and t-shirt names (`--bit-space-4`, `--bit-radius-md`) | 2026-10-02 (D13, `plans/2026-09-13-gallery.md` §C and the D13 question): the frozen table in `px-rename.test.ts` proves the rename changed no rendered size. Logged ceiling: the names describe power-up's values; revisit when a second theme needs a different scale. `TODO(owner): confirm rationale` for value names over ordinal names. |
+| Cascade layers | `@layer bit.reset, bit.tokens, bit.components`, declared at the top of `styles.css`, every theme and `icons.css` | Unlayered CSS | 2026-10-10 (0.1.9): any unlayered style in the consumer's app beats bit's, whatever its specificity, so overrides never need `!important` or a more specific selector (`packages/core/src/index.css`, CHANGELOG 0.1.9). |
+| Release process | Version-bump PR, then a `v*` tag, guard, build, an approved publish with provenance, and an integrity-checked install | Changesets | 2026-10-04 (PR3c): Changesets was listed out of scope (`specs/2026-10-04-pr3c-release-design.md`). `TODO(owner): confirm rationale`. One package with one maintainer may be the reason, but nothing records it. |
+| Theming scope | Theme and mode classes or attributes on any element, and `<BitTheme>` for a subtree | Root-only theming | 2026-10-10 (0.1.9): a part of the page, such as a dark sidebar on a light page or a second loaded theme, can take its own mode or theme (CHANGELOG 0.1.9; README "Part of the page"). |

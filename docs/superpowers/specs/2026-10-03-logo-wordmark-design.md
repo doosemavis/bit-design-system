@@ -1,6 +1,6 @@
 # The bit wordmark: design
 
-**Status:** approved in brainstorming on 2026-10-03. Awaiting the owner's review of this written spec.
+**Status:** historical. Approved in brainstorming on 2026-10-03 and merged as PR #7 on 2026-10-03. This file is the dated record of the design and is not kept current. The current architecture is in [`/ARCHITECTURE.md`](../../../ARCHITECTURE.md).
 **Ships as:** its own PR, after dark mode (#6, merged) and before PR2 (nine new components).
 **Visual reference:** the boards are in `~/.gstack/projects/doosemavis-bit-design-system/designs/logo-20261003/`:
 - `board.html`: layout. B was chosen.

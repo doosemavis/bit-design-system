@@ -1,7 +1,7 @@
 # bit design system — addendum: `color` axis and the gallery app
 
 **Date:** 2026-09-12
-**Status:** approved in brainstorming, pending written review
+**Status:** historical. Approved in brainstorming on 2026-09-12, then built; the `color` axis and the gallery both shipped in `@bit-ds/react` 0.1.0 on 2026-10-04. This file is the dated record of the design and is not kept current. The current architecture is in [`/ARCHITECTURE.md`](../../../ARCHITECTURE.md).
 **Amends:** `2026-09-06-bit-design-system-design.md` (the base spec). Where this addendum and the base spec disagree, this addendum wins.
 
 ## A. The `tone` axis is renamed `color`
@@ -103,7 +103,7 @@ Engine components on every component page:
 - `@bit-ds/gallery` is private. Vite `base` is `/bit-design-system/` in production builds.
 - Root scripts: `pnpm gallery` (builds `@bit-ds/react`, then dev server on :5173); `pnpm gallery:build` (builds `@bit-ds/react`, then the gallery to `apps/gallery/dist`). A component change needs `pnpm build` again in dev; documented in CONTRIBUTING.
 - `.github/workflows/ci.yml`: `pnpm storybook:build` is replaced by `pnpm gallery:build`, plus the consumer smoke test and the Playwright spec.  _Superseded (2026-10-04, PR3c): Storybook removed; the gallery is the docs site._
-- `.github/workflows/deploy.yml`: on push to `main`, install → build + verify the package → build the gallery → upload artifact → deploy with the official Pages actions. Requires the one-time repo setting Settings → Pages → Source: GitHub Actions.
+- `.github/workflows/deploy.yml`: on push to `main`, install → build + verify the package → build the gallery → upload artifact → deploy with the official Pages actions. Requires the one-time repo setting Settings → Pages → Source: GitHub Actions.  _Superseded (2026-10-04, 0.1.0): there is no `deploy.yml`. `release.yml` deploys the versioned site after a release, and its `docs` job deploys from `main` while `packages/` is unchanged since the last `v*` tag (CONTRIBUTING "Docs site")._
 - README: first link is the live gallery at `https://doosemavis.github.io/bit-design-system/`.
 
 ### C.7 Testing

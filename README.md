@@ -43,7 +43,7 @@ Versions and release notes: [all versions](https://doosemavis.github.io/bit-desi
 
 Every pull request runs all of this in CI ([workflow](https://github.com/doosemavis/bit-design-system/blob/main/.github/workflows/ci.yml)). Releases publish only from a tagged commit on `main`, and the release job runs the package checks again before publishing:
 
-- **Unit tests** (Vitest and Testing Library) for every component, with 100% statement, branch, function and line coverage on `@bit-ds/react`.
+- **Unit tests** (Vitest and Testing Library) for every component, on `@bit-ds/react`. CI fails under 80% coverage; today it is 100% of lines and functions and over 99% of statements and branches.
 - **Accessibility in unit tests:** all 33 components listed under [Components](#components) run [axe-core](https://github.com/dequelabs/axe-core) on what they render. Select and Menu are checked both closed and open, Navbar with its links in a row and folded into its Menu.
 - **Accessibility in a real browser:** Playwright opens every docs page in light and dark mode and fails on any axe violation of the WCAG 2.0, 2.1 and 2.2 A and AA rules.
 - **Keyboard and focus:** Select's keyboard model (arrows, Home and End, Page Up and Page Down, typeahead, Enter, Space, Escape, Tab) is tested key by key, along with where focus goes and how it behaves in a form (`required`, reset, `form="id"`). Menu's is too (opening keys, arrows that wrap, Home and End, typeahead, Enter, Space, Esc, Tab and Shift+Tab), with where focus lands each time.
@@ -314,7 +314,8 @@ The fonts ship in the package. The theme's `@font-face` rules load Lilita One, N
 <p align="right"><sub><a href="#contents">↑ Contents</a></sub></p>
 
 - Docs: https://doosemavis.github.io/bit-design-system/
-- Design spec: https://github.com/doosemavis/bit-design-system/blob/main/docs/superpowers/specs/2026-09-06-bit-design-system-design.md
+- Architecture (how bit is designed, and why): https://github.com/doosemavis/bit-design-system/blob/main/ARCHITECTURE.md
+- Original design spec (2026-09-06, historical): https://github.com/doosemavis/bit-design-system/blob/main/docs/superpowers/specs/2026-09-06-bit-design-system-design.md
 - Source and issues: https://github.com/doosemavis/bit-design-system
 - Security: report a vulnerability privately, see [SECURITY.md](https://github.com/doosemavis/bit-design-system/blob/main/SECURITY.md)
 
