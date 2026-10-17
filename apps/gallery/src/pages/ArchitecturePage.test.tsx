@@ -6,7 +6,7 @@ import { CURRENT_TOKENS } from '../content/currentTokens';
 import { MANIFESTS } from '../manifests';
 import { missingRepoLink } from '../test/repoLinks';
 import { renderAt } from '../test/renderRoute';
-import { AXES, REPO_FILES } from './architecture/architectureDoc';
+import { AXES, REPO_FILES, SUMMARY } from './architecture/architectureDoc';
 import { ARCHITECTURE_DOC_URL } from './ArchitecturePage';
 
 // jsdom reads a `?raw` CSS import as empty, so hand the page the real theme, read from disk.
@@ -50,13 +50,14 @@ describe('Architecture page', () => {
     localStorage.clear();
   });
 
-  it('has an h1, three h2 sections, and an h3 for each level and the future package', async () => {
+  it('has an h1, four h2 sections, and an h3 for each level and the future package', async () => {
     const { main } = await renderArchitecture();
     const outline = within(main)
       .getAllByRole('heading')
       .map((h) => `${h.tagName} ${h.textContent}`);
     expect(outline).toEqual([
       'H1 Architecture',
+      'H2 In system-design terms',
       'H2 How the layers fit',
       'H3 Palette',
       'H3 Semantic tokens',
@@ -68,6 +69,17 @@ describe('Architecture page', () => {
       'H2 The naming rule, live',
       'H2 What kind of design system this is',
     ]);
+  });
+
+  it("shows ARCHITECTURE.md's one-paragraph summary in the doc's words, its bold terms bold and its code as Code", async () => {
+    const { main } = await renderArchitecture();
+    const section = within(main).getByRole('heading', { level: 2, name: 'In system-design terms' }).closest('section')!;
+    const paragraph = within(section as HTMLElement).getByText(/^bit is a/);
+    expect(paragraph.textContent).toBe(SUMMARY.replace(/\*\*|`/g, ''));
+    const bold = [...paragraph.querySelectorAll('[data-weight="bold"]')].map((el) => el.textContent);
+    expect(bold).toEqual([...SUMMARY.matchAll(/\*\*([^*]+)\*\*/g)].map((m) => m[1]));
+    expect(bold).toContain('framework-agnostic CSS core with a React binding');
+    expect([...paragraph.querySelectorAll('.bit-code')].map((el) => el.textContent)).toEqual(['color', 'variant', 'size']);
   });
 
   it('the scoreboard counts its facts from their sources, and screen readers hear the numbers, not the padding', async () => {

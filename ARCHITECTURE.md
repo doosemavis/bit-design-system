@@ -17,6 +17,10 @@ This file is the current design of bit. Keep it in step with the code: when a de
 
 bit is a React component library and design system built on a CSS core that doesn't depend on any framework. The core holds the design tokens (named values such as `--bit-color-primary`) and the CSS for every component. `@bit-ds/react` renders the classes that CSS styles and adds the behavior: keyboard, focus and ARIA. A theme changes only token values, so every component stays the same in every theme. bit has 33 components, one theme (power-up) in light and dark mode, and no runtime dependencies. React 19 is a peer dependency.
 
+### In system-design terms
+
+bit is a **centralized, single-maintainer design system** built as a **framework-agnostic CSS core with a React binding**. Styling and behavior are **separated by layer**: the core owns the visual language as a **three-tier design-token architecture**, delivered as **runtime CSS custom properties**, and the React package owns interaction, focus and ARIA. Theming is **token reassignment**, so components never change per theme. The public API is a **constrained, axis-based variant system** (`color`, `variant`, `size`). It is **isomorphic** across prop, class and token: one word names the same idea at every layer. It ships as **one zero-dependency npm package**, with the core bundled in and React as a peer. The architecture is enforced by **architectural fitness functions**: tests that fail CI when a layer boundary, token contract or accessibility rule is broken.
+
 ## 2. System at a glance
 
 Data flows top to bottom. Each box is one layer; the outer boxes are package boundaries. The gallery's Architecture page draws the same graph from `apps/gallery/src/pages/architecture/model.ts`, and a test fails if the two disagree.

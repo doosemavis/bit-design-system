@@ -1,7 +1,10 @@
+import { Fragment } from 'react';
+import type { ReactNode } from 'react';
 import { Alert, Code, Link, Stack, Text } from '@bit-ds/react';
 import { PageHeader } from '../ui/PageHeader';
 import { PageSection } from '../ui/PageSection';
-import { REPO_FILES } from './architecture/architectureDoc';
+import { renderInline } from '../ui/renderInline';
+import { REPO_FILES, SUMMARY } from './architecture/architectureDoc';
 import { ARCHITECTURE_FACTS } from './architecture/facts';
 import { KindTable } from './architecture/KindTable';
 import { LayerStack } from './architecture/LayerStack';
@@ -26,6 +29,22 @@ const SCORES: readonly Score[] = [
   { count: tokens, label: 'tokens', link: { to: '/tokens' } },
 ];
 
+/** The summary's **bold** terms as bold Text (inline, nested in the paragraph), and its `inline code` as Code. */
+function renderSummary(text: string): ReactNode[] {
+  // The capture group puts every bold run at an odd index.
+  return text
+    .split(/\*\*([^*]+)\*\*/)
+    .map((part, index) =>
+      index % 2 === 1 ? (
+        <Text key={index} weight="bold">
+          {renderInline(part)}
+        </Text>
+      ) : (
+        <Fragment key={index}>{renderInline(part)}</Fragment>
+      ),
+    );
+}
+
 /**
  * Foundations: how bit is built and why. The layers, drawn from bit's own components with a live specimen in each;
  * the naming rule followed from a prop to a hex code; and the six choices that make bit the kind of system it is.
@@ -41,6 +60,10 @@ export function ArchitecturePage() {
         </Text>
         <Scoreboard scores={SCORES} label="bit by the numbers" />
       </PageHeader>
+      <PageSection id="architecture-summary" title="In system-design terms">
+        {/* §1 of ARCHITECTURE.md, read at build time (architectureDoc.ts), so the page and the doc say the same thing. */}
+        <Text>{renderSummary(SUMMARY)}</Text>
+      </PageSection>
       <PageSection id="architecture-layers" title="How the layers fit">
         <LayerStack />
       </PageSection>
