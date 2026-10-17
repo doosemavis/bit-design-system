@@ -175,6 +175,8 @@ Adding a variant to one component = add it to that array + add a CSS rule in the
 
 _Superseded (2026-10-10, 0.1.9): the table below has 21 rows. 32 components shipped. Modal shipped as **Dialog** on the native `<dialog>` and `showModal()` (0.1.5). Avatar is not built yet and is still planned. Added: Box, Heading, Slider, Link, Code, CodeBlock, SegmentedControl, ModeToggle, BitTheme, Navbar, Icon and IconButton. The current list is the README's "Components" section and `packages/react/src/index.ts`. No Phase 3 component uses Radix._
 
+_Superseded (2026-10-16, PR #76): Avatar is built, so 33 components. It takes `src` and `name` with the initials fallback, as planned, plus `shape` (circle, square, pixel). It doesn't use Radix Avatar: the component drops a photo that fails to load itself. It isn't in a published release yet._
+
 | Component | color | variant | size | Notes |
 |---|---|---|---|---|
 | **Phase 1: Foundation** | | | | |
