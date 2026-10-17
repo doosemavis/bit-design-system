@@ -36,6 +36,7 @@ const componentNames = Object.keys(lib).filter(
  * these props where a component needs more to render at all. A void element (Input) takes no children.
  */
 const SAMPLE_PROPS: Record<string, Record<string, unknown>> = {
+  Avatar: { name: 'Ada Lovelace', children: undefined },
   Input: { children: undefined },
   Textarea: { children: undefined },
   Slider: { children: undefined },
@@ -114,7 +115,7 @@ describe('public index', () => {
   it('exports exactly the public components', () => {
     expect(componentNames.sort()).toEqual(
       [
-        'Alert', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
+        'Alert', 'Avatar', 'Badge', 'BitLogo', 'Button', 'Card', 'CardBody', 'CardFooter', 'CardHeader', 'ModeToggle', 'Spinner', 'Stack', 'Text',
         'Field', 'Input', 'Select', 'Switch', 'Checkbox', 'RadioGroup', 'Radio', 'Textarea', 'Slider', 'Link', 'Code', 'CodeBlock', 'SegmentedControl',
         'Table', 'TableHead', 'TableBody', 'TableRow', 'TableCell',
         'Tabs', 'TabList', 'Tab', 'TabPanel',

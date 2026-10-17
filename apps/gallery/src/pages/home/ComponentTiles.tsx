@@ -105,7 +105,7 @@ function Tile({ manifest }: { manifest: Manifest }) {
   );
 }
 
-/** One sidebar group: its h3, then its tiles as a list the h3 names, so a screen reader hears "Actions, list, 3 items". */
+/** One task group: its h3, then its tiles as a list the h3 names, so a screen reader hears "Actions, list, 3 items". */
 function TileGroup({ group }: { group: ComponentGroup }) {
   const id = `home-group-${group.label.toLowerCase().replace(/\s+/g, '-')}`;
   return (
@@ -125,8 +125,8 @@ function TileGroup({ group }: { group: ComponentGroup }) {
 const TILE_COUNT = COMPONENT_GROUPS.reduce((n, group) => n + groupManifests(group).length, 0);
 
 /**
- * Every component as a live tile, grouped and ordered as the sidebar groups them (navGroups), so a reader who
- * learns one map has learned both, and a new component shows up once it is placed in a group.
+ * Every component as a live tile, grouped by task (navGroups) and alphabetical inside each group, so a new
+ * component shows up once it is placed in a group.
  */
 export function ComponentTiles() {
   return (

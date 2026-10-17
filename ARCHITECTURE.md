@@ -15,7 +15,7 @@ This file is the current design of bit. Keep it in step with the code: when a de
 
 ## 1. What bit is
 
-bit is a React component library and design system built on a CSS core that doesn't depend on any framework. The core holds the design tokens (named values such as `--bit-color-primary`) and the CSS for every component. `@bit-ds/react` renders the classes that CSS styles and adds the behavior: keyboard, focus and ARIA. A theme changes only token values, so every component stays the same in every theme. bit has 32 components, one theme (power-up) in light and dark mode, and no runtime dependencies. React 19 is a peer dependency.
+bit is a React component library and design system built on a CSS core that doesn't depend on any framework. The core holds the design tokens (named values such as `--bit-color-primary`) and the CSS for every component. `@bit-ds/react` renders the classes that CSS styles and adds the behavior: keyboard, focus and ARIA. A theme changes only token values, so every component stays the same in every theme. bit has 33 components, one theme (power-up) in light and dark mode, and no runtime dependencies. React 19 is a peer dependency.
 
 ## 2. System at a glance
 
@@ -151,7 +151,6 @@ Pull requests rehearse the release as a dry run. Docs-only changes deploy from `
 - **Angular is designed for, not built.** The core is framework-agnostic, but no second framework has proved it yet.
 - **No token build pipeline.** Tokens exist only as CSS. A second platform target would bring Style Dictionary or something like it back into question.
 - **`@bit-ds/core` isn't published.** It's inlined into `@bit-ds/react`. A second framework package would need it published on its own.
-- **Avatar is planned, not built.** It was in the v1 plan (spec §4.3) and is still wanted.
 - **Three classes break the naming rules** (`bit-iconButton`, `bit-iconFilled`, `bit-flat`). They stay until 0.2.0 revisits them.
 - **The release still uses an npm token.** Trusted publishing must replace it before January 2027 (CONTRIBUTING).
 - **Open rationale.** Each of these needs a recorded reason:

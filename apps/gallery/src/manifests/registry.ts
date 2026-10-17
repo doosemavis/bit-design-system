@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import {
   Alert,
+  Avatar,
   Badge,
   BitLogo,
   BitTheme,
@@ -55,6 +56,7 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- heterogeneous prop types by design
 export const COMPONENTS: Record<string, ComponentType<any>> = {
   Alert,
+  Avatar,
   Badge,
   BitLogo,
   BitTheme,
