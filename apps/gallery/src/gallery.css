@@ -306,6 +306,11 @@ html:has(.gallery-section-bar) {
   max-width: none;
 }
 
+/* The Architecture page's prose runs as wide as the diagram and cards it sits with (owner, 2026-10-17). */
+.gallery-main .gallery-arch-page p.bit-text {
+  max-width: none;
+}
+
 /* A Getting started step's accent bar starts under its number badge, not under the title after it: the title gives
    up its place as the bar's anchor to the row that holds the badge and the title. */
 [data-step] > .bit-stack:first-child {
@@ -1805,14 +1810,8 @@ html:has(.gallery-section-bar) {
 
 .gallery-arch__grid {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
-  grid-template-areas:
-    "core core"
-    "into-published into-published"
-    "published future"
-    "into-app into-app"
-    "app app";
-  column-gap: var(--bit-space-16px);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "core" "into-published" "published" "into-app" "app";
 }
 
 .gallery-arch__grid > [data-zone="core"] {
@@ -1827,29 +1826,12 @@ html:has(.gallery-section-bar) {
   grid-area: published;
 }
 
-.gallery-arch__grid > [data-zone="future"] {
-  grid-area: future;
-}
-
 .gallery-arch__grid > [data-edge="into-app"] {
   grid-area: into-app;
 }
 
 .gallery-arch__grid > [data-zone="app"] {
   grid-area: app;
-}
-
-/* Narrow: one column, in markup order; the not-built box, after the app, stands apart from the stack. A container
-   query styles only descendants, which is why the grid is the figure's child rather than the figure itself. */
-@container gallery-arch (max-width: 48rem) {
-  .gallery-arch__grid {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "core" "into-published" "published" "into-app" "app" "future";
-  }
-
-  .gallery-arch__grid > [data-zone="future"] {
-    margin-top: var(--bit-space-24px);
-  }
 }
 
 .gallery-arch-zone > .bit-card__body,
@@ -1886,6 +1868,23 @@ html:has(.gallery-section-bar) {
 
 .gallery-arch-level__specimen {
   min-width: 0;
+}
+
+/* Level 4: a Button, a Badge and an Avatar in rows, one color per column, so each column is one decorator class.
+   Four even columns across the level, each item centered, like the palette tiles above; two when the level is too
+   narrow for four (a phone). */
+.gallery-arch-specimens {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(max-content, 1fr));
+  gap: var(--bit-space-12px) var(--bit-space-8px);
+  align-items: center;
+  justify-items: center;
+}
+
+@container (max-width: 30rem) {
+  .gallery-arch-specimens {
+    grid-template-columns: repeat(2, minmax(max-content, 1fr));
+  }
 }
 
 .gallery-arch-level__icon {
@@ -1970,17 +1969,6 @@ html:has(.gallery-section-bar) {
   justify-self: start;
 }
 
-/* Not built: the package box with a dashed edge and divider, so it never reads as a shipped package. Only the
-   divider's own side is dashed: setting border-style on all of the header's sides would draw the medium (3px) default
-   on the three sides it has no border, a second dashed box inside the first. */
-.gallery-arch-zone[data-zone="future"] {
-  border-style: dashed;
-}
-
-.gallery-arch-zone[data-zone="future"] > .bit-card__header {
-  border-bottom-style: dashed;
-}
-
 .gallery-arch-swatches,
 .gallery-arch-token-list,
 .gallery-arch-chain {
@@ -1995,10 +1983,11 @@ html:has(.gallery-section-bar) {
   gap: var(--bit-space-12px);
 }
 
+/* Each color's name and hex sit centered under its tile (owner, 2026-10-17). */
 .gallery-arch-swatches > li {
   display: grid;
   gap: var(--bit-space-4px);
-  justify-items: start;
+  justify-items: center;
 }
 
 /* A palette tile: the color as a block the width of its column, edged so the light colors show on white. */
@@ -2021,6 +2010,7 @@ html:has(.gallery-section-bar) {
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
     align-items: center;
+    justify-items: start;
   }
 
   .gallery-arch-tile {

@@ -50,7 +50,7 @@ describe('Architecture page', () => {
     localStorage.clear();
   });
 
-  it('has an h1, four h2 sections, and an h3 for each level and the future package', async () => {
+  it('has an h1, four h2 sections, and an h3 for each level', async () => {
     const { main } = await renderArchitecture();
     const outline = within(main)
       .getAllByRole('heading')
@@ -64,8 +64,6 @@ describe('Architecture page', () => {
       'H3 Component CSS',
       'H3 Components',
       'H3 Your app',
-      // After the app in reading order (where a phone shows it); the grid seats it beside the react box on a desktop.
-      'H3 A second framework',
       'H2 The naming rule, live',
       'H2 What kind of design system this is',
     ]);
@@ -123,7 +121,7 @@ describe('Architecture page', () => {
     for (const pipe of figure.querySelectorAll('.gallery-arch-pipe')) expect(pipe).toHaveAttribute('aria-hidden', 'true');
   });
 
-  it('draws the two packages as boxes: core private and inlined, react on npm, and Angular dashed and not built', async () => {
+  it('draws the two packages as boxes, core private and inlined and react on npm, and no not-built box', async () => {
     await renderArchitecture();
     const core = document.querySelector('.gallery-arch-zone[data-zone="core"]')!;
     expect(core).toHaveTextContent('@bit-ds/core');
@@ -131,12 +129,28 @@ describe('Architecture page', () => {
     expect(within(core as HTMLElement).getAllByRole('heading').map((h) => h.textContent)).toEqual(['Palette', 'Semantic tokens', 'Component CSS']);
     const react = document.querySelector('.gallery-arch-zone[data-zone="react"]')!;
     expect(react).toHaveTextContent(/@bit-ds\/react.*published on npm/);
-    expect(within(react as HTMLElement).getAllByRole('button').map((b) => b.textContent)).toEqual([...COLORS]);
-    const locked = screen.getByRole('heading', { name: 'A second framework' }).closest('.gallery-arch-zone')!;
-    expect(locked).toHaveAttribute('data-zone', 'future');
-    expect(locked).toHaveClass('bit-outline');
-    expect(locked).toHaveTextContent('not built');
-    expect(locked).toHaveTextContent('@bit-ds/angular would read the same core');
+    expect(document.querySelector('[data-zone="future"]')).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'A second framework' })).toBeNull();
+    expect(within(screen.getByRole('figure')).queryByText(/@bit-ds\/angular/)).toBeNull();
+  });
+
+  it('Level 4 shows a Button, a Badge and an Avatar in rows of four, each column one color class', async () => {
+    await renderArchitecture();
+    const grid = screen.getByRole('group', { name: 'A Button, a Badge and an Avatar in four colors' });
+    const colors = COLORS.filter((color) => color !== 'neutral');
+    expect(colors).toHaveLength(4);
+    const cells = [...grid.children];
+    expect(cells).toHaveLength(12);
+    const rows = [cells.slice(0, 4), cells.slice(4, 8), cells.slice(8)];
+    expect(rows.map((row) => row.map((cell) => cell.classList[0]))).toEqual([
+      ['bit-button', 'bit-button', 'bit-button', 'bit-button'],
+      ['bit-badge', 'bit-badge', 'bit-badge', 'bit-badge'],
+      ['bit-avatar', 'bit-avatar', 'bit-avatar', 'bit-avatar'],
+    ]);
+    // Down a column, one decorator class styles all three components.
+    for (const row of rows) row.forEach((cell, i) => expect(cell).toHaveClass(`bit-${colors[i]}`));
+    expect(within(grid).getAllByRole('button').map((b) => b.textContent)).toEqual(colors);
+    expect(within(grid).getAllByRole('img').map((img) => img.getAttribute('aria-label'))).toEqual(colors);
   });
 
   it('the palette and token levels show the real theme’s wiring for the five fills', async () => {
@@ -182,13 +196,15 @@ describe('Architecture page', () => {
     expect(screen.getByRole('region', { name: 'power-up theme, dark mode' })).toHaveTextContent('--bit-color-neutral: var(--bit-palette-steel-light);');
   });
 
-  it('the kind table has Axis, bit chose and Why (no Revisit when), one row per axis, its rejected options struck through', async () => {
+  it('the kind table has Axis, bit DS and Why (no rejected options, no Revisit when), one row per axis', async () => {
     await renderArchitecture();
     const table = screen.getByRole('table', { name: 'What kind of design system this is' });
-    expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['Axis', 'bit chose', 'Why, and what it costs']);
+    expect(within(table).getAllByRole('columnheader').map((th) => th.textContent)).toEqual(['Axis', 'bit DS', 'Why, and what it costs']);
     expect(within(table).getAllByRole('row')).toHaveLength(AXES.length + 1);
-    const struck = [...table.querySelectorAll('s')].map((el) => el.textContent);
-    expect(struck).toEqual(AXES.flatMap((axis) => axis.over));
+    expect(table.querySelectorAll('s, [data-strikethrough]')).toHaveLength(0);
+    // The bit DS cell holds the choice alone: the doc's rejected alternatives aren't drawn.
+    const choices = [...table.querySelectorAll('.gallery-arch-kind__choice')].map((cell) => cell.textContent);
+    expect(choices).toEqual(AXES.map((row) => row.choice.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replaceAll('`', '')));
     expect(table).not.toHaveTextContent(/revisit/i);
     // Every row shows what its choice costs, from the doc's Cost column.
     for (const row of AXES) expect(table).toHaveTextContent(row.cost.replaceAll('`', ''));

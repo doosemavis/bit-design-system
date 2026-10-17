@@ -52,7 +52,7 @@ function renderSummary(text: string): ReactNode[] {
  */
 export function ArchitecturePage() {
   return (
-    <Stack gap={64}>
+    <Stack gap={64} className="gallery-arch-page">
       <PageHeader title="Architecture">
         <Text size={18}>
           How bit is built, and why. One CSS core holds the tokens and every component’s styles; <Code>{packageName}</Code>{' '}
@@ -79,7 +79,7 @@ export function ArchitecturePage() {
         <Alert color="primary" variant="outline" role="note" icon={false}>
           These rows are §4 of <Link href={ARCHITECTURE_DOC_URL}>ARCHITECTURE.md</Link>, read at build time, and every
           count on this page is read from the code: a test fails CI if the page and the code disagree. The doc also
-          says when we’d revisit each choice.
+          lists the options each choice turned down, and when we’d revisit it.
         </Alert>
       </PageSection>
     </Stack>

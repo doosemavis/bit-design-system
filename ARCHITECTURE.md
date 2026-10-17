@@ -23,7 +23,7 @@ bit is a **centralized, single-maintainer design system** built as a **framework
 
 ## 2. System at a glance
 
-Data flows top to bottom. Each box is one layer; the outer boxes are package boundaries. The gallery's Architecture page draws the same graph from `apps/gallery/src/pages/architecture/model.ts`, and a test fails if the two disagree.
+Data flows top to bottom. Each box is one layer; the outer boxes are package boundaries. The gallery's Architecture page draws the same graph from `apps/gallery/src/pages/architecture/model.ts`, leaving out the not-built Angular box, and a test fails if the two disagree.
 
 ```mermaid
 flowchart TB
