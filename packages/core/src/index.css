@@ -13,6 +13,7 @@
 @import "./system/focus.css" layer(bit.components);
 @import "./components/button.css" layer(bit.components);
 @import "./components/icon-button.css" layer(bit.components);
+@import "./components/avatar.css" layer(bit.components);
 @import "./components/badge.css" layer(bit.components);
 @import "./components/alert.css" layer(bit.components);
 @import "./components/card.css" layer(bit.components);

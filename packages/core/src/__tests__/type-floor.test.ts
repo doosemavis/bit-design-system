@@ -9,6 +9,10 @@ const AT_LEAST_14 = /^var\(--bit-text-(14|16|18|24|32|40)px\)$|^var\(--bit-headi
  * fails, so new small text is a choice someone writes down here.
  */
 const EXEMPT: Readonly<Record<string, { sizes: readonly string[]; why: string }>> = {
+  'avatar.css': {
+    sizes: ['8px', '10px', '12px'],
+    why: "Avatar's pixel shape (owner pick C, 2026-10-16) sets its initials in the pixel font, which reads large; the root is role=\"img\" named by name, so screen readers never read the initials.",
+  },
   'badge.css': { sizes: ['7px', '8px'], why: 'Badges are compact pixel-font micro-labels; the owner kept them small.' },
   'logo.css': {
     sizes: ['0.26em', '0.82em', '0.955em', 'calc(var(--bit-text-32px) * 1.5)', 'calc(var(--bit-text-32px) * 2.25)'],

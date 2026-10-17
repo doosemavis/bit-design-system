@@ -375,10 +375,12 @@ describe('neutral colour (N1 steel, 0.1.4)', () => {
 
   // Neutral contrast is white in light, so it may only paint on the solid fill. Every contrast read in
   // the component CSS must sit beside a solid fill rule; the soft, outline and ghost looks use text.
+  // A rule that sets the fill itself (Avatar, which has no other look) passes too.
   it('component CSS only reads the contrast colour on solid fills', () => {
     for (const file of listCss('components')) {
       const src = readCss(`components/${file}`);
-      for (const [, selector] of src.matchAll(/([^{}]+)\{[^{}]*color:\s*var\(--_bit-color-contrast\)/g)) {
+      for (const [, selector, body] of src.matchAll(/([^{}]+)\{([^{}]*color:\s*var\(--_bit-color-contrast\)[^{}]*)\}/g)) {
+        if (/(^|[;\s])background:\s*var\(--_bit-color\);/.test(body ?? '')) continue;
         expect(selector ?? '', `${file}: ${(selector ?? '').trim()}`).toMatch(/solid|:checked|\.bit-segmented-control__label/);
       }
     }

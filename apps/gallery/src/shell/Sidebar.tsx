@@ -2,26 +2,26 @@ import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { matchPath, NavLink, useLocation } from 'react-router-dom';
 import { Button, Link, Text } from '@bit-ds/react';
-import { routeFor } from '../manifests';
+import { MANIFESTS, routeFor } from '../manifests';
 import { ArcadePanel } from '../arcade/ArcadePanel';
 import { GAMES, gameLabel } from '../arcade/games';
 import type { GameId, SidebarGameId } from '../arcade/games';
-import { COMPONENT_GROUPS, groupManifests } from './navGroups';
-import type { ComponentGroupLabel } from './navGroups';
 
-type NavGroup = 'Start here' | 'Foundations' | ComponentGroupLabel | 'Brand';
+type NavGroup = 'Start here' | 'Foundations' | 'Components' | 'Brand';
 export interface NavItem {
   group: NavGroup;
   label: string;
   to: string;
 }
 
-const GROUPS: readonly NavGroup[] = ['Start here', 'Foundations', ...COMPONENT_GROUPS.map((group) => group.label), 'Brand'];
+const GROUPS: readonly NavGroup[] = ['Start here', 'Foundations', 'Components', 'Brand'];
+
+const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
 
 /**
- * Every page, in sidebar order: Start here in its written order (owner ruling 2026-10-08), every other
- * section alphabetical: Foundations, the components by task (navGroups: Actions first, so Button leads), alphabetical inside each
- * group, then Brand. The pages' previous and next links walk this same order.
+ * Every page, in sidebar order: Start here in its written order (owner ruling 2026-10-08), every other section
+ * alphabetical: Foundations, Components (one section, no subsections: owner, 2026-10-16), then Brand. The home page
+ * still groups its tiles by task (navGroups). The pages' previous and next links walk this same order.
  */
 export const NAV: readonly NavItem[] = [
   { group: 'Start here', label: 'Overview', to: '/' },
@@ -32,7 +32,9 @@ export const NAV: readonly NavItem[] = [
   { group: 'Foundations', label: 'Spacing', to: '/spacing' },
   { group: 'Foundations', label: 'Tokens', to: '/tokens' },
   { group: 'Foundations', label: 'Typography', to: '/typography' },
-  ...COMPONENT_GROUPS.flatMap((group) => groupManifests(group).map((m) => ({ group: group.label, label: m.name, to: routeFor(m) }))),
+  ...MANIFESTS.filter((m) => m.group !== 'brand')
+    .sort(byName)
+    .map((m): NavItem => ({ group: 'Components', label: m.name, to: routeFor(m) })),
   { group: 'Brand', label: 'Logo', to: '/brand/logo' },
 ];
 
