@@ -32,7 +32,7 @@ export function scoreDigits(scores: readonly Score[]): number {
 /**
  * bit by the numbers, as an arcade scoreboard: a dark cabinet (a BitTheme subtree in dark mode, whatever the page's
  * mode) whose dotted bezel frames a solid screen, so the dots never sit behind text. Each count is padded with unlit
- * zeros (032) that are hidden from screen readers, which hear "32 components". Each label links to where its count can
+ * zeros (033) that are hidden from screen readers, which hear "33 components". Each label links to where its count can
  * be checked.
  */
 export function Scoreboard({ scores, label }: { scores: readonly Score[]; label: string }) {
