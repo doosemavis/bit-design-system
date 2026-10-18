@@ -176,15 +176,15 @@ describe('Architecture: parseAxes', () => {
 });
 
 describe('Architecture: parseSummary', () => {
-  it('reads the one paragraph under "In system-design terms", up to the next heading', () => {
-    expect(parseSummary('## 1. x\n\nintro\n\n### In system-design terms\n\nbit is **one** thing.\n\n## 2. y\n')).toBe('bit is **one** thing.');
-    expect(parseSummary('### In system-design terms\n\nlast in the file\n')).toBe('last in the file');
+  it('reads the one paragraph under "A Design System à la System Design", up to the next heading', () => {
+    expect(parseSummary('## 1. x\n\nintro\n\n### A Design System à la System Design\n\nbit is **one** thing.\n\n## 2. y\n')).toBe('bit is **one** thing.');
+    expect(parseSummary('### A Design System à la System Design\n\nlast in the file\n')).toBe('last in the file');
   });
 
   it('throws when the section is missing, empty or more than one paragraph', () => {
-    expect(() => parseSummary('## 1. x\n')).toThrow(/has no "### In system-design terms"/);
-    expect(() => parseSummary('### In system-design terms\n\n## 2. y')).toThrow(/must be one paragraph/);
-    expect(() => parseSummary('### In system-design terms\n\none\n\ntwo\n')).toThrow(/must be one paragraph/);
+    expect(() => parseSummary('## 1. x\n')).toThrow(/has no "### A Design System à la System Design"/);
+    expect(() => parseSummary('### A Design System à la System Design\n\n## 2. y')).toThrow(/must be one paragraph/);
+    expect(() => parseSummary('### A Design System à la System Design\n\none\n\ntwo\n')).toThrow(/must be one paragraph/);
   });
 
   it('ARCHITECTURE.md has it, and it never says "multi-framework"', () => {

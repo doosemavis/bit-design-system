@@ -63,7 +63,7 @@ export function parseAxes(md: string): Axis[] {
 export const AXES: readonly Axis[] = parseAxes(architectureMd);
 
 /** The heading of §1's one-paragraph summary. */
-const SUMMARY_HEADING = '### In system-design terms';
+const SUMMARY_HEADING = '### A Design System à la System Design';
 
 /**
  * §1's summary in the doc's own words: the text between its heading and the next heading, with its **bold** terms

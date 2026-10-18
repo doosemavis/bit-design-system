@@ -57,7 +57,7 @@ describe('Architecture page', () => {
       .map((h) => `${h.tagName} ${h.textContent}`);
     expect(outline).toEqual([
       'H1 Architecture',
-      'H2 In system-design terms',
+      'H2 A Design System à la System Design',
       'H2 How the layers fit',
       'H3 Palette',
       'H3 Semantic tokens',
@@ -71,7 +71,7 @@ describe('Architecture page', () => {
 
   it("shows ARCHITECTURE.md's one-paragraph summary in the doc's words, its bold terms bold and its code as Code", async () => {
     const { main } = await renderArchitecture();
-    const section = within(main).getByRole('heading', { level: 2, name: 'In system-design terms' }).closest('section')!;
+    const section = within(main).getByRole('heading', { level: 2, name: 'A Design System à la System Design' }).closest('section')!;
     const paragraph = within(section as HTMLElement).getByText(/^bit is a/);
     expect(paragraph.textContent).toBe(SUMMARY.replace(/\*\*|`/g, ''));
     const bold = [...paragraph.querySelectorAll('[data-weight="bold"]')].map((el) => el.textContent);
@@ -129,9 +129,25 @@ describe('Architecture page', () => {
     expect(within(core as HTMLElement).getAllByRole('heading').map((h) => h.textContent)).toEqual(['Palette', 'Semantic tokens', 'Component CSS']);
     const react = document.querySelector('.gallery-arch-zone[data-zone="react"]')!;
     expect(react).toHaveTextContent(/@bit-ds\/react.*published on npm/);
+    expect(within(react as HTMLElement).getByRole('link', { name: 'published on npm' })).toHaveAttribute(
+      'href',
+      'https://www.npmjs.com/package/@bit-ds/react',
+    );
     expect(document.querySelector('[data-zone="future"]')).toBeNull();
     expect(screen.queryByRole('heading', { name: 'A second framework' })).toBeNull();
     expect(within(screen.getByRole('figure')).queryByText(/@bit-ds\/angular/)).toBeNull();
+  });
+
+  it('cards a level only to set it apart from others in its box: a box’s only level sits in the box’s card, not a nested one', async () => {
+    await renderArchitecture();
+    const zones = [...document.querySelectorAll<HTMLElement>('.gallery-arch-zone')];
+    expect(zones.map((zone) => zone.dataset.zone)).toEqual(['core', 'react', 'app']);
+    for (const zone of zones) {
+      const levels = [...zone.querySelectorAll('.gallery-arch-level')];
+      const carded = levels.filter((level) => level.classList.contains('bit-card'));
+      expect(carded, zone.dataset.zone).toHaveLength(levels.length > 1 ? levels.length : 0);
+      if (levels.length === 1) expect(zone.querySelectorAll('.bit-card'), zone.dataset.zone).toHaveLength(0);
+    }
   });
 
   it('Level 4 shows a Button, a Badge and an Avatar in rows of four, each column one color class', async () => {

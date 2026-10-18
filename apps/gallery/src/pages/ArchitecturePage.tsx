@@ -60,7 +60,7 @@ export function ArchitecturePage() {
         </Text>
         <Scoreboard scores={SCORES} label="bit by the numbers" />
       </PageHeader>
-      <PageSection id="architecture-summary" title="In system-design terms">
+      <PageSection id="architecture-summary" title="A Design System à la System Design">
         {/* §1 of ARCHITECTURE.md, read at build time (architectureDoc.ts), so the page and the doc say the same thing. */}
         <Text>{renderSummary(SUMMARY)}</Text>
       </PageSection>
