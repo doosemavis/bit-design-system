@@ -1727,28 +1727,18 @@ html:has(.gallery-section-bar) {
   margin-top: auto;
 }
 
-/* Architecture: bit by the numbers, an arcade scoreboard. The cabinet's dotted bezel frames a solid screen, so the
-   dots never sit behind text. Counts are 32px pixel digits padded with unlit zeros (hidden from screen readers);
-   four across, two by two when the board is narrow. */
+/* Architecture: bit by the numbers, an arcade scoreboard. One solid dark screen, edge to edge inside its border, with
+   no bezel around it (owner, 2026-10-18). Counts are 32px pixel digits padded with unlit zeros (hidden from screen
+   readers); four across, two by two when the board is narrow. */
 .gallery-arch-scoreboard {
   container-type: inline-size;
-  width: 100%;
-  padding: var(--bit-space-12px);
-  border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-14px);
-  /* The cabinet in the code panel's near-black, darker than any page, so it stands apart in dark mode too. */
-  background-color: var(--bit-code-bg);
-  background-image: radial-gradient(var(--bit-color-line) 1px, transparent 1px);
-  background-size: var(--bit-space-12px) var(--bit-space-12px);
-}
-
-.gallery-arch-scoreboard__screen {
   display: grid;
   gap: var(--bit-space-16px);
+  width: 100%;
   padding: var(--bit-space-16px) var(--bit-space-24px);
-  background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-6px);
+  border-radius: var(--bit-radius-14px);
+  background-color: var(--bit-color-surface);
 }
 
 .gallery-arch-scoreboard__title {
@@ -1847,6 +1837,21 @@ html:has(.gallery-section-bar) {
   background: var(--bit-color-primary-soft);
 }
 
+/* The react box's "published on npm" badge links to the package's npm page (owner, 2026-10-18). It reads as a bit
+   Link: its label underlined, the underline thicker on hover, and no hover highlight boxed behind the round pill. */
+.gallery-arch-npm .bit-badge {
+  text-decoration: underline 2px;
+  text-underline-offset: 3px;
+}
+
+.gallery-arch-npm:hover {
+  background: none;
+}
+
+.gallery-arch-npm:hover .bit-badge {
+  text-decoration-thickness: 3px;
+}
+
 /* A level: its name and job beside a live specimen, stacking when the level is narrow (a phone, a split screen). */
 .gallery-arch-level {
   container-type: inline-size;
@@ -1868,6 +1873,17 @@ html:has(.gallery-section-bar) {
 
 .gallery-arch-level__specimen {
   min-width: 0;
+}
+
+/* A box's only level has no card of its own (owner, 2026-10-18: no nested cards). It keeps the card's inset, the
+   body's padding plus the border's width, so its name and specimen line up with the carded levels'. */
+.gallery-arch-level[data-framed="false"] {
+  padding: calc(var(--_gallery-arch-pad) + var(--bit-border-width));
+}
+
+/* Level 1's palette sits centered against the level's name and job beside it (owner, 2026-10-18). */
+.gallery-arch-level__specimen:has(> .gallery-arch-swatches) {
+  align-self: center;
 }
 
 /* Level 4: a Button, a Badge and an Avatar in rows, one color per column, so each column is one decorator class.

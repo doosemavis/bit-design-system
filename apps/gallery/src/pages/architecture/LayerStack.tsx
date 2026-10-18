@@ -18,6 +18,7 @@ import {
   iconInventory2,
   iconPalette,
   iconWidgets,
+  Link,
   Stack,
   Text,
   useColorMode,
@@ -44,6 +45,9 @@ export const DECORATOR_SNIPPET = `/* system/colors.css: one rule per color, writ
   background: var(--_bit-color);
 }`;
 
+/** The published package's npm page, where the react box's "published on npm" badge leads. */
+const NPM_PAGE = `https://www.npmjs.com/package/${PACKAGE_NAME}`;
+
 /** The app's side: the styles once, theme first, then a component. */
 const APP_SNIPPET = `${STYLE_IMPORTS}\nimport { Button } from '${PACKAGE_NAME}';`;
 
@@ -69,30 +73,41 @@ interface LevelProps {
   detail: ReactNode;
   /** What this layer holds, drawn live: swatches, tokens, CSS, components. */
   children: ReactNode;
+  /** A card of its own, to set it apart from the other levels in its box. A box's only level goes without one. */
+  framed: boolean;
 }
 
-/** One layer: its number, name and job on the left, a live specimen of what it holds on the right. */
-function Level({ n, icon, title, detail, children }: LevelProps) {
-  return (
+/**
+ * One layer: its number, name and job on the left, a live specimen of what it holds on the right. A level alone in
+ * its box isn't carded inside the box's card (owner, 2026-10-18: no nested cards); gallery.css keeps the card's
+ * inset, so its name and specimen sit where every other level's do.
+ */
+function Level({ n, icon, title, detail, children, framed }: LevelProps) {
+  const grid = (
+    <div className="gallery-arch-level__grid">
+      <Stack gap={8} align="start">
+        <Stack direction="row" gap={8} align="center">
+          <span className="gallery-arch-level__icon" aria-hidden="true">
+            <Icon icon={icon} className="gallery-arch-icon" />
+          </span>
+          <Text color="neutral" className="gallery-arch-label">{`Level ${n}`}</Text>
+        </Stack>
+        <Heading size={26}>{title}</Heading>
+        <Text color="neutral">
+          {detail}
+        </Text>
+      </Stack>
+      <div className="gallery-arch-level__specimen">{children}</div>
+    </div>
+  );
+  return framed ? (
     <Card flat className="gallery-arch-level">
-      <CardBody>
-        <div className="gallery-arch-level__grid">
-          <Stack gap={8} align="start">
-            <Stack direction="row" gap={8} align="center">
-              <span className="gallery-arch-level__icon" aria-hidden="true">
-                <Icon icon={icon} className="gallery-arch-icon" />
-              </span>
-              <Text color="neutral" className="gallery-arch-label">{`Level ${n}`}</Text>
-            </Stack>
-            <Heading size={26}>{title}</Heading>
-            <Text color="neutral">
-              {detail}
-            </Text>
-          </Stack>
-          <div className="gallery-arch-level__specimen">{children}</div>
-        </div>
-      </CardBody>
+      <CardBody>{grid}</CardBody>
     </Card>
+  ) : (
+    <div className="gallery-arch-level" data-framed="false">
+      {grid}
+    </div>
   );
 }
 
@@ -238,7 +253,7 @@ function BoxLevels({ box }: { box: Box }) {
     return (
       <Fragment key={layer.id}>
         {i > 0 ? <Pipe verb={verbBetween(layers[i - 1]!.id, layer.id)} /> : null}
-        <Level n={LAYERS.indexOf(layer) + 1} icon={icon} title={layer.title} detail={detail}>
+        <Level n={LAYERS.indexOf(layer) + 1} icon={icon} title={layer.title} detail={detail} framed={layers.length > 1}>
           {specimen}
         </Level>
       </Fragment>
@@ -260,7 +275,17 @@ export function LayerStack() {
           <BoxLevels box="core" />
         </Zone>
         <Pipe edge="into-published" verb={verbBetween('css', 'components')} />
-        <Zone label={<Code>{PACKAGE_NAME}</Code>} zone="react" badge={<Badge size="lg" flat color="success">published on npm</Badge>}>
+        <Zone
+          label={<Code>{PACKAGE_NAME}</Code>}
+          zone="react"
+          badge={
+            <Link href={NPM_PAGE} color="neutral" className="gallery-arch-npm">
+              <Badge size="lg" flat color="success">
+                published on npm
+              </Badge>
+            </Link>
+          }
+        >
           <BoxLevels box="published" />
         </Zone>
         <Pipe edge="into-app" verb={verbBetween('components', 'app')} />
