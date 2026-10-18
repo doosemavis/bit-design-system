@@ -24,7 +24,10 @@ export const LAYERS: readonly Layer[] = [
   { id: 'app', title: 'Your app', box: 'app' },
 ];
 
-/** The framework bit is designed for and doesn't build: a dashed node in both pictures, fed by the core's CSS. */
+/**
+ * The framework bit is designed for and doesn't build, fed by the core's CSS: a dashed node in ARCHITECTURE.md's
+ * Mermaid diagram, which this model must match. The page doesn't draw it (owner, 2026-10-17).
+ */
 export const FUTURE = { id: 'angular', title: 'Future: @bit-ds/angular' } as const;
 
 export interface Edge {

@@ -28,9 +28,9 @@ function DocText({ text }: { text: string }) {
 }
 
 /**
- * What bit chose on each axis, the options it turned down (in <s>, after "over"), why, and what the choice costs:
- * ARCHITECTURE.md §4's own rows, read at build time, so the page never restates them. The doc's "Revisit when"
- * column stays in the doc (owner, 2026-10-16).
+ * What bit chose on each axis, why, and what the choice costs: ARCHITECTURE.md §4's own rows, read at build time,
+ * so the page never restates them. The doc's "Rejected alternatives" and "Revisit when" columns stay in the doc
+ * (owner, 2026-10-16 and 2026-10-17).
  *
  * On a phone gallery.css stacks each row into one block. A table whose parts are given another display can lose its
  * table semantics in some browsers, so every part names its role, and a screen reader still hears a table.
@@ -41,7 +41,7 @@ export function KindTable() {
       <TableHead role="rowgroup">
         <TableRow role="row">
           <TableCell role="columnheader">Axis</TableCell>
-          <TableCell role="columnheader">bit chose</TableCell>
+          <TableCell role="columnheader">bit DS</TableCell>
           <TableCell role="columnheader">Why, and what it costs</TableCell>
         </TableRow>
       </TableHead>
@@ -55,20 +55,9 @@ export function KindTable() {
               </Stack>
             </TableCell>
             <TableCell role="cell" className="gallery-arch-kind__choice">
-              <Stack gap={4}>
-                <Text weight="bold">
-                  <DocText text={row.choice} />
-                </Text>
-                <Text color="neutral">
-                  over{' '}
-                  {row.over.map((option, i) => (
-                    <span key={option}>
-                      {i > 0 ? ', ' : null}
-                      <s className="gallery-arch-rejected">{renderInline(option)}</s>
-                    </span>
-                  ))}
-                </Text>
-              </Stack>
+              <Text weight="bold">
+                <DocText text={row.choice} />
+              </Text>
             </TableCell>
             <TableCell role="cell" className="gallery-arch-kind__why">
               <Stack gap={8}>

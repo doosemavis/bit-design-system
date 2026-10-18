@@ -61,3 +61,22 @@ export function parseAxes(md: string): Axis[] {
 
 /** The six axes as ARCHITECTURE.md states them, read at build time. */
 export const AXES: readonly Axis[] = parseAxes(architectureMd);
+
+/** The heading of §1's one-paragraph summary. */
+const SUMMARY_HEADING = '### In system-design terms';
+
+/**
+ * §1's summary in the doc's own words: the text between its heading and the next heading, with its **bold** terms
+ * and `inline code` left for the page to draw. Throws when the heading is gone or the summary has grown past one
+ * paragraph, so the page never shows a stale or half copy.
+ */
+export function parseSummary(md: string): string {
+  const start = md.indexOf(SUMMARY_HEADING);
+  if (start === -1) throw new Error(`[gallery] ARCHITECTURE.md has no "${SUMMARY_HEADING}" section`);
+  const body = md.slice(start + SUMMARY_HEADING.length).split(/\n#{2,3} /)[0]!.trim();
+  if (!body || body.includes('\n')) throw new Error(`[gallery] ARCHITECTURE.md's "${SUMMARY_HEADING}" must be one paragraph`);
+  return body;
+}
+
+/** The one-paragraph summary as ARCHITECTURE.md states it, read at build time. */
+export const SUMMARY: string = parseSummary(architectureMd);

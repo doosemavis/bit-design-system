@@ -113,15 +113,33 @@ for (const [name, width] of [
       }
     });
 
-    test('the not-built box has one dashed border: its header draws only its divider', async ({ page }) => {
-      const sides = await page.locator('[data-zone="future"] > .bit-card__header').evaluate((header) => {
-        const style = getComputedStyle(header);
-        return [style.borderTopWidth, style.borderLeftWidth, style.borderRightWidth, style.borderBottomStyle];
-      });
-      expect(sides).toEqual(['0px', '0px', '0px', 'dashed']);
-    });
-
     if (name === 'desktop') {
+      test('the palette: each color’s name and hex are centered under its tile', async ({ page }) => {
+        const centers = await page.locator('.gallery-arch-swatches > li').evaluateAll((items) =>
+          items.map((li) => {
+            const mid = (el: Element) => { const r = el.getBoundingClientRect(); return r.left + r.width / 2; };
+            return [...li.children].map(mid);
+          }),
+        );
+        expect(centers).toHaveLength(5);
+        for (const [tile, ...labels] of centers) for (const label of labels) expect(near(label!, tile!)).toBe(true);
+      });
+
+      test('the page’s prose runs as wide as the figure, not the 56ch reading cap', async ({ page }) => {
+        const [figure] = await boxes(page, '.gallery-arch');
+        const [summary] = await boxes(page, 'section[aria-labelledby="architecture-summary"] p.bit-text');
+        expect(near(summary!.width, figure!.width)).toBe(true);
+      });
+
+      test('Level 4’s components sit in three rows of four, each column centered on one line', async ({ page }) => {
+        const cells = await boxes(page, '.gallery-arch-specimens > *');
+        expect(cells).toHaveLength(12);
+        const rows = [cells.slice(0, 4), cells.slice(4, 8), cells.slice(8)];
+        for (const row of rows) for (const cell of row) expect(near(cell.top + cell.height / 2, row[0]!.top + row[0]!.height / 2)).toBe(true);
+        const center = (box: { left: number; width: number }) => box.left + box.width / 2;
+        for (let col = 0; col < 4; col++) for (const row of rows) expect(near(center(row[col]!), center(rows[0]![col]!))).toBe(true);
+      });
+
       test('every level’s specimen starts on one line', async ({ page }) => {
         const specimens = await boxes(page, '.gallery-arch-level__specimen');
         expect(specimens).toHaveLength(5);
@@ -137,21 +155,7 @@ for (const [name, width] of [
         }
       });
 
-      test('the react box and the not-built box share a row, with their headers level', async ({ page }) => {
-        const [react, future] = [await boxes(page, '[data-zone="react"]'), await boxes(page, '[data-zone="future"]')];
-        expect(near(react[0]!.top, future[0]!.top)).toBe(true);
-        const headers = await boxes(page, '[data-zone="react"] > .bit-card__header, [data-zone="future"] > .bit-card__header');
-        expect(headers).toHaveLength(2);
-        expect(near(headers[0]!.top, headers[1]!.top)).toBe(true);
-        expect(near(headers[0]!.height, headers[1]!.height)).toBe(true);
-      });
     } else {
-      test('stacked, the not-built box comes after the app, apart from the connected stack', async ({ page }) => {
-        const [react, app, future] = await Promise.all(['react', 'app', 'future'].map(async (zone) => (await boxes(page, `[data-zone="${zone}"]`))[0]!));
-        expect(react!.top).toBeLessThan(app!.top);
-        expect(app!.bottom).toBeLessThan(future!.top);
-      });
-
       test('the kind table fits the phone: no sideways scroll, and each row stacks axis over choice over why', async ({ page }) => {
         const table = page.locator('.gallery-arch-kind');
         const [scrollWidth, clientWidth] = await table.evaluate((wrapper) => [wrapper.scrollWidth, wrapper.clientWidth]);

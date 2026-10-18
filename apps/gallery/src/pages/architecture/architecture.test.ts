@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { MANIFESTS } from '../../manifests';
-import { AXES, parseAxes, REPO_FILES, splitLinks } from './architectureDoc';
+import { AXES, parseAxes, parseSummary, REPO_FILES, splitLinks, SUMMARY } from './architectureDoc';
 import { missingRepoLink } from '../../test/repoLinks';
 import { AXIS_ICONS } from './KindTable';
 import { EDGES, FUTURE, LAYERS } from './model';
@@ -172,6 +172,24 @@ describe('Architecture: parseAxes', () => {
     const md = '## 4. What kind of design system this is\n| **A** | one | x; y | why | cost | later |\n\n## 5. Next';
     expect(parseAxes(md)).toEqual([{ axis: 'A', choice: 'one', over: ['x', 'y'], why: 'why', cost: 'cost', revisit: 'later' }]);
     expect(() => parseAxes('## 4. What kind of design system this is\n| **A** | one | two |\n## 5.')).toThrow(/has 3 cells, not 6/);
+  });
+});
+
+describe('Architecture: parseSummary', () => {
+  it('reads the one paragraph under "In system-design terms", up to the next heading', () => {
+    expect(parseSummary('## 1. x\n\nintro\n\n### In system-design terms\n\nbit is **one** thing.\n\n## 2. y\n')).toBe('bit is **one** thing.');
+    expect(parseSummary('### In system-design terms\n\nlast in the file\n')).toBe('last in the file');
+  });
+
+  it('throws when the section is missing, empty or more than one paragraph', () => {
+    expect(() => parseSummary('## 1. x\n')).toThrow(/has no "### In system-design terms"/);
+    expect(() => parseSummary('### In system-design terms\n\n## 2. y')).toThrow(/must be one paragraph/);
+    expect(() => parseSummary('### In system-design terms\n\none\n\ntwo\n')).toThrow(/must be one paragraph/);
+  });
+
+  it('ARCHITECTURE.md has it, and it never says "multi-framework"', () => {
+    expect(SUMMARY).toMatch(/^bit is a \*\*centralized, single-maintainer design system\*\*/);
+    expect(SUMMARY).not.toMatch(/multi-framework/i);
   });
 });
 

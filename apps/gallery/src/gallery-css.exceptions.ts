@@ -208,8 +208,6 @@ export const GALLERY_CSS_EXCEPTIONS: readonly CssException[] = [
   { selector: '.gallery-arch-pipe__line::after', property: 'background', reason: 'diagram: the connector\'s drawn arrowhead' },
   { selector: '@media (forced-colors: active) .gallery-arch-pipe__line, .gallery-arch-pipe__line::after', property: 'background', reason: 'forced colors: the connector keeps a visible fill, in CanvasText' },
   { selector: '@media (forced-colors: active) .gallery-arch-pipe__line, .gallery-arch-pipe__line::after', property: 'forced-color-adjust', reason: 'forced colors: the connector keeps a visible fill, in CanvasText' },
-  { selector: '.gallery-arch-zone[data-zone="future"]', property: 'border-style', reason: 'diagram: the not-built package box is dashed' },
-  { selector: '.gallery-arch-zone[data-zone="future"] > .bit-card__header', property: 'border-bottom-style', reason: 'diagram: the not-built box\'s divider is dashed (its other sides have no border)' },
   { selector: '.gallery-arch-swatches, .gallery-arch-token-list, .gallery-arch-chain', property: 'list-style', reason: 'frame: no bullets on the diagram lists' },
   { selector: '.gallery-arch-kind .bit-table__body .bit-table__cell', property: 'vertical-align', reason: 'kind table: each row reads from the top, so the axis, choice and why start on one line' },
   { selector: '.gallery-arch-chain__arrow', property: 'color', reason: 'diagram: the accent arrows of the naming chain' },

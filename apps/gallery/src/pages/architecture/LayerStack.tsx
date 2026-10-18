@@ -1,6 +1,7 @@
 import { Fragment, useId } from 'react';
 import type { ReactNode } from 'react';
 import {
+  Avatar,
   Badge,
   Button,
   Card,
@@ -15,7 +16,6 @@ import {
   iconBrush,
   iconDataObject,
   iconInventory2,
-  iconLock,
   iconPalette,
   iconWidgets,
   Stack,
@@ -97,8 +97,8 @@ function Level({ n, icon, title, detail, children }: LevelProps) {
 }
 
 /** A boundary: an outlined box named by its package (tinted for bit's two), holding the layers it ships. */
-type ZoneKind = 'core' | 'react' | 'future' | 'app';
-const ZONE_ICON: Readonly<Record<ZoneKind, IconData>> = { core: iconInventory2, react: iconInventory2, future: iconLock, app: iconApps };
+type ZoneKind = 'core' | 'react' | 'app';
+const ZONE_ICON: Readonly<Record<ZoneKind, IconData>> = { core: iconInventory2, react: iconInventory2, app: iconApps };
 
 /**
  * A boundary box. A named group, so a screen reader entering it hears the package ("@bit-ds/core, private · inlined at
@@ -166,21 +166,30 @@ function Tokens() {
   );
 }
 
+/** Four of the five colors: neutral, the default look, sits out so each row is four across. */
+const SPECIMEN_COLORS = COLORS.filter((color) => color !== 'neutral');
+
 /**
- * The future framework: a package box like the others, dashed and locked, so nobody mistakes it for a shipped one.
- * Its header holds only the lock and the tag, so it stays one line, level with the react box's header beside it.
+ * Level 4's specimen: a Button, an outline Badge and an Avatar in rows, one color per column, so each column is one
+ * decorator class (`bit-primary`, …) styling three different components the same way.
  */
-function Locked() {
+function ComponentGrid() {
   return (
-    <Zone label={null} zone="future" badge={<Badge size="lg" flat variant="outline" color="neutral">not built</Badge>}>
-      <Stack gap={8} align="start">
-        <Heading size={26}>A second framework</Heading>
-        <Text color="neutral">
-          <Code>@bit-ds/angular</Code> would read the same core and add its own behavior. bit is designed for a second
-          framework; it doesn’t ship one.
-        </Text>
-      </Stack>
-    </Zone>
+    <div className="gallery-arch-specimens" role="group" aria-label="A Button, a Badge and an Avatar in four colors">
+      {SPECIMEN_COLORS.map((color) => (
+        <Button key={`button-${color}`} color={color} size="sm">
+          {color}
+        </Button>
+      ))}
+      {SPECIMEN_COLORS.map((color) => (
+        <Badge key={`badge-${color}`} color={color} variant="outline" size="lg">
+          {color}
+        </Badge>
+      ))}
+      {SPECIMEN_COLORS.map((color) => (
+        <Avatar key={`avatar-${color}`} name={color} color={color} size="sm" />
+      ))}
+    </div>
   );
 }
 
@@ -210,15 +219,7 @@ function levelContent(id: Layer['id']): { icon: IconData; detail: ReactNode; spe
       return {
         icon: iconWidgets,
         detail: 'They emit the classes, and own focus, keyboard and ARIA.',
-        specimen: (
-          <Stack direction="row" gap={8} wrap>
-            {COLORS.map((color) => (
-              <Button key={color} color={color} size="sm">
-                {color}
-              </Button>
-            ))}
-          </Stack>
-        ),
+        specimen: <ComponentGrid />,
       };
     case 'app':
       return {
@@ -247,9 +248,8 @@ function BoxLevels({ box }: { box: Box }) {
 
 /**
  * bit's layers top to bottom, in their package boxes, drawn from the model (model.ts), each level showing a live
- * specimen of what it holds. The figure is one grid of named areas: the not-built box comes after the app in reading
- * order (where a phone shows it), and the grid places it beside the react box when there is room. The caption says
- * the flow in words, so the picture isn't the only place it lives.
+ * specimen of what it holds. The model's not-built Angular box isn't drawn here (owner, 2026-10-17); the Mermaid
+ * diagram in ARCHITECTURE.md keeps it. The caption says the flow in words, so the picture isn't the only place it lives.
  */
 export function LayerStack() {
   const captionId = useId();
@@ -267,7 +267,6 @@ export function LayerStack() {
         <Zone label={<Text weight="bold">Any React 19 app</Text>} zone="app" badge={<Badge size="lg" flat variant="outline" color="neutral">installs bit</Badge>}>
           <BoxLevels box="app" />
         </Zone>
-        <Locked />
       </div>
       <figcaption id={captionId}>
         <Text color="neutral">
