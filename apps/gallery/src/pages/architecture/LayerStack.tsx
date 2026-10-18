@@ -279,7 +279,7 @@ export function LayerStack() {
           label={<Code>{PACKAGE_NAME}</Code>}
           zone="react"
           badge={
-            <Link href={NPM_PAGE} color="neutral" className="gallery-arch-npm">
+            <Link href={NPM_PAGE} target="_blank" rel="noreferrer" color="neutral" className="gallery-arch-npm">
               <Badge size="lg" flat color="success">
                 published on npm
               </Badge>
