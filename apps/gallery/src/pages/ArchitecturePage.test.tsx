@@ -129,10 +129,11 @@ describe('Architecture page', () => {
     expect(within(core as HTMLElement).getAllByRole('heading').map((h) => h.textContent)).toEqual(['Palette', 'Semantic tokens', 'Component CSS']);
     const react = document.querySelector('.gallery-arch-zone[data-zone="react"]')!;
     expect(react).toHaveTextContent(/@bit-ds\/react.*published on npm/);
-    expect(within(react as HTMLElement).getByRole('link', { name: 'published on npm' })).toHaveAttribute(
-      'href',
-      'https://www.npmjs.com/package/@bit-ds/react',
-    );
+    // npm opens in a new window, so the docs stay open behind it.
+    const npm = within(react as HTMLElement).getByRole('link', { name: 'published on npm' });
+    expect(npm).toHaveAttribute('href', 'https://www.npmjs.com/package/@bit-ds/react');
+    expect(npm).toHaveAttribute('target', '_blank');
+    expect(npm).toHaveAttribute('rel', 'noreferrer');
     expect(document.querySelector('[data-zone="future"]')).toBeNull();
     expect(screen.queryByRole('heading', { name: 'A second framework' })).toBeNull();
     expect(within(screen.getByRole('figure')).queryByText(/@bit-ds\/angular/)).toBeNull();
