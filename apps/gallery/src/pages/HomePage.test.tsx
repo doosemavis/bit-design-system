@@ -5,7 +5,8 @@ import { COLOR_MODES, ICON_GROUPS } from '@bit-ds/react';
 import { CURRENT_TOKENS } from '../content/currentTokens';
 import { renderAt } from '../test/renderRoute';
 import { expectNoA11yViolations } from '../test/a11y';
-import { MANIFESTS, routeFor } from '../manifests';
+import { COMPONENT_COUNT, MANIFESTS, routeFor } from '../manifests';
+import { ARCHITECTURE_FACTS } from './architecture/facts';
 import { COMPONENT_GROUPS, groupManifests } from '../shell/navGroups';
 import { GAMES } from '../arcade/games';
 import { bestKey } from '../arcade/bestScore';
@@ -20,8 +21,8 @@ async function open() {
 }
 
 const main = () => screen.getByRole('main');
-/** Every component and form control, the logo excluded: one tile each. */
-const TILED = MANIFESTS.filter((m) => m.group !== 'brand');
+/** Every component, form control and the logo: one tile each. */
+const TILED = MANIFESTS;
 
 describe('HomePage', () => {
   beforeEach(() => {
@@ -102,7 +103,7 @@ describe('HomePage', () => {
       expect(names.length, group.label).toBeLessThanOrEqual(7);
       return names;
     });
-    const components = MANIFESTS.filter((m) => m.group !== 'brand').map((m) => m.name);
+    const components = MANIFESTS.map((m) => m.name);
     expect([...placed].sort()).toEqual([...components].sort());
     expect(new Set(placed).size).toBe(placed.length);
   });
@@ -156,13 +157,21 @@ describe('HomePage', () => {
     expect(screen.getByRole('navigation', { name: 'Gallery' })).toBeInTheDocument();
   });
 
-  it('one tile per manifest except the logo, each one Link to its page', async () => {
+  it('one tile per manifest, the logo included, each one Link to its page', async () => {
     await open();
     for (const m of TILED) {
       const links = within(main()).getAllByRole('link', { name: m.name });
       expect(links.map((l) => l.getAttribute('href')), m.name).toEqual([routeFor(m)]);
     }
-    expect(within(main()).queryByRole('link', { name: 'BitLogo' })).toBeNull();
+  });
+
+  it('counts components once: the facts, the tiles badge and the Architecture scoreboard agree', async () => {
+    await open();
+    expect(COMPONENT_COUNT).toBe(MANIFESTS.length);
+    expect(ARCHITECTURE_FACTS.components).toBe(COMPONENT_COUNT);
+    expect(within(main()).getByRole('list', { name: 'At a glance' })).toHaveTextContent(`${COMPONENT_COUNT}components`);
+    const tilesHeading = within(main()).getByRole('heading', { name: 'Components' });
+    expect(tilesHeading.parentElement).toHaveTextContent(`Components${COMPONENT_COUNT}`);
   });
 
   it('every tile is the same: a Card with a live, inert preview over its link; no pill rows are left', async () => {

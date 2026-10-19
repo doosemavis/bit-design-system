@@ -1,6 +1,6 @@
 import bitPackage from '@bit-ds/react/package.json';
 import { CURRENT_TOKENS } from '../../content/currentTokens';
-import { MANIFESTS } from '../../manifests';
+import { COMPONENT_COUNT } from '../../manifests';
 import { THEME_CSS } from './themeSource';
 
 /** `@layer a, b, c;`, the first layer-order statement in a stylesheet, as its names. Empty when there is none. */
@@ -25,7 +25,7 @@ export function runtimeDependencies(pkg: object): string[] {
  * `architecture.test.ts` checks each against the files the docs name.
  */
 export const ARCHITECTURE_FACTS = {
-  components: MANIFESTS.length,
+  components: COMPONENT_COUNT,
   packageName: bitPackage.name,
   version: bitPackage.version,
   runtimeDependencies: runtimeDependencies(bitPackage).length,

@@ -36,6 +36,12 @@ import { navbar } from './navbar';
 /** Every manifest. The sidebar lists them alphabetically under Components; the home page groups them by task (shell/navGroups.ts). */
 export const MANIFESTS: readonly Manifest[] = [button, avatar, badge, alert, card, stack, box, text, heading, spinner, modeToggle, bitTheme, link, code, codeBlock, segmentedControl, table, dialog, tabs, icon, iconButton, tooltip, menu, navbar, field, input, textarea, select, checkbox, radioGroup, switchManifest, slider, bitLogo];
 
+/**
+ * How many components bit has: every manifest, the logo included, as the README and ARCHITECTURE.md count them. The
+ * Overview's facts and tiles and the Architecture page's scoreboard all show this one number.
+ */
+export const COMPONENT_COUNT = MANIFESTS.length;
+
 export function findManifest(slug: string): Manifest | undefined {
   return MANIFESTS.find((m) => m.slug === slug);
 }
