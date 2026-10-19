@@ -2,6 +2,12 @@
 
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
+## 0.1.11 — 2026-10-19
+### Changed
+- Nothing you import changes: the components, CSS, tokens and types build to the same code as 0.1.10. Only a version number in a comment in `icons.css` differs.
+- bit is built with npm and TypeScript 6.0.3 now (it was pnpm and TypeScript 5.9). Before each release the package is installed with npm, pnpm and Yarn 4 (Plug'n'Play), so any of the three can install it.
+- The icon artwork comes from Material Symbols 0.48.0 (it was 0.47.6). bit's 300 icons draw the same.
+
 ## 0.1.10 — 2026-10-17
 ### Added
 - `Avatar`: a person, as a photo or their initials. `name` is required: screen readers hear it (the Avatar is one `role="img"`), and the initials come from it, the first letter of the first and last word. New exports: `Avatar`, `AvatarProps`.
