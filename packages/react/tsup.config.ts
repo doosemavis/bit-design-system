@@ -9,10 +9,13 @@ export default defineConfig({
   // '@bit-ds/core/tokens' (the only subpath ever imported), not the bare '@bit-ds/core'. That
   // resolver also can't follow @bit-ds/core's package.json `exports` map (`"./tokens":
   // "./src/tokens.ts"`) on its own, so `paths` points it straight at the real file.
+  // TypeScript 6 deprecates `baseUrl` (7 removes it), and `paths` resolves from this package without
+  // it, but tsup 8 sets `baseUrl: '.'` on every dts build itself, so the deprecation is silenced here.
+  // Drop ignoreDeprecations once tsup stops adding baseUrl (needed anyway before TypeScript 7).
   dts: {
     resolve: ['@bit-ds/core/tokens'],
     compilerOptions: {
-      baseUrl: '.',
+      ignoreDeprecations: '6.0',
       paths: { '@bit-ds/core/tokens': ['../core/src/tokens.ts'] },
     },
   },

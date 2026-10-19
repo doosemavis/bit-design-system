@@ -4,7 +4,7 @@
 // To bump one, change it here; smoke-pins.test.mjs checks that each pin is exact and still inside
 // the range the repo itself declares, so a Dependabot bump of the repo never strands the smoke test.
 export const SMOKE_PINS = Object.freeze({
-  typescript: '5.9.3',
+  typescript: '6.0.3',
   '@types/react': '19.3.0',
   '@types/react-dom': '19.3.0',
   react: '19.3.0',
