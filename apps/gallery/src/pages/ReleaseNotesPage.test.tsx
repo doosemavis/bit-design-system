@@ -7,7 +7,7 @@ import { CHANGE_KINDS, RELEASES } from '../content/changelog';
 import type { ChangeKind } from '../content/changelog';
 import { renderInline } from '../ui/renderInline';
 import { changeHeadline } from '../ui/ChangeList';
-import { formatReleaseDate } from './release-notes/kinds';
+import { formatReleaseDate, KIND_BADGE } from './release-notes/kinds';
 import { render, waitFor } from '@testing-library/react';
 import { resetVersionsCache } from '../shell/useVersions';
 
@@ -28,6 +28,10 @@ describe('renderInline', () => {
     expect(container.textContent).toBe('plain `open');
   });
 });
+
+/** The newest release, whose card opens first, and its first section. Not always Added: 0.1.11 only has Changed. */
+const NEWEST = RELEASES[0]!;
+const NEWEST_KIND = CHANGE_KINDS.find((kind) => NEWEST.sections[kind])!;
 
 describe('ReleaseNotesPage', () => {
   async function open() {
@@ -63,8 +67,9 @@ describe('ReleaseNotesPage', () => {
 
   it('labels each section list with its badge', async () => {
     await open();
-    const added = within(screen.getByRole('main')).getAllByText('Added')[0]!;
-    expect(added).toHaveClass('bit-success', 'bit-solid');
+    const { color, variant } = KIND_BADGE[NEWEST_KIND];
+    const badge = within(screen.getByRole('main')).getAllByText(NEWEST_KIND)[0]!;
+    expect(badge).toHaveClass(`bit-${color}`, `bit-${variant}`);
     expect(within(screen.getByRole('main')).getAllByRole('list').length).toBeGreaterThanOrEqual(1);
   });
 
@@ -204,9 +209,9 @@ describe('ReleaseNotesPage', () => {
   // Critique 2026-10-11: a code chip on nearly every noun. Headlines first; the API detail is one switch away.
   it('reads as plain headlines at first, with no code chips', async () => {
     await open();
-    const items = within(screen.getByRole('list', { name: `Added in v${RELEASES[0]!.version}` })).getAllByRole('listitem');
+    const items = within(screen.getByRole('list', { name: `${NEWEST_KIND} in v${NEWEST.version}` })).getAllByRole('listitem');
     expect(items.map((li) => li.textContent)).toEqual(
-      RELEASES[0]!.sections.Added!.map((item) => {
+      NEWEST.sections[NEWEST_KIND]!.map((item) => {
         const { subject, text } = changeHeadline(item);
         return subject ? `${subject}: ${text}` : text;
       }),
@@ -219,9 +224,9 @@ describe('ReleaseNotesPage', () => {
     const user = userEvent.setup();
     await open();
     await user.click(screen.getByRole('switch', { name: 'Show API details' }));
-    const list = screen.getByRole('list', { name: `Added in v${RELEASES[0]!.version}` });
+    const list = screen.getByRole('list', { name: `${NEWEST_KIND} in v${NEWEST.version}` });
     expect(within(list).getAllByRole('listitem').map((li) => li.textContent)).toEqual(
-      RELEASES[0]!.sections.Added!.map((item) => item.replaceAll('`', '')),
+      NEWEST.sections[NEWEST_KIND]!.map((item) => item.replaceAll('`', '')),
     );
     const withCode = [...document.querySelectorAll('li')].filter((li) => li.querySelector('code'));
     expect(withCode.length).toBeGreaterThan(0);
