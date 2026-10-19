@@ -10,7 +10,7 @@ export const SMOKE_PINS = Object.freeze({
   react: '19.3.0',
   'react-dom': '19.3.0',
   vite: '8.3.1',
-  '@vitejs/plugin-react': '6.1.1',
+  '@vitejs/plugin-react': '6.1.2',
 });
 
 // Every registry install in the smoke test uses these flags. --ignore-scripts: no lifecycle script
