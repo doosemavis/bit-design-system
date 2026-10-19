@@ -24,7 +24,8 @@ permissions:
 env:
   # The one npm the release uses. Provenance and trusted publishing need 11.5.1 or later, and Node 22
   # ships npm 10. Exact, so a new npm never reaches the publish job unreviewed. Dependabot can't see
-  # this, so bump it by hand; the dry run on that PR rehearses the new version.
+  # this, so bump it by hand; the dry run on that PR rehearses the new version. It is also the npm the
+  # repo runs: package.json's packageManager and ci.yml name the same one (workflows.test.mjs).
   NPM_VERSION: 11.21.0
 
 # All tag runs share one group, so two tags never publish or deploy at the same time.
@@ -50,24 +51,23 @@ jobs:
           persist-credentials: false
       # From here to the smoke test, the steps are the build job's, word for word
       # (workflows.test.mjs pins them equal), so the PR rehearses exactly what a tag builds.
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 9.15.9
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-          cache: pnpm
+          cache: npm
       - name: Install the pinned npm
         run: npm install -g --ignore-scripts "npm@$NPM_VERSION"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build && pnpm verify
-      # prepack copies README.md and LICENSE into the package. pnpm 9 rejects `--filter` on pack
-      # ("Unknown option: 'recursive'"), so point --dir at the package. The hash is taken here,
+      - run: npm ci
+      - run: npm run build && npm run verify
+      # prepack copies README.md and LICENSE into the package; the repo's .npmrc sets ignore-scripts,
+      # so --ignore-scripts=false lets it run (pack installs nothing). The hash is taken here,
       # before the smoke test runs any registry code, and publish checks the tarball against it.
       - name: Pack
         id: pack
         run: |
-          pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"
+          # npm pack writes into --pack-destination but never creates it.
+          mkdir -p "$RUNNER_TEMP/out"
+          npm pack -w @bit-ds/react --ignore-scripts=false --pack-destination "$RUNNER_TEMP/out"
           # nullglob: no tarball gives an empty array, not a literal "*.tgz" that counts as one.
           shopt -s nullglob
           tgz=("$RUNNER_TEMP"/out/*.tgz)
@@ -90,11 +90,11 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       # smoke:full uses the root `playwright` package. Runs on a cache hit too, for the system libraries.
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: npx --no -- playwright install --with-deps chromium
       # smoke:full tests this exact tarball (SMOKE_TARBALL), and it is the file that would be published.
       - name: Smoke test
         id: smoke
-        run: pnpm smoke:full
+        run: npm run smoke:full
         env:
           SMOKE_TARBALL: ${{ steps.pack.outputs.tgz }}
       # End of the steps shared with the build job.
@@ -112,7 +112,7 @@ jobs:
       - name: Note the skipped dry run
         if: steps.decide.outputs.publish == 'false'
         run: echo "::notice::This version is already on npm. Bump packages/react/package.json to dry-run a publish."
-      - run: pnpm gallery:build
+      - run: npm run gallery:build
       # Rehearses the deploy's versioned site. --as-older archives v0.1.0 at v0.1/ although it shares
       # the current line, so archiving and the injected banner run before a second line exists.
       - name: Build the versioned site
@@ -165,24 +165,23 @@ jobs:
           persist-credentials: false
       # From here to the smoke test, the steps are dry-run's, word for word
       # (workflows.test.mjs pins them equal).
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 9.15.9
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-          cache: pnpm
+          cache: npm
       - name: Install the pinned npm
         run: npm install -g --ignore-scripts "npm@$NPM_VERSION"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build && pnpm verify
-      # prepack copies README.md and LICENSE into the package. pnpm 9 rejects `--filter` on pack
-      # ("Unknown option: 'recursive'"), so point --dir at the package. The hash is taken here,
+      - run: npm ci
+      - run: npm run build && npm run verify
+      # prepack copies README.md and LICENSE into the package; the repo's .npmrc sets ignore-scripts,
+      # so --ignore-scripts=false lets it run (pack installs nothing). The hash is taken here,
       # before the smoke test runs any registry code, and publish checks the tarball against it.
       - name: Pack
         id: pack
         run: |
-          pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"
+          # npm pack writes into --pack-destination but never creates it.
+          mkdir -p "$RUNNER_TEMP/out"
+          npm pack -w @bit-ds/react --ignore-scripts=false --pack-destination "$RUNNER_TEMP/out"
           # nullglob: no tarball gives an empty array, not a literal "*.tgz" that counts as one.
           shopt -s nullglob
           tgz=("$RUNNER_TEMP"/out/*.tgz)
@@ -205,11 +204,11 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       # smoke:full uses the root `playwright` package. Runs on a cache hit too, for the system libraries.
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: npx --no -- playwright install --with-deps chromium
       # smoke:full tests this exact tarball (SMOKE_TARBALL), and it is the file that would be published.
       - name: Smoke test
         id: smoke
-        run: pnpm smoke:full
+        run: npm run smoke:full
         env:
           SMOKE_TARBALL: ${{ steps.pack.outputs.tgz }}
       # End of the steps shared with dry-run.
@@ -235,7 +234,7 @@ jobs:
           if-no-files-found: error
 
   # Publishes the tarball the build job made and tested. It runs no install and no third-party code:
-  # no pnpm, no dependency cache, and the checkout is only for release-steps.mjs (Node built-ins
+  # no npm ci, no dependency cache, and the checkout is only for release-steps.mjs (Node built-ins
   # only) and the package version. The one download besides the artifact is the pinned npm itself.
   publish:
     needs: [guard, build]
@@ -377,16 +376,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 9.15.9
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+          cache: npm
+      - name: Install the pinned npm
+        run: npm install -g --ignore-scripts "npm@$NPM_VERSION"
+      - run: npm ci
       # Builds the library, then the gallery with base /bit-design-system/.
-      - run: pnpm gallery:build
+      - run: npm run gallery:build
       # Each older line is a frozen copy of its newest tag. The key names the build recipe (v2, see
       # CACHE_PREFIX in the script) and those tags, so a new patch on an old line rebuilds just that
       # copy; restore-keys brings back the copies this recipe already built.
@@ -484,16 +482,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 9.15.9
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+          cache: npm
+      - name: Install the pinned npm
+        run: npm install -g --ignore-scripts "npm@$NPM_VERSION"
+      - run: npm ci
       # Builds the library, then the gallery with base /bit-design-system/.
-      - run: pnpm gallery:build
+      - run: npm run gallery:build
       # Each older line is a frozen copy of its newest tag. The key names the build recipe (v2, see
       # CACHE_PREFIX in the script) and those tags, so a new patch on an old line rebuilds just that
       # copy; restore-keys brings back the copies this recipe already built.

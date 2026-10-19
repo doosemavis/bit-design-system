@@ -165,21 +165,41 @@ const quietly = (label, fn) => {
   }
 };
 
+/**
+ * The install and build commands for a tag checked out at `work`, with the tools that tag used. Tags
+ * from before the move to npm (0.1.10 and earlier) have a pnpm-lock.yaml: they install with the exact
+ * pnpm their package.json names, run through npx, so no global pnpm is needed. Later tags use npm ci.
+ * No lifecycle scripts either way: the old tag's dependencies only need to build, and esbuild (tsup,
+ * vite) finds its binary through its optional platform package without its postinstall.
+ * --base and --outDir override the old vite config; the hash router needs nothing else.
+ */
+export const archiveCommands = (work, outDir, dest) => {
+  const vite = ['vite', 'build', '--base', `${SITE_BASE}${outDir}/`, '--outDir', dest, '--emptyOutDir'];
+  if (!existsSync(join(work, 'pnpm-lock.yaml'))) {
+    return [
+      ['npm', ['ci', '--ignore-scripts']],
+      ['npm', ['run', 'build']],
+      ['npm', ['exec', '-w', '@bit-ds/gallery', '--', ...vite]],
+    ];
+  }
+  const { packageManager } = JSON.parse(readFileSync(join(work, 'package.json'), 'utf8'));
+  if (!/^pnpm@\d+\.\d+\.\d+$/.test(packageManager ?? '')) {
+    throw new Error(`${work} has a pnpm-lock.yaml but its packageManager is ${packageManager ?? 'missing'}, not an exact pnpm@x.y.z`);
+  }
+  const pnpm = ['--yes', packageManager];
+  return [
+    ['npx', [...pnpm, 'install', '--frozen-lockfile', '--ignore-scripts']],
+    ['npx', [...pnpm, '--dir', work, 'build']],
+    ['npx', [...pnpm, '--dir', join(work, 'apps/gallery'), 'exec', ...vite]],
+  ];
+};
+
 /** Builds one archive in a temporary git worktree at its tag. `run(cmd, args, cwd)` is injectable for tests. */
 export const gitBuildArchive = (root, run = execRun) => (archive, dest) => {
   const work = mkdtempSync(join(tmpdir(), `bit-archive-${archive.tag}-`));
   try {
     run('git', ['worktree', 'add', '--detach', work, archive.tag], root);
-    // No lifecycle scripts: the old tag's dependencies only need to build, and esbuild (tsup, vite)
-    // finds its binary through its optional platform package without its postinstall.
-    run('pnpm', ['install', '--frozen-lockfile', '--ignore-scripts'], work);
-    run('pnpm', ['--dir', work, 'build'], work);
-    // --base and --outDir override the old vite config; the hash router needs nothing else.
-    run(
-      'pnpm',
-      ['--dir', join(work, 'apps/gallery'), 'exec', 'vite', 'build', '--base', `${SITE_BASE}${archive.outDir}/`, '--outDir', dest, '--emptyOutDir'],
-      work,
-    );
+    for (const [cmd, args] of archiveCommands(work, archive.outDir, dest)) run(cmd, args, work);
   } finally {
     quietly(`could not remove the worktree ${work}`, () => run('git', ['worktree', 'remove', '--force', work], root));
     quietly(`could not delete ${work}`, () => rmSync(work, { recursive: true, force: true }));

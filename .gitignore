@@ -33,5 +33,7 @@ apps/gallery/public/versions.json
 *.pem
 *.key
 .vercel/
-# pnpm settings live in package.json (the "pnpm" field), so the project needs no .npmrc.
+# An .npmrc can hold a registry token, so none is committed except the root one, which
+# supply-chain.test.mjs keeps to ignore-scripts=true.
 .npmrc
+!/.npmrc

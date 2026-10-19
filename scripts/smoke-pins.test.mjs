@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { SMOKE_INSTALL_FLAGS, SMOKE_PINS, pinnedSpecs } from './smoke-pins.mjs';
+import { SMOKE_INSTALL_FLAGS, SMOKE_PACKAGE_MANAGERS, SMOKE_PINS, pinnedSpecs } from './smoke-pins.mjs';
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const MANIFESTS = ['package.json', 'apps/gallery/package.json', 'packages/react/package.json'];
@@ -30,6 +30,12 @@ test('smoke pins: every pin is an exact version', () => {
   for (const [name, version] of Object.entries(SMOKE_PINS)) assert.match(version, /^\d+\.\d+\.\d+$/, name);
 });
 
+test('smoke pins: the tarball also installs with pnpm and Yarn 4, each at an exact version', () => {
+  assert.deepEqual(Object.keys(SMOKE_PACKAGE_MANAGERS), ['pnpm', 'yarn']);
+  for (const [name, version] of Object.entries(SMOKE_PACKAGE_MANAGERS)) assert.match(version, /^\d+\.\d+\.\d+$/, name);
+  assert.equal(parts(SMOKE_PACKAGE_MANAGERS.yarn)[0], 4, 'yarn is Yarn 4 (Berry), whose Plug’n’Play install is the strict one');
+});
+
 test('smoke pins: every pin sits inside each range the repo declares for that package', () => {
   for (const [name, version] of Object.entries(SMOKE_PINS)) {
     const ranges = declaredRanges(name);
@@ -54,12 +60,19 @@ test('smoke pins: pinnedSpecs gives name@version and refuses an unpinned name', 
   assert.throws(() => pinnedSpecs(['left-pad']), /no pinned version for left-pad/);
 });
 
-test('smoke consumer: every npm install goes through the pinned installer, and npx never fetches', () => {
+test('smoke consumer: every npm install goes through the pinned installer, and npx fetches only the pinned pnpm and yarn', () => {
   const source = read('scripts/smoke-consumer.mjs');
   const code = source.replace(/^\s*\/\/.*$/gm, '').replace(/npm install failed/g, '');
-  assert.equal(code.match(/npm (install|i|add|ci)\b/g)?.length, 1, 'one npm install command, inside installPinned');
+  assert.equal(code.match(/\bnpm (install|i|add|ci)\b/g)?.length, 1, 'one npm install command, inside installPinned');
   assert.match(source, /\['npm install', \.\.\.SMOKE_INSTALL_FLAGS,/);
   const calls = [...source.matchAll(/(?:runLoudly\('npx[^']*'|spawn\('npx', \[[^\]]*\])/g)].map((m) => m[0]);
   assert.equal(calls.length, 4, 'vite build, the global-stylesheet vite build, vite preview and tsc');
   for (const call of calls) assert.match(call, /npx(?:', \['| )--no(?:', '| )--/, `npx must never install: ${call}`);
+  // The two npx runs that may fetch: pnpm and Yarn 4, each at its exact SMOKE_PACKAGE_MANAGERS version.
+  assert.deepEqual(code.match(/npx --yes [^`]*/g), [
+    'npx --yes pnpm@${SMOKE_PACKAGE_MANAGERS.pnpm}',
+    'npx --yes --package @yarnpkg/cli-dist@${SMOKE_PACKAGE_MANAGERS.yarn} -- yarn',
+  ]);
+  assert.match(code, /\$\{pnpm\} add --ignore-scripts /, 'pnpm installs with no lifecycle scripts');
+  assert.match(code, /YARN_ENABLE_SCRIPTS: 'false'/, 'yarn installs with no lifecycle scripts');
 });

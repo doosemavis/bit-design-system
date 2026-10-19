@@ -7,7 +7,7 @@ import { checkCss, declarationKeys } from './cssGuard';
 import { GALLERY_CSS_EXCEPTIONS } from './gallery-css.exceptions';
 
 const require = createRequire(import.meta.url);
-/** The theme exactly as consumers get it, through @bit-ds/react's exports map (run `pnpm build` first). */
+/** The theme exactly as consumers get it, through @bit-ds/react's exports map (run `npm run build` first). */
 const theme = readFileSync(require.resolve('@bit-ds/react/themes/power-up.css'), 'utf8');
 const galleryCss = readFileSync(new URL('./gallery.css', import.meta.url), 'utf8');
 

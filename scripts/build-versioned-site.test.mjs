@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { BANNER_TAG, assembleSite, cacheKey, checkSite, gitBuildArchive, injectBanner, planSite } from './build-versioned-site.mjs';
+import { BANNER_TAG, archiveCommands, assembleSite, cacheKey, checkSite, gitBuildArchive, injectBanner, planSite } from './build-versioned-site.mjs';
 
 // --- planSite ---------------------------------------------------------------------------------
 test('planSite: one tag on the current line gives no archives', () =>
@@ -200,10 +200,18 @@ test(
 );
 
 // --- gitBuildArchive: the worktree is always cleaned up, and cleanup never hides the real error --
+// A stand-in `git worktree add` that checks out a tag from the pnpm era (0.1.10 and earlier).
+const pnpmEraCheckout = (args) => {
+  if (args[0] !== 'worktree' || args[1] !== 'add') return;
+  writeFileSync(join(args[3], 'package.json'), JSON.stringify({ packageManager: 'pnpm@9.15.9' }));
+  writeFileSync(join(args[3], 'pnpm-lock.yaml'), '');
+};
+
 test('gitBuildArchive: a failed build throws its own error even when worktree cleanup also fails', () => {
   const calls = [];
   const run = (cmd, args) => {
     calls.push(`${cmd} ${args.join(' ')}`);
+    pnpmEraCheckout(args);
     if (args.includes('vite')) throw new Error('vite build failed');
     if (args[0] === 'worktree' && args[1] !== 'add') throw new Error(`git ${args[1]} failed`);
   };
@@ -212,10 +220,55 @@ test('gitBuildArchive: a failed build throws its own error even when worktree cl
     assert.throws(() => gitBuildArchive('/repo', run)({ tag: 'v0.1.0', outDir: 'v0.1' }, dest), /vite build failed/);
     assert.ok(calls.some((c) => c.startsWith('git worktree remove')), 'removes the worktree');
     assert.ok(calls.some((c) => c === 'git worktree prune'), 'prunes');
-    assert.ok(calls.includes('pnpm install --frozen-lockfile --ignore-scripts'), 'installs the old tag without lifecycle scripts');
+    assert.ok(
+      calls.includes('npx --yes pnpm@9.15.9 install --frozen-lockfile --ignore-scripts'),
+      'installs a pnpm-era tag with its own pinned pnpm, without lifecycle scripts',
+    );
     const vite = calls.find((c) => c.includes('vite build'));
     assert.match(vite, /--base \/bit-design-system\/v0\.1\/ --outDir /);
   } finally {
     rmSync(dest, { recursive: true, force: true });
+  }
+});
+
+// --- archiveCommands: each tag builds with the package manager it was made with ----------------
+test('archiveCommands: a tag with a pnpm-lock.yaml runs its own exact pnpm through npx', () => {
+  const work = mkdtempSync(join(tmpdir(), 'bit-archive-work-'));
+  try {
+    pnpmEraCheckout(['worktree', 'add', '--detach', work]);
+    const commands = archiveCommands(work, 'v0.1', '/out').map(([cmd, args]) => `${cmd} ${args.join(' ')}`);
+    assert.deepEqual(commands, [
+      'npx --yes pnpm@9.15.9 install --frozen-lockfile --ignore-scripts',
+      `npx --yes pnpm@9.15.9 --dir ${work} build`,
+      `npx --yes pnpm@9.15.9 --dir ${join(work, 'apps/gallery')} exec vite build --base /bit-design-system/v0.1/ --outDir /out --emptyOutDir`,
+    ]);
+  } finally {
+    rmSync(work, { recursive: true, force: true });
+  }
+});
+
+test('archiveCommands: a tag from the npm era installs with npm ci, no lifecycle scripts', () => {
+  const work = mkdtempSync(join(tmpdir(), 'bit-archive-work-'));
+  try {
+    writeFileSync(join(work, 'package-lock.json'), '{}');
+    const commands = archiveCommands(work, 'v0.2', '/out').map(([cmd, args]) => `${cmd} ${args.join(' ')}`);
+    assert.deepEqual(commands, [
+      'npm ci --ignore-scripts',
+      'npm run build',
+      'npm exec -w @bit-ds/gallery -- vite build --base /bit-design-system/v0.2/ --outDir /out --emptyOutDir',
+    ]);
+  } finally {
+    rmSync(work, { recursive: true, force: true });
+  }
+});
+
+test('archiveCommands: a pnpm-lock.yaml without an exact pnpm@x.y.z packageManager fails, rather than guess a pnpm', () => {
+  const work = mkdtempSync(join(tmpdir(), 'bit-archive-work-'));
+  try {
+    writeFileSync(join(work, 'pnpm-lock.yaml'), '');
+    writeFileSync(join(work, 'package.json'), JSON.stringify({ packageManager: 'pnpm@9' }));
+    assert.throws(() => archiveCommands(work, 'v0.1', '/out'), /not an exact pnpm@x\.y\.z/);
+  } finally {
+    rmSync(work, { recursive: true, force: true });
   }
 });

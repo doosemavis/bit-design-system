@@ -1,16 +1,16 @@
 # Contributing to bit
 
-This repo is a pnpm workspace. Install its dependencies with `pnpm install` (run `corepack enable` once if you don't have pnpm). After that you can run any script with `npm run <name>` or `pnpm <name>`. `npm install` doesn't work inside this repo. People using the published package can install it with npm, pnpm or yarn.
+This repo is an npm workspace (`packages/*` and `apps/*`), on the npm that `packageManager` in the root `package.json` names; any npm 10 or later installs from its `package-lock.json`. Install its dependencies with `npm install`, then run any script with `npm run <name>`. People using the published package can install it with npm, pnpm or yarn: `npm run smoke` installs the packed tarball with all three.
 
 How bit is designed, and why, is in [ARCHITECTURE.md](ARCHITECTURE.md). Read it before changing a layer, a token tier or a convention, and update it in the same pull request when a decision changes.
 
 ## Working on bit
 
-Clone the repo, run `pnpm install`, then `npm run dev` to start the gallery at http://localhost:5173.
+Clone the repo, run `npm install`, then `npm run dev` to start the gallery at http://localhost:5173.
 
 ### Scripts
 
-Run each one as `npm run <name>` or `pnpm <name>`.
+Run each one as `npm run <name>`.
 
 | Command | What it does |
 | --- | --- |
@@ -84,9 +84,9 @@ Keep the file's shape, with your theme's name in place of `power-up`:
 - Write the dark block once. Don't write a `@media (prefers-color-scheme: dark)` copy for `data-mode="system"`: the build (`packages/react/scripts/system-mode.mjs`) adds it to the shipped file, and fails if the theme already has one.
 - Put `@font-face` rules after the layer block, outside it.
 
-Add it to `THEMES` in `apps/gallery/src/shell/themes.ts`, after adding its CSS import in `apps/gallery/src/main.tsx`. Run `pnpm --filter @bit-ds/core test`. The test fails if any token is missing, the selectors don't follow the shape, or any color fails WCAG AA contrast.
+Add it to `THEMES` in `apps/gallery/src/shell/themes.ts`, after adding its CSS import in `apps/gallery/src/main.tsx`. Run `npm test -w @bit-ds/core`. The test fails if any token is missing, the selectors don't follow the shape, or any color fails WCAG AA contrast.
 
-Fonts are self-hosted, never loaded from a font service. A theme's `@font-face` rules point at `./fonts/<id>-<subset>-<weight>-normal.woff2`, one rule per weight and subset with that subset's `unicode-range`. Ship every subset the family's `@fontsource` package has (its `unicode.json`), in that file's order (latin last, so it wins the code points subsets share), so text in any script Google Fonts served keeps the face. Those paths resolve only in the build: `packages/react/scripts/build-css.mjs` copies each file a theme names from an `@fontsource/<id>` devDependency of `@bit-ds/react` (exact version) into `dist/themes/fonts/`, checks the `unicode-range` against the package's, and adds the family's license as `OFL-<id>.txt`. A new family needs its `@fontsource` package and an entry in `packages/react/scripts/expected-fonts.mjs`. `fonts.test.ts`, `pnpm verify` and `pnpm smoke` fail on any remote `@import` or `url()`.
+Fonts are self-hosted, never loaded from a font service. A theme's `@font-face` rules point at `./fonts/<id>-<subset>-<weight>-normal.woff2`, one rule per weight and subset with that subset's `unicode-range`. Ship every subset the family's `@fontsource` package has (its `unicode.json`), in that file's order (latin last, so it wins the code points subsets share), so text in any script Google Fonts served keeps the face. Those paths resolve only in the build: `packages/react/scripts/build-css.mjs` copies each file a theme names from an `@fontsource/<id>` devDependency of `@bit-ds/react` (exact version) into `dist/themes/fonts/`, checks the `unicode-range` against the package's, and adds the family's license as `OFL-<id>.txt`. A new family needs its `@fontsource` package and an entry in `packages/react/scripts/expected-fonts.mjs`. `fonts.test.ts`, `npm run verify` and `npm run smoke` fail on any remote `@import` or `url()`.
 
 ### Icons
 
@@ -97,7 +97,7 @@ Icons come from `@material-symbols/svg-700` (an exact-version devDependency of `
 ### End-to-end and accessibility
 
 ```bash
-pnpm --filter @bit-ds/gallery exec playwright install chromium   # once
+npm exec -w @bit-ds/gallery -- playwright install chromium   # once
 npm run e2e
 ```
 
@@ -138,9 +138,9 @@ Pushing the tag starts the `release.yml` workflow. On a tag it runs:
 4. `verify-install` waits for npm to show the new version, checks that npm's integrity for it matches the tarball `build` packed, then installs it (with no install scripts) to check it.
 5. `deploy` puts the site on https://doosemavis.github.io/bit-design-system/, once `verify-install` passes. `site-build` builds that site alongside the other jobs.
 
-The split is a security boundary. Only `publish` sees the npm token and can mint an OIDC token, and it installs nothing and runs no third-party code: no `pnpm install`, no smoke test, no Playwright. Everything that installs packages or runs their scripts happens in `build`, which holds no credential. The same goes for the site: `site-build` builds it with no Pages permission, and `deploy` only runs `actions/deploy-pages`. `scripts/workflows.test.mjs` fails if a change breaks these rules.
+The split is a security boundary. Only `publish` sees the npm token and can mint an OIDC token, and it installs nothing and runs no third-party code: no `npm ci`, no smoke test, no Playwright. Everything that installs packages or runs their scripts happens in `build`, which holds no credential. The same goes for the site: `site-build` builds it with no Pages permission, and `deploy` only runs `actions/deploy-pages`. `scripts/workflows.test.mjs` fails if a change breaks these rules.
 
-No dependency runs an install script: `pnpm.onlyBuiltDependencies` in the root `package.json` is empty, so pnpm skips them all. A dependency that truly needs its install script must be added to that list on purpose, in a PR that says why.
+No dependency runs an install script: the root `.npmrc` sets `ignore-scripts=true`, and it is the one `.npmrc` the repo commits (a test keeps it to that one line, so a registry token never lands there). `npm run <name>` still runs the script you name, but not its `pre`/`post` hooks, and the release's `npm pack` passes `--ignore-scripts=false` so `prepack` can copy README.md and LICENSE in. A dependency that truly needs its install script must be turned on for it alone, on purpose, in a PR that says why.
 
 The release pins its tools to exact versions. `NPM_VERSION` in `release.yml` is the npm that builds and publishes, and `SMOKE_PINS` in `scripts/smoke-pins.mjs` holds the versions the smoke test installs. Dependabot doesn't see either, so bump them by hand; the pull request's `dry-run` rehearses the new versions.
 
@@ -173,7 +173,7 @@ Do the npm steps first. Don't remove the token from the workflow before npm trus
 Before tagging, you can run `npm run smoke:full` and `npm run e2e` locally. Both need Chromium installed once. `smoke:full` uses the root `playwright` package, so install it from the repo root:
 
 ```bash
-pnpm exec playwright install chromium
+npx playwright install chromium
 ```
 
 Keep the root `playwright` and the gallery's `@playwright/test` on the same version, so both use the same Chromium.

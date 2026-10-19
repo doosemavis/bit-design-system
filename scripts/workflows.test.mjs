@@ -33,7 +33,6 @@ const NOT_TAG_PUSH = [BRANCH_PUSH, PULL_REQUEST, DISPATCH_MAIN, DISPATCH_BRANCH,
  */
 const ACTIONS = {
   checkout: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
-  pnpmSetup: 'pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413',
   setupNode: 'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020',
   cache: 'actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9',
   uploadArtifact: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a',
@@ -47,7 +46,8 @@ const PINNED_ACTIONS = new Set(Object.values(ACTIONS));
 const TAG_JOBS = ['build', 'deploy', 'github-release', 'guard', 'publish', 'site-build', 'verify-install'];
 const PAGES_DEPLOY_JOBS = ['deploy', 'docs'];
 const SITE_BUILD_JOBS = ['site-build', 'docs-build'];
-// The one install the credential-holding publish job may run: npm itself, at the exact pinned version.
+// npm itself, at the exact pinned version: the one install the credential-holding publish job may run, and
+// the first step of every job that installs the repo's dependencies (npm ci).
 const NPM_PIN = 'npm install -g --ignore-scripts "npm@$NPM_VERSION"';
 
 const runOf = (step) => String(step?.run ?? '');
@@ -154,27 +154,27 @@ test('ci: read-only permissions at the top', () => assert.deepEqual(ci().permiss
 
 test('ci: the ci job runs the scripts tests after the gallery tests', () => {
   const steps = ci().jobs.ci.steps;
-  const gallery = findIndex(steps, (s) => runOf(s) === 'pnpm --filter @bit-ds/gallery test', 'running the gallery tests');
+  const gallery = findIndex(steps, (s) => runOf(s) === 'npm test -w @bit-ds/gallery', 'running the gallery tests');
   // Node 22 reads a bare directory as a module path, so CI passes a glob.
   const scripts = findIndex(steps, (s) => runOf(s) === "node --test 'scripts/*.test.mjs'", 'running node --test on scripts');
   assert.ok(scripts > gallery, 'node --test runs after the gallery tests');
 });
 
-test('ci: the e2e job needs ci, installs Chromium from a cache and runs pnpm e2e', () => {
+test('ci: the e2e job needs ci, installs Chromium from a cache and runs npm run e2e', () => {
   const e2e = ci().jobs.e2e;
   assert.ok(e2e, 'ci.yml has an e2e job');
   assert.deepEqual([e2e.needs].flat(), ['ci']);
   const steps = e2e.steps;
-  const build = findIndex(steps, (s) => runOf(s) === 'pnpm build', 'running pnpm build');
+  const build = findIndex(steps, (s) => runOf(s) === 'npm run build', 'running npm run build');
   const cache = findIndex(steps, (s) => s.uses === ACTIONS.cache, 'using actions/cache');
   assert.equal(steps[cache].with.path, '~/.cache/ms-playwright');
   const install = findIndex(
     steps,
-    (s) => runOf(s) === 'pnpm --filter @bit-ds/gallery exec playwright install --with-deps chromium',
+    (s) => runOf(s) === 'npm exec -w @bit-ds/gallery -- playwright install --with-deps chromium',
     'installing Chromium',
   );
-  const run = findIndex(steps, (s) => runOf(s) === 'pnpm e2e', 'running pnpm e2e');
-  assert.ok(build < run && cache < install && install < run, 'build, cache and install come before pnpm e2e');
+  const run = findIndex(steps, (s) => runOf(s) === 'npm run e2e', 'running npm run e2e');
+  assert.ok(build < run && cache < install && install < run, 'build, cache and install come before npm run e2e');
   const upload = steps.find((s) => s.uses === ACTIONS.uploadArtifact);
   assert.ok(upload, 'e2e uploads an artifact');
   assert.equal(upload.if, 'failure()');
@@ -420,9 +420,9 @@ test('release: guard checks the tag and that the commit is on main', () => {
   assert.match(runOf(onMain), /git fetch[^\n]* origin main/);
 });
 
-// The build steps dry-run and build share: from pnpm setup to the smoke test, word for word.
+// The build steps dry-run and build share: from Node setup to the smoke test, word for word.
 const sharedBuildSteps = (steps) => {
-  const start = findIndex(steps, (s) => s.uses === ACTIONS.pnpmSetup, 'setting up pnpm');
+  const start = findIndex(steps, (s) => s.uses === ACTIONS.setupNode, 'setting up Node');
   const end = findIndex(steps, (s) => s.id === 'smoke', 'the smoke test');
   return steps.slice(start, end + 1);
 };
@@ -437,10 +437,15 @@ test('release: build packs, hashes, smoke-tests and uploads the tarball, needing
   });
   const { steps } = job;
   const npm = findIndex(steps, (s) => runOf(s) === NPM_PIN, 'installing the pinned npm');
-  const install = findIndex(steps, (s) => runOf(s) === 'pnpm install --frozen-lockfile', 'installing');
-  const verify = findIndex(steps, (s) => runOf(s) === 'pnpm build && pnpm verify', 'building and verifying');
-  const pack = findIndex(steps, (s) => runOf(s).includes('pnpm --dir packages/react pack --pack-destination "$RUNNER_TEMP/out"'), 'packing');
-  const smoke = findIndex(steps, (s) => s.id === 'smoke' && runOf(s) === 'pnpm smoke:full', 'running smoke:full');
+  const install = findIndex(steps, (s) => runOf(s) === 'npm ci', 'installing');
+  const verify = findIndex(steps, (s) => runOf(s) === 'npm run build && npm run verify', 'building and verifying');
+  // --ignore-scripts=false: the repo's .npmrc turns scripts off, and prepack must copy README.md and LICENSE in.
+  const pack = findIndex(
+    steps,
+    (s) => runOf(s).includes('npm pack -w @bit-ds/react --ignore-scripts=false --pack-destination "$RUNNER_TEMP/out"'),
+    'packing',
+  );
+  const smoke = findIndex(steps, (s) => s.id === 'smoke' && runOf(s) === 'npm run smoke:full', 'running smoke:full');
   assertSmokesThePackedTarball(steps, pack, smoke);
   // The hash is taken in Pack, before smoke:full runs any freshly installed registry code.
   assert.match(runOf(steps[pack]), /sha256=\$\(sha256sum "\$\{tgz\[0\]\}"/);
@@ -455,8 +460,8 @@ test('release: build packs, hashes, smoke-tests and uploads the tarball, needing
 test("release: dry-run runs the build job's steps word for word, so a PR rehearses the tag build", () => {
   const { jobs } = release();
   assert.deepEqual(sharedBuildSteps(jobs['dry-run'].steps), sharedBuildSteps(jobs.build.steps));
-  // pnpm, node, npm, install, build + verify, pack, Playwright version, cache, Chromium, smoke.
-  assert.equal(sharedBuildSteps(jobs.build.steps).length, 10);
+  // node, npm, install, build + verify, pack, Playwright version, cache, Chromium, smoke.
+  assert.equal(sharedBuildSteps(jobs.build.steps).length, 9);
 });
 
 test('release: the Pack shell writes the tarball path, name and sha256, and refuses zero or two tarballs', () => {
@@ -465,9 +470,13 @@ test('release: the Pack shell writes the tarball path, name and sha256, and refu
   try {
     const bin = join(dir, 'bin');
     mkdirSync(bin);
-    // A stand-in pnpm: `pnpm --dir packages/react pack --pack-destination DIR` writes STUB_COUNT tarballs.
-    writeFileSync(join(bin, 'pnpm'), '#!/bin/bash\nmkdir -p "$5"\nfor ((i = 1; i <= STUB_COUNT; i++)); do printf "tarball %s" "$i" > "$5/bit-ds-react-9.9.$i.tgz"; done\n');
-    chmodSync(join(bin, 'pnpm'), 0o755);
+    // A stand-in npm: `npm pack -w @bit-ds/react --ignore-scripts=false --pack-destination DIR` writes STUB_COUNT
+    // tarballs. Like the real npm, it fails when DIR doesn't exist yet (npm pack never creates it).
+    writeFileSync(
+      join(bin, 'npm'),
+      '#!/bin/bash\n[ -d "$6" ] || { echo "npm error enoent: $6" >&2; exit 254; }\nfor ((i = 1; i <= STUB_COUNT; i++)); do printf "tarball %s" "$i" > "$6/bit-ds-react-9.9.$i.tgz"; done\n',
+    );
+    chmodSync(join(bin, 'npm'), 0o755);
     const run = (count, name) => {
       const temp = join(dir, name);
       const output = join(dir, `${name}.out`);
@@ -618,7 +627,7 @@ const assertBuildsVersionedSite = (job, label) => {
   const { steps } = job;
   const checkout = steps.find((s) => s.uses === ACTIONS.checkout);
   assert.equal(checkout.with?.['fetch-depth'], 0, `${label}: full history, so the tags exist`);
-  const gallery = findIndex(steps, (s) => runOf(s) === 'pnpm gallery:build', `${label}: running gallery:build`);
+  const gallery = findIndex(steps, (s) => runOf(s) === 'npm run gallery:build', `${label}: running gallery:build`);
   const key = findIndex(
     steps,
     (s) => s.id === 'archives' && /node scripts\/build-versioned-site\.mjs --cache-key/.test(runOf(s)) && /key=.*>> "\$GITHUB_OUTPUT"/.test(runOf(s)),
@@ -726,7 +735,7 @@ test('release: dry-run smoke-tests, dry-runs the publish of a new version and bu
   const smoke = findIndex(steps, (s) => s.id === 'smoke', 'running smoke:full');
   assertSmokesThePackedTarball(steps, pack, smoke);
   const dry = findIndex(steps, (s) => runOf(s) === 'npm publish "$TGZ" --dry-run --access public' && s.env?.TGZ === PACKED_TGZ, 'dry-run publishing');
-  const gallery = findIndex(steps, (s) => runOf(s) === 'pnpm gallery:build', 'building the gallery');
+  const gallery = findIndex(steps, (s) => runOf(s) === 'npm run gallery:build', 'building the gallery');
   assert.ok(smoke < dry && dry < gallery, 'step order');
   // npm 11 refuses even a dry run over a published version, so the dry run follows should-publish.
   const ran = (publish) => simulate(steps, { outputs: { decide: { publish } } }).includes(keyOf(steps[dry]));
@@ -738,7 +747,7 @@ test('release: dry-run builds the versioned site with v0.1.0 as an older line, t
   const { steps } = release().jobs['dry-run'];
   const checkout = steps.find((s) => s.uses === ACTIONS.checkout);
   assert.equal(checkout.with?.['fetch-depth'], 0, 'full history, so v0.1.0 exists');
-  const gallery = findIndex(steps, (s) => runOf(s) === 'pnpm gallery:build', 'building the gallery');
+  const gallery = findIndex(steps, (s) => runOf(s) === 'npm run gallery:build', 'building the gallery');
   const build = findIndex(
     steps,
     (s) => runOf(s) === 'node scripts/build-versioned-site.mjs --out "$RUNNER_TEMP/site" --as-older v0.1.0',
@@ -760,21 +769,30 @@ test('both: the workflows folder holds exactly ci.yml and release.yml, so every 
   assert.deepEqual(readdirSync(new URL('../.github/workflows/', import.meta.url)).sort(), ['ci.yml', 'release.yml']);
 });
 
-test('both: actions are pinned to the agreed major tags, with the ci.yml pnpm and node setup', () => {
+test('both: actions are pinned to the agreed major tags; every install is npm ci, after the pinned npm, with the npm cache', () => {
   for (const [file, wf] of BOTH()) {
     for (const { job, step } of allSteps(wf)) {
       if (step.uses) assert.ok(PINNED_ACTIONS.has(step.uses), `${file} ${job}: ${step.uses} is not an agreed pin`);
-      if (step.uses === ACTIONS.pnpmSetup) assert.equal(step.with.version, '9.15.9', `${file} ${job}`);
       if (step.uses === ACTIONS.setupNode) assert.equal(step.with['node-version'], 22, `${file} ${job}`);
-      if (/^pnpm install\b/.test(runOf(step))) assert.equal(runOf(step), 'pnpm install --frozen-lockfile', `${file} ${job}`);
+      if (/^npm (ci|install|i)\b/.test(runOf(step))) assert.ok(['npm ci', NPM_PIN].includes(runOf(step)), `${file} ${job}: ${runOf(step)}`);
     }
     for (const [job, def] of Object.entries(wf.jobs)) {
-      if (!(def.steps ?? []).some((s) => /^pnpm install\b/.test(runOf(s)))) continue;
-      const node = def.steps.find((s) => s.uses === ACTIONS.setupNode);
-      assert.equal(node?.with.cache, 'pnpm', `${file} ${job} caches the pnpm store`);
-      assert.ok(def.steps.some((s) => s.uses === ACTIONS.pnpmSetup), `${file} ${job} sets up pnpm`);
+      const steps = def.steps ?? [];
+      const install = steps.findIndex((s) => runOf(s) === 'npm ci');
+      if (install < 0) continue;
+      const node = steps.find((s) => s.uses === ACTIONS.setupNode);
+      assert.equal(node?.with.cache, 'npm', `${file} ${job} caches npm's download cache`);
+      const npm = steps.findIndex((s) => runOf(s) === NPM_PIN);
+      assert.ok(npm >= 0 && npm < install, `${file} ${job} installs the pinned npm before npm ci`);
     }
   }
+});
+
+test("both: every workflow runs the npm that package.json's packageManager names", () => {
+  const { packageManager } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  const version = /^npm@(\d+\.\d+\.\d+)$/.exec(packageManager)?.[1];
+  assert.ok(version, `packageManager is an exact npm: ${packageManager}`);
+  for (const [file, wf] of BOTH()) assert.equal(wf.env?.NPM_VERSION, version, `${file} NPM_VERSION`);
 });
 
 test('both: every Playwright browser cache is keyed on the Playwright version', () => {
@@ -801,11 +819,11 @@ test('both: every action is pinned to a full commit SHA, with its release named 
   }
 });
 
-test('both: every setup-node step without a pnpm cache turns the automatic one off', () => {
+test('both: every setup-node step without the npm cache turns the automatic one off', () => {
   for (const [file, wf] of BOTH()) {
     for (const [job, def] of Object.entries(wf.jobs)) {
       for (const step of def.steps ?? []) {
-        if (step.uses !== ACTIONS.setupNode || step.with?.cache === 'pnpm') continue;
+        if (step.uses !== ACTIONS.setupNode || step.with?.cache === 'npm') continue;
         assert.equal(step.with?.['package-manager-cache'], false, `${file} ${job}`);
       }
     }

@@ -1,4 +1,4 @@
-// Repo-level supply-chain settings: which dependencies may run install scripts, the Dependabot
+// Repo-level supply-chain settings: npm runs no dependency's install script, the Dependabot
 // config and the secret-file ignores (security.md C1, C7, D2).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,9 +8,25 @@ import { parse } from 'yaml';
 
 const readJson = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 
-test('pnpm: no dependency may run an install script unless it is allowlisted on purpose', () => {
-  // pnpm 9 runs only the build scripts of the packages listed here; an empty list runs none.
-  assert.deepEqual(readJson('package.json').pnpm?.onlyBuiltDependencies, []);
+test('npm: no dependency may run an install script, and the committed .npmrc holds nothing else', () => {
+  // The one .npmrc the repo commits. Only ignore-scripts may be in it, so a registry token never is.
+  const settings = readFileSync(new URL('../.npmrc', import.meta.url), 'utf8')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#'));
+  assert.deepEqual(settings, ['ignore-scripts=true']);
+});
+
+test('npm: the repo is one npm workspace, with no pnpm settings or files left behind', () => {
+  const pkg = readJson('package.json');
+  assert.deepEqual(pkg.workspaces, ['packages/*', 'apps/*']);
+  assert.match(pkg.packageManager, /^npm@\d+\.\d+\.\d+$/);
+  assert.equal(pkg.pnpm, undefined, 'pnpm settings in package.json would do nothing under npm');
+  const tracked = execFileSync('git', ['ls-files', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'yarn.lock', 'package-lock.json'], {
+    cwd: new URL('..', import.meta.url),
+    encoding: 'utf8',
+  });
+  assert.deepEqual(tracked.split('\n').filter(Boolean), ['package-lock.json'], 'package-lock.json is the one lockfile');
 });
 
 // --- dependabot.yml ------------------------------------------------------------------------
@@ -50,8 +66,10 @@ test('gitignore: env files, keys, deploy and registry credentials are ignored; .
       throw error;
     }
   };
-  for (const path of ['.env', '.env.local', 'apps/gallery/.env.production', 'key.pem', 'certs/server.key', '.vercel/project.json', '.npmrc', 'packages/react/.npmrc']) {
+  for (const path of ['.env', '.env.local', 'apps/gallery/.env.production', 'key.pem', 'certs/server.key', '.vercel/project.json', 'packages/react/.npmrc', 'apps/gallery/.npmrc']) {
     assert.ok(ignored(path), path);
   }
   assert.equal(ignored('.env.example'), false, '.env.example stays committable');
+  // The root .npmrc is committed on purpose; the test above keeps it to ignore-scripts.
+  assert.equal(ignored('.npmrc'), false, 'the root .npmrc stays committable');
 });

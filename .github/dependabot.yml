@@ -2,7 +2,7 @@
 # repo settings; this file adds the routine bumps.
 version: 2
 updates:
-  # The pnpm workspace: Dependabot reads pnpm-workspace.yaml and pnpm-lock.yaml from the root.
+  # The npm workspace: Dependabot reads the root package.json (its workspaces) and package-lock.json.
   - package-ecosystem: npm
     directory: /
     schedule:

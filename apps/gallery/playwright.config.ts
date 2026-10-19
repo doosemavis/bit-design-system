@@ -14,7 +14,7 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     // Library first (the gallery imports its built dist), then the gallery build, then preview.
-    command: 'pnpm --dir ../.. build && pnpm build && pnpm preview',
+    command: 'npm run build -w @bit-ds/react && npm run build && npm run preview',
     url: `http://localhost:${PORT}/bit-design-system/`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

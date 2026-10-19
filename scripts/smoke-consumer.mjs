@@ -1,6 +1,7 @@
-// Proves a stranger can `npm install` the packed @bit-ds/react into a fresh project.
-// Steps: build → pnpm pack → temp project → npm install <tarball> → import ESM + CJS →
-// check CSS files → typecheck a small TS consumer against the shipped declarations.
+// Proves a stranger can install the packed @bit-ds/react into a fresh project with npm, pnpm or yarn.
+// Steps: build → npm pack → temp project → npm install <tarball> → import ESM + CJS →
+// check CSS files → the same install and imports with pnpm and Yarn 4 → typecheck a small TS
+// consumer against the shipped declarations.
 // With SMOKE_TARBALL=<path to a .tgz>, it skips the build and pack and tests that tarball,
 // so release.yml smoke-tests the exact file it publishes.
 import { execSync, spawn } from 'node:child_process';
@@ -14,17 +15,17 @@ import { EXPECTED } from '../packages/react/scripts/expected-exports.mjs';
 import { FONT_FACES, FONT_FILES, SUBSET_SAMPLES } from '../packages/react/scripts/expected-fonts.mjs';
 import { cssRefs, isRemote, remoteImports, thirdPartyFontHosts, unresolvedRefs } from '../packages/react/scripts/css-refs.mjs';
 import { GLOBAL_CSS_IMPORTS, INSTALL_COMMANDS, PACKAGE_NAME, STYLE_IMPORTS, fullFile } from '../apps/gallery/src/content/snippets.mjs';
-import { SMOKE_INSTALL_FLAGS, pinnedSpecs } from './smoke-pins.mjs';
+import { SMOKE_INSTALL_FLAGS, SMOKE_PACKAGE_MANAGERS, pinnedSpecs } from './smoke-pins.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const reactPkg = join(root, 'packages', 'react');
-const run = (cmd, cwd) => execSync(cmd, { cwd, stdio: 'pipe', encoding: 'utf8' });
+const run = (cmd, cwd, env = process.env) => execSync(cmd, { cwd, env, stdio: 'pipe', encoding: 'utf8' });
 
 // Run a command, printing its stdout/stderr and rethrowing on failure so a broken
 // consumer step fails loudly instead of an opaque non-zero exit.
-const runLoudly = (cmd, cwd, failureMessage) => {
+const runLoudly = (cmd, cwd, failureMessage, env) => {
   try {
-    return run(cmd, cwd);
+    return run(cmd, cwd, env);
   } catch (err) {
     console.error(err.stdout ?? '');
     console.error(err.stderr ?? '');
@@ -241,14 +242,45 @@ function obtainTarball(work) {
   if (given) {
     const tarballPath = resolve(process.env.INIT_CWD ?? process.cwd(), given);
     assert.ok(existsSync(tarballPath), `SMOKE_TARBALL does not exist: ${tarballPath}`);
-    console.log(`SMOKE_TARBALL set: testing ${tarballPath} (skipping pnpm build and pnpm pack)`);
+    console.log(`SMOKE_TARBALL set: testing ${tarballPath} (skipping the build and npm pack)`);
     return tarballPath;
   }
-  run('pnpm build', reactPkg);
-  run(`pnpm pack --pack-destination "${work}"`, reactPkg);
+  run('npm run build', reactPkg);
+  // The repo's .npmrc sets ignore-scripts, which would skip prepack (it copies README.md and LICENSE in).
+  run(`npm pack --ignore-scripts=false --pack-destination "${work}"`, reactPkg);
   const tarball = readdirSync(work).find((f) => f.endsWith('.tgz'));
-  assert.ok(tarball, 'pnpm pack produced no tarball');
+  assert.ok(tarball, 'npm pack produced no tarball');
   return join(work, tarball);
+}
+
+// The docs give `pnpm add` and `yarn add` too, so the same tarball installs with each (at the versions in
+// SMOKE_PACKAGE_MANAGERS, the peers at SMOKE_PINS) and passes the same import check as the npm consumer.
+// pnpm's node_modules hold only what a package declares, and Yarn 4's Plug'n'Play has no node_modules at
+// all, so an import that works only because npm hoisted it fails here. No lifecycle script runs in either.
+function otherManagers(work, tarballPath, checkScript) {
+  const peers = pinnedSpecs(['react', 'react-dom']).map((spec) => `"${spec}"`).join(' ');
+  const consumer = (manager) => {
+    const dir = join(work, `consumer-${manager}`);
+    mkdirSync(dir);
+    writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: `consumer-${manager}`, private: true, type: 'module' }, null, 2));
+    writeFileSync(join(dir, 'check.mjs'), checkScript);
+    return dir;
+  };
+
+  const pnpmApp = consumer('pnpm');
+  const pnpm = `npx --yes pnpm@${SMOKE_PACKAGE_MANAGERS.pnpm}`;
+  runLoudly(`${pnpm} add --ignore-scripts --save-exact "${tarballPath}" ${peers}`, pnpmApp, 'pnpm add failed');
+  runLoudly('node check.mjs', pnpmApp, 'pnpm consumer runtime checks failed (node check.mjs)');
+
+  const yarnApp = consumer('yarn');
+  // An empty yarn.lock marks the project root, so Yarn never looks above it for another project.
+  writeFileSync(join(yarnApp, 'yarn.lock'), '');
+  const yarn = `npx --yes --package @yarnpkg/cli-dist@${SMOKE_PACKAGE_MANAGERS.yarn} -- yarn`;
+  // CI makes Yarn's installs immutable by default, which a fresh project can't be.
+  const yarnEnv = { ...process.env, YARN_ENABLE_SCRIPTS: 'false', YARN_ENABLE_IMMUTABLE_INSTALLS: 'false', YARN_ENABLE_TELEMETRY: 'false', YARN_NODE_LINKER: 'pnp' };
+  runLoudly(`${yarn} add --exact "${PACKAGE_NAME}@file:${tarballPath}" ${peers}`, yarnApp, 'yarn add failed', yarnEnv);
+  runLoudly(`${yarn} node check.mjs`, yarnApp, 'yarn consumer runtime checks failed (yarn node check.mjs)', yarnEnv);
+  console.log(`pnpm and yarn OK: pnpm ${SMOKE_PACKAGE_MANAGERS.pnpm} and Yarn ${SMOKE_PACKAGE_MANAGERS.yarn} (Plug'n'Play) install the tarball; ESM, CJS and CSS resolve`);
 }
 
 // 1. Get the tarball: the one given in SMOKE_TARBALL, or a fresh build and pack
@@ -293,9 +325,7 @@ try {
   console.log(`tarball OK: ${fonts.length} font and license files in dist/themes/fonts, every CSS url() resolves, no third-party host`);
 
   // 3. Import both entry points and check the CSS shipped
-  writeFileSync(
-    join(app, 'check.mjs'),
-    `import { createRequire } from 'node:module';
+  const checkScript = `import { createRequire } from 'node:module';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import assert from 'node:assert/strict';
@@ -311,9 +341,10 @@ const dist = join(dirname(require.resolve('@bit-ds/react/package.json')), 'dist'
 assert.ok(existsSync(join(dist, 'styles.css')), 'styles.css missing');
 assert.ok(existsSync(join(dist, 'themes', 'power-up.css')), 'themes/power-up.css missing');
 assert.ok(existsSync(require.resolve('@bit-ds/react/icons.css')), 'icons.css does not resolve from the consumer');
-`,
-  );
+`;
+  writeFileSync(join(app, 'check.mjs'), checkScript);
   runLoudly('node check.mjs', app, 'consumer runtime checks failed (node check.mjs)');
+  otherManagers(work, tarballPath, checkScript);
 
   // 4. Typecheck a small TS consumer against the shipped declarations (dist/index.d.ts):
   // proves the tarball's types are self-contained (no unresolved `@bit-ds/core` import).
