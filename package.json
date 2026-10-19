@@ -2,27 +2,31 @@
   "name": "bit-design-system",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@9.15.9",
+  "packageManager": "npm@11.21.0",
   "engines": {
     "node": ">=20"
   },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
-    "build": "pnpm --filter @bit-ds/react build",
-    "verify": "pnpm --filter @bit-ds/react verify",
-    "test": "pnpm -r --workspace-concurrency=1 test",
-    "test:coverage": "pnpm --filter @bit-ds/react test:coverage",
-    "typecheck": "pnpm -r typecheck",
+    "build": "npm run build -w @bit-ds/react",
+    "verify": "npm run verify -w @bit-ds/react",
+    "test": "npm test --workspaces --if-present",
+    "test:coverage": "npm run test:coverage -w @bit-ds/react",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
     "versions": "node scripts/versions.mjs --out apps/gallery/public/versions.json",
     "logo:svg": "node scripts/build-logo-svg.mjs",
     "icons": "node scripts/build-icons.mjs",
     "smoke": "node scripts/smoke-consumer.mjs",
     "smoke:full": "node scripts/smoke-consumer.mjs --vite",
-    "gallery": "pnpm build && pnpm --filter @bit-ds/gallery dev",
-    "dev": "pnpm gallery",
-    "gallery:build": "pnpm build && pnpm --filter @bit-ds/gallery build",
-    "preview": "pnpm gallery:build && pnpm --filter @bit-ds/gallery preview",
-    "e2e": "pnpm --filter @bit-ds/gallery e2e"
+    "gallery": "npm run build && npm run dev -w @bit-ds/gallery",
+    "dev": "npm run gallery",
+    "gallery:build": "npm run build && npm run build -w @bit-ds/gallery",
+    "preview": "npm run gallery:build && npm run preview -w @bit-ds/gallery",
+    "e2e": "npm run e2e -w @bit-ds/gallery"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -35,10 +39,7 @@
     "typescript-eslint": "^8.70.1",
     "yaml": "^2.9.1"
   },
-  "pnpm": {
-    "overrides": {
-      "esbuild": "^0.28.2"
-    },
-    "onlyBuiltDependencies": []
+  "overrides": {
+    "esbuild": "^0.28.2"
   }
 }

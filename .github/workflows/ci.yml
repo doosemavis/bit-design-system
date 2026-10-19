@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+env:
+  # The npm the repo runs, the same as package.json's packageManager and release.yml (workflows.test.mjs
+  # keeps the three equal). Node 22 ships npm 10, so each job installs this one first.
+  NPM_VERSION: 11.21.0
+
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -16,14 +21,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 9.15.9
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+          cache: npm
+      - name: Install the pinned npm
+        run: npm install -g --ignore-scripts "npm@$NPM_VERSION"
+      - run: npm ci
       # The npm scope is @bit-ds (the @bit scope belongs to another org). Historical plans and
       # design docs keep the old name on purpose, so they are outside the searched paths.
       - name: No old npm scope
@@ -34,16 +38,16 @@ jobs:
             exit 1
           fi
       # Build first: the gallery resolves @bit-ds/react through its gitignored dist.
-      - run: pnpm build && pnpm verify
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm --filter @bit-ds/core test
-      - run: pnpm test:coverage
-      - run: pnpm --filter @bit-ds/gallery test
+      - run: npm run build && npm run verify
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test -w @bit-ds/core
+      - run: npm run test:coverage
+      - run: npm test -w @bit-ds/gallery
       # Node 22 reads a bare `scripts/` as a module path, so pass a glob. Node expands it itself.
       - run: node --test 'scripts/*.test.mjs'
-      - run: pnpm smoke
-      - run: pnpm --filter @bit-ds/gallery build
+      - run: npm run smoke
+      - run: npm run build -w @bit-ds/gallery
 
   # Browser tests of the built gallery: page flows plus axe checks, in Chromium.
   e2e:
@@ -53,15 +57,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 9.15.9
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+          cache: npm
+      - name: Install the pinned npm
+        run: npm install -g --ignore-scripts "npm@$NPM_VERSION"
+      - run: npm ci
+      - run: npm run build
       # Key the browser cache on the installed Playwright, so an upgrade fetches new browsers.
       - name: Read the Playwright version
         id: playwright
@@ -72,9 +75,9 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       # Runs on a cache hit too: the browser download is skipped, but the system libraries still install.
-      - run: pnpm --filter @bit-ds/gallery exec playwright install --with-deps chromium
+      - run: npm exec -w @bit-ds/gallery -- playwright install --with-deps chromium
       # CI=true, so the Playwright web server builds the gallery and starts its own preview.
-      - run: pnpm e2e
+      - run: npm run e2e
       # In CI the reporter is `github`, which writes no HTML report, so also keep the traces in test-results.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()

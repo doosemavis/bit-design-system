@@ -50,7 +50,7 @@ Every pull request runs all of this in CI ([workflow](https://github.com/doosema
 - **Dialog and Tabs:** Dialog is tested for focus moving in (to `data-autofocus`), Esc and the × closing it, focus returning to the opener, and an `alert` dialog ignoring clicks on the dimmed page; in a real browser, Playwright checks the page behind is inert and won't take focus. Tabs are tested for the one Tab stop, arrows (swapped right-to-left), Home and End, skipping disabled tabs, and manual activation.
 - **Color contrast, computed:** tests read the theme tokens and compute WCAG contrast ratios in light and dark, so a color change that drops text below 4.5:1 fails the build.
 - **Forced colors (Windows High Contrast):** Playwright runs pages with `forced-colors: active` and checks that states such as invalid still show without color.
-- **The published package:** before every release the built package is installed into a fresh TypeScript app, type-checked, and imported through both ESM and CommonJS. A Vite app checks that the CSS and fonts load, all from the package, with nothing from a third party.
+- **The published package:** before every release the built package is installed into a fresh TypeScript app, type-checked, and imported through both ESM and CommonJS. The same tarball is also installed with pnpm and with Yarn 4 (Plug'n'Play), and imported the same way. A Vite app checks that the CSS and fonts load, all from the package, with nothing from a third party.
 
 There is no screenshot-diff (visual regression) suite yet. Visual changes are reviewed with light and dark screenshots before they merge.
 
