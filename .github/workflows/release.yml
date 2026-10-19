@@ -51,7 +51,7 @@ jobs:
           persist-credentials: false
       # From here to the smoke test, the steps are the build job's, word for word
       # (workflows.test.mjs pins them equal), so the PR rehearses exactly what a tag builds.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -133,7 +133,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       # release-steps.mjs uses only Node built-ins, so this job needs no install.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           # setup-node v5+ caches the packageManager's store on its own; this job stays cache-free.
@@ -165,7 +165,7 @@ jobs:
           persist-credentials: false
       # From here to the smoke test, the steps are dry-run's, word for word
       # (workflows.test.mjs pins them equal).
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -227,7 +227,7 @@ jobs:
           TGZ: ${{ steps.pack.outputs.tgz }}
           EXPECTED_SHA256: ${{ steps.pack.outputs.sha256 }}
       - name: Upload the tarball
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: npm-tarball
           path: ${{ steps.pack.outputs.tgz }}
@@ -252,7 +252,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           # setup-node v5+ caches the packageManager's store on its own; this job stays cache-free.
@@ -260,7 +260,7 @@ jobs:
           registry-url: https://registry.npmjs.org
       - name: Install the pinned npm
         run: npm install -g --ignore-scripts "npm@$NPM_VERSION"
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: npm-tarball
           path: ${{ runner.temp }}/release
@@ -320,7 +320,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           # setup-node v5+ caches the packageManager's store on its own; this job stays cache-free.
@@ -345,7 +345,7 @@ jobs:
         with:
           persist-credentials: false
       # release-notes.mjs uses only Node built-ins, so this job needs no install.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           # setup-node v5+ caches the packageManager's store on its own; this job stays cache-free.
@@ -376,7 +376,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -482,7 +482,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
