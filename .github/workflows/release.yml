@@ -65,6 +65,8 @@ jobs:
       - name: Pack
         id: pack
         run: |
+          # npm pack writes into --pack-destination but never creates it.
+          mkdir -p "$RUNNER_TEMP/out"
           npm pack -w @bit-ds/react --ignore-scripts=false --pack-destination "$RUNNER_TEMP/out"
           # nullglob: no tarball gives an empty array, not a literal "*.tgz" that counts as one.
           shopt -s nullglob
@@ -177,6 +179,8 @@ jobs:
       - name: Pack
         id: pack
         run: |
+          # npm pack writes into --pack-destination but never creates it.
+          mkdir -p "$RUNNER_TEMP/out"
           npm pack -w @bit-ds/react --ignore-scripts=false --pack-destination "$RUNNER_TEMP/out"
           # nullglob: no tarball gives an empty array, not a literal "*.tgz" that counts as one.
           shopt -s nullglob

@@ -470,8 +470,12 @@ test('release: the Pack shell writes the tarball path, name and sha256, and refu
   try {
     const bin = join(dir, 'bin');
     mkdirSync(bin);
-    // A stand-in npm: `npm pack -w @bit-ds/react --ignore-scripts=false --pack-destination DIR` writes STUB_COUNT tarballs.
-    writeFileSync(join(bin, 'npm'), '#!/bin/bash\nmkdir -p "$6"\nfor ((i = 1; i <= STUB_COUNT; i++)); do printf "tarball %s" "$i" > "$6/bit-ds-react-9.9.$i.tgz"; done\n');
+    // A stand-in npm: `npm pack -w @bit-ds/react --ignore-scripts=false --pack-destination DIR` writes STUB_COUNT
+    // tarballs. Like the real npm, it fails when DIR doesn't exist yet (npm pack never creates it).
+    writeFileSync(
+      join(bin, 'npm'),
+      '#!/bin/bash\n[ -d "$6" ] || { echo "npm error enoent: $6" >&2; exit 254; }\nfor ((i = 1; i <= STUB_COUNT; i++)); do printf "tarball %s" "$i" > "$6/bit-ds-react-9.9.$i.tgz"; done\n',
+    );
     chmodSync(join(bin, 'npm'), 0o755);
     const run = (count, name) => {
       const temp = join(dir, name);
