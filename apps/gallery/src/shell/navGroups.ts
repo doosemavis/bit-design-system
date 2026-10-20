@@ -3,9 +3,9 @@ import type { Manifest } from '../manifests';
 
 /**
  * The components, grouped by the job they do, in the home page's order: what a reader reaches for first comes
- * first. Each group lists manifest slugs and holds seven at most, so a group reads at a glance. Every component
- * (the logo aside, which is Brand) is in exactly one group: HomePage.test checks it, so a new manifest must be
- * placed. The sidebar doesn't use these groups: it lists every component under one Components section.
+ * first. Each group lists manifest slugs and holds seven at most, so a group reads at a glance. Every component,
+ * the logo included (Brand, last), is in exactly one group: HomePage.test checks it, so a new manifest must be
+ * placed. The sidebar doesn't use these groups: it lists every component under Components, and the logo under Brand.
  */
 export const COMPONENT_GROUPS = [
   { label: 'Actions', slugs: ['button', 'iconbutton', 'menu'] },
@@ -16,6 +16,7 @@ export const COMPONENT_GROUPS = [
   { label: 'Layout', slugs: ['box', 'card', 'stack', 'table'] },
   { label: 'Type', slugs: ['code', 'codeblock', 'heading', 'text'] },
   { label: 'Theming', slugs: ['bittheme', 'icon', 'modetoggle'] },
+  { label: 'Brand', slugs: ['logo'] },
 ] as const;
 
 export type ComponentGroup = (typeof COMPONENT_GROUPS)[number];

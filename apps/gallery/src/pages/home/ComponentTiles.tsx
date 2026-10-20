@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import {
   Badge,
+  BitLogo,
   Card,
   CodeBlock,
   Heading,
@@ -54,6 +55,8 @@ const COMPACT: Readonly<Record<string, () => ReactNode>> = {
       </TableBody>
     </Table>
   ),
+  // The small wordmark: the default md is wider than a tile at desktop widths.
+  logo: () => <BitLogo size="sm" />,
   // Its badges alone: the Stack page's demo sits them in a sized Box, too wide for a tile.
   stack: () => (
     <Stack gap={8}>

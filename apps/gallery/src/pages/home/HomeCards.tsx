@@ -23,7 +23,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { CURRENT_TOKENS } from '../../content/currentTokens';
 import { InstallCommand } from '../../content/InstallCommand';
 import { PACKAGE_NAME, STYLE_IMPORTS } from '../../content/snippets.mjs';
-import { MANIFESTS, routeFor } from '../../manifests';
+import { COMPONENT_COUNT, MANIFESTS, routeFor } from '../../manifests';
 import { PAGE_HEADER } from '../tokens/TokenCard';
 import { FactList } from '../../ui/FactList';
 import type { Fact } from '../../ui/FactList';
@@ -52,7 +52,7 @@ const ICON_COUNT = ICON_GROUPS.reduce((n, group) => n + group.icons.length, 0);
 
 /** Four facts, each counted from its source, so they stay true as the system grows. */
 const FACTS: readonly Fact[] = [
-  [MANIFESTS.filter((m) => m.group !== 'brand').length, 'components'],
+  [COMPONENT_COUNT, 'components'],
   [CURRENT_TOKENS.length, 'tokens'],
   [ICON_COUNT, 'icons'],
   [COLOR_MODES.length, 'color modes'],
