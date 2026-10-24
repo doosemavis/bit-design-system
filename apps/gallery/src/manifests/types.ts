@@ -165,6 +165,35 @@ export interface ExtraSection {
   Component: ComponentType;
 }
 
+/** Where a leader line meets the component: a point on the part's box. */
+export type AnchorPoint = 'center' | 'top' | 'bottom' | 'left' | 'right' | 'bottom-right';
+
+/** One labeled part of a component, for the Tokens pass. */
+export interface AnatomyPart {
+  /** Shown above the part's token chips: "Face", "Edge". */
+  label: string;
+  /** Selector for the part inside the instance's wrapper. The first match is measured. */
+  selector: string;
+  /** Public tokens the part reads, as `--bit-…` names. anatomy.test.tsx proves each is read by the component. */
+  tokens: readonly string[];
+  /** Which column its callout sits in. */
+  side: 'left' | 'right';
+  /** Where its leader line lands on the part. Default: the middle of the edge facing its column. */
+  anchor?: AnchorPoint;
+}
+
+/** The Passes section's data. A manifest without it has no Passes section. */
+export interface ManifestAnatomy {
+  parts: readonly AnatomyPart[];
+  /** The States pass: each a label and a patch over the default state. */
+  states: readonly { label: string; state: Partial<ControlState> }[];
+  /**
+   * The component's file in `packages/core/src/components/`, when it isn't the kebab-case of the name:
+   * RadioGroup reads `radio.css`, BitTheme reads `theme.css`.
+   */
+  css?: string;
+}
+
 export interface Manifest {
   /** Export name; drives the title and the import line. */
   name: string;
@@ -205,6 +234,8 @@ export interface Manifest {
   variantsLayout?: 'stack';
   /** A section only this page has, placed after Variants. */
   extraSection?: ExtraSection;
+  /** Parts, tokens and states for the Passes section (Wireframe, Tokens, States, Final). */
+  anatomy?: ManifestAnatomy;
   presets?: readonly Preset[];
   /**
    * Slugs of other component pages to suggest in the page's Related section, closest first. Only pages that exist
