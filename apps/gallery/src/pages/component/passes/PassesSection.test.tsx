@@ -161,18 +161,38 @@ describe('PassesSection', () => {
     expect(screen.getByText("Default props aren't printed in the code.")).toBeInTheDocument();
   });
 
-  it('sets --_gallery-passes-rows to the most callouts on either side', () => {
-    const first = setup('/x');
-    expect(stage().style.getPropertyValue('--_gallery-passes-rows')).toBe('2');
-    first.unmount();
-    const three: Manifest = {
+  describe('stage size: a line per callout label and per token chip, and the callouts for the gaps', () => {
+    const vars = () => [stage().style.getPropertyValue('--_gallery-passes-lines'), stage().style.getPropertyValue('--_gallery-passes-callouts')];
+    const withParts = (...parts: NonNullable<Manifest['anatomy']>['parts']): Manifest => ({
       ...button,
-      anatomy: {
-        ...button.anatomy!,
-        parts: [...button.anatomy!.parts, { label: 'Label', selector: '.bit-button', tokens: ['--bit-weight-bold'], side: 'left' }],
-      },
-    };
-    setup('/x', three);
-    expect(stage().style.getPropertyValue('--_gallery-passes-rows')).toBe('3');
+      anatomy: { ...button.anatomy!, parts: [...button.anatomy!.parts, ...parts] },
+    });
+
+    it('Button: Face (1+2) + Size (1+1) = 5 lines in 2 callouts on the left, Edge (1+2) + Shadow (1+1) the same on the right', () => {
+      setup('/x');
+      expect(vars()).toEqual(['5', '2']);
+      expect(stage().style.getPropertyValue('--_gallery-passes-rows')).toBe('');
+    });
+
+    it('a heavier side sets both: left gains Label (1+3), 9 lines in 3 callouts', () => {
+      setup(
+        '/x',
+        withParts({ label: 'Label', selector: '.bit-button', tokens: ['--bit-weight-bold', '--bit-font-mono', '--bit-border-width'], side: 'left' }),
+      );
+      expect(vars()).toEqual(['9', '3']);
+    });
+
+    it('takes each count from the side that has more of it, so either side fits', () => {
+      // Left: 5 lines + Label (1+4) = 10 lines, 3 callouts. Right: 5 lines + two 1-token parts = 9 lines, 4 callouts.
+      setup(
+        '/x',
+        withParts(
+          { label: 'Label', selector: '.bit-button', tokens: ['--bit-weight-bold', '--bit-font-mono', '--bit-border-width', '--bit-shadow-md'], side: 'left' },
+          { label: 'Ring', selector: '.bit-button', tokens: ['--bit-border-width'], side: 'right' },
+          { label: 'Text', selector: '.bit-button', tokens: ['--bit-weight-bold'], side: 'right' },
+        ),
+      );
+      expect(vars()).toEqual(['10', '4']);
+    });
   });
 });

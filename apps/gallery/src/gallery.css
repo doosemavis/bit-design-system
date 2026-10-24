@@ -2239,10 +2239,17 @@ html:has(.gallery-section-bar) {
   margin-bottom: var(--bit-space-24px);
 }
 
+/* The stage holds the busier side of callouts, so the Tokens pass fits and every pass keeps one height.
+   --_gallery-passes-lines and --_gallery-passes-callouts come from the component's parts (inline).
+   One line covers a callout's label (measured 24px) and a token chip with the 4px gap above it (27.6px + 4px). */
 .gallery-passes__stage {
-  --_gallery-passes-row: 6rem;
+  --_gallery-passes-line: 2rem;
   position: relative;
-  min-height: max(12rem, var(--_gallery-passes-rows) * var(--_gallery-passes-row) + 2 * var(--bit-space-32px));
+  min-height: max(
+    12rem,
+    var(--_gallery-passes-lines) * var(--_gallery-passes-line) + (var(--_gallery-passes-callouts) - 1) * var(--bit-space-16px) +
+      2 * var(--bit-space-32px)
+  );
   padding: var(--bit-space-32px);
   display: grid;
 }

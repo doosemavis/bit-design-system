@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, RefObject } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button, Card, CardBody, CardFooter, Code, SegmentedControl, Stack, Text } from '@bit-ds/react';
-import type { Manifest } from '../../../manifests/types';
+import type { AnatomyPart, Manifest } from '../../../manifests/types';
 import { parsePass, PASSES, setPageParam } from '../../../engine/pageParams';
 import type { Pass } from '../../../engine/pageParams';
 import { useStageMeasure } from './useStageMeasure';
@@ -32,6 +32,17 @@ export function usePassParam(): { pass: Pass; setPass: (next: Pass) => void } {
     [pass, search, setSearch],
   );
   return { pass, setPass };
+}
+
+/**
+ * What the stage must hold on the Tokens pass: a callout is its label line plus one line per token chip, and callouts
+ * stack with a gap between them. Each count comes from the side with more of it, so both sides fit.
+ */
+export function stageSize(parts: readonly AnatomyPart[]): { lines: number; callouts: number } {
+  const side = (name: AnatomyPart['side']) => parts.filter((part) => part.side === name);
+  const lines = (list: readonly AnatomyPart[]) => list.reduce((sum, part) => sum + 1 + part.tokens.length, 0);
+  const [left, right] = [side('left'), side('right')];
+  return { lines: Math.max(lines(left), lines(right)), callouts: Math.max(left.length, right.length) };
 }
 
 const nextOf = (pass: Pass): Pass => PASSES[(PASSES.indexOf(pass) + 1) % PASSES.length]!;
@@ -97,8 +108,7 @@ export function PassesSection({ manifest }: { manifest: Manifest }) {
   }, [pass]);
 
   if (!manifest.anatomy) return null;
-  const parts = manifest.anatomy.parts;
-  const rows = Math.max(parts.filter((p) => p.side === 'left').length, parts.filter((p) => p.side === 'right').length);
+  const size = stageSize(manifest.anatomy.parts);
   const next = nextOf(pass);
 
   const goNext = () => {
@@ -130,7 +140,7 @@ export function PassesSection({ manifest }: { manifest: Manifest }) {
           role="group"
           aria-label={`${NAMES[pass]} pass: ${manifest.name}`}
           className="gallery-passes__stage"
-          style={{ '--_gallery-passes-rows': String(rows) } as CSSProperties}
+          style={{ '--_gallery-passes-lines': String(size.lines), '--_gallery-passes-callouts': String(size.callouts) } as CSSProperties}
         >
           {pass === 'wireframe' ? <WireframePass manifest={manifest} /> : null}
           {pass === 'tokens' ? <TokensPass key={String(stacked)} manifest={manifest} stacked={stacked} /> : null}
