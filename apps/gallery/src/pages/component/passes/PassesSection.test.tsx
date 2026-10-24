@@ -79,6 +79,34 @@ describe('PassesSection', () => {
     expect(live).toHaveTextContent('Final, pass 4 of 4');
   });
 
+  it('Next speaks again after an arrow key moves the pass back', async () => {
+    setup('/x');
+    const live = screen.getByRole('status');
+    await userEvent.click(screen.getByRole('button', { name: 'Next: Tokens' }));
+    expect(live).toHaveTextContent('Tokens, pass 2 of 4');
+    screen.getByRole('radio', { name: 'Tokens' }).focus();
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(stage()).toHaveAccessibleName('Wireframe pass: Button');
+    expect(live).toBeEmptyDOMElement();
+    await userEvent.click(screen.getByRole('button', { name: 'Next: Tokens' }));
+    expect(live).toHaveTextContent('Tokens, pass 2 of 4');
+  });
+
+  it('Back clears what Next said, and Forward does not say it again', async () => {
+    const { router } = setup('/x');
+    const live = screen.getByRole('status');
+    await userEvent.click(screen.getByRole('button', { name: 'Next: Tokens' }));
+    await act(async () => {
+      await router.navigate(-1);
+    });
+    expect(live).toBeEmptyDOMElement();
+    await act(async () => {
+      await router.navigate(1);
+    });
+    expect(stage()).toHaveAccessibleName('Tokens pass: Button');
+    expect(live).toBeEmptyDOMElement();
+  });
+
   it('the instance is the default Button, whatever the Playground says', () => {
     setup('/x?color=danger&pass=tokens');
     expect(stage().querySelector('.bit-button')).toHaveClass('bit-primary');

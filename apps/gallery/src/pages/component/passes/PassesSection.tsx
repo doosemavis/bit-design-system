@@ -76,13 +76,16 @@ function Pips({ seen }: { seen: ReadonlySet<Pass> }) {
 export function PassesSection({ manifest }: { manifest: Manifest }) {
   const { pass, setPass } = usePassParam();
   const [seen, setSeen] = useState<ReadonlySet<Pass>>(() => new Set([pass]));
-  const [spoken, setSpoken] = useState('');
+  // What Next announced, and for which pass: any other route to a pass (a radio, an arrow key, Back) clears it, so
+  // the same words can be spoken again by the next Next.
+  const [spoken, setSpoken] = useState<{ pass: Pass; text: string } | null>(null);
   const [reads, setReads] = useState('');
   const stageRef = useRef<HTMLDivElement>(null);
   const stacked = useStageMeasure(stageRef, (el) => el.getBoundingClientRect().width < STACK_BELOW, false);
 
   useEffect(() => {
     setSeen((current) => (current.has(pass) ? current : new Set([...current, pass])));
+    setSpoken((current) => (current?.pass === pass ? current : null));
   }, [pass]);
 
   // Reads depends on the rendered instance (Wireframe's sizes, Final's classes), so it fills in after commit.
@@ -97,7 +100,7 @@ export function PassesSection({ manifest }: { manifest: Manifest }) {
 
   const goNext = () => {
     setPass(next);
-    setSpoken(`${NAMES[next]}, pass ${PASSES.indexOf(next) + 1} of ${PASSES.length}`);
+    setSpoken({ pass: next, text: `${NAMES[next]}, pass ${PASSES.indexOf(next) + 1} of ${PASSES.length}` });
   };
 
   return (
@@ -116,7 +119,7 @@ export function PassesSection({ manifest }: { manifest: Manifest }) {
           <Pips seen={seen} />
           <Text>{seen.size === PASSES.length ? 'All 4 seen' : `${seen.size} of 4 seen`}</Text>
           <span role="status" className="gallery-visually-hidden">
-            {spoken}
+            {spoken?.pass === pass ? spoken.text : ''}
           </span>
         </div>
         <div
