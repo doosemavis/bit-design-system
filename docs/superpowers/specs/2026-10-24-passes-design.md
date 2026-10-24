@@ -20,23 +20,57 @@ The URL holds the pass (`?pass=tokens`), so every view is a link and Back steps 
 - **Ruling 6:** a caption panel under the stage says what the pass shows and what it reads.
 - **Ruling 7:** the pass control sits above the stage (Option 1), not in a side rail.
 - **Ruling 9:** no release-notes entry. The PR body and the live site are the record.
+- **Engineering review, D1–D4** (2026-10-24): one owner for URL cleanup, the Final pass reads its real classes, one shared measuring hook, and the smaller file arrangement. See the review record at the end.
 
-## 1. URL: a page parameter that survives control edits
+## Files
 
-**Found while writing this spec:** `useControlState` rewrites the query to its canonical form on every render (`serializeState`), and `serializeState` keeps only control keys. Today, `#/components/button?pass=tokens` would lose `pass` at once, and so would every control edit and Reset.
+| File | New? | What |
+|---|---|---|
+| `src/engine/pageParams.ts` (+ test) | new | The page-key registry and `withPageParams` (§1) |
+| `src/engine/useControlState.ts` (+ test) | changed | The one URL cleaner: controls and page keys together (§1) |
+| `src/manifests/types.ts` | changed | `AnatomyPart`, `ManifestAnatomy`, `Manifest.anatomy` (§2) |
+| `src/manifests/button.ts` | changed | Button's anatomy (§2) |
+| `src/manifests/anatomy.test.ts` | new | The anatomy guard (§3) |
+| `src/manifests/manifests.test.ts` | changed | No control prop is a page key (§1) |
+| `src/pages/component/passes/useStageMeasure.ts` (+ test) | new | The shared measuring hook (§4) |
+| `src/pages/component/passes/passViews.tsx` (+ test) | new | The four pass views and the line and dimension math (§5) |
+| `src/pages/component/passes/PassesSection.tsx` (+ test) | new | The section, its URL hook and its captions (§6) |
+| `src/pages/component/sections.ts`, `src/pages/ComponentPage.tsx` | changed | Wiring (§6) |
+| `src/gallery.css` | changed | Layout only (§6) |
+| `src/routes.test.tsx` | changed | Pass routes (§8) |
+| `e2e/passes.spec.ts` | new | Real-browser checks (§8) |
 
-The fix: page-level keys get a reserved list, and the control engine carries them through.
+## 1. URL: one cleaner for controls and page keys
+
+**Found while writing this spec:** `useControlState` rewrites the query to its canonical form on every render (`useControlState.ts:55-58`), and `serializeState` keeps only control keys. Today, `#/components/button?pass=tokens` would lose `pass` at once, and so would every control edit and Reset.
+
+**The fix (review D1: one owner).** Page-level keys register with the control engine, and `useControlState` stays the only code that rewrites the URL.
 
 - **`engine/pageParams.ts`** (new) holds:
-  - `PAGE_PARAM_KEYS = ['pass'] as const`. PR D adds its `t.*` keys here.
-  - `withPageParams(next: URLSearchParams, current: URLSearchParams): URLSearchParams`. It returns a new `URLSearchParams` with `next`'s control keys followed by `current`'s page keys, in `PAGE_PARAM_KEYS` order. It never mutates either input.
-- **`useControlState`** builds its canonical query, its pushes and its debounced replace through `withPageParams`, so a control edit, a preset and Reset all keep `pass`. `serializeState` stays a pure control serializer, so its tests don't change.
-- **A manifest control may not be named after a page key.** `manifests.test.ts` checks that no control `prop` is in `PAGE_PARAM_KEYS`.
-- **`usePassParam()`** (`pages/component/passes/usePassParam.ts`) returns `{ pass, setPass }`:
-  - **Values:** `wireframe | tokens | states | final`. The default is `wireframe`.
-  - **The default is never written.** `?pass=wireframe` is rewritten to no key.
-  - **An unknown value** (`?pass=xray`) shows Wireframe and is removed from the URL with `replace`, the same rule controls follow.
-  - **`setPass` pushes a history entry** and keeps every control key untouched, so Back undoes a pass change the way it undoes a control change.
+  ```ts
+  interface PageParam {
+    /** The canonical value to keep, or undefined to drop the key (its default, or a value it doesn't know). */
+    parse: (raw: string) => string | undefined;
+  }
+  export const PAGE_PARAMS: Readonly<Record<string, PageParam>> = { pass: { parse: parsePass } };
+  export function withPageParams(next: URLSearchParams, current: URLSearchParams): URLSearchParams;
+  ```
+  - `withPageParams` returns a new `URLSearchParams`: `next`'s control keys, then each page key from `current` that parses to a value, in `PAGE_PARAMS` order. It never mutates either input.
+  - `parsePass` keeps `tokens`, `states` and `final`. It drops `wireframe` (the default) and anything unknown.
+  - PR D registers its `t.*` keys here the same way.
+- **`useControlState`** builds its canonical query, its pushes and its debounced replace through `withPageParams`. This gives three guarantees:
+  - a control edit, a preset and Reset all keep `pass`;
+  - `?pass=wireframe` and `?pass=xray` are cleaned in the same `replace` that cleans controls;
+  - no other code rewrites the URL.
+
+  `serializeState` stays a pure control serializer, so its tests don't change.
+- **A manifest control may not be named after a page key.** `manifests.test.ts` checks that no control `prop` is a key of `PAGE_PARAMS`.
+- **`usePassParam()`** (inside `PassesSection.tsx`) only reads and pushes. It returns:
+  - **`pass`:** `parsePass` of the current `?pass=`, or `wireframe`.
+  - **`setPass(next)`:** pushes a history entry built from the current control keys plus the new pass, omitted when it's the default. Back undoes a pass change the way it undoes a control change.
+
+  It never replaces, so it can't race the cleaner.
+- **The segmented control pushes once per change.** Arrowing from Wireframe to Final is three history entries, the same as arrowing through a Playground select today.
 
 ## 2. Data: `manifest.anatomy`
 
@@ -64,6 +98,11 @@ export interface ManifestAnatomy {
   parts: readonly AnatomyPart[];
   /** The States pass: each a label and a patch over the default state. */
   states: readonly { label: string; state: Partial<ControlState> }[];
+  /**
+   * The component's file in `packages/core/src/components/`, when it isn't the kebab-case of the name:
+   * RadioGroup reads `radio.css`, BitTheme reads `theme.css`. Button needs none.
+   */
+  css?: string;
 }
 ```
 
@@ -95,11 +134,15 @@ Every pass renders the manifest's **default** state, through `renderManifest(man
 For every manifest with `anatomy`, and every part:
 
 1. **The token is a theme token:** it's in `SEMANTIC_TOKENS` (from `@bit-ds/react`).
-2. **The component reads it.** The test reads `packages/core/src/components/<file>.css`, where `<file>` is the kebab-case of `manifest.name`, so Button gives `button.css`. It then accepts the token when either:
+2. **The component reads it.** The test reads `packages/core/src/components/<file>.css`. `<file>` is `anatomy.css` when set, otherwise the kebab-case of `manifest.name` (Button gives `button.css`). The test fails when that file doesn't exist. It then accepts the token when either:
    - the component CSS reads it directly (`var(--bit-color-…)`); or
    - the component CSS reads a private `--_bit-*` property, and a declaration of that property reads the token. The declaration can be in the component's file or in `packages/core/src/system/*.css`.
 
-   **Why the second case:** Button never names `--bit-color-primary` or `--bit-control-height-md`. It reads `--_bit-color` and `--_bit-size-height`, which `system/colors.css` and `system/sizes.css` set from those tokens. One hop is enough today; the test fails with a clear message if a token sits two hops away, rather than silently searching further.
+   **Why the second case:** Button never names `--bit-color-primary` or `--bit-control-height-md`. It reads `--_bit-color` and `--_bit-size-height`:
+   - `system/colors.css:7` declares `--_bit-color: var(--bit-color-primary)`;
+   - `system/sizes.css:10` declares `--_bit-size-height: var(--bit-control-height-md)`.
+
+   One hop is enough today. The test fails with a clear message if a token sits two hops away, rather than silently searching further.
 3. **The selector matches.** In jsdom, rendering the default instance into a wrapper finds at least one element for `wrapper.querySelector(selector)`.
 4. **Each state patch is valid.** Its keys are real control props, and each value parses under that control.
 
@@ -107,36 +150,35 @@ For every manifest with `anatomy`, and every part:
 
 > button anatomy "Face": --bit-color-primary is not read by button.css, directly or through a --_bit-* property it reads
 
-The test also proves itself on fixtures: a token that's missing, a token not in the theme, and a selector that doesn't match each fail with that message.
+The test also proves itself on fixtures. Each of these fails with its message:
 
-## 4. `useAnchors` (`pages/component/passes/useAnchors.ts`)
+- a token that's missing;
+- a token not in the theme;
+- a selector that doesn't match;
+- a CSS file that doesn't exist.
+
+## 4. `useStageMeasure` (`pages/component/passes/useStageMeasure.ts`)
+
+Review D3: one measuring hook for everything that depends on layout.
 
 ```ts
-interface Line { part: string; from: { x: number; y: number }; to: { x: number; y: number } }
-function useAnchors(stage: RefObject<HTMLElement>, parts: readonly AnatomyPart[], deps: readonly unknown[]): readonly Line[];
+function useStageMeasure<T>(stage: RefObject<HTMLElement | null>, measure: (stage: HTMLElement) => T, empty: T): T;
 ```
 
-- **Measuring.** It uses `getBoundingClientRect`, relative to the stage:
-  - **`from`** is the callout's edge facing the instance. Callouts are found by `data-part="<label>"`.
-  - **`to`** is the anchor point on the first element matching the part's selector inside the instance wrapper (`data-instance`).
-- **When it re-measures:**
+- **When it measures:**
   - on mount;
-  - on a `ResizeObserver` callback for the stage and the instance;
-  - when `document.fonts.ready` resolves;
-  - when `deps` change (the pass).
+  - on a `ResizeObserver` callback for the stage (which also fires when the instance inside it changes size);
+  - when `document.fonts.ready` resolves.
 
-  All of these go through one `requestAnimationFrame`, so a resize burst measures once.
-- **When it returns no lines:**
-  - when `ResizeObserver` is missing, as in jsdom without a stub;
-  - in stacked mode (§6);
-  - when a selector matches nothing. The guard test makes that a test failure, so it shouldn't happen live.
-- **Unit tests** stub `getBoundingClientRect` and `ResizeObserver`. They check:
-  - the line math for each anchor point;
-  - the re-measure on an observer callback;
-  - the single frame for a burst;
-  - cleanup on unmount.
+  All of these go through one `requestAnimationFrame`, so a resize burst measures once. It cleans up the observer, the frame and the font promise's result on unmount.
+- **No dependency list.** Each pass view is its own component and mounts fresh when the pass changes, so a new pass always measures. Nothing for the lint rule to miss.
+- **Without `ResizeObserver`** (jsdom without a stub) it returns `empty`.
+- **Its three callers:**
+  - **`TokensPass`** gets its leader lines from `measureLines(stage, parts)`, a pure function in `passViews.tsx`. Each line runs from its callout's edge facing the instance (callouts carry `data-part="<label>"`) to the part's anchor point on the first element matching its selector inside `[data-instance]`, relative to the stage. A selector that matches nothing gives no line; the guard makes that a test failure first.
+  - **`WireframePass`** gets its dimensions from `measureBox(stage)`, also pure: the instance's height and inline padding from `getComputedStyle`.
+  - **`PassesSection`** gets the stacked mode (§6) from the stage width.
 
-## 5. The four pass views (`pages/component/passes/`)
+## 5. The four pass views (`pages/component/passes/passViews.tsx`)
 
 All four share one stage. It's a bit `Box` holding the instance in a wrapper with `data-instance`. The Wireframe and Tokens instances are wrapped in `inert`: they're diagrams, so a keyboard user doesn't Tab onto a Button that does nothing there. The stage's text and callouts stay readable.
 
@@ -144,15 +186,15 @@ All four share one stage. It's a bit `Box` holding the instance in a wrapper wit
   - its height, on the left;
   - its inline padding, along the top.
 
-  The numbers are measured with `getComputedStyle`, never typed: "40px", "16px".
+  The numbers come from `measureBox`, never typed: "40px", "16px".
   - **No dimming.** Under Decision 1 (b), `opacity` on the instance would be new gallery paint. The overlay carries the pass on its own. If the owner wants the faded look from the mockup, it's one exceptions entry, but that's a separate call.
 - **`TokensPass`.** Two callout columns with the instance between them. Each callout is a `li` holding:
   - the part label, as bit `Text`, size 14, bold;
   - one bit `Code` per token.
 
-  The leader lines come from `useAnchors`. A screen reader hears the list: "Face, --bit-color-primary, --bit-weight-bold", and so on.
+  The leader lines come from `measureLines`. A screen reader hears the list: "Face, --bit-color-primary, --bit-weight-bold", and so on.
 - **`StatesPass`.** One tile per `anatomy.states` entry: the instance with its patch, and the label under it. The tiles are `inert`. After them comes one live, focusable **Try it** instance with the note "Point at it, press it, or Tab to it". The pass shows hover, press and focus by letting you do them.
-- **`FinalPass`.** The live default instance (not inert) and its JSX. The JSX is `toJsx(manifest, defaultState(manifest))`, the snippet the Code panel prints, shown in a bit `CodeBlock` with its copy button.
+- **`FinalPass`.** The live default instance (not inert) and its JSX. The JSX is `toJsx(manifest, defaultState(manifest))`, the snippet the Code panel prints, shown in a bit `CodeBlock` with its copy button. For a default Button that's `<Button>Save</Button>`.
 
 **The SVG** (Wireframe and Tokens) is one `svg` laid over the stage. It has:
 
@@ -172,16 +214,16 @@ It sits inside one bit `Card`, so nothing nests, top to bottom:
    - the progress line, a `Text`: "2 of 4 seen", then "All 4 seen". Its pips are decorative and `aria-hidden`.
 2. **The stage:** a `Box` with `role="group"` and `aria-label="Tokens pass: Button"`.
 3. **The caption panel** (Ruling 6): a `Box` with a top border from bit tokens (no new paint) holding:
-   - **"What this pass shows":** one sentence per pass, shared by every component, kept in `passes/captions.ts`. For example, Tokens: "Each part points to the tokens it reads. Change a token and this is everything that moves."
+   - **"What this pass shows":** one sentence per pass, shared by every component, kept as a constant in this file. For example, Tokens: "Each part points to the tokens it reads. Change a token and this is everything that moves."
    - **"Reads":** built from data, never typed per component:
      - Wireframe: the measured height and padding;
      - Tokens: each part's tokens;
      - States: each state's props, such as `disabled`;
-     - Final: the props and their classes, such as `color="primary"` → `.bit-primary`.
+     - Final (review D2): the classes the rendered element really has, read from its `classList` (`bit-button bit-primary bit-solid bit-md`), plus the line "Default props aren't printed in the code."
 
 **Clicking the stage does nothing.** The mockup's stage-as-button would nest interactive content (Final and Try it are live Buttons). Next and the segmented control are how you move.
 
-**"Seen"** is component state. It counts the distinct passes shown during this visit to the page, including the first, and resets when the slug changes. It isn't in the URL.
+**"Seen"** is component state. It counts the distinct passes shown during this visit to the page, including the first. `ComponentRoute` already keys the page by slug (`ComponentRoute.tsx:15`), so the count starts over on a new component. It isn't in the URL.
 
 **Wiring:**
 
@@ -189,7 +231,7 @@ It sits inside one bit `Card`, so nothing nests, top to bottom:
 - `componentSections` lists it after Playground when `manifest.anatomy` is set.
 - `ComponentPage` renders it between Playground and Variants.
 
-**Stacked mode.** When the stage is narrower than 600px, the callouts drop into one list under the instance and the leader lines go away. This happens at 200% zoom on a 1280px screen, or in a narrow window. The parts are still listed by name, so nothing is lost. A `ResizeObserver` width check drives both the layout attribute (`data-stacked`) and `useAnchors`.
+**Stacked mode.** When the stage is narrower than 600px, the callouts drop into one list under the instance and the leader lines go away. This happens at 200% zoom on a 1280px screen, or in a narrow window. The parts are still listed by name, so nothing is lost. `useStageMeasure` on the stage width sets `data-stacked`, and `TokensPass` draws no lines while it's set.
 
 **Gallery CSS:** grid and flex for the columns and the stage, the stacked layout, and the svg's position. Every property is on the layout allowlist, so `gallery-css.exceptions.ts` gets no new entries.
 
@@ -200,7 +242,7 @@ It sits inside one bit `Card`, so nothing nests, top to bottom:
   2. Next;
   3. then, only on States, the Try it Button;
   4. then, only on Final, the Button and the code's copy button.
-- **Next keeps focus on itself** and pushes the next pass. A polite live region inside the section says "Tokens, pass 2 of 4". It speaks only for Next, because the segmented control's radios already announce their own change.
+- **Next keeps focus on itself** and pushes the next pass. A polite live region inside the section says "Tokens, pass 2 of 4". The region is always in the DOM, starts empty, and is filled only by Next, because the segmented control's radios already announce their own change.
 - **The focus ring** is bit's default, unchanged and always visible.
 - **Reduced motion:** nothing animates. The pass change is instant in every mode, and the lines are redrawn, not tweened.
 - **Forced colors:** the lines use `currentColor`, and the callouts are bit components with their existing forced-colors rules.
@@ -210,32 +252,34 @@ It sits inside one bit `Card`, so nothing nests, top to bottom:
 **Unit (vitest, jsdom):**
 
 - **`pageParams.test.ts`:**
-  - `withPageParams` keeps page keys and drops others;
-  - the key order;
+  - `withPageParams` keeps a page key that parses and drops one that doesn't (`wireframe`, `xray`);
+  - controls come first, then page keys in registry order;
   - it doesn't mutate its inputs.
 - **`useControlState.test.tsx`** (extended):
-  - a control edit, a preset, Reset and the debounced typing replace all keep `?pass=`;
-  - the canonical rewrite keeps it.
-- **`usePassParam.test.tsx`:**
-  - the default is omitted;
-  - an unknown value is replaced;
-  - `setPass` pushes and keeps control keys;
-  - Back returns to the previous pass.
-- **`anatomy.test.ts`:** the guard from §3, with its fixtures.
-- **`useAnchors.test.ts`:** as in §4.
-- **`PassesSection.test.tsx`:**
-  - each `?pass=` renders its view;
-  - Next wraps from Final to Wireframe and pushes a history entry;
-  - the Next label names the following pass;
-  - the seen count, "All 4 seen", and its reset on a new slug;
-  - the live region speaks for Next only;
-  - the instance follows defaults, not Playground state;
-  - inert on the Wireframe, Tokens and States tiles, but not on Try it or Final.
-- **Pass views:**
-  - Wireframe's numbers come from computed style;
+  - a control edit, a preset, Reset and the debounced typing replace all keep `?pass=tokens`;
+  - the canonical rewrite cleans `?pass=xray` and `?pass=wireframe` in the same replace that cleans a bad control value.
+- **`useStageMeasure.test.tsx`:**
+  - it measures on mount, on an observer callback and on `fonts.ready`;
+  - a burst of callbacks measures once in one frame;
+  - it returns `empty` without `ResizeObserver`;
+  - it cleans up on unmount.
+- **`passViews.test.tsx`:**
+  - `measureLines`, with stubbed rects, for each anchor point and both sides; a part with no match gives no line;
+  - `measureBox` reads computed height and padding;
   - the Tokens callouts list each part's tokens;
-  - States renders one tile per entry plus Try it;
-  - Final prints `toJsx`'s snippet.
+  - States renders one tile per entry plus a focusable Try it;
+  - Final prints `toJsx`'s snippet;
+  - inert on the Wireframe, Tokens and States tiles, but not on Try it or Final.
+- **`PassesSection.test.tsx`:**
+  - `usePassParam`: a missing or bad `?pass=` reads as Wireframe; `setPass` pushes, keeps control keys and omits the default; Back returns to the previous pass;
+  - each `?pass=` renders its view;
+  - Next wraps from Final to Wireframe and pushes a history entry, and its label names the following pass;
+  - the seen count and "All 4 seen";
+  - the live region speaks for Next only;
+  - the instance follows the defaults, not the Playground's state;
+  - Final's Reads lists the rendered classes;
+  - stacked mode below 600px draws no lines.
+- **`anatomy.test.ts`:** the guard from §3, with its fixtures.
 - **`manifests.test.ts`:** no control prop is a page key.
 - **`routes.test.tsx`:** `#/components/button?pass=tokens` (and each other pass) renders the page with that pass.
 - **`gallery-css.test.ts`:** passes unchanged, with no new exceptions.
@@ -245,7 +289,8 @@ It sits inside one bit `Card`, so nothing nests, top to bottom:
 - **Navigation:**
   - each `?pass=` value loads its pass;
   - Back and Forward step through passes picked with the control and with Next;
-  - changing a Playground control keeps `?pass=`.
+  - changing a Playground control keeps `?pass=`;
+  - `?pass=xray` lands on Wireframe with the key gone.
 - **Keyboard only:** Tab to the control, arrow to Tokens, Tab to Next, press it. Then check the pass, the URL, and that the focus ring is visible on each stop (a screenshot assertion on the focused element's outline).
 - **Leader lines:** at 1440px and 1024px, each line's ends fall within 1px of its callout's edge and its anchor point. At 640px (200% of a 1280px screen), the stage is stacked, has no lines, and lists every part.
 - **Axe:** on each of the four passes, in light and dark (8 runs). This starts the TODOS item "axe on toggled and open states".
@@ -255,18 +300,19 @@ The full local check list from CONTRIBUTING runs before the PR, `npm run e2e` in
 
 ## 9. Docs
 
-- **README "Contents":** a line only if the README links component page sections today. It doesn't, so no change is expected.
+- **README "Contents":** no change. The README doesn't link component page sections.
 - **No CHANGELOG or release-notes entry** (Ruling 9).
 - **`docs/superpowers/plans/`:** the task-level plan for this spec.
 
 ## Changes to the roadmap's PR A text
 
 - The URL fix (§1) is new. The roadmap assumed `?pass=` would just work.
-- A part is one callout with several tokens. States are patches over the default state.
+- A part is one callout with several tokens. States are patches over the default state. The anatomy can name its CSS file.
 - The instance is always the default state.
 - Wireframe has no dimming under Decision 1 (b).
 - The default pass is Wireframe. The mockup opens on Tokens, but the passes are an order to step through, so they start at 1.
 - The stage is stacked below 600px, with no lines.
+- One measuring hook (`useStageMeasure`) replaces `useAnchors`. The pass views share one file.
 
 ## Out of scope
 
@@ -276,3 +322,35 @@ The full local check list from CONTRIBUTING runs before the PR, `npm run e2e` in
 - The dot-grid surface and the status bar (PR E).
 - Animating between passes.
 - A "Compare with Final" view (not adopted, Ruling 7).
+
+## Engineering review (2026-10-24)
+
+Run by hand, following `/plan-eng-review`'s sections. gstack's helper scripts (review log, plan-reality rows, outside voice) were blocked by the session's permission check, so this review is **not logged in gstack**, and there was no outside-model pass.
+
+**Scope:** 13 rows in the Files table, 5 new modules. The original arrangement had about 20 files and 8 modules; the owner chose the smaller one (D4). No features were cut.
+
+**Findings and dispositions:**
+
+| # | Sev | Conf | Where | Finding | Disposition |
+|---|---|---|---|---|---|
+| 1 | P1 | 9 | `useControlState.ts:55-58` | The control hook rewrites the URL to drop unknown keys, and the first draft added a second rewriter for `?pass=`. Two cleaners working from the same old URL can each undo the other's fix. | D1: one owner. Page keys register a parser, and `useControlState` cleans everything (§1) |
+| 2 | P2 | 9 | `toJsx.ts:132` | A default Button prints as `<Button>Save</Button>`, so a props-to-classes "Reads" line for Final would name props the code doesn't show | D2: Final reads the element's real classes (§6) |
+| 3 | P2 | 9 | `components/radio.css`, `theme.css` | The guard's kebab-case file rule misses RadioGroup and BitTheme | Fixed in the spec: `anatomy.css` override, plus a guard check that the file exists (§2, §3) |
+| 4 | P3 | 7 | spec §4 (first draft) | `useAnchors(..., deps: unknown[])` takes a list the lint rule can't check, and Wireframe needed the same resize and font logic | D3: one `useStageMeasure`, with pass views mounting fresh (§4) |
+| 5 | n/a | 8 | `ComponentRoute.tsx:15` | Checked: the page is keyed by slug, so "seen" resets on a new component with no extra code | No change needed |
+
+**Architecture.** Data flows one way:
+
+```
+URL ?pass= ─► useControlState (the only cleaner, via PAGE_PARAMS) ─► usePassParam (read + push)
+                                                                      │
+manifest.anatomy + defaultState ─► pass view ─► useStageMeasure ─► measureLines / measureBox ─► SVG
+```
+
+Production failure considered: a CSS change that renames a private property. The guard fails in CI with the component, part and token named, before the callout can lie.
+
+**Tests.** Every new branch in §1, §4, §5 and §6 has a unit test in §8. Real-browser behavior is covered in e2e: the leader-line geometry, zoom and stacking, keyboard-only use, axe on every pass, and the URL round trip. There are no LLM or eval paths.
+
+**Performance.** No issues. Four parts, one observer, and at most one measure per frame.
+
+**Unresolved decisions:** none.
