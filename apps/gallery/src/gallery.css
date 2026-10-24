@@ -2240,7 +2240,7 @@ html:has(.gallery-section-bar) {
 }
 
 .gallery-passes__stage {
-  --_gallery-passes-row: 4.5rem;
+  --_gallery-passes-row: 6rem;
   position: relative;
   min-height: max(12rem, var(--_gallery-passes-rows) * var(--_gallery-passes-row) + 2 * var(--bit-space-32px));
   padding: var(--bit-space-32px);
