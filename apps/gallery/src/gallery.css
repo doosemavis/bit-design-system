@@ -2229,7 +2229,7 @@ html:has(.gallery-section-bar) {
   }
 }
 
-/* Passes (workbench PR A): the control row, the stage sized from the component's own parts, and the callout grid.
+/* Passes: the control row, the stage sized from the component's own parts, and the callout grid.
    Paint comes from bit components and inline svg; nothing here draws. */
 .gallery-passes__controls {
   display: flex;

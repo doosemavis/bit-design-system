@@ -22,7 +22,7 @@ const componentCss = (manifest: Manifest): string | null => {
 const withAnatomy = MANIFESTS.filter((m) => m.anatomy);
 
 describe('anatomy guard', () => {
-  it('Button has anatomy (PR A), so the guard runs on something', () => {
+  it('Button has anatomy, so the guard runs on something', () => {
     expect(withAnatomy.map((m) => m.slug)).toContain('button');
   });
 
