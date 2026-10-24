@@ -5,6 +5,11 @@ export function cssFileFor(manifest: Manifest): string {
   return manifest.anatomy?.css ?? `${manifest.name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}.css`;
 }
 
+/** The stylesheet without its comments, so a token named only in a comment never counts as read. */
+export function stripComments(css: string): string {
+  return css.replace(/\/\*[\s\S]*?\*\//g, '');
+}
+
 /** Every custom property a stylesheet reads with var(). */
 export function varReads(css: string): Set<string> {
   return new Set([...css.matchAll(/var\(\s*(--[\w-]+)/g)].map((match) => match[1]!));
@@ -30,9 +35,10 @@ export function anatomyErrors(
   if (!anatomy) return [];
   const file = cssFileFor(manifest);
   if (componentCss === null) return [`${manifest.slug} anatomy: packages/core/src/components/${file} does not exist`];
-  const reads = varReads(componentCss);
+  const own = stripComments(componentCss);
+  const reads = varReads(own);
   const privates = [...reads].filter((name) => name.startsWith('--_bit-'));
-  const sheets = [componentCss, ...systemCss];
+  const sheets = [own, ...systemCss.map(stripComments)];
   const readThroughPrivate = (token: string) =>
     privates.some((name) => sheets.some((css) => declarations(css, name).some((value) => varReads(value).has(token))));
   return anatomy.parts.flatMap((part) =>

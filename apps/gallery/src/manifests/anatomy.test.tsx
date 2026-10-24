@@ -62,6 +62,15 @@ describe('anatomy guard proves itself on fixtures', () => {
     ]);
   });
 
+  it('fails a token that appears only inside a comment, in the component or a system sheet', () => {
+    const error = 'button anatomy "Face": --bit-code-bg is not read by button.css, directly or through a --_bit-* property it reads';
+    const commented = `${buttonCss}\n/* var(--bit-code-bg) */`;
+    expect(anatomyErrors(fixture(['--bit-code-bg']), commented, SYSTEM, SEMANTIC_TOKENS)).toEqual([error]);
+    const privateInComment = `${buttonCss}\n.bit-button { color: var(--_bit-fixture); }`;
+    const system = [...SYSTEM, '/* .x { --_bit-fixture: var(--bit-code-bg); } */'];
+    expect(anatomyErrors(fixture(['--bit-code-bg']), privateInComment, system, SEMANTIC_TOKENS)).toEqual([error]);
+  });
+
   it('fails a token that is not in the theme', () => {
     expect(anatomyErrors(fixture(['--bit-color-made-up']), buttonCss, SYSTEM, SEMANTIC_TOKENS)).toEqual([
       'button anatomy "Face": --bit-color-made-up is not a theme token',
