@@ -215,7 +215,7 @@ It sits inside one bit `Card`, so nothing nests, top to bottom:
    - a bit `SegmentedControl`, `legend="Pass"` with `legendHidden`, with the four passes as options and its value from `usePassParam`;
    - a **Next** `Button`, outline, labeled with where it goes: "Next: Tokens". From Final it wraps to "Next: Wireframe";
    - the progress line (kept, G3), a `Text`: "2 of 4 seen", then "All 4 seen". It has four square pips before it, filled for each pass seen. The pips are decorative and `aria-hidden`; the text is what a screen reader hears.
-2. **The stage:** a `Box` with `role="group"` and `aria-label="Tokens pass: Button"`. It uses the Playground stage's padding (`--bit-space-32px`) and never goes below its `12rem` minimum. **One height for passes 1 to 3 (G1):** the stage takes the tallest of Wireframe, Tokens and States (in practice the Tokens columns), so stepping through them never moves the caption or Variants. Final may grow, for its code. The height is a `min-height` set in CSS from the Tokens layout (two callouts per side for Button); PR B revisits it when a component has more parts.
+2. **The stage:** a `Box` with `role="group"` and `aria-label="Tokens pass: Button"`. It uses the Playground stage's padding (`--bit-space-32px`) and never goes below its `12rem` minimum. **One height for passes 1 to 3 (G1):** the stage takes the tallest of Wireframe, Tokens and States (in practice the Tokens columns), so stepping through them never moves the caption or Variants. Final may grow, for its code. The height follows each component's data, not Button's layout. `PassesSection` sets one layout custom property, `--_gallery-passes-rows`, to the most callouts on either side (`Math.max(left, right)` over `anatomy.parts`; Button has 2). The stage's `min-height` in `gallery.css` is `max(12rem, var(--_gallery-passes-rows) * <callout row height> + 2 * var(--bit-space-32px))`, where the row height is a gallery constant measured from one callout (label line plus one `Code` chip plus its gap). A component with more parts gets a taller stage automatically, so PR B has nothing to retune. `--_gallery-*` custom properties are on the layout allowlist, so this adds no exceptions.
 3. **The caption panel** (Ruling 6): a `Box` with a top border from bit tokens (no new paint) holding:
    - **"What this pass shows":** one sentence per pass, shared by every component, kept as a constant in this file. For example, Tokens: "Each part points to the tokens it reads. Change a token and this is everything that moves."
    - **"Reads":** built from data, never typed per component:
@@ -281,7 +281,8 @@ It sits inside one bit `Card`, so nothing nests, top to bottom:
   - the live region speaks for Next only;
   - the instance follows the defaults, not the Playground's state;
   - Final's Reads lists the rendered classes;
-  - stacked mode below 600px draws no lines.
+  - stacked mode below 600px draws no lines;
+  - `--_gallery-passes-rows` is the most callouts on either side (2 for Button; 3 for a fixture with three left parts).
 - **`anatomy.test.ts`:** the guard from §3, with its fixtures.
 - **`manifests.test.ts`:** no control prop is a page key.
 - **`routes.test.tsx`:** `#/components/button?pass=tokens` (and each other pass) renders the page with that pass.
@@ -296,6 +297,7 @@ It sits inside one bit `Card`, so nothing nests, top to bottom:
   - `?pass=xray` lands on Wireframe with the key gone.
 - **Keyboard only:** Tab to the control, arrow to Tokens, Tab to Next, press it. Then check the pass, the URL, and that the focus ring is visible on each stop (a screenshot assertion on the focused element's outline).
 - **Leader lines:** at 1440px and 1024px, each line's ends fall within 1px of its callout's edge and its anchor point. At 640px (200% of a 1280px screen), the stage is stacked, has no lines, and lists every part.
+- **No layout jump:** the stage's height is identical on Wireframe, Tokens and States at 1440px.
 - **Axe:** on each of the four passes, in light and dark (8 runs). This starts the TODOS item "axe on toggled and open states".
 - **Screenshots** in headed Chromium for the owner: each pass in both modes, and the stacked layout.
 
@@ -363,13 +365,13 @@ Run by hand, following `/plan-design-review`'s passes, because gstack's scripts 
 | Dimension | Before | After | What changed |
 |---|---|---|---|
 | Information architecture | 8 | 9 | The section order and the one-card layout were already set; the caption rules are now complete |
-| Interaction states | 7 | 9 | One stage height (G1): no layout jump between passes 1 and 3 |
+| Interaction states | 7 | 10 | One stage height (G1), worked out from each component's own parts: no layout jump between passes 1 and 3 on any page |
 | User journey | 8 | 9 | The progress line was kept and specified (G3) |
 | AI slop | 9 | 9 | No changes needed: bit components only, no decorative cards |
 | Design system alignment | 7 | 9 | Stage padding and minimum match the Playground; the line and label styles are set (G2) |
 | Responsive | 8 | 8 | Desktop only (2026-10-02 ruling); stacked below 600px |
 | Accessibility | 9 | 9 | No changes needed: no yellow on an unfocused stage, `currentColor` under forced colors |
 
-**Overall: 7/10 before, 9/10 after.** Not a 10, because the Tokens height is tuned for Button's four parts and PR B has to check it against components with more parts.
+**Overall: 7/10 before, 10/10 after.** The last gap (a stage height tuned for Button's four parts) is closed: the height now comes from the most callouts on either side, so a component with more parts sizes its own stage. Responsive stays at 8 by the owner's desktop-only ruling, which is a decision rather than a gap.
 
 **Unresolved decisions:** none.
