@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useStageMeasure } from './useStageMeasure';
 
 let observerCallback: (() => void) | undefined;
+let observed: Element[] = [];
 const disconnect = vi.fn();
 let fontsReady: () => void = () => {};
 
@@ -11,7 +12,9 @@ class FakeResizeObserver {
   constructor(callback: () => void) {
     observerCallback = callback;
   }
-  observe() {}
+  observe(target: Element) {
+    observed = [...observed, target];
+  }
   disconnect = disconnect;
 }
 
@@ -28,14 +31,18 @@ function Probe() {
   const stage = useRef<HTMLDivElement>(null);
   const value = useStageMeasure(stage, () => ++measured, 0);
   return (
-    <div ref={stage} data-testid="value">
-      {value}
+    <div ref={stage}>
+      <span data-testid="value">{value}</span>
+      <div data-instance="">
+        <span data-testid="instance">instance</span>
+      </div>
     </div>
   );
 }
 
 beforeEach(() => {
   measured = 0;
+  observed = [];
   frames = [];
   vi.stubGlobal('ResizeObserver', FakeResizeObserver);
   vi.stubGlobal('requestAnimationFrame', (frame: FrameRequestCallback) => frames.push(frame));
@@ -69,6 +76,16 @@ describe('useStageMeasure', () => {
       observerCallback?.();
       observerCallback?.();
     });
+    flushFrames();
+    expect(measured).toBe(2);
+  });
+
+  it('observes the instance too, since a stretched stage keeps its size when only the instance resizes', () => {
+    render(<Probe />);
+    flushFrames();
+    const instance = screen.getByTestId('instance');
+    expect(observed).toEqual([instance.closest('[data-instance]')!.parentElement, instance]);
+    act(() => observerCallback?.()); // the instance's resize
     flushFrames();
     expect(measured).toBe(2);
   });
