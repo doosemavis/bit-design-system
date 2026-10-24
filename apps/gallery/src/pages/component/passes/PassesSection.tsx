@@ -149,7 +149,7 @@ export function PassesSection({ manifest }: { manifest: Manifest }) {
         </div>
       </CardBody>
       <CardFooter>
-        <Stack gap={8}>
+        <Stack gap={8} className="gallery-passes__caption">
           <Text weight="bold">What this pass shows</Text>
           <Text size={16}>{`${SHOWS[pass]} The default ${manifest.name}. Change it in the Playground above.`}</Text>
           {pass === 'final' ? <Text>Default props aren&apos;t printed in the code.</Text> : null}

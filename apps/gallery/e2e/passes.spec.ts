@@ -135,6 +135,24 @@ test.describe('Passes on the Button page', () => {
     }
     expect(new Set(heights).size).toBe(1);
   });
+
+  test('the caption spans the footer content width on the Wireframe pass at 1440px', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('#/components/button');
+    await expect(stage(page, 'Wireframe')).toBeVisible();
+    const box = await page.evaluate(() => {
+      const caption = document.querySelector('.gallery-passes__caption') ?? document.querySelector('.bit-card__footer > *');
+      const footer = caption!.closest('.bit-card__footer')!;
+      const style = getComputedStyle(footer);
+      const f = footer.getBoundingClientRect();
+      const c = caption!.getBoundingClientRect();
+      const left = f.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+      const width = f.width - parseFloat(style.borderLeftWidth) - parseFloat(style.borderRightWidth) - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      return { captionLeft: c.left, captionWidth: c.width, left, width };
+    });
+    expect(Math.abs(box.captionLeft - box.left), 'caption left edge').toBeLessThanOrEqual(1);
+    expect(Math.abs(box.captionWidth - box.width), 'caption width').toBeLessThanOrEqual(1);
+  });
 });
 
 for (const mode of MODES) {
