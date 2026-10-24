@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import type { ControlState, ControlValue, Manifest } from '../manifests/types';
+import { withPageParams } from './pageParams';
 import { applyLocks, parseState, serializeState } from './state';
 
 /** A text or number edit reaches the URL this long after the last keystroke. */
@@ -51,8 +52,12 @@ export function useControlState(manifest: Manifest): ControlStateApi {
     return () => clearTimeout(timer.current);
   }, [entry]);
 
-  // A shared link with bad or unknown values shows the defaults; rewrite its URL to match, in place.
-  const canonical = useMemo(() => serializeState(manifest, parsed).toString(), [manifest, parsed]);
+  // A shared link with bad or unknown values shows the defaults; rewrite its URL to match, in place. Page keys
+  // (?pass=) are carried through, cleaned by their own parsers, so this stays the one place that rewrites the URL.
+  const canonical = useMemo(
+    () => withPageParams(serializeState(manifest, parsed), search).toString(),
+    [manifest, parsed, search],
+  );
   useEffect(() => {
     if (canonical !== query) setSearch(new URLSearchParams(canonical), { replace: true });
   }, [canonical, query, setSearch]);
@@ -61,10 +66,10 @@ export function useControlState(manifest: Manifest): ControlStateApi {
     (next: ControlState) => {
       clearTimeout(timer.current);
       setDraft(null);
-      const nextSearch = serializeState(manifest, next);
+      const nextSearch = withPageParams(serializeState(manifest, next), search);
       if (nextSearch.toString() !== query) setSearch(nextSearch);
     },
-    [manifest, query, setSearch],
+    [manifest, query, search, setSearch],
   );
 
   const apply = useCallback(
@@ -86,7 +91,10 @@ export function useControlState(manifest: Manifest): ControlStateApi {
       }
       setDraft({ entry, state: next });
       clearTimeout(timer.current);
-      timer.current = setTimeout(() => setSearch(serializeState(manifest, next), { replace: true }), TYPING_DEBOUNCE_MS);
+      timer.current = setTimeout(
+        () => setSearch((current) => withPageParams(serializeState(manifest, next), current), { replace: true }),
+        TYPING_DEBOUNCE_MS,
+      );
     },
     [manifest, entry, state, push, setSearch],
   );
