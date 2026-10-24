@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, RefObject } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button, Card, CardBody, CardFooter, Code, SegmentedControl, Stack, Text } from '@bit-ds/react';
 import type { Manifest } from '../../../manifests/types';
@@ -36,21 +36,30 @@ export function usePassParam(): { pass: Pass; setPass: (next: Pass) => void } {
 
 const nextOf = (pass: Pass): Pass => PASSES[(PASSES.indexOf(pass) + 1) % PASSES.length]!;
 
-/** What the pass reads, built from data and the rendered instance, never typed per component. */
-function readsFor(manifest: Manifest, pass: Pass, stage: HTMLElement | null): string {
+type MeasuredPass = Extract<Pass, 'wireframe' | 'final'>;
+const isMeasured = (pass: Pass): pass is MeasuredPass => pass === 'wireframe' || pass === 'final';
+
+/** What Tokens and States read: the anatomy data, never typed per component. */
+function dataReads(manifest: Manifest, pass: Exclude<Pass, MeasuredPass>): string {
   const anatomy = manifest.anatomy!;
-  switch (pass) {
-    case 'wireframe': {
-      const box = stage ? measureBox(stage) : null;
-      return box ? `height ${Math.round(box.height)}px, padding-left ${Math.round(box.paddingLeft)}px` : '';
-    }
-    case 'tokens':
-      return anatomy.parts.map((part) => `${part.label}: ${part.tokens.join(', ')}`).join(' · ');
-    case 'states':
-      return anatomy.states.map(({ label, state }) => `${label}: ${Object.keys(state).join(', ') || 'no props'}`).join(' · ');
-    case 'final':
-      return stage ? renderedClasses(stage) : '';
-  }
+  if (pass === 'tokens') return anatomy.parts.map((part) => `${part.label}: ${part.tokens.join(', ')}`).join(' · ');
+  return anatomy.states.map(({ label, state }) => `${label}: ${Object.keys(state).join(', ') || 'no props'}`).join(' · ');
+}
+
+/** What Wireframe and Final read: the rendered instance (its sizes, its classes). */
+function measuredReads(pass: MeasuredPass, stage: HTMLElement): string {
+  if (pass === 'final') return renderedClasses(stage);
+  const box = measureBox(stage);
+  return box ? `height ${Math.round(box.height)}px, padding-left ${Math.round(box.paddingLeft)}px` : '';
+}
+
+/**
+ * The measured "Reads", through the same measurement as the stage's dimensions, so it follows the instance when it
+ * resizes. Keyed by pass, so each pass mounts fresh and measures its own instance.
+ */
+function MeasuredReads({ stage, pass }: { stage: RefObject<HTMLElement | null>; pass: MeasuredPass }) {
+  const reads = useStageMeasure(stage, (el) => measuredReads(pass, el), '');
+  return reads ? <Code>{reads}</Code> : null;
 }
 
 /** Four squares, filled for each pass seen. Inline svg, so the paint isn't gallery CSS. Decorative. */
@@ -79,7 +88,6 @@ export function PassesSection({ manifest }: { manifest: Manifest }) {
   // What Next announced, and for which pass: any other route to a pass (a radio, an arrow key, Back) clears it, so
   // the same words can be spoken again by the next Next.
   const [spoken, setSpoken] = useState<{ pass: Pass; text: string } | null>(null);
-  const [reads, setReads] = useState('');
   const stageRef = useRef<HTMLDivElement>(null);
   const stacked = useStageMeasure(stageRef, (el) => el.getBoundingClientRect().width < STACK_BELOW, false);
 
@@ -87,11 +95,6 @@ export function PassesSection({ manifest }: { manifest: Manifest }) {
     setSeen((current) => (current.has(pass) ? current : new Set([...current, pass])));
     setSpoken((current) => (current?.pass === pass ? current : null));
   }, [pass]);
-
-  // Reads depends on the rendered instance (Wireframe's sizes, Final's classes), so it fills in after commit.
-  useEffect(() => {
-    if (manifest.anatomy) setReads(readsFor(manifest, pass, stageRef.current));
-  }, [manifest, pass]);
 
   if (!manifest.anatomy) return null;
   const parts = manifest.anatomy.parts;
@@ -141,7 +144,7 @@ export function PassesSection({ manifest }: { manifest: Manifest }) {
           <Text size={16}>{`${SHOWS[pass]} The default ${manifest.name}. Change it in the Playground above.`}</Text>
           {pass === 'final' ? <Text>Default props aren&apos;t printed in the code.</Text> : null}
           <Text weight="bold">Reads</Text>
-          {reads ? <Code>{reads}</Code> : null}
+          {isMeasured(pass) ? <MeasuredReads key={pass} stage={stageRef} pass={pass} /> : <Code>{dataReads(manifest, pass)}</Code>}
         </Stack>
       </CardFooter>
     </Card>

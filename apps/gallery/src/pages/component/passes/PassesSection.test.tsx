@@ -1,7 +1,7 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { button } from '../../../manifests/button';
 import type { Manifest } from '../../../manifests/types';
 import { PassesSection } from './PassesSection';
@@ -12,6 +12,25 @@ function setup(path: string, manifest: Manifest = button) {
   return { router, ...utils };
 }
 const stage = () => screen.getByRole('group', { name: /pass: Button$/ });
+
+// jsdom has no ResizeObserver: a stand-in that records each callback, so a test can report a resize.
+let resizeCallbacks: (() => void)[] = [];
+beforeEach(() => {
+  resizeCallbacks = [];
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(callback: () => void) {
+        resizeCallbacks = [...resizeCallbacks, callback];
+      }
+      observe() {}
+      disconnect() {}
+    },
+  );
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('PassesSection', () => {
   it('a manifest without anatomy renders nothing', () => {
@@ -117,6 +136,22 @@ describe('PassesSection', () => {
     const footer = screen.getByText('What this pass shows').closest('.bit-card__footer') as HTMLElement;
     expect(within(footer).getByText(/Each part points to the tokens it reads/)).toBeInTheDocument();
     expect(within(footer).getByText(/--bit-shadow-md/)).toBeInTheDocument();
+  });
+
+  it("Wireframe's reads follow the instance when it resizes", async () => {
+    setup('/x');
+    await screen.findByText('height 0px, padding-left 0px');
+    const button = stage().querySelector<HTMLElement>('.bit-button')!;
+    button.getBoundingClientRect = () => new DOMRect(0, 0, 120, 40);
+    act(() => resizeCallbacks.forEach((callback) => callback()));
+    expect(await screen.findByText('height 40px, padding-left 0px')).toBeInTheDocument();
+  });
+
+  it('reads re-measure on a pass change: Final, then Next to Wireframe', async () => {
+    setup('/x?pass=final');
+    await screen.findByText(/bit-button/);
+    await userEvent.click(screen.getByRole('button', { name: 'Next: Wireframe' }));
+    expect(await screen.findByText('height 0px, padding-left 0px')).toBeInTheDocument();
   });
 
   it("Final reads the element's real classes", async () => {
