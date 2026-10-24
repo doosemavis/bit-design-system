@@ -189,7 +189,7 @@ All four share one stage. It's a bit `Box` holding the instance in a wrapper wit
 
   The numbers come from `measureBox`, never typed: "40px", "16px".
   - **No dimming.** Under Decision 1 (b), `opacity` on the instance would be new gallery paint. The overlay carries the pass on its own. If the owner wants the faded look from the mockup, it's one exceptions entry, but that's a separate call.
-- **`TokensPass`.** Two callout columns with the instance between them. Each callout is a `li` holding:
+- **`TokensPass`.** Two callout columns with the instance between them. Each column is a `div` with `role="list"`, and each callout a `div` with `role="listitem"`. A real `ul` would need a `list-style` exception, and Decision 1 (b) allows none. Each callout holds:
   - the part label, as bit `Text`, size 14, bold;
   - one bit `Code` per token.
 
@@ -216,7 +216,7 @@ It sits inside one bit `Card`, so nothing nests, top to bottom:
    - a **Next** `Button`, outline, labeled with where it goes: "Next: Tokens". From Final it wraps to "Next: Wireframe";
    - the progress line (kept, G3), a `Text`: "2 of 4 seen", then "All 4 seen". It has four square pips before it, filled for each pass seen. The pips are decorative and `aria-hidden`; the text is what a screen reader hears.
 2. **The stage:** a `Box` with `role="group"` and `aria-label="Tokens pass: Button"`. It uses the Playground stage's padding (`--bit-space-32px`) and never goes below its `12rem` minimum. **One height for passes 1 to 3 (G1):** the stage takes the tallest of Wireframe, Tokens and States (in practice the Tokens columns), so stepping through them never moves the caption or Variants. Final may grow, for its code. The height follows each component's data, not Button's layout. `PassesSection` sets one layout custom property, `--_gallery-passes-rows`, to the most callouts on either side (`Math.max(left, right)` over `anatomy.parts`; Button has 2). The stage's `min-height` in `gallery.css` is `max(12rem, var(--_gallery-passes-rows) * <callout row height> + 2 * var(--bit-space-32px))`, where the row height is a gallery constant measured from one callout (label line plus one `Code` chip plus its gap). A component with more parts gets a taller stage automatically, so PR B has nothing to retune. `--_gallery-*` custom properties are on the layout allowlist, so this adds no exceptions.
-3. **The caption panel** (Ruling 6): a `Box` with a top border from bit tokens (no new paint) holding:
+3. **The caption panel** (Ruling 6): the Card's `CardFooter`, which bit already separates and paints, so there's no new gallery paint (`Box` only sets spacing). It holds:
    - **"What this pass shows":** one sentence per pass, shared by every component, kept as a constant in this file. For example, Tokens: "Each part points to the tokens it reads. Change a token and this is everything that moves."
    - **"Reads":** built from data, never typed per component:
      - Wireframe: the measured height and padding;
