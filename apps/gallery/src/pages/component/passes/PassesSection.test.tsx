@@ -1,0 +1,107 @@
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { describe, expect, it } from 'vitest';
+import { button } from '../../../manifests/button';
+import type { Manifest } from '../../../manifests/types';
+import { PassesSection } from './PassesSection';
+
+function setup(path: string, manifest: Manifest = button) {
+  const router = createMemoryRouter([{ path: '/x', element: <PassesSection manifest={manifest} /> }], { initialEntries: [path] });
+  const utils = render(<RouterProvider router={router} />);
+  return { router, ...utils };
+}
+const stage = () => screen.getByRole('group', { name: /pass: Button$/ });
+
+describe('PassesSection', () => {
+  it('a manifest without anatomy renders nothing', () => {
+    const { container } = setup('/x', { ...button, anatomy: undefined });
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it.each([
+    ['', 'Wireframe pass: Button'],
+    ['?pass=tokens', 'Tokens pass: Button'],
+    ['?pass=states', 'States pass: Button'],
+    ['?pass=final', 'Final pass: Button'],
+    ['?pass=xray', 'Wireframe pass: Button'],
+  ])('%j shows %s', (query, name) => {
+    setup(`/x${query}`);
+    expect(screen.getByRole('group', { name })).toBeInTheDocument();
+  });
+
+  it('Next names the following pass, pushes history, and wraps from Final to Wireframe', async () => {
+    const { router } = setup('/x?pass=states');
+    await userEvent.click(screen.getByRole('button', { name: 'Next: Final' }));
+    expect(router.state.location.search).toBe('?pass=final');
+    expect(router.state.historyAction).toBe('PUSH');
+    await userEvent.click(screen.getByRole('button', { name: 'Next: Wireframe' }));
+    expect(router.state.location.search).toBe('');
+    await act(async () => {
+      await router.navigate(-1);
+    });
+    expect(stage()).toHaveAccessibleName('Final pass: Button');
+  });
+
+  it('picking a pass keeps control keys', async () => {
+    const { router } = setup('/x?variant=outline');
+    await userEvent.click(screen.getByRole('radio', { name: 'Tokens' }));
+    expect(router.state.location.search).toBe('?variant=outline&pass=tokens');
+  });
+
+  it('counts the passes seen on this visit', async () => {
+    setup('/x');
+    expect(screen.getByText('1 of 4 seen')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Next: Tokens' }));
+    expect(screen.getByText('2 of 4 seen')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('radio', { name: 'Wireframe' }));
+    expect(screen.getByText('2 of 4 seen')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('radio', { name: 'Final' }));
+    await userEvent.click(screen.getByRole('radio', { name: 'States' }));
+    expect(screen.getByText('All 4 seen')).toBeInTheDocument();
+  });
+
+  it('the live region speaks for Next only', async () => {
+    setup('/x');
+    const live = screen.getByRole('status');
+    expect(live).toBeEmptyDOMElement();
+    await userEvent.click(screen.getByRole('radio', { name: 'States' }));
+    expect(live).toBeEmptyDOMElement();
+    await userEvent.click(screen.getByRole('button', { name: 'Next: Final' }));
+    expect(live).toHaveTextContent('Final, pass 4 of 4');
+  });
+
+  it('the instance is the default Button, whatever the Playground says', () => {
+    setup('/x?color=danger&pass=tokens');
+    expect(stage().querySelector('.bit-button')).toHaveClass('bit-primary');
+  });
+
+  it('the caption says what the pass shows and what it reads', () => {
+    setup('/x?pass=tokens');
+    const footer = screen.getByText('What this pass shows').closest('.bit-card__footer') as HTMLElement;
+    expect(within(footer).getByText(/Each part points to the tokens it reads/)).toBeInTheDocument();
+    expect(within(footer).getByText(/--bit-shadow-md/)).toBeInTheDocument();
+  });
+
+  it("Final reads the element's real classes", async () => {
+    setup('/x?pass=final');
+    const reads = await screen.findByText(/bit-button/);
+    expect(reads.textContent!.split(' ')).toEqual(expect.arrayContaining(['bit-button', 'bit-primary', 'bit-solid', 'bit-md']));
+    expect(screen.getByText("Default props aren't printed in the code.")).toBeInTheDocument();
+  });
+
+  it('sets --_gallery-passes-rows to the most callouts on either side', () => {
+    const first = setup('/x');
+    expect(stage().style.getPropertyValue('--_gallery-passes-rows')).toBe('2');
+    first.unmount();
+    const three: Manifest = {
+      ...button,
+      anatomy: {
+        ...button.anatomy!,
+        parts: [...button.anatomy!.parts, { label: 'Label', selector: '.bit-button', tokens: ['--bit-weight-bold'], side: 'left' }],
+      },
+    };
+    setup('/x', three);
+    expect(stage().style.getPropertyValue('--_gallery-passes-rows')).toBe('3');
+  });
+});

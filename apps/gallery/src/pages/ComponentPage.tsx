@@ -8,6 +8,7 @@ import { PageSection } from '../ui/PageSection';
 import { SectionBar } from '../ui/SectionBar';
 import { ComponentHeader } from './component/ComponentHeader';
 import { Playground } from './component/Playground';
+import { PassesSection } from './component/passes/PassesSection';
 import { A11yList, ClassTip, classTip, PropsTable, UsageLists } from './component/DocsSections';
 import { componentSections, SECTIONS } from './component/sections';
 
@@ -27,7 +28,7 @@ function Related({ manifests }: { manifests: readonly Manifest[] }) {
 }
 
 /**
- * Layout C: header, section bar, then Playground, Variants, the page's extra section, Usage, Props, Accessibility
+ * Layout C: header, section bar, then Playground, Passes, Variants, the page's extra section, Usage, Props, Accessibility
  * and Related. State lives in the URL.
  */
 export function ComponentPage({ manifest }: ComponentPageProps) {
@@ -44,6 +45,11 @@ export function ComponentPage({ manifest }: ComponentPageProps) {
       <PageSection {...SECTIONS.playground}>
         <Playground manifest={manifest} controls={controls} />
       </PageSection>
+      {manifest.anatomy ? (
+        <PageSection {...SECTIONS.passes}>
+          <PassesSection manifest={manifest} />
+        </PageSection>
+      ) : null}
       {axes ? (
         <PageSection {...SECTIONS.variants}>
           <VariantsTable manifest={manifest} axes={axes} state={controls.state} />

@@ -5,6 +5,7 @@ import { variantAxes } from '../../engine/VariantsTable';
 
 export const SECTIONS = {
   playground: { id: 'section-playground', title: 'Playground' },
+  passes: { id: 'section-passes', title: 'Passes' },
   variants: { id: 'section-variants', title: 'Variants' },
   usage: { id: 'section-usage', title: 'Usage' },
   props: { id: 'section-props', title: 'Props' },
@@ -19,6 +20,7 @@ export const SECTIONS = {
 export function componentSections(manifest: Manifest): SectionLink[] {
   return [
     SECTIONS.playground,
+    ...(manifest.anatomy ? [SECTIONS.passes] : []),
     ...(variantAxes(manifest) ? [SECTIONS.variants] : []),
     ...(manifest.extraSection ? [{ id: manifest.extraSection.id, title: manifest.extraSection.title }] : []),
     SECTIONS.usage,
