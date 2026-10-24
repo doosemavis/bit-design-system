@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button, Card, CardBody, CardFooter, Code, SegmentedControl, Stack, Text } from '@bit-ds/react';
 import type { Manifest } from '../../../manifests/types';
-import { DEFAULT_PASS, parsePass, PASSES } from '../../../engine/pageParams';
+import { parsePass, PASSES, setPageParam } from '../../../engine/pageParams';
 import type { Pass } from '../../../engine/pageParams';
 import { useStageMeasure } from './useStageMeasure';
 import { FinalPass, measureBox, renderedClasses, StatesPass, TokensPass, WireframePass } from './passViews';
@@ -21,16 +21,13 @@ const SHOWS: Readonly<Record<Pass, string>> = {
 /** Below this stage width the callouts stack under the instance and the lines go away. */
 const STACK_BELOW = 600;
 
-/** The pass in the URL. Reads and pushes only: useControlState is the one code that cleans the URL. */
+/** The pass in the URL. Reads, and pushes through setPageParam, so every push is already in canonical order. */
 export function usePassParam(): { pass: Pass; setPass: (next: Pass) => void } {
   const [search, setSearch] = useSearchParams();
   const pass = parsePass(search.get('pass'));
   const setPass = useCallback(
     (next: Pass) => {
-      if (next === pass) return;
-      const params = new URLSearchParams([...search].filter(([key]) => key !== 'pass'));
-      if (next !== DEFAULT_PASS) params.append('pass', next);
-      setSearch(params);
+      if (next !== pass) setSearch(setPageParam(search, 'pass', next));
     },
     [pass, search, setSearch],
   );

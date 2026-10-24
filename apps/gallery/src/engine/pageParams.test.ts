@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_PASS, PAGE_PARAMS, parsePass, PASSES, withPageParams } from './pageParams';
+import { DEFAULT_PASS, PAGE_PARAMS, parsePass, PASSES, setPageParam, withPageParams } from './pageParams';
 
 describe('parsePass', () => {
   it.each(PASSES)('keeps %s', (pass) => expect(parsePass(pass)).toBe(pass));
@@ -36,5 +36,33 @@ describe('withPageParams', () => {
     withPageParams(next, current);
     expect(next.toString()).toBe('variant=outline');
     expect(current.toString()).toBe('pass=tokens');
+  });
+});
+
+describe('setPageParam', () => {
+  it('sets a page key after the control keys', () => {
+    expect(setPageParam(new URLSearchParams('variant=outline&size=lg'), 'pass', 'tokens').toString()).toBe(
+      'variant=outline&size=lg&pass=tokens',
+    );
+  });
+
+  it('replaces the key, and moves it after control keys that follow it', () => {
+    expect(setPageParam(new URLSearchParams('pass=tokens&variant=outline'), 'pass', 'final').toString()).toBe(
+      'variant=outline&pass=final',
+    );
+  });
+
+  it.each([undefined, DEFAULT_PASS, 'xray'])('removes the key for %j (undefined, the default, or a value it does not know)', (value) => {
+    expect(setPageParam(new URLSearchParams('variant=outline&pass=tokens'), 'pass', value).toString()).toBe('variant=outline');
+  });
+
+  it('refuses a key that is not a page key', () => {
+    expect(() => setPageParam(new URLSearchParams(), 'variant', 'outline')).toThrow('variant is not a page key');
+  });
+
+  it('does not mutate its input', () => {
+    const current = new URLSearchParams('pass=tokens&variant=outline');
+    setPageParam(current, 'pass', 'final');
+    expect(current.toString()).toBe('pass=tokens&variant=outline');
   });
 });

@@ -49,6 +49,14 @@ describe('PassesSection', () => {
     expect(router.state.location.search).toBe('?variant=outline&pass=tokens');
   });
 
+  it('a pass push is canonical: control keys first, then the pass', async () => {
+    const { router } = setup('/x?pass=tokens&variant=outline');
+    await userEvent.click(screen.getByRole('radio', { name: 'Final' }));
+    expect(router.state.location.search).toBe('?variant=outline&pass=final');
+    await userEvent.click(screen.getByRole('radio', { name: 'Wireframe' }));
+    expect(router.state.location.search).toBe('?variant=outline');
+  });
+
   it('counts the passes seen on this visit', async () => {
     setup('/x');
     expect(screen.getByText('1 of 4 seen')).toBeInTheDocument();

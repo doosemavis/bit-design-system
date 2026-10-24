@@ -1,7 +1,8 @@
 /**
- * Page-level query keys: state a page keeps in the URL beside its controls (the Passes section's `pass`; PR D adds
- * the theme drawer's `t.*`). useControlState is the only code that rewrites the URL, so it carries these through
- * every canonical rewrite, push and replace, cleaned by each key's parser.
+ * Page-level query keys: state a page keeps in the URL beside its controls (the Passes section's `pass`, and any
+ * future page key registered here). useControlState carries these through every canonical rewrite, push and replace,
+ * cleaned by each key's parser; a page that sets one of its own keys goes through setPageParam, so its push is
+ * already canonical.
  */
 
 export const PASSES = ['wireframe', 'tokens', 'states', 'final'] as const;
@@ -36,4 +37,15 @@ export function withPageParams(next: URLSearchParams, current: URLSearchParams):
     if (value !== undefined) out.append(key, value);
   }
   return out;
+}
+
+/**
+ * `current` with one page key set (or removed, for undefined, the key's default or a value it doesn't know), in the
+ * canonical order withPageParams writes: control keys as they were, then page keys in registry order. A new object.
+ */
+export function setPageParam(current: URLSearchParams, key: string, value: string | undefined): URLSearchParams {
+  if (!(key in PAGE_PARAMS)) throw new Error(`${key} is not a page key`);
+  const updated = new URLSearchParams([...current].filter(([name]) => name !== key));
+  if (value !== undefined) updated.append(key, value);
+  return withPageParams(updated, updated);
 }
