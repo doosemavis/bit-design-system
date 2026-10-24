@@ -21,6 +21,7 @@ The URL holds the pass (`?pass=tokens`), so every view is a link and Back steps 
 - **Ruling 7:** the pass control sits above the stage (Option 1), not in a side rail.
 - **Ruling 9:** no release-notes entry. The PR body and the live site are the record.
 - **Engineering review, D1–D4** (2026-10-24): one owner for URL cleanup, the Final pass reads its real classes, one shared measuring hook, and the smaller file arrangement. See the review record at the end.
+- **Design review, G1–G3** (2026-10-24, picked on a rendered board): one stage height for passes 1 to 3, text-color lines with a small dot, and the "2 of 4 seen" progress stays.
 
 ## Files
 
@@ -200,6 +201,8 @@ All four share one stage. It's a bit `Box` holding the instance in a wrapper wit
 
 - `aria-hidden="true"`, because the callouts and captions already carry the content;
 - `stroke: currentColor` for its lines and labels, so they follow the theme and become `CanvasText` under forced colors;
+- 1.5px lines, and a 3px solid dot (`fill: currentColor`) where each line lands on the part. No yellow: in bit, yellow is the focus ring color, and nothing on the stage is focused (G2);
+- dimension labels in `--bit-font-mono` at 12px, the same face as the `Code` chips;
 - `pointer-events: none` on the svg.
 
 The SVG's paint is inline presentation in a diagram, the pattern the Tokens page's `ColorFlow` already uses. It is not gallery CSS.
@@ -211,8 +214,8 @@ It sits inside one bit `Card`, so nothing nests, top to bottom:
 1. **The control row:**
    - a bit `SegmentedControl`, `legend="Pass"` with `legendHidden`, with the four passes as options and its value from `usePassParam`;
    - a **Next** `Button`, outline, labeled with where it goes: "Next: Tokens". From Final it wraps to "Next: Wireframe";
-   - the progress line, a `Text`: "2 of 4 seen", then "All 4 seen". Its pips are decorative and `aria-hidden`.
-2. **The stage:** a `Box` with `role="group"` and `aria-label="Tokens pass: Button"`.
+   - the progress line (kept, G3), a `Text`: "2 of 4 seen", then "All 4 seen". It has four square pips before it, filled for each pass seen. The pips are decorative and `aria-hidden`; the text is what a screen reader hears.
+2. **The stage:** a `Box` with `role="group"` and `aria-label="Tokens pass: Button"`. It uses the Playground stage's padding (`--bit-space-32px`) and never goes below its `12rem` minimum. **One height for passes 1 to 3 (G1):** the stage takes the tallest of Wireframe, Tokens and States (in practice the Tokens columns), so stepping through them never moves the caption or Variants. Final may grow, for its code. The height is a `min-height` set in CSS from the Tokens layout (two callouts per side for Button); PR B revisits it when a component has more parts.
 3. **The caption panel** (Ruling 6): a `Box` with a top border from bit tokens (no new paint) holding:
    - **"What this pass shows":** one sentence per pass, shared by every component, kept as a constant in this file. For example, Tokens: "Each part points to the tokens it reads. Change a token and this is everything that moves."
    - **"Reads":** built from data, never typed per component:
@@ -352,5 +355,21 @@ Production failure considered: a CSS change that renames a private property. The
 **Tests.** Every new branch in §1, §4, §5 and §6 has a unit test in §8. Real-browser behavior is covered in e2e: the leader-line geometry, zoom and stacking, keyboard-only use, axe on every pass, and the URL round trip. There are no LLM or eval paths.
 
 **Performance.** No issues. Four parts, one observer, and at most one measure per frame.
+
+## Design review (2026-10-24)
+
+Run by hand, following `/plan-design-review`'s passes, because gstack's scripts and image designer were blocked in this session. There's no `DESIGN.md`, so it was calibrated against the gallery's own Playground. The three open details went on a board rendered with the real bit CSS, and the owner picked the recommended option for each.
+
+| Dimension | Before | After | What changed |
+|---|---|---|---|
+| Information architecture | 8 | 9 | The section order and the one-card layout were already set; the caption rules are now complete |
+| Interaction states | 7 | 9 | One stage height (G1): no layout jump between passes 1 and 3 |
+| User journey | 8 | 9 | The progress line was kept and specified (G3) |
+| AI slop | 9 | 9 | No changes needed: bit components only, no decorative cards |
+| Design system alignment | 7 | 9 | Stage padding and minimum match the Playground; the line and label styles are set (G2) |
+| Responsive | 8 | 8 | Desktop only (2026-10-02 ruling); stacked below 600px |
+| Accessibility | 9 | 9 | No changes needed: no yellow on an unfocused stage, `currentColor` under forced colors |
+
+**Overall: 7/10 before, 9/10 after.** Not a 10, because the Tokens height is tuned for Button's four parts and PR B has to check it against components with more parts.
 
 **Unresolved decisions:** none.
