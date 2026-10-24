@@ -34,28 +34,42 @@ test.describe('Passes on the Button page', () => {
     await page.goForward();
     await expect(stage(page, 'States')).toBeVisible();
     // The variant control is a bit Select (a combobox with a listbox), not a radio group.
-    const variant = page.getByRole('region', { name: 'Controls' }).getByRole('combobox', { name: 'variant' });
+    const variant = page.getByRole('region', { name: 'Controls' }).getByRole('combobox', { name: 'variant', exact: true });
     await variant.click();
     await page.locator(`[id="${await variant.getAttribute('aria-controls')}"]`).getByRole('option', { name: 'outline' }).click();
     await expect(page).toHaveURL(/variant=outline&pass=states/);
   });
 
-  test('keyboard only: reach the control, change pass, press Next; the focus ring always shows', async ({ page }) => {
+  test('keyboard only: Tab to the control, change pass, press Next; the focus ring always shows', async ({ page }) => {
     await page.goto('#/components/button');
-    await page.getByRole('radio', { name: 'Wireframe' }).focus();
+    await expect(stage(page, 'Wireframe')).toBeVisible();
+    // The ring the eye sees: a segment's radio is visually hidden, so reset.css draws the ring on its label.
+    const ring = () =>
+      page.evaluate(() => {
+        const active = document.activeElement!;
+        const drawn = active.matches('.bit-segmented-control__input') ? active.nextElementSibling : active;
+        if (!drawn || (drawn !== active && !drawn.matches('.bit-segmented-control__label'))) return 'no label';
+        const style = getComputedStyle(drawn);
+        return `${style.outlineStyle} ${style.outlineWidth}`;
+      });
+    const onPassRadio = () => page.evaluate(() => document.activeElement?.matches('input[name="pass"]') ?? false);
+    for (let tabs = 0; tabs < 100 && !(await onPassRadio()); tabs += 1) await page.keyboard.press('Tab');
+    await expect(page.getByRole('radio', { name: 'Wireframe' })).toBeFocused();
+    expect(await ring()).toMatch(/^solid [1-9]/);
     await page.keyboard.press('ArrowRight');
     await expect(stage(page, 'Tokens')).toBeVisible();
-    const ring = () => page.evaluate(() => getComputedStyle(document.activeElement!).outlineStyle);
-    expect(await ring()).not.toBe('none');
+    await expect(page.getByRole('radio', { name: 'Tokens' })).toBeFocused();
+    expect(await ring()).toMatch(/^solid [1-9]/);
     await page.keyboard.press('Tab');
     await expect(page.getByRole('button', { name: 'Next: States' })).toBeFocused();
-    expect(await ring()).not.toBe('none');
+    expect(await ring()).toMatch(/^solid [1-9]/);
     await page.keyboard.press('Enter');
     await expect(stage(page, 'States')).toBeVisible();
     await expect(page.getByRole('status')).toHaveText('States, pass 3 of 4');
     await page.keyboard.press('Tab');
     const focusedTile = await page.evaluate(() => document.activeElement?.closest('[data-tile]')?.textContent ?? '');
     expect(focusedTile).toContain('Try it');
+    expect(await ring()).toMatch(/^solid [1-9]/);
   });
 
   test('leader lines touch their callouts and anchors at 1440px and 1024px', async ({ page }) => {
@@ -91,12 +105,33 @@ test.describe('Passes on the Button page', () => {
     await expect(page.locator('[data-part]')).toHaveCount(4);
   });
 
-  test('the stage keeps one height across Wireframe, Tokens and States', async ({ page }) => {
+  test('the stage keeps one height across Wireframe, Tokens and States, and the Tokens content fits', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     const heights: number[] = [];
-    for (const value of ['wireframe', 'tokens', 'states']) {
+    for (const value of ['wireframe', 'tokens', 'states'] as const) {
+      // A hash-only goto doesn't reload: wait for this pass's own stage, and for fonts, before measuring it.
       await page.goto(urlFor(value));
-      heights.push(await page.locator('.gallery-passes__stage').evaluate((el) => el.getBoundingClientRect().height));
+      const named = stage(page, PASS_NAMES[value]);
+      await expect(named).toBeVisible();
+      await page.evaluate(() => document.fonts.ready);
+      const size = await named.evaluate((el) => {
+        const style = getComputedStyle(el);
+        const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+        const canvas = el.querySelector<HTMLElement>('.gallery-passes__canvas')!;
+        // The content's own extent (the canvas stretches to the stage, so its box can't say): the svg overlay is not content.
+        const boxes = [...canvas.children].filter((child) => child.tagName !== 'svg').map((child) => child.getBoundingClientRect());
+        const content = Math.max(...boxes.map((box) => box.bottom)) - Math.min(...boxes.map((box) => box.top));
+        return {
+          height: el.getBoundingClientRect().height,
+          minHeight: parseFloat(style.minHeight),
+          needed: content + padding,
+          overflows: canvas.scrollHeight > el.clientHeight - padding + 0.5,
+        };
+      });
+      expect(Math.abs(size.height - Math.max(size.needed, size.minHeight)), `${value} height`).toBeLessThanOrEqual(0.5);
+      expect(size.needed, `${value} content fits the min-height`).toBeLessThanOrEqual(size.minHeight);
+      expect(size.overflows, `${value} canvas overflows`).toBe(false);
+      heights.push(size.height);
     }
     expect(new Set(heights).size).toBe(1);
   });
