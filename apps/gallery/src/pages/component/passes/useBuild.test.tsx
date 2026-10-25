@@ -9,6 +9,8 @@ import { useBuild } from './useBuild';
 
 const anatomy = button.anatomy as ManifestAnatomy;
 const HOLD = 1000;
+/** A pass's end as an arrival shows it: endOf, with nothing fresh. */
+const arrived = (pass: Pass) => ({ ...endOf(anatomy, pass), fresh: null });
 
 function setup(initial: Pass) {
   return renderHook(({ pass }: { pass: Pass }) => useBuild(anatomy, pass, HOLD), { initialProps: { pass: initial } });
@@ -20,9 +22,11 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
 describe('useBuild pass changes', () => {
-  it('arrives at a pass end with no replay', () => {
+  it('arrives at a pass end with no replay: nothing fresh, the rest equal to endOf', () => {
     const { result } = setup('tokens');
-    expect(result.current.state).toEqual(endOf(anatomy, 'tokens'));
+    expect(endOf(anatomy, 'tokens').fresh).toBe('Shadow');
+    expect(result.current.state.fresh).toBeNull();
+    expect(result.current.state).toEqual(arrived('tokens'));
     expect(vi.getTimerCount()).toBe(0);
   });
 
@@ -47,13 +51,13 @@ describe('useBuild pass changes', () => {
     const { result, rerender } = setup('states');
     act(() => result.current.markForward());
     rerender({ pass: 'tokens' });
-    expect(result.current.state).toEqual(endOf(anatomy, 'tokens'));
+    expect(result.current.state).toEqual(arrived('tokens'));
   });
 
   it('jumps on a change without markForward', () => {
     const { result, rerender } = setup('wireframe');
     rerender({ pass: 'tokens' });
-    expect(result.current.state).toEqual(endOf(anatomy, 'tokens'));
+    expect(result.current.state).toEqual(arrived('tokens'));
     expect(vi.getTimerCount()).toBe(0);
   });
 
@@ -62,7 +66,7 @@ describe('useBuild pass changes', () => {
     act(() => result.current.markForward());
     rerender({ pass: 'tokens' });
     rerender({ pass: 'states' });
-    expect(result.current.state).toEqual(endOf(anatomy, 'states'));
+    expect(result.current.state).toEqual(arrived('states'));
   });
 
   it('cancels a running pass when the pass changes', () => {
@@ -70,9 +74,9 @@ describe('useBuild pass changes', () => {
     act(() => result.current.markForward());
     rerender({ pass: 'tokens' });
     rerender({ pass: 'final' });
-    expect(result.current.state).toEqual(endOf(anatomy, 'final'));
+    expect(result.current.state).toEqual(arrived('final'));
     tick(10 * HOLD);
-    expect(result.current.state).toEqual(endOf(anatomy, 'final'));
+    expect(result.current.state).toEqual(arrived('final'));
   });
 
   it('stop freezes the state and clears timers', () => {
@@ -115,14 +119,14 @@ describe('useBuild play', () => {
       note();
     }
     expect(seen).toEqual(['wireframe', 'tokens', 'states', 'final']);
-    expect(result.current.state).toEqual(endOf(anatomy, 'final'));
+    expect(result.current.state).toEqual(arrived('final'));
     expect(onDone).toHaveBeenCalledTimes(1);
     expect(result.current.playing).toBe(false);
     expect(vi.getTimerCount()).toBe(0);
 
     const version = result.current.version;
     rerender({ pass: 'final' });
-    expect(result.current.state).toEqual(endOf(anatomy, 'final'));
+    expect(result.current.state).toEqual(arrived('final'));
     expect(result.current.version).toBe(version);
     tick(10 * HOLD);
     expect(onDone).toHaveBeenCalledTimes(1);
@@ -135,7 +139,7 @@ describe('useBuild play', () => {
     tick(2 * HOLD);
     expect(result.current.state.pass).toBe('tokens');
     rerender({ pass: 'tokens' });
-    expect(result.current.state).toEqual(endOf(anatomy, 'tokens'));
+    expect(result.current.state).toEqual(arrived('tokens'));
     expect(result.current.playing).toBe(false);
     expect(vi.getTimerCount()).toBe(0);
     tick(20 * HOLD);
@@ -151,7 +155,7 @@ describe('useBuild play', () => {
     rerender({ pass: 'wireframe' });
     expect(result.current.state).toEqual(frozen);
     rerender({ pass: 'tokens' });
-    expect(result.current.state).toEqual(endOf(anatomy, 'tokens'));
+    expect(result.current.state).toEqual(arrived('tokens'));
   });
 
   it('stop ends a play', () => {
@@ -174,7 +178,7 @@ describe('useBuild with reduced motion', () => {
     const { result, rerender } = setup('wireframe');
     act(() => result.current.markForward());
     rerender({ pass: 'tokens' });
-    expect(result.current.state).toEqual(endOf(anatomy, 'tokens'));
+    expect(result.current.state).toEqual(arrived('tokens'));
     expect(vi.getTimerCount()).toBe(0);
   });
 
@@ -182,14 +186,14 @@ describe('useBuild with reduced motion', () => {
     const { result } = setup('wireframe');
     const onDone = vi.fn();
     act(() => result.current.play(onDone));
-    expect(result.current.state).toEqual(endOf(anatomy, 'wireframe'));
+    expect(result.current.state).toEqual(arrived('wireframe'));
     tick(HOLD);
-    expect(result.current.state).toEqual(endOf(anatomy, 'tokens'));
+    expect(result.current.state).toEqual(arrived('tokens'));
     tick(HOLD);
-    expect(result.current.state).toEqual(endOf(anatomy, 'states'));
+    expect(result.current.state).toEqual(arrived('states'));
     expect(onDone).not.toHaveBeenCalled();
     tick(HOLD);
-    expect(result.current.state).toEqual(endOf(anatomy, 'final'));
+    expect(result.current.state).toEqual(arrived('final'));
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 });

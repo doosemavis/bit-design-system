@@ -98,7 +98,9 @@ export function BuildStage({ manifest, build }: { manifest: Manifest; build: Bui
   const size = stageSize(anatomy.parts);
   const instance = <Instance manifest={manifest} patch={patchOf(anatomy, state)} inert={!state.live} />;
   const callouts = (side: AnatomyPart['side']) =>
-    state.lines ? <Callouts side={side} parts={anatomy.parts} tops={geometry?.tops ?? null} stacked={stacked} onHot={setHot} /> : null;
+    state.lines ? (
+      <Callouts side={side} parts={anatomy.parts} landed={state.landed} tops={geometry?.tops ?? null} stacked={stacked} onHot={setHot} />
+    ) : null;
 
   return (
     <div

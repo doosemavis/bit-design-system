@@ -20,8 +20,11 @@ export interface BuildApi {
 
 const HOLD_STEPS = 6;
 
+/** A pass's end as an arrival shows it: nothing fresh, so nothing replays (only played steps carry `fresh`). */
+const arrival = (anatomy: ManifestAnatomy, pass: Pass): BuildState => ({ ...endOf(anatomy, pass), fresh: null });
+
 export function useBuild(anatomy: ManifestAnatomy, pass: Pass, hold?: number): BuildApi {
-  const [shown, setShown] = useState(() => ({ state: endOf(anatomy, pass), version: 0 }));
+  const [shown, setShown] = useState(() => ({ state: arrival(anatomy, pass), version: 0 }));
   const [playing, setPlaying] = useState(false);
   const current = useRef(shown.state);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -74,7 +77,7 @@ export function useBuild(anatomy: ManifestAnatomy, pass: Pass, hold?: number): B
     setPlaying(false);
     const later = PASSES.indexOf(pass) > PASSES.indexOf(from);
     if (marked && later && !prefersReducedMotion()) run(stepsOf(latest.current.anatomy, pass));
-    else show(endOf(latest.current.anatomy, pass));
+    else show(arrival(latest.current.anatomy, pass));
   }, [pass, clear, run, show]);
 
   useEffect(() => clear, [clear]);
@@ -92,7 +95,7 @@ export function useBuild(anatomy: ManifestAnatomy, pass: Pass, hold?: number): B
     (onDone: () => void) => {
       clear();
       const reduced = prefersReducedMotion();
-      const states = PASSES.flatMap((p) => (reduced ? [endOf(latest.current.anatomy, p)] : stepsOf(latest.current.anatomy, p)));
+      const states = PASSES.flatMap((p) => (reduced ? [arrival(latest.current.anatomy, p)] : stepsOf(latest.current.anatomy, p)));
       setPlaying(true);
       playedToFinal.current = false;
       run(states, () => {

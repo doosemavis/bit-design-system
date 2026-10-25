@@ -9,10 +9,14 @@ import type { Manifest, ManifestAnatomy } from '../../../manifests/types';
 import { endOf, stepsOf, type BuildState } from './build';
 import { BuildStage } from './BuildStage';
 import { resolveTouch } from './geometry';
-import { slide } from './motion';
+import { drawIn, slide } from './motion';
 import { useBuild, type BuildApi } from './useBuild';
 
-vi.mock('./motion', async (importOriginal) => ({ ...(await importOriginal<typeof import('./motion')>()), slide: vi.fn(() => null) }));
+vi.mock('./motion', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./motion')>()),
+  slide: vi.fn(() => null),
+  drawIn: vi.fn(() => null),
+}));
 
 const anatomy = button.anatomy as ManifestAnatomy;
 const tokens = stepsOf(anatomy, 'tokens');
@@ -52,6 +56,7 @@ beforeEach(() => {
   resizeCallbacks = [];
   frames = [];
   vi.mocked(slide).mockClear();
+  vi.mocked(drawIn).mockClear();
   vi.stubGlobal(
     'ResizeObserver',
     class {
@@ -114,6 +119,18 @@ const touchOf = (label: string) => resolveTouch(box, METRICS, partOf(label).touc
 const points = (d: string) => [...d.matchAll(/([ML])\s*(-?[\d.]+)[ ,](-?[\d.]+)/g)].map((m) => ({ cmd: m[1], x: Number(m[2]), y: Number(m[3]) }));
 const quiet = (state: BuildState): BuildState => ({ ...state, fresh: null });
 
+/** Button plus a part that renders in the top layer: listed, with no line. */
+const withUnseen: Manifest = {
+  ...button,
+  anatomy: {
+    ...anatomy,
+    parts: [
+      ...anatomy.parts,
+      { label: 'List', selector: '.nope', tokens: ['--bit-shadow-md'], side: 'right', touch: { kind: 'box', edge: 'right' }, unseen: 'It opens in the top layer.' },
+    ],
+  },
+};
+
 describe('BuildStage', () => {
   it('is a group named for the pass and the component', () => {
     show(endOf(anatomy, 'tokens'));
@@ -164,8 +181,8 @@ describe('BuildStage', () => {
       }
     });
 
-    it('lists every part as a focusable callout, in two lists', () => {
-      show(quiet(tokens[1]!));
+    it('lists every part as a focusable callout, in two lists, once all have landed', () => {
+      show(quiet(tokens[3]!));
       flush();
       expect(screen.getAllByRole('list')).toHaveLength(2);
       expect(screen.getAllByRole('listitem').map((item) => [item.dataset.part, item.tabIndex])).toEqual([
@@ -175,6 +192,26 @@ describe('BuildStage', () => {
         ['Shadow', 0],
       ]);
       expect(within(callout('Face')).getByText('--bit-color-primary')).toBeInTheDocument();
+    });
+
+    it('a callout lands with its part: the rest keep their slot, hidden, out of the tab order', async () => {
+      const { update } = show(quiet(tokens[1]!));
+      flush();
+      expect(['Face', 'Size', 'Edge', 'Shadow'].map((label) => callout(label).style.visibility)).toEqual(['', 'hidden', '', 'hidden']);
+      expect(callout('Size').style.top).toBe('168px');
+      expect(screen.getAllByRole('listitem').map((item) => item.dataset.part)).toEqual(['Face', 'Edge']);
+      const reached: (string | undefined)[] = [];
+      for (let i = 0; i < 4; i += 1) {
+        await userEvent.tab();
+        reached.push((document.activeElement as HTMLElement | null)?.dataset.part);
+      }
+      expect(reached.filter(Boolean)).not.toContain('Size');
+      expect(reached.filter(Boolean)).not.toContain('Shadow');
+      expect(reached).toContain('Face');
+      expect(reached).toContain('Edge');
+      update(quiet(tokens[2]!), 2);
+      expect(callout('Size').style.visibility).toBe('');
+      expect(callout('Size').tabIndex).toBe(0);
     });
 
     it('turns off the parts not landed yet on the wrapper, and undoes on change and unmount', () => {
@@ -211,6 +248,7 @@ describe('BuildStage', () => {
     expect(one('line', 'Face')).toHaveAttribute('data-hot');
     expect(one('dot', 'Face')).toHaveAttribute('data-hot');
     expect(one('line', 'Face')).not.toHaveAttribute('stroke-opacity');
+    expect(one('line', 'Face')).toHaveAttribute('stroke-width', '2');
     expect(one('line', 'Edge')).toHaveAttribute('stroke-opacity', '0.3');
     expect(one('dot', 'Edge')).toHaveAttribute('stroke-opacity', '0.3');
     expect(parts('highlight')).toEqual(['Face']);
@@ -261,6 +299,28 @@ describe('BuildStage', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('a played step draws its line in', () => {
+    const { update } = show(tokens[0]!, 1);
+    flush();
+    vi.mocked(drawIn).mockClear();
+    update(tokens[1]!, 2);
+    flush();
+    expect(vi.mocked(drawIn).mock.calls.map(([path]) => path.dataset.part)).toEqual(['Face']);
+  });
+
+  it('arriving on Tokens replays nothing: no beat, no line drawing in', () => {
+    function Arrive() {
+      return <BuildStage manifest={button} build={useBuild(anatomy, 'tokens')} />;
+    }
+    render(<Arrive />);
+    paintButton();
+    flush();
+    expect(parts('line')).toEqual(['Edge', 'Face', 'Size', 'Shadow']);
+    expect(all('highlight')).toEqual([]);
+    expect(all('mark')).toEqual([]);
+    expect(drawIn).not.toHaveBeenCalled();
+  });
+
   it("the fresh step's line waits for its own measure, so it never draws from an old layout", () => {
     const { update } = show(quiet(tokens[0]!), 1);
     flush();
@@ -287,24 +347,38 @@ describe('BuildStage', () => {
     expect(points(one('line', 'Edge')!.getAttribute('d')!).filter((p) => p.cmd === 'M')).toHaveLength(1);
   });
 
-  it('an unseen part is listed with its reason, with no line or dot', () => {
-    const unseen: Manifest = {
-      ...button,
-      anatomy: {
-        ...anatomy,
-        parts: [
-          ...anatomy.parts,
-          { label: 'List', selector: '.nope', tokens: ['--bit-shadow-md'], side: 'right', touch: { kind: 'box', edge: 'right' }, unseen: 'It opens in the top layer.' },
-        ],
-      },
-    };
-    show(quiet(endOf(unseen.anatomy!, 'tokens')), 1, unseen);
+  it('an unseen part is listed from the first Tokens step, with its reason and no line or dot', () => {
+    const { update } = show(quiet(stepsOf(withUnseen.anatomy!, 'tokens')[0]!), 1, withUnseen);
+    flush();
+    expect(callout('List').style.visibility).toBe('');
+    update(quiet(endOf(withUnseen.anatomy!, 'tokens')), 2);
     flush();
     expect(within(callout('List')).getByText('It opens in the top layer.')).toBeInTheDocument();
     expect(callout('List').style.visibility).toBe('');
     expect(one('line', 'List')).toBeNull();
     expect(one('dot', 'List')).toBeNull();
     expect(parts('line')).toEqual(['Edge', 'Face', 'Size', 'Shadow']);
+  });
+
+  it("focusing an unseen part's callout marks it from its own box, lights no part, and fades the lines", () => {
+    show(quiet(endOf(withUnseen.anatomy!, 'tokens')), 1, withUnseen);
+    flush();
+    act(() => callout('List').focus());
+    expect(parts('mark')).toEqual(['List']);
+    const mark = one('mark', 'List')!;
+    // The right column's callouts are 120×40 at x 630; the mark frames that box 6px out.
+    expect([mark.getAttribute('x'), mark.getAttribute('width'), mark.getAttribute('height')]).toEqual(['624', '132', '52']);
+    expect(all('highlight')).toEqual([]);
+    expect(one('line', 'Edge')).toHaveAttribute('stroke-opacity', '0.3');
+    act(() => callout('List').blur());
+    expect(all('mark')).toEqual([]);
+  });
+
+  it('stacked, a callout still waits for its part to land', () => {
+    stageWidth = 599;
+    show(quiet(tokens[1]!));
+    flush();
+    expect(['Face', 'Size', 'Edge', 'Shadow'].map((label) => callout(label).style.visibility)).toEqual(['', 'hidden', '', 'hidden']);
   });
 
   it('stacked under 600px: no lines, highlights, loupe or paper, and every callout still listed', () => {

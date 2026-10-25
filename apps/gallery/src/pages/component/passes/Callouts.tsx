@@ -7,6 +7,8 @@ const HIDDEN: CSSProperties = { visibility: 'hidden' };
 interface CalloutsProps {
   side: AnatomyPart['side'];
   parts: readonly AnatomyPart[];
+  /** The steps landed so far: a callout shows when its part's step lands (unseen parts are listed from the start). */
+  landed: readonly string[];
   /** Each callout's placed top in its column, by label; null before the first measure. */
   tops: Readonly<Record<string, number>> | null;
   /** Stacked: the callouts flow as a list under the instance, with no tops. */
@@ -22,16 +24,22 @@ function placement(label: string, tops: CalloutsProps['tops'], stacked: boolean)
   return top === undefined ? HIDDEN : { top };
 }
 
-function Callout({ part, style, onHot }: { part: AnatomyPart; style: CSSProperties | undefined; onHot: CalloutsProps['onHot'] }) {
+const hasLanded = (part: AnatomyPart, landed: readonly string[]) => part.unseen !== undefined || landed.includes(part.step ?? part.label);
+
+/**
+ * A callout names its part as the part lands. Until then it keeps its slot (so nothing moves when it shows) but is
+ * hidden, which also keeps it out of the tab order and the accessibility tree.
+ */
+function Callout({ part, shown, style, onHot }: { part: AnatomyPart; shown: boolean; style: CSSProperties | undefined; onHot: CalloutsProps['onHot'] }) {
   const on = () => onHot(part.label);
   const off = () => onHot(null);
   return (
     <div
       role="listitem"
-      tabIndex={0}
+      tabIndex={shown ? 0 : -1}
       data-part={part.label}
       className="gallery-passes__callout"
-      style={style}
+      style={shown ? style : { ...style, ...HIDDEN }}
       onFocus={on}
       onBlur={off}
       onMouseEnter={on}
@@ -47,13 +55,13 @@ function Callout({ part, style, onHot }: { part: AnatomyPart; style: CSSProperti
 }
 
 /** One column of callouts: each part's label and tokens, focusable so the keyboard lights its part up too. */
-export function Callouts({ side, parts, tops, stacked, onHot }: CalloutsProps): ReactElement | null {
+export function Callouts({ side, parts, landed, tops, stacked, onHot }: CalloutsProps): ReactElement | null {
   const mine = parts.filter((part) => part.side === side);
   if (mine.length === 0) return null;
   return (
     <div role="list" aria-label={side === 'left' ? 'Parts, left' : 'Parts, right'} className="gallery-passes__callouts" data-side={side}>
       {mine.map((part) => (
-        <Callout key={part.label} part={part} style={placement(part.label, tops, stacked)} onHot={onHot} />
+        <Callout key={part.label} part={part} shown={hasLanded(part, landed)} style={placement(part.label, tops, stacked)} onHot={onHot} />
       ))}
     </div>
   );

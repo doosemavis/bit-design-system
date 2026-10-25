@@ -46,8 +46,6 @@ export interface StagePart {
   lens: Lens | null;
   /** The callout's top inside its column: its inline `top`. */
   calloutTop: number;
-  /** The callout's box in the stage, at its placed top, for the lit mark. */
-  callout: Rect;
 }
 
 export interface StageGeometry {
@@ -57,6 +55,8 @@ export interface StageGeometry {
   parts: StagePart[];
   /** Every placed callout's inline top, by label, unseen parts included. */
   tops: Readonly<Record<string, number>>;
+  /** Every placed callout's box in the stage, by label, unseen parts included: the lit mark frames it. */
+  callouts: Readonly<Record<string, Rect>>;
   /** The root's real classes: Final's "Reads". */
   classes: string;
   stacked: boolean;
@@ -104,10 +104,12 @@ function measureSide(drafts: Draft[], instance: Rect, bounds: { top: number; bot
     CALLOUT_GAP,
   );
   const tops: Record<string, number> = {};
+  const boxes: Record<string, Rect> = {};
   const parts: StagePart[] = [];
   for (const { part, callout, columnTop, target, seen } of drafts) {
     const top = placed.get(part.label) ?? target;
     tops[part.label] = top - columnTop;
+    boxes[part.label] = { ...callout, y: top };
     if (!seen) continue;
     const end = { x: part.side === 'left' ? callout.x + callout.width : callout.x, y: top + callout.height / 2 };
     const { anchor, lens } = seen;
@@ -122,10 +124,9 @@ function measureSide(drafts: Draft[], instance: Rect, bounds: { top: number; bot
       loupe: lens !== null,
       lens: lens ? lensFor(part, seen, lens, end, instance) : null,
       calloutTop: top - columnTop,
-      callout: { ...callout, y: top },
     });
   }
-  return { tops, parts };
+  return { tops, boxes, parts };
 }
 
 /**
@@ -138,7 +139,7 @@ export function measureStage(stage: HTMLElement, anatomy: ManifestAnatomy): Stag
   const stacked = origin.width < STACK_BELOW;
   const box = measureBox(stage, anatomy.root);
   const instance = box ? { x: box.x, y: box.y, width: box.width, height: box.height } : ZERO;
-  const base = { instance, paddingLeft: box?.paddingLeft ?? 0, parts: [], tops: {}, classes: renderedClasses(stage, anatomy.root), stacked };
+  const base = { instance, paddingLeft: box?.paddingLeft ?? 0, parts: [], tops: {}, callouts: {}, classes: renderedClasses(stage, anatomy.root), stacked };
   const wrapper = stage.querySelector('[data-instance]');
   if (!box || !wrapper || stacked || stage.hasAttribute('data-stacked')) return base;
 
@@ -167,5 +168,5 @@ export function measureStage(stage: HTMLElement, anatomy: ManifestAnatomy): Stag
   );
   const order = anatomy.parts.map((p) => p.label);
   const parts = sides.flatMap((s) => s.parts).sort((a, b) => order.indexOf(a.label) - order.indexOf(b.label));
-  return { ...base, parts, tops: Object.assign({}, ...sides.map((s) => s.tops)) };
+  return { ...base, parts, tops: Object.assign({}, ...sides.map((s) => s.tops)), callouts: Object.assign({}, ...sides.map((s) => s.boxes)) };
 }

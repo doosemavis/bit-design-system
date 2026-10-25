@@ -70,7 +70,7 @@ interface InkProps {
   outline: boolean;
   /** The parts whose lines draw: landed, and measured. */
   drawn: readonly StagePart[];
-  /** The labels lit up: the hot callout's part, or the fresh step's. */
+  /** The labels lit up: the hot callout's, or the fresh step's parts. A lit part gets its highlight; a lit callout its mark. */
   lit: ReadonlySet<string>;
   hot: string | null;
   ref?: Ref<SVGSVGElement>;
@@ -97,7 +97,10 @@ export function Ink({ geometry, outline, drawn, lit, hot, ref }: InkProps): Reac
       {litParts.map((part) => (
         <Highlight key={part.label} part={part} color={color} hatch={hatch} />
       ))}
-      {litParts.map(({ label, callout: c }) => (
+      {[...lit].flatMap((label) => {
+        const c = geometry.callouts[label];
+        return c ? [{ label, c }] : [];
+      }).map(({ label, c }) => (
         <rect
           key={label}
           data-role="mark"
@@ -126,7 +129,7 @@ export function Ink({ geometry, outline, drawn, lit, hot, ref }: InkProps): Reac
           d={lineD(part)}
           fill="none"
           stroke={INK}
-          strokeWidth={hot === part.label ? 3 : 2}
+          strokeWidth={2}
           strokeOpacity={fade(part.label)}
         />
       ))}
