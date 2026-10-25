@@ -408,3 +408,24 @@ describe('modeToggle notes', () => {
     expect(example).toContain("colorMode.set('dark')");
   });
 });
+
+/** A page has Passes (anatomy) or says why not (passesExempt), never both and never neither. */
+function hasPassesOrReason(m: Pick<Manifest, 'anatomy' | 'passesExempt'>): boolean {
+  const hasAnatomy = m.anatomy !== undefined;
+  const hasReason = (m.passesExempt?.length ?? 0) > 0;
+  return hasAnatomy !== hasReason;
+}
+
+describe('passes coverage', () => {
+  it('every manifest has anatomy or a passesExempt reason', () => {
+    const offenders = MANIFESTS.filter((m) => !hasPassesOrReason(m)).map((m) => m.name);
+    expect(offenders).toEqual([]);
+  });
+
+  it('the guard rejects a manifest with neither, and one with both', () => {
+    expect(hasPassesOrReason({})).toBe(false);
+    expect(hasPassesOrReason({ passesExempt: '' })).toBe(false);
+    expect(hasPassesOrReason({ passesExempt: 'why', anatomy: button.anatomy })).toBe(false);
+    expect(hasPassesOrReason({ passesExempt: 'why' })).toBe(true);
+  });
+});
