@@ -12,6 +12,8 @@ export interface ControlStateApi {
   setProp: (prop: string, value: ControlValue) => void;
   apply: (partial: Partial<ControlState>) => void;
   reset: () => void;
+  /** The query the URL will hold once any typed draft lands: the draft's control keys (or the URL's, with no draft), then page keys from the current URL. */
+  pendingQuery: () => URLSearchParams;
 }
 
 /** Text and number controls (and the children text) are typed, one keystroke at a time. */
@@ -55,7 +57,7 @@ export function useControlState(manifest: Manifest): ControlStateApi {
   // A shared link with bad or unknown values shows the defaults; rewrite its URL to match, in place. Page keys
   // (?pass=) are carried through, cleaned by their own parsers, so this stays the one place that rewrites the URL.
   const canonical = useMemo(
-    () => withPageParams(serializeState(manifest, parsed), search).toString(),
+    () => withPageParams(serializeState(manifest, parsed), search, manifest).toString(),
     [manifest, parsed, search],
   );
   useEffect(() => {
@@ -66,7 +68,7 @@ export function useControlState(manifest: Manifest): ControlStateApi {
     (next: ControlState) => {
       clearTimeout(timer.current);
       setDraft(null);
-      const nextSearch = withPageParams(serializeState(manifest, next), search);
+      const nextSearch = withPageParams(serializeState(manifest, next), search, manifest);
       if (nextSearch.toString() !== query) setSearch(nextSearch);
     },
     [manifest, query, search, setSearch],
@@ -92,7 +94,7 @@ export function useControlState(manifest: Manifest): ControlStateApi {
       setDraft({ entry, state: next });
       clearTimeout(timer.current);
       timer.current = setTimeout(
-        () => setSearch((current) => withPageParams(serializeState(manifest, next), current), { replace: true }),
+        () => setSearch((current) => withPageParams(serializeState(manifest, next), current, manifest), { replace: true }),
         TYPING_DEBOUNCE_MS,
       );
     },
@@ -101,5 +103,11 @@ export function useControlState(manifest: Manifest): ControlStateApi {
 
   const reset = useCallback(() => push(parseState(manifest, new URLSearchParams())), [manifest, push]);
 
-  return { state, setProp, apply, reset };
+  const hasDraft = draft !== null && draft.entry === entry;
+  const pendingQuery = useCallback(
+    () => withPageParams(hasDraft ? serializeState(manifest, state) : search, search, manifest),
+    [manifest, hasDraft, state, search],
+  );
+
+  return { state, setProp, apply, reset, pendingQuery };
 }

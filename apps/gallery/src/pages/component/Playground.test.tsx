@@ -22,7 +22,13 @@ const childrenOnly: Manifest = {
 };
 
 function renderPlayground(manifest: Manifest) {
-  const controls: ControlStateApi = { state: defaultState(manifest), setProp: () => {}, apply: () => {}, reset: () => {} };
+  const controls: ControlStateApi = {
+    state: defaultState(manifest),
+    setProp: () => {},
+    apply: () => {},
+    reset: () => {},
+    pendingQuery: () => new URLSearchParams(),
+  };
   return render(
     <MemoryRouter>
       <Playground manifest={manifest} controls={controls} />
