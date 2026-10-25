@@ -128,6 +128,32 @@ describe('useBuild play', () => {
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 
+  it('an outside pass change mid-run cancels it and shows that pass end', () => {
+    const { result, rerender } = setup('wireframe');
+    const onDone = vi.fn();
+    act(() => result.current.play(onDone));
+    tick(2 * HOLD);
+    expect(result.current.state.pass).toBe('tokens');
+    rerender({ pass: 'tokens' });
+    expect(result.current.state).toEqual(endOf(anatomy, 'tokens'));
+    expect(result.current.playing).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+    tick(20 * HOLD);
+    expect(onDone).not.toHaveBeenCalled();
+  });
+
+  it('after stop mid-run, an unchanged pass keeps the frozen state and a change lands the end', () => {
+    const { result, rerender } = setup('wireframe');
+    act(() => result.current.play(vi.fn()));
+    tick(2 * HOLD);
+    act(() => result.current.stop());
+    const frozen = result.current.state;
+    rerender({ pass: 'wireframe' });
+    expect(result.current.state).toEqual(frozen);
+    rerender({ pass: 'tokens' });
+    expect(result.current.state).toEqual(endOf(anatomy, 'tokens'));
+  });
+
   it('stop ends a play', () => {
     const { result } = setup('wireframe');
     act(() => result.current.play(vi.fn()));

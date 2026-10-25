@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PASSES, type Pass } from '../../../engine/pageParams';
 import type { ManifestAnatomy } from '../../../manifests/types';
 import { endOf, stepsOf, type BuildState } from './build';
@@ -27,6 +27,7 @@ export function useBuild(anatomy: ManifestAnatomy, pass: Pass, hold?: number): B
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const forward = useRef(false);
   const previous = useRef(pass);
+  const playedToFinal = useRef(false);
   const latest = useRef({ anatomy, hold });
   latest.current = { anatomy, hold };
 
@@ -59,14 +60,16 @@ export function useBuild(anatomy: ManifestAnatomy, pass: Pass, hold?: number): B
     [show],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const from = previous.current;
     previous.current = pass;
     const marked = forward.current;
     forward.current = false;
+    const arrived = playedToFinal.current;
+    playedToFinal.current = false;
     if (from === pass) return;
-    // Play already reached this pass locally.
-    if (!marked && current.current.pass === pass) return;
+    // Play already ended at Final; the parent is catching up to it.
+    if (!marked && arrived && pass === 'final') return;
     clear();
     setPlaying(false);
     const later = PASSES.indexOf(pass) > PASSES.indexOf(from);
@@ -91,7 +94,9 @@ export function useBuild(anatomy: ManifestAnatomy, pass: Pass, hold?: number): B
       const reduced = prefersReducedMotion();
       const states = PASSES.flatMap((p) => (reduced ? [endOf(latest.current.anatomy, p)] : stepsOf(latest.current.anatomy, p)));
       setPlaying(true);
+      playedToFinal.current = false;
       run(states, () => {
+        playedToFinal.current = true;
         setPlaying(false);
         onDone();
       });
