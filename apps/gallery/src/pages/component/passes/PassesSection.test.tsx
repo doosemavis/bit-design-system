@@ -304,6 +304,20 @@ describe('PassesSection', () => {
       expect(router.state.location.search).toBe('');
     });
 
+    it('Stop on the URL pass mid-Tokens lands that pass at its end, with no history change', () => {
+      const { router } = setup('/x?pass=tokens');
+      const entries = watch(router);
+      pressed('Play');
+      tick(HOLD * 2);
+      const pending = () => stage().querySelectorAll('[role="listitem"][data-pending]').length;
+      expect(pending()).toBeGreaterThan(0);
+      pressed('Stop');
+      expect(stage()).toHaveAccessibleName('Tokens pass: Button');
+      expect(pending()).toBe(0);
+      expect(entries).toEqual([]);
+      expect(router.state.location.search).toBe('?pass=tokens');
+    });
+
     it("picking the URL's pass mid-run stops the run and shows that pass's end, with no history change", () => {
       const { router } = setup('/x');
       pressed('Play');

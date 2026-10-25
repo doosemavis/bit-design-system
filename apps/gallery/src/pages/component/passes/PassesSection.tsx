@@ -136,7 +136,9 @@ function Passes({ manifest, anatomy, pendingQuery }: PassesSectionProps & { anat
 
   const stop = () => {
     build.stop();
-    replacePass(shown);
+    // On the URL's own pass there is no URL change to land the stage, so finish that pass where the URL says.
+    if (shown === pass) build.jumpTo(shown);
+    else replacePass(shown);
   };
 
   const play = () => {
