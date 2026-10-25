@@ -1,4 +1,6 @@
-import { Card } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Card, Heading, Stack, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
 
 export const card: Manifest = {
@@ -19,6 +21,102 @@ export const card: Manifest = {
   ],
   parts: ['CardHeader', 'CardBody', 'CardFooter'],
   presets: [{ label: 'Outline', state: { variant: 'outline' } }],
+  anatomy: {
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-card',
+        tokens: ['--bit-border-width', '--bit-radius-14px'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.8 },
+        off: { '--bit-border-width': '0px' },
+        step: 'Lines',
+      },
+      {
+        label: 'Surface',
+        selector: '.bit-card',
+        tokens: ['--bit-color-surface'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.5 },
+        off: { '--bit-color-surface': 'transparent' },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-card',
+        tokens: ['--bit-shadow-lg'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.72 },
+        off: { '--bit-shadow-lg': 'none' },
+      },
+      {
+        label: 'Header divider',
+        selector: '.bit-card__header',
+        tokens: ['--bit-border-width'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'bottom', at: 0.9, leave: 'right' },
+        off: { '--bit-border-width': '0px' },
+        step: 'Lines',
+      },
+      {
+        label: 'Header text',
+        selector: '.bit-card__header',
+        tokens: ['--bit-font-display', '--bit-text-18px'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.2, leave: 'left' },
+      },
+      {
+        label: 'Footer divider',
+        selector: '.bit-card__footer',
+        tokens: ['--bit-border-width'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.9, leave: 'right' },
+        off: { '--bit-border-width': '0px' },
+        step: 'Lines',
+      },
+      {
+        label: 'Footer fill',
+        selector: '.bit-card__footer',
+        tokens: ['--bit-color-neutral-soft'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.5 },
+        off: { '--bit-color-neutral-soft': 'transparent' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Outline', state: { variant: 'outline' } },
+      { label: 'Flat', state: { flat: true } },
+    ],
+    scene: {
+      caption: 'In use: one card in a dashboard row',
+      render: (instance) =>
+        createElement(
+          Stack,
+          { direction: 'row', gap: 16, align: 'start' },
+          createElement(
+            Box,
+            { padding: 16, style: { border: '2px solid var(--bit-color-text)' } },
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Text, null, 'Visitors'),
+              createElement(Heading, { size: 24 }, '12,480'),
+            ),
+          ),
+          createElement(Box, { padding: 16, style: { border: '2px solid var(--bit-color-text)' } }, instance),
+          createElement(
+            Box,
+            { padding: 16, style: { border: '2px solid var(--bit-color-text)' } },
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Text, null, 'Sign-ups'),
+              createElement(Heading, { size: 24 }, '392'),
+            ),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Compound: the parts are their own exports', 'Header, body, footer'],
     usage: {

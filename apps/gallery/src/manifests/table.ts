@@ -1,4 +1,6 @@
-import { Table } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Heading, Stack, Table, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { ChildSpec, Manifest } from './types';
 
 /** One body row: a prop name, its type and its default. */
@@ -50,6 +52,101 @@ export const table: Manifest = {
   ],
   parts: ['TableHead', 'TableBody', 'TableRow', 'TableCell'],
   presets: [{ label: 'Striped', state: { striped: true } }],
+  anatomy: {
+    // The stripe shows only on a striped table, so every pass renders striped.
+    base: { striped: true },
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-table',
+        tokens: ['--bit-border-width', '--bit-radius-10px'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.8 },
+        off: { '--bit-border-width': '0px' },
+        step: 'Lines',
+      },
+      {
+        label: 'Surface',
+        selector: '.bit-table',
+        tokens: ['--bit-color-surface'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.9, leave: 'left' },
+        off: { '--bit-color-surface': 'transparent' },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-table',
+        tokens: ['--bit-shadow-md'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.72 },
+        off: { '--bit-shadow-md': 'none' },
+      },
+      {
+        label: 'Header divider',
+        selector: '.bit-table__head .bit-table__cell:last-child',
+        tokens: ['--bit-border-width'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'bottom', at: 0.9, leave: 'right' },
+        off: { '--bit-border-width': '0px' },
+        step: 'Lines',
+      },
+      {
+        label: 'Header text',
+        selector: '.bit-table__head .bit-table__cell',
+        tokens: ['--bit-font-pixel', '--bit-text-14px'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.3, leave: 'left' },
+      },
+      {
+        label: 'Row divider',
+        selector: '.bit-table__body .bit-table__row:nth-child(2) .bit-table__cell:last-child',
+        tokens: ['--bit-color-line'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.9, leave: 'right' },
+        off: { '--bit-color-line': 'transparent' },
+        step: 'Lines',
+      },
+      {
+        label: 'Stripe',
+        selector: '.bit-table__body .bit-table__row:nth-child(2)',
+        tokens: ['--bit-color-stripe'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.5 },
+        off: { '--bit-color-stripe': 'transparent' },
+      },
+      {
+        label: 'Cell padding',
+        selector: '.bit-table__body .bit-table__cell',
+        tokens: ['--bit-space-12px', '--bit-space-16px'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'left' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Plain', state: { striped: false } },
+      { label: 'Flat', state: { flat: true } },
+    ],
+    scene: {
+      caption: 'In use: a data page',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Heading, { size: 24 }, 'Button props'),
+              createElement(Text, null, 'What a Button takes, and its defaults.'),
+            ),
+            instance,
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Native <table>', 'Head cells th, body cells td'],
     usage: {
