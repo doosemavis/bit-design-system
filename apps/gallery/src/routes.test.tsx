@@ -138,3 +138,27 @@ describe('component routes (route smoke, D14)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Badge' })).toBeInTheDocument();
   });
 });
+
+describe('Passes routes', () => {
+  beforeEach(() => {
+    document.documentElement.dataset.theme = 'power-up';
+  });
+
+  it.each([
+    ['', 'Wireframe'],
+    ['?pass=tokens', 'Tokens'],
+    ['?pass=states', 'States'],
+    ['?pass=final', 'Final'],
+  ])('#/components/button%s shows the %s pass under a Passes heading, with no axe violations', async (query, name) => {
+    const { container } = renderAt(`/components/button${query}`);
+    expect(await screen.findByRole('group', { name: `${name} pass: Button` })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Passes' })).toBeInTheDocument();
+    await expectNoA11yViolations(container);
+  });
+
+  it('a page without anatomy has no Passes section', async () => {
+    renderAt('/components/badge');
+    await screen.findByRole('heading', { level: 1, name: 'Badge' });
+    expect(screen.queryByRole('heading', { level: 2, name: 'Passes' })).toBeNull();
+  });
+});

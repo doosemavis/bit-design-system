@@ -185,3 +185,45 @@ describe('useControlState', () => {
     expect(api?.state.children).toBe('Save');
   });
 });
+
+describe('useControlState keeps page keys (?pass=)', () => {
+  it('a control edit keeps the pass', () => {
+    const { router } = setup('/x?pass=tokens');
+    act(() => api?.setProp('variant', 'outline'));
+    expect(router.state.location.search).toBe('?variant=outline&pass=tokens');
+  });
+
+  it('a preset and Reset keep the pass, and Back restores the controls with it', async () => {
+    const { router } = setup('/x?variant=outline&pass=states');
+    act(() => api?.reset());
+    expect(router.state.location.search).toBe('?pass=states');
+    await act(async () => {
+      await router.navigate(-1);
+    });
+    expect(router.state.location.search).toBe('?variant=outline&pass=states');
+    act(() => api?.apply({ color: 'danger' }));
+    expect(router.state.location.search).toBe('?color=danger&variant=outline&pass=states');
+  });
+
+  it('the debounced typing replace keeps the pass', async () => {
+    vi.useFakeTimers();
+    const { router } = setup('/x?pass=final');
+    act(() => api?.setProp('children', 'Send'));
+    await wait(TYPING_DEBOUNCE_MS);
+    expect(router.state.location.search).toBe('?children=Send&pass=final');
+  });
+
+  it('a junk link is cleaned in one replace: bad controls, unknown keys, a good pass kept', async () => {
+    const { router } = setup('/x?color=purple&pass=tokens&utm=x');
+    await waitFor(() => expect(router.state.location.search).toBe('?pass=tokens'));
+    expect(router.state.historyAction).toBe('REPLACE');
+  });
+
+  it('the default pass and an unknown pass are removed from the URL', async () => {
+    const first = setup('/x?pass=wireframe');
+    await waitFor(() => expect(first.router.state.location.search).toBe(''));
+    first.unmount();
+    const second = setup('/x?size=lg&pass=xray');
+    await waitFor(() => expect(second.router.state.location.search).toBe('?size=lg'));
+  });
+});

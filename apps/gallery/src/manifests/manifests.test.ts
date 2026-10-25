@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as lib from '@bit-ds/react';
 import { MANIFESTS, findManifest, routeFor } from './index';
 import { COMPONENTS, HTML_CHILDREN, isHtmlElement } from './registry';
+import { PAGE_PARAMS } from '../engine/pageParams';
 import { defaultState, parseState, serializeState } from '../engine/state';
 import { stack } from './stack';
 import { text } from './text';
@@ -106,6 +107,14 @@ function valueMismatches(m: Manifest): string[] {
 }
 
 describe('manifest contract', () => {
+  it('no control is named after a page key (?pass=), so page keys never collide with controls', () => {
+    for (const manifest of MANIFESTS) {
+      for (const control of manifest.controls) {
+        expect(Object.keys(PAGE_PARAMS), `${manifest.slug}.${control.prop}`).not.toContain(control.prop);
+      }
+    }
+  });
+
   it('every component export has a manifest or is a documented part', () => {
     const covered = new Set([...MANIFESTS.map((m) => m.name), ...PARTS]);
     const missing = COMPONENT_EXPORTS.filter((name) => !covered.has(name));

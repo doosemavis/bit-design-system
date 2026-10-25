@@ -21,6 +21,19 @@ export const button: Manifest = {
     { label: 'Ghost small', state: { variant: 'ghost', size: 'sm' } },
     { label: 'Loading', state: { loading: true } },
   ],
+  anatomy: {
+    parts: [
+      { label: 'Face', selector: '.bit-button', tokens: ['--bit-color-primary', '--bit-weight-bold'], side: 'left', anchor: 'left-upper' },
+      { label: 'Size', selector: '.bit-button', tokens: ['--bit-control-height-md'], side: 'left', anchor: 'left' },
+      { label: 'Edge', selector: '.bit-button', tokens: ['--bit-border-width', '--bit-radius-10px'], side: 'right', anchor: 'top' },
+      { label: 'Shadow', selector: '.bit-button', tokens: ['--bit-shadow-md'], side: 'right', anchor: 'bottom-right' },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Disabled', state: { disabled: true } },
+      { label: 'Loading', state: { loading: true } },
+    ],
+  },
   docs: {
     badges: ['Native <button>', 'Keyboard ready', 'asChild for links'],
     usage: {
