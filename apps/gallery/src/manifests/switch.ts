@@ -25,7 +25,7 @@ export const switchManifest: Manifest = {
   anatomy: {
     parts: [
       {
-        label: 'Track edge',
+        label: 'Edge',
         selector: '.bit-switch__track',
         tokens: ['--bit-border-width', '--bit-radius-full'],
         side: 'left',

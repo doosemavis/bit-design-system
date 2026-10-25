@@ -5,11 +5,11 @@ import { calloutGaps, calloutOverlaps, gotoPass, loupeOverlaps, passesAxe, touch
 /** The Choice inputs group: each slug with every anatomy part, as a callout label. */
 const COMPONENTS: readonly { slug: string; parts: readonly string[] }[] = [
   { slug: 'checkbox', parts: ['Edge', 'Face', 'Shadow', 'Label'] },
-  { slug: 'radiogroup', parts: ['Legend', 'Edge', 'Face', 'Shadow', 'Label'] },
+  { slug: 'radiogroup', parts: ['Legend', 'Edge', 'Chosen', 'Face', 'Shadow', 'Label'] },
   { slug: 'segmentedcontrol', parts: ['Edge', 'Surface', 'Chosen', 'Divider', 'Size', 'Legend', 'Label', 'Shadow'] },
   { slug: 'select', parts: ['Edge', 'Face', 'Placeholder', 'Size', 'List', 'Option', 'Chosen option'] },
   { slug: 'slider', parts: ['Thumb', 'Thumb edge', 'Fill', 'Track edge', 'Track', 'Shadow'] },
-  { slug: 'switch', parts: ['Track edge', 'Thumb', 'Track', 'Label', 'Shadow'] },
+  { slug: 'switch', parts: ['Edge', 'Thumb', 'Track', 'Label', 'Shadow'] },
 ];
 
 test.describe('Passes: Choice inputs', () => {

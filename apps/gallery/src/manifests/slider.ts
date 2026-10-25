@@ -137,7 +137,7 @@ export const slider: Manifest = {
               Stack,
               { direction: 'row', gap: 16, align: 'center' },
               createElement(ScenePiece, null, createElement(Text, { weight: 'bold' }, 'Volume')),
-              createElement('div', { style: { flex: 1 } }, instance),
+              createElement(Box, { style: { flex: 1 } }, instance),
             ),
           ),
         ),

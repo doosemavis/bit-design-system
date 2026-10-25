@@ -48,11 +48,19 @@ export const radioGroup: Manifest = {
       },
       {
         label: 'Edge',
-        selector: '.bit-radio__dot',
+        selector: '.bit-radio-group__options > .bit-radio:nth-child(3) .bit-radio__dot',
         tokens: ['--bit-border-width'],
         side: 'left',
         touch: { kind: 'ring', edge: 'left', at: 0.5 },
         off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Chosen',
+        selector: '.bit-radio__dot',
+        tokens: ['--bit-color-primary', '--bit-color-primary-contrast'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.5 },
+        off: { '--bit-color-primary': 'transparent', '--bit-color-primary-contrast': 'transparent' },
       },
       {
         label: 'Face',

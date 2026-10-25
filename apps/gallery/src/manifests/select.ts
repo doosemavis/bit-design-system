@@ -85,10 +85,10 @@ export const select: Manifest = {
       {
         label: 'Face',
         selector: '.bit-select__control',
-        tokens: ['--bit-color-surface'],
+        tokens: ['--bit-color-surface', '--bit-shadow-inset'],
         side: 'left',
         touch: { kind: 'fill', edge: 'left', at: 0.12 },
-        off: { '--bit-color-surface': 'transparent' },
+        off: { '--bit-color-surface': 'transparent', '--bit-shadow-inset': 'none' },
       },
       {
         label: 'Placeholder',
@@ -132,13 +132,12 @@ export const select: Manifest = {
     ],
     states: [
       { label: 'Default', state: {} },
-      { label: 'Multiple', state: { multiple: true } },
       { label: 'Invalid', state: { invalid: true } },
       { label: 'Read-only', state: { readOnly: true } },
       { label: 'Disabled', state: { disabled: true } },
     ],
     scene: {
-      caption: 'In use: a filter bar above a list',
+      caption: 'In use: a filter bar above its result line',
       render: (instance) =>
         createElement(
           Box,

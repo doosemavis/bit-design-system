@@ -54,10 +54,10 @@ export const segmentedControl: Manifest = {
       {
         label: 'Chosen',
         selector: '.bit-segmented-control__input:checked + .bit-segmented-control__label',
-        tokens: ['--bit-color-primary'],
+        tokens: ['--bit-color-primary', '--bit-color-primary-contrast'],
         side: 'left',
         touch: { kind: 'fill', edge: 'left', at: 0.15 },
-        off: { '--bit-color-primary': 'transparent' },
+        off: { '--bit-color-primary': 'transparent', '--bit-color-primary-contrast': 'transparent' },
       },
       {
         label: 'Divider',
