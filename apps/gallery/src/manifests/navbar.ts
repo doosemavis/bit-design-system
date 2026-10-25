@@ -12,8 +12,8 @@ const onBar = (state: ControlState) => state.variant === 'bar';
 const actionsJsx = (state: ControlState) =>
   onBar(state) ? '<Button variant="outline" color="neutral" size="sm">Sign in</Button>' : '<Button size="sm">Sign in</Button>';
 
-/** The room a Navbar needs to show brand, three links and an action without folding. */
-const NEVER_FOLD_MIN_WIDTH = '34rem';
+/** The room the scene's Navbar needs to show brand, three links and an action without crowding. */
+const SCENE_MIN_WIDTH = '34rem';
 
 const LINKS: readonly ChildSpec[] = [
   { component: 'NavbarLink', props: { href: '/games', current: true }, children: 'Games' },
@@ -51,12 +51,7 @@ export const navbar: Manifest = {
   ],
   // Only for the live samples: keeps the links on this page, and names each sample's nav apart.
   demo: {
-    render: (element, state) => {
-      const sample = createElement(NavbarDemo, { navbar: element as ReactElement<NavbarProps> });
-      // A Navbar sizes to its container (container-type), so in a shrink-to-fit slot (the Passes stage) it has no width
-      // of its own. With the links never folding, it needs room for them.
-      return state.collapse === 'never' ? createElement('div', { style: { minWidth: NEVER_FOLD_MIN_WIDTH } }, sample) : sample;
-    },
+    render: (element) => createElement(NavbarDemo, { navbar: element as ReactElement<NavbarProps> }),
     code: { reactImports: [], bitImports: [], setup: [], props: [], wrap: (jsx) => jsx },
   },
   // The row of links is plain HTML and CSS; folding them into a Menu needs React.
@@ -64,6 +59,7 @@ export const navbar: Manifest = {
   extraSection: { id: 'section-examples', title: 'Examples', Component: NavbarExamples },
   anatomy: {
     root: '.bit-navbar',
+    wide: true,
     base: { collapse: 'never' },
     parts: [
       {
@@ -137,7 +133,8 @@ export const navbar: Manifest = {
           createElement(
             Stack,
             { gap: 16 },
-            instance,
+            // A Navbar sizes to its container, so the scene gives it the room for brand, links and action.
+            createElement('div', { style: { minWidth: SCENE_MIN_WIDTH } }, instance),
             createElement(
               ScenePiece,
               null,
