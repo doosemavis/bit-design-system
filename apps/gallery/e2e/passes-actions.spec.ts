@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { MODES, seedColorMode } from './mode';
-import { calloutGaps, calloutOverlaps, gotoPass, loupeOverlaps, passesAxe, touchErrors } from './passes-helpers';
+import { calloutGaps, calloutOverlaps, expectLinesDrawn, gotoPass, loupeOverlaps, passesAxe, touchErrors } from './passes-helpers';
 
 /** The Actions group: each slug with every anatomy part, seen and unseen, listed as a callout. */
 const SLUGS = [
@@ -15,6 +15,7 @@ test.describe('Passes: Actions', () => {
       await gotoPass(page, slug, 'tokens');
       const listed = await page.locator('[role="listitem"][data-part]').evaluateAll((els) => els.map((el) => el.getAttribute('data-part')));
       expect([...listed].sort()).toEqual([...parts].sort());
+      await expectLinesDrawn(page);
       await expect.poll(() => touchErrors(page), { message: `${slug} touch rule` }).toEqual([]);
       await expect.poll(() => calloutGaps(page), { message: `${slug} callout ends` }).toEqual([]);
       await expect.poll(() => loupeOverlaps(page), { message: `${slug} loupe placement` }).toEqual([]);

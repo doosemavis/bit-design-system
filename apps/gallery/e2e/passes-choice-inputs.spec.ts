@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { MODES, seedColorMode } from './mode';
-import { calloutGaps, calloutOverlaps, gotoPass, loupeOverlaps, passesAxe, touchErrors } from './passes-helpers';
+import { calloutGaps, calloutOverlaps, expectLinesDrawn, gotoPass, loupeOverlaps, passesAxe, touchErrors } from './passes-helpers';
 
 /** The Choice inputs group: each slug with every anatomy part, as a callout label. */
 const COMPONENTS: readonly { slug: string; parts: readonly string[] }[] = [
@@ -27,6 +27,7 @@ test.describe('Passes: Choice inputs', () => {
           const callouts = page.locator('[role="listitem"][data-part]');
           await expect(callouts).toHaveCount(parts.length);
           for (const label of parts) await expect(page.locator(`[role="listitem"][data-part="${label}"]`)).toHaveCount(1);
+          await expectLinesDrawn(page);
           await expect.poll(() => touchErrors(page), { message: `${slug} touch rule` }).toEqual([]);
           await expect.poll(() => calloutGaps(page), { message: `${slug} callout ends` }).toEqual([]);
           await expect.poll(() => loupeOverlaps(page), { message: `${slug} loupe placement` }).toEqual([]);

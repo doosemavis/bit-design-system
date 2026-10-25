@@ -30,8 +30,20 @@ export async function gotoPass(page: Page, slug: string, pass: PassValue): Promi
 }
 
 /**
+ * Waits for every seen part's line to be drawn: one `[data-role="line"]` per callout without `data-unseen` (and, when every part is unseen, a shown callout). The touch
+ * checks below read nothing until the first measure, so each spec gates on this before them.
+ */
+export async function expectLinesDrawn(page: Page): Promise<void> {
+  const seen = await page.locator('[role="listitem"][data-part]:not([data-unseen])').count();
+  // A page whose parts are all unseen (a closed Dialog) draws no lines: its callouts showing is the measure.
+  if (seen === 0) await expect(page.locator('[role="listitem"][data-part]').first()).toBeVisible();
+  await expect(page.locator('[data-role="line"]')).toHaveCount(seen);
+}
+
+/**
  * Each dot's miss against the painted-pixel rule for its part, from the part's own rect and computed style. [] when
- * every dot obeys it within 1px. A seen callout (no `data-unseen`) with no dot is reported too, so an empty diagram
+ * every dot obeys it within 1px (2px for text, sub-pixel rounding). A Tokens stage at a non-stacked width with no callout
+ * shown yet (nothing measured) is an error, so polling it cannot pass on the first poll. A seen callout (no `data-unseen`) with no dot is reported too, so an empty diagram
  * never passes as a clean one.
  *
  * - ring: within borderWidth/2 + 1 of the stroke's center line on its edge;
@@ -39,13 +51,15 @@ export async function gotoPass(page: Page, slug: string, pass: PassValue): Promi
  * - strip: inside the shadow strip outside the box (right or bottom);
  * - bracket: 9–11px outside its edge;
  * - box: within 1px of its edge;
- * - text: within 1px of the bottom of the rendered text run (a Range over the text, not the element box).
+ * - text: within 2px of the bottom of the rendered text run (a Range over the text, not the element box).
  */
 export function touchErrors(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     type Edge = 'top' | 'right' | 'bottom' | 'left';
     const errors: string[] = [];
     const TOL = 1;
+    // The text run's rect comes from a Range, whose edges round differently from the dot's: allow 2px there.
+    const TEXT_TOL = 2;
     const within = (v: number, lo: number, hi: number) => v >= lo - TOL && v <= hi + TOL;
     const fmt = (n: number) => n.toFixed(1);
     // The rendered text only: a Range over each text node, so a child element's box never widens the run.
@@ -73,6 +87,11 @@ export function touchErrors(page: Page): Promise<string[]> {
     for (const stage of document.querySelectorAll<HTMLElement>('.gallery-passes__stage')) {
       const instance = [...stage.querySelectorAll('[data-instance]')].find((el) => !el.closest('[data-role="loupe"]'));
       const dots = [...stage.querySelectorAll<SVGCircleElement>('circle[data-role="dot"]')];
+      // Before the first measure every callout is hidden and there is nothing to check: that is not a pass.
+      const shown = [...stage.querySelectorAll<HTMLElement>('[role="listitem"][data-part]')].filter((c) => getComputedStyle(c).visibility !== 'hidden');
+      if (stage.getAttribute('aria-label')?.startsWith('Tokens pass: ') && !stage.hasAttribute('data-stacked') && shown.length === 0) {
+        errors.push('no callout shown yet');
+      }
       for (const callout of stage.querySelectorAll<HTMLElement>('[role="listitem"][data-part]')) {
         if (callout.hasAttribute('data-unseen') || getComputedStyle(callout).visibility === 'hidden') continue;
         if (!dots.some((dot) => dot.dataset.part === callout.dataset.part)) errors.push(`${callout.dataset.part}: no dot`);
@@ -129,7 +148,7 @@ export function touchErrors(page: Page): Promise<string[]> {
           case 'text': {
             const run = textRun(el);
             if (!run) fail('no rendered text run');
-            else if (Math.abs(y - run.bottom) > TOL || !within(x, run.left, run.right)) {
+            else if (Math.abs(y - run.bottom) > TEXT_TOL || !(x >= run.left - TEXT_TOL && x <= run.right + TEXT_TOL)) {
               fail(`off the text run ${fmt(run.left)}–${fmt(run.right)}, bottom ${fmt(run.bottom)}`);
             }
             break;
