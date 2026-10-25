@@ -1,5 +1,11 @@
-import { Tooltip } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Button, Stack, Tooltip } from '@bit-ds/react';
 import type { Manifest } from './types';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
+
+
+/** The bubble draws in the top layer, above the stage's diagram, so a line, dot or highlight on it would be hidden. */
+const UNSEEN = 'Opens in the top layer';
 
 export const tooltip: Manifest = {
   name: 'Tooltip',
@@ -16,6 +22,55 @@ export const tooltip: Manifest = {
   deriveProps: (state): Record<string, boolean> => (state.pinned === true ? { open: true } : {}),
   children: [{ component: 'Button', props: { variant: 'outline', color: 'neutral' }, children: 'Hover or focus me' }],
   interactive: true,
+  anatomy: {
+    root: '.bit-button',
+    base: { pinned: true },
+    parts: [
+      {
+        label: 'Bubble',
+        selector: '.bit-tooltip',
+        tokens: ['--bit-color-text', '--bit-color-bg'],
+        side: 'right',
+        touch: { kind: 'fill', edge: 'top', at: 0.85, leave: 'top' },
+        unseen: UNSEEN,
+      },
+      {
+        label: 'Type',
+        selector: '.bit-tooltip',
+        tokens: ['--bit-text-14px', '--bit-weight-bold'],
+        side: 'right',
+        touch: { kind: 'bracket', edge: 'right', at: 0.5 },
+      },
+      {
+        label: 'Corner',
+        selector: '.bit-tooltip',
+        tokens: ['--bit-radius-6px'],
+        side: 'left',
+        touch: { kind: 'ring', edge: 'top', at: 0.15 },
+        unseen: UNSEEN,
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Longer hint', state: { content: 'Copy the link to this page' } },
+      { label: 'No description', state: { describe: false } },
+    ],
+    scene: {
+      caption: 'In use: a hint on a toolbar button',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 16, paddingTop: 48, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { direction: 'row', gap: 12, align: 'center' },
+            createElement(ScenePiece, null, createElement(Button, { variant: 'outline', color: 'neutral' }, 'Edit')),
+            instance,
+            createElement(ScenePiece, null, createElement(Button, { variant: 'outline', color: 'neutral' }, 'Share')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Esc closes'],
     usage: {
