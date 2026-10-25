@@ -144,8 +144,9 @@ export function touchErrors(page: Page): Promise<string[]> {
 }
 
 /**
- * Each line whose ends miss: its start must sit on its dot, and its end on its callout's near edge (inside its
- * height), within 1px. [] when every line touches both.
+ * Each line whose ends miss: its start must sit on its dot, and its end on the edge of its callout that faces the
+ * instance (a left-column callout's right edge, a right-column callout's left edge), inside its height, within 1px.
+ * [] when every line touches both.
  */
 export function calloutGaps(page: Page): Promise<string[]> {
   return page.evaluate(() => {
@@ -176,10 +177,16 @@ export function calloutGaps(page: Page): Promise<string[]> {
           continue;
         }
         const c = callout.getBoundingClientRect();
-        const edgeGap = Math.min(Math.abs(end.x - c.left), Math.abs(end.x - c.right));
+        const side = callout.closest('[data-side]')?.getAttribute('data-side');
+        if (side !== 'left' && side !== 'right') {
+          errors.push(`${part}: callout in no left or right column`);
+          continue;
+        }
+        const facing = side === 'left' ? c.right : c.left;
+        const edgeGap = Math.abs(end.x - facing);
         const inHeight = end.y >= c.top - TOL && end.y <= c.bottom + TOL;
         if (edgeGap > TOL || !inHeight) {
-          errors.push(`${part}: line ends ${edgeGap.toFixed(1)}px from its callout's edge${inHeight ? '' : ', outside its height'}`);
+          errors.push(`${part}: line ends ${edgeGap.toFixed(1)}px from its callout's ${side === 'left' ? 'right' : 'left'} edge${inHeight ? '' : ', outside its height'}`);
         }
       }
     }

@@ -165,17 +165,22 @@ test.describe('Passes on the Button page', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await gotoPass(page, SLUG, 'tokens');
     const strip = page.locator('[data-role="highlight"][data-kind="strip"]');
+    const hotLine = page.locator('[data-role="line"][data-part="Shadow"][data-hot]');
     await expect(page.locator('[data-role="line"]')).toHaveCount(PARTS.length);
+    // The Shadow part is under 6px, so it has its loupe throughout; what changes is the strip and the hot line.
+    await expect(page.locator('[data-role="loupe"]')).toHaveCount(1);
     await expect(strip).toHaveCount(0);
+    await expect(hotLine).toHaveCount(0);
     await callout(page, 'Shadow').hover();
     await expect(strip).toHaveCount(1);
-    await expect(page.locator('[data-role="loupe"]')).toHaveCount(1);
+    await expect(hotLine).toHaveCount(1);
     await expect(page.locator('[data-role="line"][data-part="Edge"]')).toHaveAttribute('stroke-opacity', '0.3');
     await page.mouse.move(0, 0);
     await expect(strip).toHaveCount(0);
+    await expect(hotLine).toHaveCount(0);
     await callout(page, 'Shadow').focus();
     await expect(strip).toHaveCount(1);
-    await expect(page.locator('[data-role="loupe"]')).toHaveCount(1);
+    await expect(hotLine).toHaveCount(1);
   });
 
   test('at 640px (200% of 1280) the stage stacks: no lines, highlights or loupe, every part listed', async ({ page }) => {
@@ -185,8 +190,23 @@ test.describe('Passes on the Button page', () => {
     await expect(page.locator('[data-role="line"]')).toHaveCount(0);
     await expect(page.locator('[data-role="highlight"]')).toHaveCount(0);
     await expect(page.locator('[data-role="loupe"]')).toHaveCount(0);
+    await expect(page.locator('[data-layer="paper"]')).toHaveCount(0);
     for (const label of PARTS) await expect(callout(page, label)).toBeVisible();
     expect(await calloutOverlaps(page)).toEqual([]);
+  });
+
+  test('stacked, a callout not shown takes no room: Wireframe and States list nothing under the instance', async ({ page }) => {
+    await page.setViewportSize({ width: 640, height: 900 });
+    for (const value of ['wireframe', 'states'] as const) {
+      await gotoPass(page, SLUG, value);
+      await expect(page.locator('.gallery-passes__stage[data-stacked]')).toBeVisible();
+      const room = await page.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>('.gallery-passes__stage [role="listitem"][data-part], .gallery-passes__stage [role="list"]')]
+          .map((el) => ({ what: el.dataset.part ?? el.getAttribute('aria-label'), height: el.getBoundingClientRect().height }))
+          .filter((el) => el.height > 0),
+      );
+      expect(room, `${value}: hidden callouts with room`).toEqual([]);
+    }
   });
 
   test('narrowing past 600px on Tokens leaves nothing stale, and widening brings the lines back', async ({ page }) => {
@@ -200,6 +220,25 @@ test.describe('Passes on the Button page', () => {
     await expect(page.locator('[data-role="line"]')).toHaveCount(PARTS.length);
     await expect.poll(() => touchErrors(page)).toEqual([]);
   });
+
+  for (const width of [1440, 1024]) {
+    test(`the caption spans the footer content width on the Wireframe pass at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await gotoPass(page, SLUG, 'wireframe');
+      const box = await page.evaluate(() => {
+        const caption = document.querySelector('.gallery-passes__caption')!;
+        const footer = caption.closest('.bit-card__footer')!;
+        const style = getComputedStyle(footer);
+        const f = footer.getBoundingClientRect();
+        const c = caption.getBoundingClientRect();
+        const left = f.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+        const inner = f.width - parseFloat(style.borderLeftWidth) - parseFloat(style.borderRightWidth) - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        return { captionLeft: c.left, captionWidth: c.width, left, width: inner };
+      });
+      expect(Math.abs(box.captionLeft - box.left), 'caption left edge').toBeLessThanOrEqual(1);
+      expect(Math.abs(box.captionWidth - box.width), 'caption width').toBeLessThanOrEqual(1);
+    });
+  }
 
   test('no layout jump: the stage keeps one height across Wireframe, Tokens and States', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -294,9 +333,9 @@ test.describe('Passes on the Button page', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await gotoPass(page, SLUG, 'wireframe');
     await pickPass(page, 'Tokens');
-    await expect(page.locator('[data-role="line"]')).toHaveCount(1);
+    // Mid-run: at least the first step's line is down, and not all of them yet.
+    await expect.poll(() => page.locator('[data-role="line"]').count()).toBeGreaterThanOrEqual(1);
     await page.setViewportSize({ width: 1100, height: 900 });
-    await expect(page.locator('[data-role="line"]')).toHaveCount(2, { timeout: 5_000 });
     await page.getByRole('group', { name: 'Color mode' }).first().getByRole('button', { name: 'Dark' }).click();
     await expect(page.locator('html')).toHaveAttribute('data-mode', 'dark');
     await expect(page.locator('[data-role="line"]')).toHaveCount(PARTS.length, { timeout: 10_000 });

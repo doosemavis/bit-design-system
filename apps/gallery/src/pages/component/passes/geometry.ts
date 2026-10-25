@@ -58,13 +58,35 @@ function onSide(r: Rect, edge: Edge, at: number, offset: number): Point {
   }
 }
 
+/**
+ * A point strictly inside the padding box, near `edge`: FILL_INSET in from the border, clamped to half the padding box
+ * less 1px so a small part (Switch's 16px thumb) never puts it on the border. Along the edge it stays 1px clear too.
+ */
+function fillPoint(box: Rect, m: PartMetrics, edge: Edge, at: number): Point {
+  const { top, right, bottom, left } = m.borders;
+  const inner = { x: box.x + left, y: box.y + top, width: box.width - left - right, height: box.height - top - bottom };
+  const across = edge === 'left' || edge === 'right' ? inner.width : inner.height;
+  const inset = Math.min(FILL_INSET, Math.max(0, across / 2 - 1));
+  const within = (v: number, start: number, span: number) => (span > 2 ? Math.min(Math.max(v, start + 1), start + span - 1) : start + span / 2);
+  switch (edge) {
+    case 'left':
+      return { x: inner.x + inset, y: within(box.y + box.height * at, inner.y, inner.height) };
+    case 'right':
+      return { x: inner.x + inner.width - inset, y: within(box.y + box.height * at, inner.y, inner.height) };
+    case 'top':
+      return { x: within(box.x + box.width * at, inner.x, inner.width), y: inner.y + inset };
+    case 'bottom':
+      return { x: within(box.x + box.width * at, inner.x, inner.width), y: inner.y + inner.height - inset };
+  }
+}
+
 export function resolveTouch(box: Rect, m: PartMetrics, touch: Touch): Point {
   const at = touch.at ?? 0.5;
   switch (touch.kind) {
     case 'ring':
       return onSide(box, touch.edge, at, -m.borders[touch.edge] / 2);
     case 'fill':
-      return onSide(box, touch.edge, at, -(m.borders[touch.edge] + FILL_INSET));
+      return fillPoint(box, m, touch.edge, at);
     case 'bracket':
       return onSide(box, touch.edge, at, BRACKET_GAP);
     case 'strip': {
@@ -148,6 +170,26 @@ function bracketPath(box: Rect, edge: Edge): string {
 }
 
 /**
+ * A closed ring whose sides differ in width: each side's center line is inset by its own half width, and each corner is
+ * an elliptical arc inset the same way (horizontally by its side's half width, vertically by its top's or bottom's).
+ */
+function unevenRing(box: Rect, m: PartMetrics): string {
+  const { top: t, right: r, bottom: b, left: l } = m.borders;
+  const x0 = box.x + l / 2;
+  const y0 = box.y + t / 2;
+  const x1 = box.x + box.width - r / 2;
+  const y1 = box.y + box.height - b / 2;
+  const fit = (v: number, span: number) => Math.max(0, Math.min(v, span / 2));
+  const rx = (side: number) => fit(m.radius - side / 2, x1 - x0);
+  const ry = (side: number) => fit(m.radius - side / 2, y1 - y0);
+  const [tlx, tly, trx, tr_y, brx, bry, blx, bly] = [rx(l), ry(t), rx(r), ry(t), rx(r), ry(b), rx(l), ry(b)];
+  return (
+    `M${x0 + tlx} ${y0}H${x1 - trx}A${trx} ${tr_y} 0 0 1 ${x1} ${y0 + tr_y}V${y1 - bry}A${brx} ${bry} 0 0 1 ${x1 - brx} ${y1}` +
+    `H${x0 + blx}A${blx} ${bly} 0 0 1 ${x0} ${y1 - bly}V${y0 + tly}A${tlx} ${tly} 0 0 1 ${x0 + tlx} ${y0}Z`
+  );
+}
+
+/**
  * The border stroke, traced along its center line: the whole rounded box when all four sides share one width, else only
  * the sides that have a border (a divider lights just its one stroke). No border at all: the box's outline.
  */
@@ -158,6 +200,7 @@ function ringPath(box: Rect, m: PartMetrics): string {
     const half = top / 2;
     return roundedRect(x + half, y + half, w - top, h - top, m.radius - half);
   }
+  if (top > 0 && right > 0 && bottom > 0 && left > 0) return unevenRing(box, m);
   const sides = [
     top > 0 ? `M${x} ${y + top / 2}H${x + w}` : '',
     right > 0 ? `M${x + w - right / 2} ${y}V${y + h}` : '',
@@ -256,12 +299,17 @@ export function placeLoupe(want: Point, radius: number, obstacles: readonly Rect
   return best ?? want;
 }
 
-/** The pen's run from the touch point into the loupe: straight down onto its rim, or down and across into its side. */
+/**
+ * The pen's run from the touch point into the loupe, onto its near rim wherever it sits: straight up or down when the
+ * loupe is above or below the point, straight across when it's level, else along then across into its near side.
+ */
 export function routeIntoLoupe(anchor: Point, center: Point, radius: number): Point[] {
   const dx = anchor.x - center.x;
-  if (Math.abs(dx) < radius) return [anchor, { x: anchor.x, y: center.y - Math.sqrt(radius * radius - dx * dx) }];
-  const side = { x: center.x + Math.sign(dx) * radius, y: center.y };
-  return [anchor, { x: anchor.x, y: center.y }, side];
+  const dy = anchor.y - center.y;
+  const rim = (offset: number) => Math.sqrt(radius * radius - offset * offset);
+  if (Math.abs(dx) < radius) return [anchor, { x: anchor.x, y: center.y + Math.sign(dy) * rim(dx) }];
+  if (Math.abs(dy) < radius) return [anchor, { x: center.x + Math.sign(dx) * rim(dy), y: anchor.y }];
+  return [anchor, { x: anchor.x, y: center.y }, { x: center.x + Math.sign(dx) * radius, y: center.y }];
 }
 
 /** A thin part needs a magnified inset. A ring traces the whole box, so it stays visible. */

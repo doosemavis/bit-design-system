@@ -2334,6 +2334,13 @@ html:has(.gallery-section-bar) {
   gap: var(--bit-space-16px);
 }
 
+/* A stacked list has no columns to hold a slot for: a callout not shown yet (or off Tokens) takes no room, and a
+   list with none shown takes no row. */
+.gallery-passes__stage[data-stacked] .gallery-passes__callout[data-pending],
+.gallery-passes__stage[data-stacked] .gallery-passes__callouts:not(:has(> .gallery-passes__callout:not([data-pending]))) {
+  display: none;
+}
+
 .gallery-passes__stage[data-stacked] .gallery-passes__callouts[data-side='left'] {
   grid-row: 2;
 }

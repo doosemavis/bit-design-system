@@ -40,6 +40,7 @@ function Callout({ part, shown, style, onHot }: { part: AnatomyPart; shown: bool
       tabIndex={shown ? 0 : -1}
       data-part={part.label}
       data-unseen={part.unseen ? '' : undefined}
+      data-pending={shown ? undefined : ''}
       className="gallery-passes__callout"
       style={shown ? style : { ...style, ...HIDDEN }}
       onFocus={on}

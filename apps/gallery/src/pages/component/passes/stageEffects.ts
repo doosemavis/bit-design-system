@@ -40,6 +40,7 @@ export function useFadeOut<T extends Element>(show: boolean): { mounted: boolean
       setFading(false);
       return undefined;
     }
+    // The empty catch ignores the AbortError that animation.cancel() (cleanup, or showing it again) rejects with.
     animation.finished.then(() => setFading(false), () => {});
     return () => animation.cancel();
   }, [fading]);

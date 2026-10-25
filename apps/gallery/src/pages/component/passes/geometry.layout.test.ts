@@ -28,6 +28,27 @@ describe("per-edge borders: the touched edge's own width", () => {
     expect(resolveTouch(box, m, { kind: 'fill', edge: 'left', at: 0.5 })).toEqual({ x: 114, y: 70 });
   });
 
+  it("clamps a fill's inset so the dot is strictly inside a small padding box (Switch's 16px thumb, a 10px box)", () => {
+    const thick: PartMetrics = { borders: { top: 3, right: 3, bottom: 3, left: 3 }, radius: 8, shadowX: 0, shadowY: 0 };
+    const strictlyInside = (b: Rect, p: { x: number; y: number }) => p.x > b.x + 3 && p.x < b.x + b.width - 3 && p.y > b.y + 3 && p.y < b.y + b.height - 3;
+    for (const size of [16, 10]) {
+      const small: Rect = { x: 772, y: 1538, width: size, height: size };
+      for (const edge of ['top', 'right', 'bottom', 'left'] as const) {
+        for (const at of [0, 0.3, 0.5, 1]) {
+          const p = resolveTouch(small, thick, { kind: 'fill', edge, at });
+          expect(strictlyInside(small, p), `${size}px ${edge} at ${at}: ${p.x},${p.y}`).toBe(true);
+        }
+      }
+    }
+    // 16px with a 3px border: a 10px padding box, so the inset is 5 - 1 = 4, not 10.
+    expect(resolveTouch({ x: 772, y: 1538, width: 16, height: 16 }, thick, { kind: 'fill', edge: 'left', at: 0.5 })).toEqual({ x: 779, y: 1546 });
+  });
+
+  it('keeps the full 10px fill inset on a part with room for it', () => {
+    const thin: PartMetrics = { borders: { top: 2, right: 2, bottom: 2, left: 2 }, radius: 0, shadowX: 0, shadowY: 0 };
+    expect(resolveTouch(box, thin, { kind: 'fill', edge: 'left', at: 0.5 })).toEqual({ x: 112, y: 70 });
+  });
+
   it('traces only the sides that have a border: a divider lights its one stroke', () => {
     expect(highlightShape('ring', 'bottom', box, divider).d).toBe('M100 89H300');
   });
@@ -37,6 +58,14 @@ describe("per-edge borders: the touched edge's own width", () => {
     const { d } = highlightShape('ring', 'top', box, uniform);
     expect(d.startsWith('M108 51H292A7 7')).toBe(true);
     expect(d.endsWith('Z')).toBe(true);
+  });
+
+  it('keeps the rounded corners when the sides differ in width, each inset by its own half width', () => {
+    const uneven: PartMetrics = { borders: { top: 2, right: 4, bottom: 2, left: 4 }, radius: 10, shadowX: 0, shadowY: 0 };
+    // Center lines: x 102–298, y 51–89. Corners: rx 10 - 4/2 = 8, ry 10 - 2/2 = 9.
+    expect(highlightShape('ring', 'top', box, uneven).d).toBe(
+      'M110 51H290A8 9 0 0 1 298 60V80A8 9 0 0 1 290 89H110A8 9 0 0 1 102 80V60A8 9 0 0 1 110 51Z',
+    );
   });
 
   it("insets a fill highlight by each side's own border", () => {
@@ -100,6 +129,24 @@ describe('routeIntoLoupe', () => {
     expect(routeIntoLoupe({ x: 100, y: 50 }, { x: 100, y: 200 }, 48)).toEqual([
       { x: 100, y: 50 },
       { x: 100, y: 152 },
+    ]);
+  });
+
+  it('runs straight up onto the bottom rim when the loupe is above the touch point', () => {
+    expect(routeIntoLoupe({ x: 100, y: 300 }, { x: 100, y: 150 }, 48)).toEqual([
+      { x: 100, y: 300 },
+      { x: 100, y: 198 },
+    ]);
+  });
+
+  it('runs straight across onto the near rim when the loupe is level with the touch point, on either side', () => {
+    expect(routeIntoLoupe({ x: 100, y: 100 }, { x: 250, y: 100 }, 48)).toEqual([
+      { x: 100, y: 100 },
+      { x: 202, y: 100 },
+    ]);
+    expect(routeIntoLoupe({ x: 400, y: 100 }, { x: 250, y: 100 }, 48)).toEqual([
+      { x: 400, y: 100 },
+      { x: 298, y: 100 },
     ]);
   });
 
