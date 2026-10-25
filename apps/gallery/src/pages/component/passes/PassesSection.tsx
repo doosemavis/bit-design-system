@@ -12,21 +12,24 @@ import { useBuild } from './useBuild';
 
 /** One sentence per pass, shared by every component. */
 const SHOWS: Readonly<Record<Pass, string>> = {
-  wireframe: 'The box only: its height and padding, measured from the page. No color, so you can see the bones.',
-  tokens: 'Each part points to the tokens it reads. Change a token and this is everything that moves.',
-  states: 'The states its props set, side by side. The last one is live: point at it, press it, or Tab to it.',
-  final: 'The finished component and the JSX that makes it.',
+  wireframe: 'The box only: its height and padding, measured from the page.',
+  tokens: 'Each part lands as its token turns on. Point at a callout to light its part up.',
+  states: 'The states its props set. Pick one, or pick Try it and use it.',
+  final: 'The component in a real place, and the JSX that makes it.',
 };
 
-/** The pass in the URL. Reads, and pushes through setPageParam, so every push is already in canonical order. */
-export function usePassParam(): { pass: Pass; setPass: (next: Pass) => void } {
+/**
+ * The pass in the URL. Pushes through setPageParam on the pending query, so a draft typed inside the debounce lands in
+ * the same entry and every push is already in canonical order.
+ */
+export function usePassParam(pendingQuery: () => URLSearchParams): { pass: Pass; setPass: (next: Pass) => void } {
   const [search, setSearch] = useSearchParams();
   const pass = parsePass(search.get('pass'));
   const setPass = useCallback(
     (next: Pass) => {
-      if (next !== pass) setSearch(setPageParam(search, 'pass', next));
+      if (next !== pass) setSearch(setPageParam(pendingQuery(), 'pass', next));
     },
-    [pass, search, setSearch],
+    [pass, pendingQuery, setSearch],
   );
   return { pass, setPass };
 }
@@ -79,12 +82,17 @@ function Pips({ seen }: { seen: ReadonlySet<Pass> }) {
   );
 }
 
-export function PassesSection({ manifest }: { manifest: Manifest }) {
-  return manifest.anatomy ? <Passes manifest={manifest} anatomy={manifest.anatomy} /> : null;
+interface PassesSectionProps {
+  manifest: Manifest;
+  pendingQuery: () => URLSearchParams;
 }
 
-function Passes({ manifest, anatomy }: { manifest: Manifest; anatomy: ManifestAnatomy }) {
-  const { pass, setPass } = usePassParam();
+export function PassesSection({ manifest, pendingQuery }: PassesSectionProps) {
+  return manifest.anatomy ? <Passes manifest={manifest} anatomy={manifest.anatomy} pendingQuery={pendingQuery} /> : null;
+}
+
+function Passes({ manifest, anatomy, pendingQuery }: PassesSectionProps & { anatomy: ManifestAnatomy }) {
+  const { pass, setPass } = usePassParam(pendingQuery);
   const build = useBuild(anatomy, pass);
   const [seen, setSeen] = useState<ReadonlySet<Pass>>(() => new Set([pass]));
   // What Next announced, and for which pass: any other route to a pass (a radio, an arrow key, Back) clears it, so
@@ -97,10 +105,27 @@ function Passes({ manifest, anatomy }: { manifest: Manifest; anatomy: ManifestAn
     setSpoken((current) => (current?.pass === pass ? current : null));
   }, [pass]);
 
+  // The end of a run lands the URL on Final, whenever it comes.
+  const latestSetPass = useRef(setPass);
+  latestSetPass.current = setPass;
+
+  // While a run plays, and after one is stopped, the stage and its caption show the build's pass, not the URL's.
+  const shown = build.state.pass;
   const next = nextOf(pass);
 
+  const pick = (target: Pass) => {
+    if (target === pass) return;
+    build.markForward();
+    setPass(target);
+  };
+
+  const play = () => {
+    setSeen(new Set(PASSES));
+    build.play(() => latestSetPass.current('final'));
+  };
+
   const goNext = () => {
-    setPass(next);
+    pick(next);
     setSpoken({ pass: next, text: `${NAMES[next]}, pass ${PASSES.indexOf(next) + 1} of ${PASSES.length}` });
   };
 
@@ -113,9 +138,12 @@ function Passes({ manifest, anatomy }: { manifest: Manifest; anatomy: ManifestAn
             legendHidden
             name="pass"
             options={PASSES.map((value) => ({ value, label: NAMES[value] }))}
-            value={pass}
-            onValueChange={(value) => setPass(parsePass(value))}
+            value={shown}
+            onValueChange={(value) => pick(parsePass(value))}
           />
+          <Button variant="outline" onClick={build.playing ? build.stop : play}>
+            {build.playing ? 'Stop' : 'Play'}
+          </Button>
           <Button variant="outline" onClick={goNext}>{`Next: ${NAMES[next]}`}</Button>
           <Pips seen={seen} />
           <Text>{seen.size === PASSES.length ? 'All 4 seen' : `${seen.size} of 4 seen`}</Text>
@@ -130,10 +158,15 @@ function Passes({ manifest, anatomy }: { manifest: Manifest; anatomy: ManifestAn
       <CardFooter>
         <Stack gap={8} className="gallery-passes__caption">
           <Text weight="bold">What this pass shows</Text>
-          <Text size={16}>{`${SHOWS[pass]} The default ${manifest.name}. Change it in the Playground above.`}</Text>
-          {pass === 'final' ? <Text>Default props aren&apos;t printed in the code.</Text> : null}
-          <Text weight="bold">Reads</Text>
-          {isMeasured(pass) ? <MeasuredReads key={pass} stage={stageRef} pass={pass} root={anatomy.root} /> : <Code>{dataReads(manifest, pass)}</Code>}
+          <Text size={16}>{`${SHOWS[shown]} The default ${manifest.name}. Change it in the Playground above.`}</Text>
+          {shown === 'final' ? <Text>Default props aren&apos;t printed in the code.</Text> : null}
+          {build.state.note ? <Text>{build.state.note}</Text> : null}
+          {shown === 'final' ? null : (
+            <>
+              <Text weight="bold">Reads</Text>
+              {isMeasured(shown) ? <MeasuredReads key={shown} stage={stageRef} pass={shown} root={anatomy.root} /> : <Code>{dataReads(manifest, shown)}</Code>}
+            </>
+          )}
         </Stack>
       </CardFooter>
     </Card>
