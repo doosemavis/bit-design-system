@@ -61,8 +61,16 @@ function Callout({ part, shown, style, onHot }: { part: AnatomyPart; shown: bool
 export function Callouts({ side, parts, landed, tops, stacked, onHot }: CalloutsProps): ReactElement | null {
   const mine = parts.filter((part) => part.side === side);
   if (mine.length === 0) return null;
+  // With nothing shown the column is still a box over the stage; hidden, it lets a pointer through to the chips.
+  const none = !mine.some((part) => hasLanded(part, landed));
   return (
-    <div role="list" aria-label={side === 'left' ? 'Parts, left' : 'Parts, right'} className="gallery-passes__callouts" data-side={side}>
+    <div
+      role="list"
+      aria-label={side === 'left' ? 'Parts, left' : 'Parts, right'}
+      className="gallery-passes__callouts"
+      data-side={side}
+      style={none ? HIDDEN : undefined}
+    >
       {mine.map((part) => (
         <Callout key={part.label} part={part} shown={hasLanded(part, landed)} style={placement(part.label, tops, stacked)} onHot={onHot} />
       ))}

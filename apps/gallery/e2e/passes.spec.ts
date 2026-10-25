@@ -183,6 +183,19 @@ test.describe('Passes on the Button page', () => {
     await expect(hotLine).toHaveCount(1);
   });
 
+  test('a pointer reaches the state chips on States: nothing hidden lies over them', async ({ page }) => {
+    for (const width of [1440, 1024]) {
+      await page.setViewportSize({ width, height: 900 });
+      await gotoPass(page, SLUG, 'states');
+      // A person clicks the chip's visible label; the radio under it is visually hidden.
+      const labels = page.locator('.bit-segmented-control:has-text("Try it") .bit-segmented-control__label');
+      await labels.filter({ hasText: 'Try it' }).click({ timeout: 2000 });
+      await expect(page.getByRole('radio', { name: 'Try it' })).toBeChecked();
+      await labels.first().click({ timeout: 2000 });
+      await expect(page.getByRole('radio', { name: 'Try it' })).not.toBeChecked();
+    }
+  });
+
   test('at 640px (200% of 1280) the stage stacks: no lines, highlights or loupe, every part listed', async ({ page }) => {
     await page.setViewportSize({ width: 640, height: 900 });
     await gotoPass(page, SLUG, 'tokens');
