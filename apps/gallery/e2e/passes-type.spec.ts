@@ -4,8 +4,8 @@ import { calloutGaps, calloutOverlaps, gotoPass, loupeOverlaps, passesAxe, touch
 
 /** The Type group's slugs and their anatomy parts, as the callouts list them. */
 const SLUGS: Record<string, string[]> = {
-  code: ['Pill', 'Text color', 'Font', 'Size'],
-  codeblock: ['Panel', 'Edge', 'Bar rule', 'Shadow', 'Language label', 'Code size', 'Code text', 'Copy button', 'Syntax'],
+  code: ['Pill', 'Text color', 'Font'],
+  codeblock: ['Panel', 'Edge', 'Bar rule', 'Shadow', 'Language label', 'Code font and size', 'Code text', 'Copy button', 'Syntax'],
   heading: ['Color', 'Face', 'Size', 'Line height'],
   text: ['Color', 'Face', 'Size', 'Line height'],
 };

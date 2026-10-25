@@ -39,13 +39,6 @@ export const code: Manifest = {
         side: 'left',
         touch: { kind: 'text', edge: 'bottom', at: 0.25 },
       },
-      {
-        label: 'Size',
-        selector: '.bit-code',
-        tokens: ['--bit-text-14px'],
-        side: 'right',
-        touch: { kind: 'bracket', edge: 'right' },
-      },
     ],
     states: [
       { label: 'Default', state: {} },

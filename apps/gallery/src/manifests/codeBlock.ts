@@ -97,7 +97,7 @@ export const codeBlock: Manifest = {
         off: { '--bit-code-keyword': 'transparent', '--bit-code-number': 'transparent', '--bit-code-comment': 'transparent' },
       },
       {
-        label: 'Code size',
+        label: 'Code font and size',
         selector: '.bit-code__pre',
         tokens: ['--bit-font-mono', '--bit-text-14px'],
         side: 'left',
