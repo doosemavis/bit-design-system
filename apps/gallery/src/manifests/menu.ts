@@ -93,7 +93,6 @@ export const menu: Manifest = {
     ],
     states: [
       { label: 'Default', state: {} },
-      { label: 'Small', state: { size: 'sm' } },
     ],
     scene: {
       caption: 'In use: the file menu in a header',
