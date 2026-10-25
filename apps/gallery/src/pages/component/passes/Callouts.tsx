@@ -7,8 +7,8 @@ const HIDDEN: CSSProperties = { visibility: 'hidden' };
 interface CalloutsProps {
   side: AnatomyPart['side'];
   parts: readonly AnatomyPart[];
-  /** The steps landed so far: a callout shows when its part's step lands (unseen parts are listed from the start). */
-  landed: readonly string[];
+  /** The steps landed so far: a callout shows when its part's step lands (unseen parts are listed from the start). Null: none shows (off Tokens). */
+  landed: readonly string[] | null;
   /** Each callout's placed top in its column, by label; null before the first measure. */
   tops: Readonly<Record<string, number>> | null;
   /** Stacked: the callouts flow as a list under the instance, with no tops. */
@@ -24,7 +24,8 @@ function placement(label: string, tops: CalloutsProps['tops'], stacked: boolean)
   return top === undefined ? HIDDEN : { top };
 }
 
-const hasLanded = (part: AnatomyPart, landed: readonly string[]) => part.unseen !== undefined || landed.includes(part.step ?? part.label);
+const hasLanded = (part: AnatomyPart, landed: readonly string[] | null) =>
+  landed !== null && (part.unseen !== undefined || landed.includes(part.step ?? part.label));
 
 /**
  * A callout names its part as the part lands. Until then it keeps its slot (so nothing moves when it shows) but is
@@ -38,6 +39,7 @@ function Callout({ part, shown, style, onHot }: { part: AnatomyPart; shown: bool
       role="listitem"
       tabIndex={shown ? 0 : -1}
       data-part={part.label}
+      data-unseen={part.unseen ? '' : undefined}
       className="gallery-passes__callout"
       style={shown ? style : { ...style, ...HIDDEN }}
       onFocus={on}

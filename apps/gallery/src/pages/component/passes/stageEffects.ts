@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { AnatomyPart } from '../../../manifests/types';
-import { drawIn, durationMs, fadeIn, slide } from './motion';
+import { drawIn, durationMs, fadeIn, fadeOut, slide } from './motion';
 import { applyOverrides } from './overrides';
 
 const HOLD_STEPS = 6;
@@ -19,6 +19,31 @@ export function useFreshBeat(fresh: string | null, version: number): string | nu
     return () => clearTimeout(timer);
   }, [fresh, version]);
   return fresh !== null && expired !== version ? fresh : null;
+}
+
+/**
+ * Keeps an element mounted while it fades out after `show` turns false, then lets it go. Under reduced motion (or
+ * without animate()) it goes at once, before paint. Showing it again mid-fade cancels the fade.
+ */
+export function useFadeOut<T extends Element>(show: boolean): { mounted: boolean; ref: RefObject<T | null> } {
+  const ref = useRef<T | null>(null);
+  const [fading, setFading] = useState(false);
+  const [was, setWas] = useState(show);
+  if (was !== show) {
+    setWas(show);
+    setFading(!show);
+  }
+  useLayoutEffect(() => {
+    if (!fading) return undefined;
+    const animation = ref.current ? fadeOut(ref.current, stepMs(DRAW_STEPS)) : null;
+    if (!animation) {
+      setFading(false);
+      return undefined;
+    }
+    animation.finished.then(() => setFading(false), () => {});
+    return () => animation.cancel();
+  }, [fading]);
+  return { mounted: show || fading, ref };
 }
 
 /** Turns off the parts not landed yet, on the stage's instance; undoes on change and unmount. */

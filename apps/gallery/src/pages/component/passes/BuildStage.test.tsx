@@ -21,7 +21,7 @@ vi.mock('./motion', async (importOriginal) => ({
 const anatomy = button.anatomy as ManifestAnatomy;
 const tokens = stepsOf(anatomy, 'tokens');
 const HOLD = 960; // 6 × the 160ms fallback for --bit-duration-normal (jsdom has no theme)
-const METRICS = { borderWidth: 3, radius: 10, shadowX: 4, shadowY: 4 };
+const METRICS = { borders: { top: 3, right: 3, bottom: 3, left: 3 }, radius: 10, shadowX: 4, shadowY: 4 };
 
 const domRect = (left: number, top: number, width: number, height: number) =>
   ({ left, top, width, height, right: left + width, bottom: top + height, x: left, y: top, toJSON: () => ({}) }) as DOMRect;
@@ -91,7 +91,7 @@ function api(state: BuildState, version: number, extra: Partial<BuildApi> = {}):
 function paintButton() {
   const el = document.querySelector<HTMLElement>('.gallery-passes__stage [data-instance] > .bit-button');
   if (!el) return;
-  el.style.borderTop = '3px solid black';
+  el.style.border = '3px solid black';
   el.style.borderTopLeftRadius = '10px';
   el.style.boxShadow = '4px 4px 0 rgb(0, 0, 0)';
 }
@@ -446,6 +446,49 @@ describe('BuildStage', () => {
     await act(async () => fontsReady());
     flush();
     expect(Number(one('dot', 'Edge')!.getAttribute('cy'))).toBe(resolveTouch({ ...box, x: 420, y: 200 }, METRICS, partOf('Edge').touch).y);
+  });
+
+  describe('what the page carries for the e2e and the layout', () => {
+    it("each dot carries its part's touched edge and selector, so a test can check it from the page", () => {
+      show(quiet(endOf(anatomy, 'tokens')));
+      flush();
+      const dot = one('dot', 'Shadow')!;
+      expect(dot.dataset.edge).toBe('bottom');
+      expect(dot.dataset.selector).toBe('.bit-button');
+    });
+
+    it('marks an unseen callout, which has no dot', () => {
+      show(quiet(endOf(withUnseen.anatomy!, 'tokens')), 1, withUnseen);
+      flush();
+      expect(callout('List')).toHaveAttribute('data-unseen');
+      expect(callout('Edge')).not.toHaveAttribute('data-unseen');
+      expect(one('dot', 'List')).toBeNull();
+    });
+
+    it('sizes the stage from the taller callout column, every callout counted, on every pass but Final', () => {
+      for (const pass of ['wireframe', 'tokens', 'states'] as const) {
+        const { unmount } = show(endOf(anatomy, pass));
+        flush();
+        // Two 40px callouts a side, 16px apart.
+        expect(stage().style.getPropertyValue('--_gallery-passes-column'), pass).toBe('96px');
+        unmount();
+      }
+    });
+
+    it('marks a wide anatomy, so the instance fills the center column', () => {
+      const wide: Manifest = { ...button, anatomy: { ...anatomy, wide: true } };
+      const { unmount } = show(endOf(anatomy, 'tokens'), 1, wide);
+      expect(stage()).toHaveAttribute('data-wide');
+      unmount();
+      show(endOf(anatomy, 'tokens'));
+      expect(stage()).not.toHaveAttribute('data-wide');
+    });
+
+    it('puts the state chips before the instance, so Try it makes the instance the next tab stop', () => {
+      show(endOf(anatomy, 'states'));
+      const chips = stage().querySelector('.gallery-passes__chips')!;
+      expect(chips.compareDocumentPosition(instance()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
   });
 
   describe('States', () => {

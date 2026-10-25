@@ -4,6 +4,7 @@ import type { Manifest } from '../../../manifests/types';
 import { highlightColor, type Point, type Rect } from './geometry';
 import { Loupe } from './Loupe';
 import type { Lens, StageGeometry, StagePart } from './measureStage';
+import { useFadeOut } from './stageEffects';
 
 const INK = 'var(--bit-color-text)';
 const FADED = 0.3;
@@ -15,10 +16,10 @@ const toD = (points: readonly Point[]) => points.map((p, i) => `${i === 0 ? 'M' 
 const lineD = (part: StagePart) => (part.lens ? `${toD(part.route)} ${toD(part.lens.onward)}` : toD(part.route));
 
 /** Graph paper under the instance: a 16px pattern of 1px lines. Decorative, like all the diagram. */
-export function Paper(): ReactElement {
+export function Paper({ ref }: { ref?: Ref<SVGSVGElement> }): ReactElement {
   const id = `${useId()}grid`;
   return (
-    <svg className="gallery-passes__svg" data-layer="paper" aria-hidden="true" pointerEvents="none">
+    <svg ref={ref} className="gallery-passes__svg" data-layer="paper" aria-hidden="true" pointerEvents="none">
       <defs>
         <pattern id={id} width={16} height={16} patternUnits="userSpaceOnUse">
           <path d="M16 0H0V16" fill="none" stroke="var(--bit-color-primary)" strokeOpacity={0.12} strokeWidth={1} />
@@ -30,10 +31,10 @@ export function Paper(): ReactElement {
 }
 
 /** Wireframe: the measured box, dashed, with its height and left padding. */
-function Outline({ box, paddingLeft }: { box: Rect; paddingLeft: number }) {
+function Outline({ box, paddingLeft, ref }: { box: Rect; paddingLeft: number; ref?: Ref<SVGGElement> }) {
   const { x, y, width, height } = box;
   return (
-    <g>
+    <g ref={ref}>
       <rect data-role="outline" x={x} y={y} width={width} height={height} fill="none" stroke={INK} strokeWidth={2} strokeDasharray="6 4" />
       <path d={`M${x - 16} ${y}V${y + height}`} stroke={INK} strokeWidth={2} fill="none" />
       <text x={x - 22} y={y + height / 2 + 4} textAnchor="end" fill={INK} style={LABEL}>
@@ -86,6 +87,8 @@ export function Ink({ geometry, outline, drawn, lit, hot, ref }: InkProps): Reac
   const fade = (label: string) => (hot !== null && hot !== label ? FADED : undefined);
   const hotMark = (label: string) => (hot === label ? '' : undefined);
   const litParts = drawn.filter((part) => lit.has(part.label));
+  // The outline fades as the edge lands (Wireframe to Tokens), then unmounts.
+  const outlined = useFadeOut<SVGGElement>(outline);
   return (
     <svg ref={ref} className="gallery-passes__svg" data-layer="ink" aria-hidden="true" pointerEvents="none">
       <defs>
@@ -93,7 +96,7 @@ export function Ink({ geometry, outline, drawn, lit, hot, ref }: InkProps): Reac
           <path d="M0 0V6" stroke={color} strokeWidth={3} />
         </pattern>
       </defs>
-      {outline ? <Outline box={geometry.instance} paddingLeft={geometry.paddingLeft} /> : null}
+      {outlined.mounted ? <Outline ref={outlined.ref} box={geometry.instance} paddingLeft={geometry.paddingLeft} /> : null}
       {litParts.map((part) => (
         <Highlight key={part.label} part={part} color={color} hatch={hatch} />
       ))}
@@ -133,12 +136,14 @@ export function Ink({ geometry, outline, drawn, lit, hot, ref }: InkProps): Reac
           strokeOpacity={fade(part.label)}
         />
       ))}
-      {drawn.map(({ label, kind, anchor }) => (
+      {drawn.map(({ label, kind, edge, selector, anchor }) => (
         <circle
           key={label}
           data-role="dot"
           data-part={label}
           data-kind={kind}
+          data-edge={edge}
+          data-selector={selector}
           data-hot={hotMark(label)}
           cx={anchor.x}
           cy={anchor.y}
@@ -163,6 +168,7 @@ export function LensView({ manifest, landed, label, lens }: { manifest: Manifest
   return (
     <div
       data-lens={label}
+      className="gallery-passes__lens"
       aria-hidden="true"
       style={{
         position: 'absolute',

@@ -29,6 +29,11 @@ export function fadeIn(el: Element, ms: number): Animation | null {
   return run(el, [{ opacity: 0 }, { opacity: 1 }], ms);
 }
 
+/** The way out: null under reduced motion or without animate() (jsdom), so the caller removes the element at once. */
+export function fadeOut(el: Element, ms: number): Animation | null {
+  return run(el, [{ opacity: 1 }, { opacity: 0 }], ms);
+}
+
 /** FLIP: starts at the `from` box and moves to the element's own place at `to`. */
 export function slide(el: Element, from: DOMRect, to: DOMRect, ms: number): Animation | null {
   if (prefersReducedMotion() || typeof el.animate !== 'function') return null;

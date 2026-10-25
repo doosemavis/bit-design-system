@@ -13,7 +13,8 @@ export interface Rect {
   height: number;
 }
 export interface PartMetrics {
-  borderWidth: number;
+  /** Each side's own border width: a divider is often one bottom border on a box with none elsewhere. */
+  borders: Readonly<Record<Edge, number>>;
   radius: number;
   shadowX: number;
   shadowY: number;
@@ -21,7 +22,7 @@ export interface PartMetrics {
 
 const FILL_INSET = 10;
 const BRACKET_GAP = 10;
-const TEXT_GAP = 2;
+const TEXT_GAP = 1;
 const CALLOUT_GAP = 24;
 const LOUPE_BELOW = 6;
 
@@ -34,8 +35,9 @@ export function parseShadow(boxShadow: string): { x: number; y: number } {
 export function partMetrics(el: Element): PartMetrics {
   const cs = getComputedStyle(el);
   const shadow = parseShadow(cs.boxShadow);
+  const width = (v: string) => parseFloat(v) || 0;
   return {
-    borderWidth: parseFloat(cs.borderTopWidth) || 0,
+    borders: { top: width(cs.borderTopWidth), right: width(cs.borderRightWidth), bottom: width(cs.borderBottomWidth), left: width(cs.borderLeftWidth) },
     radius: parseFloat(cs.borderTopLeftRadius) || 0,
     shadowX: shadow.x,
     shadowY: shadow.y,
@@ -60,9 +62,9 @@ export function resolveTouch(box: Rect, m: PartMetrics, touch: Touch): Point {
   const at = touch.at ?? 0.5;
   switch (touch.kind) {
     case 'ring':
-      return onSide(box, touch.edge, at, -m.borderWidth / 2);
+      return onSide(box, touch.edge, at, -m.borders[touch.edge] / 2);
     case 'fill':
-      return onSide(box, touch.edge, at, -(m.borderWidth + FILL_INSET));
+      return onSide(box, touch.edge, at, -(m.borders[touch.edge] + FILL_INSET));
     case 'bracket':
       return onSide(box, touch.edge, at, BRACKET_GAP);
     case 'strip': {
@@ -145,6 +147,26 @@ function bracketPath(box: Rect, edge: Edge): string {
   }
 }
 
+/**
+ * The border stroke, traced along its center line: the whole rounded box when all four sides share one width, else only
+ * the sides that have a border (a divider lights just its one stroke). No border at all: the box's outline.
+ */
+function ringPath(box: Rect, m: PartMetrics): string {
+  const { x, y, width: w, height: h } = box;
+  const { top, right, bottom, left } = m.borders;
+  if (top === right && right === bottom && bottom === left) {
+    const half = top / 2;
+    return roundedRect(x + half, y + half, w - top, h - top, m.radius - half);
+  }
+  const sides = [
+    top > 0 ? `M${x} ${y + top / 2}H${x + w}` : '',
+    right > 0 ? `M${x + w - right / 2} ${y}V${y + h}` : '',
+    bottom > 0 ? `M${x} ${y + h - bottom / 2}H${x + w}` : '',
+    left > 0 ? `M${x + left / 2} ${y}V${y + h}` : '',
+  ];
+  return sides.join('');
+}
+
 export function highlightShape(
   kind: HighlightKind,
   edge: Edge,
@@ -155,16 +177,11 @@ export function highlightShape(
   const right = x + w;
   const bottom = y + h;
   switch (kind) {
-    case 'ring': {
-      const half = m.borderWidth / 2;
-      return {
-        d: roundedRect(x + half, y + half, w - m.borderWidth, h - m.borderWidth, m.radius - half),
-        paint: 'stroke',
-      };
-    }
+    case 'ring':
+      return { d: ringPath(box, m), paint: 'stroke' };
     case 'fill': {
-      const b = m.borderWidth;
-      return { d: roundedRect(x + b, y + b, w - 2 * b, h - 2 * b, m.radius - b), paint: 'hatch' };
+      const { top, right: r, bottom: b, left } = m.borders;
+      return { d: roundedRect(x + left, y + top, w - left - r, h - top - b, m.radius - Math.max(top, r, b, left)), paint: 'hatch' };
     }
     case 'bracket':
       return { d: bracketPath(box, edge), paint: 'stroke' };
@@ -182,6 +199,69 @@ export function highlightShape(
       return { d: `M${x} ${at}H${right}`, paint: 'stroke' };
     }
   }
+}
+
+/**
+ * The rendered text inside `el`, as one rect: a Range over each of its text nodes, so the box of a block label (wider
+ * than its words) or of a child element never counts. Null when nothing renders text, or the engine can't measure ranges.
+ */
+export function textRunRect(el: Element): DOMRect | null {
+  const doc = el.ownerDocument;
+  if (typeof doc.createRange !== 'function') return null;
+  const walker = doc.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  const rects: DOMRect[] = [];
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (!node.textContent?.trim()) continue;
+    const range = doc.createRange();
+    range.selectNodeContents(node);
+    if (typeof range.getClientRects !== 'function') return null;
+    rects.push(...[...range.getClientRects()].filter((r) => r.width > 0 && r.height > 0));
+  }
+  if (rects.length === 0) return null;
+  const left = Math.min(...rects.map((r) => r.left));
+  const top = Math.min(...rects.map((r) => r.top));
+  const right = Math.max(...rects.map((r) => r.right));
+  const bottom = Math.max(...rects.map((r) => r.bottom));
+  return new DOMRect(left, top, right - left, bottom - top);
+}
+
+/** What a column of callouts needs, top to bottom: each callout's height plus a gap between each two. */
+export function columnHeight(heights: readonly number[], gap: number): number {
+  return heights.length === 0 ? 0 : heights.reduce((sum, h) => sum + h, 0) + gap * (heights.length - 1);
+}
+
+const overlaps = (a: Rect, b: Rect) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+/**
+ * Where a loupe of `radius` goes: `want` when its square clears every obstacle (the instance, each callout, other loupes),
+ * else the nearest clear center inside `area`, searched on a `step` grid. Falls back to `want` when nothing is clear.
+ */
+export function placeLoupe(want: Point, radius: number, obstacles: readonly Rect[], area: Rect, step = 4): Point {
+  const clear = (c: Point) => {
+    const square = { x: c.x - radius, y: c.y - radius, width: 2 * radius, height: 2 * radius };
+    return obstacles.every((o) => !overlaps(square, o));
+  };
+  if (clear(want)) return want;
+  let best: Point | null = null;
+  let bestDistance = Infinity;
+  for (let y = area.y + radius; y <= area.y + area.height - radius; y += step) {
+    for (let x = area.x + radius; x <= area.x + area.width - radius; x += step) {
+      const distance = Math.hypot(x - want.x, y - want.y);
+      if (distance < bestDistance && clear({ x, y })) {
+        best = { x, y };
+        bestDistance = distance;
+      }
+    }
+  }
+  return best ?? want;
+}
+
+/** The pen's run from the touch point into the loupe: straight down onto its rim, or down and across into its side. */
+export function routeIntoLoupe(anchor: Point, center: Point, radius: number): Point[] {
+  const dx = anchor.x - center.x;
+  if (Math.abs(dx) < radius) return [anchor, { x: anchor.x, y: center.y - Math.sqrt(radius * radius - dx * dx) }];
+  const side = { x: center.x + Math.sign(dx) * radius, y: center.y };
+  return [anchor, { x: anchor.x, y: center.y }, side];
 }
 
 /** A thin part needs a magnified inset. A ring traces the whole box, so it stays visible. */
@@ -202,8 +282,8 @@ export interface BoxMeasure extends Rect {
 }
 
 /** The component's root inside the stage's first `[data-instance]`: `root` (anatomy.root), or its first child. */
-function instanceRoot(stage: HTMLElement, root?: string): HTMLElement | null {
-  return stage.querySelector('[data-instance]')?.querySelector<HTMLElement>(root ?? ':scope > *') ?? null;
+function instanceRoot(stage: HTMLElement, root?: string): Element | null {
+  return stage.querySelector('[data-instance]')?.querySelector(root ?? ':scope > *') ?? null;
 }
 
 export function measureBox(stage: HTMLElement, root?: string): BoxMeasure | null {
@@ -222,5 +302,6 @@ export function measureBox(stage: HTMLElement, root?: string): BoxMeasure | null
 
 /** The classes the rendered root really has: the Final pass's "Reads". */
 export function renderedClasses(stage: HTMLElement, root?: string): string {
-  return instanceRoot(stage, root)?.className ?? '';
+  // getAttribute, not className: an svg root's className is an SVGAnimatedString, not text.
+  return instanceRoot(stage, root)?.getAttribute('class') ?? '';
 }

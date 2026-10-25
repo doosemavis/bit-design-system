@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { stubMatchMedia } from '../../../test/matchMedia';
-import { drawIn, durationMs, fadeIn, prefersReducedMotion, slide } from './motion';
+import { drawIn, durationMs, fadeIn, fadeOut, prefersReducedMotion, slide } from './motion';
 
 const REDUCE = '(prefers-reduced-motion: reduce)';
 let restore: (() => void) | undefined;
@@ -39,6 +39,7 @@ describe('motion under reduced motion', () => {
     const animate = withAnimate(el);
     expect(prefersReducedMotion()).toBe(true);
     expect(fadeIn(el, 100)).toBeNull();
+    expect(fadeOut(el, 100)).toBeNull();
     expect(slide(el, new DOMRect(), new DOMRect(), 100)).toBeNull();
     expect(animate).not.toHaveBeenCalled();
   });
@@ -49,6 +50,7 @@ describe('motion without animate (jsdom)', () => {
     const el = document.createElement('div');
     expect(prefersReducedMotion()).toBe(false);
     expect(fadeIn(el, 100)).toBeNull();
+    expect(fadeOut(el, 100)).toBeNull();
   });
 });
 
@@ -58,6 +60,13 @@ describe('motion with animate', () => {
     const animate = withAnimate(el);
     expect(fadeIn(el, 120)).not.toBeNull();
     expect(animate).toHaveBeenCalledWith([{ opacity: 0 }, { opacity: 1 }], expect.objectContaining({ duration: 120 }));
+  });
+
+  it('fadeOut runs opacity 1 to 0', () => {
+    const el = document.createElement('div');
+    const animate = withAnimate(el);
+    expect(fadeOut(el, 480)).not.toBeNull();
+    expect(animate).toHaveBeenCalledWith([{ opacity: 1 }, { opacity: 0 }], expect.objectContaining({ duration: 480 }));
   });
 
   it('slide passes FLIP translate and scale keyframes', () => {

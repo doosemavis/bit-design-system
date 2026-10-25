@@ -220,6 +220,8 @@ export interface ManifestAnatomy {
   root?: string;
   /** A patch every pass renders with, over the defaults (Tooltip: `{ pinned: true }`). */
   base?: Partial<ControlState>;
+  /** The instance fills the stage's center column, instead of shrinking to fit its content (Navbar, Table). */
+  wide?: true;
   scene: AnatomyScene;
 }
 

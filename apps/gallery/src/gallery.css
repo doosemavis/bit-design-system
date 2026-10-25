@@ -2250,14 +2250,17 @@ html:has(.gallery-section-bar) {
    --_gallery-passes-lines and --_gallery-passes-callouts come from the component's parts (inline).
    One line covers a callout's label (measured 24px) and a token chip with the 4px gap above it (27.6px + 4px).
    Three columns: callouts, the instance, callouts. Each callout's top is inline (placed from its part); its x is its
-   column's inner edge. The diagram svgs and the loupe sit over the whole stage, absolutely, in DOM order. */
+   column's inner edge. The diagram svgs and the loupe sit over the whole stage, absolutely, in DOM order.
+   --_gallery-passes-column is the taller callout column as measured (every callout, landed or not), so a component
+   with many parts (Dialog) grows the stage instead of overlapping its callouts. */
 .gallery-passes__stage {
   --_gallery-passes-line: 2rem;
   position: relative;
   min-height: max(
     27.5rem,
     var(--_gallery-passes-lines) * var(--_gallery-passes-line) + (var(--_gallery-passes-callouts) - 1) * var(--bit-space-16px) +
-      2 * var(--bit-space-32px)
+      2 * var(--bit-space-32px),
+    var(--_gallery-passes-column, 0px) + 2 * var(--bit-space-32px)
   );
   padding: var(--bit-space-32px);
   display: grid;
@@ -2271,6 +2274,16 @@ html:has(.gallery-section-bar) {
   grid-column: 2;
   align-self: center;
   justify-self: center;
+}
+
+/* A wide component (Navbar, Table) fills the center column instead of shrinking to fit. */
+.gallery-passes__stage[data-wide]:not([data-stacked]) {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+}
+
+.gallery-passes__stage[data-wide] .gallery-passes__slot {
+  justify-self: stretch;
+  min-width: 0;
 }
 
 .gallery-passes__callouts {
@@ -2362,6 +2375,16 @@ html:has(.gallery-section-bar) {
   width: 100%;
   height: 100%;
   overflow: visible;
+}
+
+/* Over the instance, whose own stacking (a Tabs list sets z-index: 1) must not hide a dot or a line end: the loupe
+   above the instance, the ink above both. */
+.gallery-passes__lens {
+  z-index: 2;
+}
+
+.gallery-passes__svg[data-layer='ink'] {
+  z-index: 3;
 }
 
 .gallery-visually-hidden {

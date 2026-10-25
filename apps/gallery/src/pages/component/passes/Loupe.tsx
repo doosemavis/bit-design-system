@@ -8,6 +8,7 @@ import { applyOverrides } from './overrides';
 const ZOOM = 4;
 const MARK_GAP = 8;
 const LABEL = { font: '400 12px var(--bit-font-mono)' } as const;
+const HALO = 'var(--bit-color-surface)';
 
 interface LoupeProps {
   manifest: Manifest;
@@ -43,13 +44,15 @@ export function Loupe({ manifest, landed, at, thickness, origin }: LoupeProps): 
         <Instance manifest={manifest} inert withBase={false} />
       </div>
       <svg width={origin.width} height={origin.height} style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
+        {/* A surface halo under the ink, so the mark reads over the part's own dark border and shadow. */}
+        <path d={`M ${markX} ${local.y - half} L ${markX} ${local.y + half}`} stroke={HALO} strokeWidth={6} fill="none" />
         <path
           d={`M ${markX} ${local.y - half} L ${markX} ${local.y + half}`}
           stroke="var(--bit-color-text)"
           strokeWidth={2}
           fill="none"
         />
-        <text x={markX + MARK_GAP} y={local.y + 4} fill="var(--bit-color-text)" style={LABEL}>
+        <text x={markX + MARK_GAP} y={local.y + 4} fill="var(--bit-color-text)" stroke={HALO} strokeWidth={4} paintOrder="stroke" style={LABEL}>
           {`${thickness}px`}
         </text>
       </svg>

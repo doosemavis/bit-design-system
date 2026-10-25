@@ -19,7 +19,7 @@ import {
 } from './geometry';
 
 const box: Rect = { x: 100, y: 50, width: 100, height: 52 };
-const m: PartMetrics = { borderWidth: 3, radius: 10, shadowX: 4, shadowY: 4 };
+const m: PartMetrics = { borders: { top: 3, right: 3, bottom: 3, left: 3 }, radius: 10, shadowX: 4, shadowY: 4 };
 const touch = (kind: HighlightKind, edge: Edge, at?: number) => resolveTouch(box, m, { kind, edge, at });
 
 describe('resolveTouch', () => {
@@ -30,7 +30,7 @@ describe('resolveTouch', () => {
     expect(touch('strip', 'bottom', 0.72)).toEqual({ x: 172, y: 104 });
     expect(touch('strip', 'right', 0.5)).toEqual({ x: 202, y: 76 });
     expect(touch('box', 'top', 0.5)).toEqual({ x: 150, y: 50 });
-    expect(touch('text', 'bottom', 0.5)).toEqual({ x: 150, y: 104 });
+    expect(touch('text', 'bottom', 0.5)).toEqual({ x: 150, y: 103 });
   });
 });
 
@@ -51,8 +51,8 @@ describe('resolveTouch on strips and text', () => {
     expect(touch('strip', 'right', 0.01)).toEqual({ x: 202, y: 54 });
   });
   it('puts text under the box whatever the edge', () => {
-    expect(touch('text', 'top', 0.25)).toEqual({ x: 125, y: 104 });
-    expect(touch('text', 'left', 0.25)).toEqual({ x: 125, y: 104 });
+    expect(touch('text', 'top', 0.25)).toEqual({ x: 125, y: 103 });
+    expect(touch('text', 'left', 0.25)).toEqual({ x: 125, y: 103 });
   });
 });
 
@@ -178,13 +178,14 @@ describe('parseShadow', () => {
 });
 
 describe('partMetrics', () => {
-  it('reads border, radius and shadow from computed style', () => {
+  it("reads each side's border, the radius and the shadow from computed style", () => {
     const el = document.createElement('div');
     el.style.borderTop = '3px solid black';
+    el.style.borderBottom = '2px solid black';
     el.style.borderTopLeftRadius = '10px';
     el.style.boxShadow = '4px 4px 0 rgb(0, 0, 0)';
     document.body.append(el);
-    expect(partMetrics(el)).toEqual({ borderWidth: 3, radius: 10, shadowX: 4, shadowY: 4 });
+    expect(partMetrics(el)).toEqual({ borders: { top: 3, right: 0, bottom: 2, left: 0 }, radius: 10, shadowX: 4, shadowY: 4 });
     el.remove();
   });
 });

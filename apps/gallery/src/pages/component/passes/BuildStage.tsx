@@ -10,7 +10,7 @@ import { Callouts } from './Callouts';
 import { Instance } from './Instance';
 import { measureStage, type StageGeometry } from './measureStage';
 import { Ink, LensView, Paper } from './StageDiagram';
-import { useDrawIn, useFreshBeat, useOverrides, useSlideIntoScene } from './stageEffects';
+import { useDrawIn, useFadeOut, useFreshBeat, useOverrides, useSlideIntoScene } from './stageEffects';
 import { StateChips, TRY_IT } from './StateChips';
 import type { BuildApi } from './useBuild';
 import { useStageMeasure } from './useStageMeasure';
@@ -91,16 +91,21 @@ export function BuildStage({ manifest, build }: { manifest: Manifest; build: Bui
   const drawn = diagram && state.lines ? geometry.parts.filter((p) => state.landed.includes(p.step) && (ready || p.step !== state.fresh)) : [];
   const lit = new Set(hot !== null ? [hot] : drawn.filter((p) => p.step === freshStep).map((p) => p.label));
 
+  // The graph paper fades out for Final (and unmounts at once when the stage stacks, or under reduced motion).
+  const paper = useFadeOut<SVGSVGElement>(state.grid);
+
   useOverrides(stage, anatomy.parts, state.landed, state.scene);
   useDrawIn(ink, drawn.filter((p) => p.step === state.fresh).map((p) => p.label), ready, version);
   useSlideIntoScene(stage, state.scene, geometry);
 
   const size = stageSize(anatomy.parts);
   const instance = <Instance manifest={manifest} patch={patchOf(anatomy, state)} inert={!state.live} />;
+  // Every pass but Final keeps the callouts mounted (hidden off Tokens), so the stage is sized and placed from all of them.
   const callouts = (side: AnatomyPart['side']) =>
-    state.lines ? (
-      <Callouts side={side} parts={anatomy.parts} landed={state.landed} tops={geometry?.tops ?? null} stacked={stacked} onHot={setHot} />
-    ) : null;
+    state.scene ? null : (
+      <Callouts side={side} parts={anatomy.parts} landed={state.lines ? state.landed : null} tops={geometry?.tops ?? null} stacked={stacked} onHot={setHot} />
+    );
+  const column = geometry && !stacked && geometry.column > 0 ? `${geometry.column}px` : undefined;
 
   return (
     <div
@@ -109,10 +114,24 @@ export function BuildStage({ manifest, build }: { manifest: Manifest; build: Bui
       aria-label={`${PASS_NAMES[state.pass]} pass: ${manifest.name}`}
       className="gallery-passes__stage"
       data-stacked={stacked ? '' : undefined}
-      style={{ '--_gallery-passes-lines': String(size.lines), '--_gallery-passes-callouts': String(size.callouts) } as CSSProperties}
+      data-wide={anatomy.wide ? '' : undefined}
+      style={
+        {
+          '--_gallery-passes-lines': String(size.lines),
+          '--_gallery-passes-callouts': String(size.callouts),
+          '--_gallery-passes-column': column,
+        } as CSSProperties
+      }
       onTransitionEnd={() => setSettled((n) => n + 1)}
     >
-      {diagram && state.grid ? <Paper /> : null}
+      {diagram && paper.mounted ? <Paper ref={paper.ref} /> : null}
+      {/* The chips come before the instance in the tab order: Try it makes the instance the next stop. */}
+      {state.chip !== null ? (
+        <div className="gallery-passes__chips">
+          <StateChips labels={anatomy.states.map((s) => s.label)} value={state.chip} onPick={build.pickChip} />
+          {state.live ? <Text>{LIVE_NOTE}</Text> : null}
+        </div>
+      ) : null}
       {callouts('left')}
       {state.scene ? (
         <FinalScene key="final" manifest={manifest} anatomy={anatomy} instance={instance} classes={geometry?.classes ?? ''} />
@@ -124,12 +143,6 @@ export function BuildStage({ manifest, build }: { manifest: Manifest; build: Bui
       {callouts('right')}
       {drawn.map(({ label, lens }) => (lens ? <LensView key={label} manifest={manifest} landed={state.landed} label={label} lens={lens} /> : null))}
       {diagram ? <Ink ref={ink} geometry={geometry} outline={state.outline} drawn={drawn} lit={lit} hot={hot} /> : null}
-      {state.chip !== null ? (
-        <div className="gallery-passes__chips">
-          <StateChips labels={anatomy.states.map((s) => s.label)} value={state.chip} onPick={build.pickChip} />
-          {state.live ? <Text>{LIVE_NOTE}</Text> : null}
-        </div>
-      ) : null}
     </div>
   );
 }
