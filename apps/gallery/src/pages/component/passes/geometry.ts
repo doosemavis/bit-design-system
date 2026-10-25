@@ -66,15 +66,19 @@ export function resolveTouch(box: Rect, m: PartMetrics, touch: Touch): Point {
     case 'bracket':
       return onSide(box, touch.edge, at, BRACKET_GAP);
     case 'strip': {
-      // The hard shadow only shows below and to the right.
-      if (touch.edge === 'right') return onSide(box, 'right', at, m.shadowX / 2);
-      if (touch.edge === 'bottom') return onSide(box, 'bottom', at, m.shadowY / 2);
-      return onSide(box, touch.edge, at, 0);
+      // The hard shadow shows only below and to the right: top maps to the right strip, left to the bottom strip.
+      const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
+      if (touch.edge === 'right' || touch.edge === 'top') {
+        const y = clamp(box.y + box.height * at, box.y + m.shadowY, box.y + box.height + m.shadowY);
+        return { x: box.x + box.width + m.shadowX / 2, y };
+      }
+      const x = clamp(box.x + box.width * at, box.x + m.shadowX, box.x + box.width + m.shadowX);
+      return { x, y: box.y + box.height + m.shadowY / 2 };
     }
     case 'box':
       return onSide(box, touch.edge, at, 0);
     case 'text':
-      return onSide(box, touch.edge, at, TEXT_GAP);
+      return { x: box.x + box.width * at, y: box.y + box.height + TEXT_GAP };
   }
 }
 

@@ -32,6 +32,28 @@ describe('resolveTouch', () => {
   });
 });
 
+describe('resolveTouch on strips and text', () => {
+  const inStrip = (p: { x: number; y: number }) =>
+    (p.x >= 200 && p.x <= 204 && p.y >= 54 && p.y <= 106) || (p.x >= 104 && p.x <= 200 && p.y >= 102 && p.y <= 106);
+  it('keeps every strip touch inside a painted strip', () => {
+    for (const edge of ['top', 'left', 'right', 'bottom'] as Edge[]) {
+      for (const at of [0.01, 0.5, 0.99]) expect(inStrip(touch('strip', edge, at))).toBe(true);
+    }
+  });
+  it('maps top to the right strip and left to the bottom strip', () => {
+    expect(touch('strip', 'top', 0.5)).toEqual({ x: 202, y: 76 });
+    expect(touch('strip', 'left', 0.72)).toEqual({ x: 172, y: 104 });
+  });
+  it('clamps a small at past the unpainted corner', () => {
+    expect(touch('strip', 'bottom', 0.01)).toEqual({ x: 104, y: 104 });
+    expect(touch('strip', 'right', 0.01)).toEqual({ x: 202, y: 54 });
+  });
+  it('puts text under the box whatever the edge', () => {
+    expect(touch('text', 'top', 0.25)).toEqual({ x: 125, y: 104 });
+    expect(touch('text', 'left', 0.25)).toEqual({ x: 125, y: 104 });
+  });
+});
+
 describe('routeLine', () => {
   it('leaves top and bottom vertically first', () => {
     expect(routeLine({ x: 113, y: 65 }, 'top', { x: 40, y: 20 })).toEqual([
