@@ -1,6 +1,10 @@
-import { CodeBlock } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, CodeBlock, Heading, Stack, Text } from '@bit-ds/react';
 import type { CodeLanguage } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
+
+const BORDER = { border: '2px solid var(--bit-color-text)' };
 
 const LANGUAGES: readonly CodeLanguage[] = ['jsx', 'tsx', 'ts', 'html', 'css', 'shell'];
 
@@ -23,6 +27,108 @@ export const codeBlock: Manifest = {
     { label: 'Shell', state: { language: 'shell', code: 'pnpm add @bit-ds/react' } },
     { label: 'No Copy button', state: { copy: false } },
   ],
+  anatomy: {
+    parts: [
+      {
+        label: 'Panel',
+        selector: '.bit-code__block',
+        tokens: ['--bit-code-bg', '--bit-radius-10px'],
+        side: 'right',
+        touch: { kind: 'fill', edge: 'right', at: 0.8, leave: 'right' },
+        off: { '--bit-code-bg': 'transparent' },
+      },
+      {
+        label: 'Edge',
+        selector: '.bit-code__block',
+        tokens: ['--bit-border-width', '--bit-color-accent'],
+        side: 'left',
+        step: 'Accent',
+        touch: { kind: 'ring', edge: 'top', at: 0.12 },
+        off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Bar rule',
+        selector: '.bit-code__bar',
+        tokens: ['--bit-color-accent'],
+        side: 'left',
+        step: 'Accent',
+        touch: { kind: 'ring', edge: 'bottom', at: 0.12, leave: 'left' },
+        off: { '--bit-color-accent': 'transparent' },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-code__block',
+        tokens: ['--bit-shadow-md'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.6 },
+        off: { '--bit-shadow-md': 'none' },
+      },
+      {
+        label: 'Language label',
+        selector: '.bit-code__lang',
+        tokens: ['--bit-font-pixel'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.5 },
+      },
+      {
+        label: 'Code text',
+        selector: '.bit-code__pre',
+        tokens: ['--bit-code-text'],
+        side: 'right',
+        step: 'Text',
+        touch: { kind: 'text', edge: 'bottom', at: 0.45 },
+        off: { '--bit-code-text': 'transparent' },
+      },
+      {
+        label: 'Copy button',
+        selector: '.bit-code__copy',
+        tokens: ['--bit-color-ink', '--bit-code-text'],
+        side: 'right',
+        step: 'Text',
+        touch: { kind: 'box', edge: 'bottom', at: 0.5 },
+        off: { '--bit-color-ink': 'transparent' },
+      },
+      {
+        label: 'Syntax',
+        selector: '.bit-code__token[data-kind="keyword"]',
+        tokens: ['--bit-code-keyword', '--bit-code-number', '--bit-code-comment'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.5 },
+        off: { '--bit-code-keyword': 'transparent', '--bit-code-number': 'transparent', '--bit-code-comment': 'transparent' },
+      },
+      {
+        label: 'Code size',
+        selector: '.bit-code__pre',
+        tokens: ['--bit-font-mono', '--bit-text-14px'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'left' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'No Copy button', state: { copy: false } },
+      { label: 'CSS', state: { language: 'css', code: '.bit-button { height: 40px; }' } },
+    ],
+    scene: {
+      caption: 'In use: a snippet on a docs page',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: BORDER },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Stack, { gap: 8 }, createElement(Heading, { size: 24 }, 'Count your coins'), createElement(Text, null, 'Keep the total in a constant, then show it.')),
+            ),
+            instance,
+            createElement(ScenePiece, null, createElement(Text, { color: 'neutral' }, 'Paste it anywhere in your component.')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['jsx, tsx, ts, html, css, shell'],
     usage: {

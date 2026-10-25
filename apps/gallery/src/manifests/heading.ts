@@ -1,5 +1,9 @@
-import { HEADING_SIZES, Heading } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, HEADING_SIZES, Heading, Stack, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
+
+const BORDER = { border: '2px solid var(--bit-color-text)' };
 
 export const heading: Manifest = {
   name: 'Heading',
@@ -18,6 +22,59 @@ export const heading: Manifest = {
     { label: 'Page title', state: { size: '40' } },
     { label: 'Card title', state: { size: '26' } },
   ],
+  anatomy: {
+    parts: [
+      {
+        label: 'Color',
+        selector: '.bit-heading',
+        tokens: ['--bit-color-text'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.7 },
+        off: { '--bit-color-text': 'transparent' },
+      },
+      {
+        label: 'Face',
+        selector: '.bit-heading',
+        tokens: ['--bit-font-display'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.3 },
+      },
+      {
+        label: 'Size',
+        selector: '.bit-heading',
+        tokens: ['--bit-heading-32px'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'left' },
+      },
+      {
+        label: 'Line height',
+        selector: '.bit-heading',
+        tokens: ['--bit-leading-tight'],
+        side: 'right',
+        touch: { kind: 'bracket', edge: 'right' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Page title', state: { size: '40' } },
+      { label: 'Card title', state: { size: '26' } },
+    ],
+    scene: {
+      caption: 'In use: the top of an article',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: BORDER },
+          createElement(
+            Stack,
+            { gap: 12 },
+            createElement(ScenePiece, null, createElement(Text, { color: 'neutral' }, 'Guides, 6 min read')),
+            instance,
+            createElement(ScenePiece, null, createElement(Text, { size: 18, color: 'neutral' }, 'Start from one color, then let every component follow it.')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Every 2px from 20 to 44', 'Display face'],
     usage: {
