@@ -21,7 +21,7 @@ export const code: Manifest = {
         selector: '.bit-code',
         tokens: ['--bit-code-inline-bg', '--bit-radius-6px'],
         side: 'left',
-        touch: { kind: 'fill', edge: 'left', at: 0.08, leave: 'left' },
+        touch: { kind: 'fill', edge: 'left', at: 0.14, leave: 'left' },
         off: { '--bit-code-inline-bg': 'transparent' },
       },
       {
