@@ -13,6 +13,8 @@ export interface BuildApi {
   /** Plays all four passes locally from Wireframe, then calls onDone (PassesSection pushes ?pass=final). */
   play: (onDone: () => void) => void;
   stop: () => void;
+  /** Cancels any run and shows a pass's end at once, as an arrival does (PassesSection: the URL already names it). */
+  jumpTo: (pass: Pass) => void;
   playing: boolean;
   /** States: apply a chip (a state label, or 'Try it'). */
   pickChip: (label: string) => void;
@@ -91,6 +93,15 @@ export function useBuild(anatomy: ManifestAnatomy, pass: Pass, hold?: number): B
     setPlaying(false);
   }, [clear]);
 
+  const jumpTo = useCallback(
+    (target: Pass) => {
+      clear();
+      setPlaying(false);
+      show(arrival(latest.current.anatomy, target));
+    },
+    [clear, show],
+  );
+
   const play = useCallback(
     (onDone: () => void) => {
       clear();
@@ -116,5 +127,5 @@ export function useBuild(anatomy: ManifestAnatomy, pass: Pass, hold?: number): B
     [clear, show],
   );
 
-  return { state: shown.state, version: shown.version, markForward, play, stop, playing, pickChip };
+  return { state: shown.state, version: shown.version, markForward, play, stop, jumpTo, playing, pickChip };
 }

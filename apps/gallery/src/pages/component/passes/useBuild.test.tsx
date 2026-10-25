@@ -198,6 +198,23 @@ describe('useBuild with reduced motion', () => {
   });
 });
 
+describe('useBuild jumpTo', () => {
+  it('cancels a run and shows the pass end with nothing fresh', () => {
+    const { result } = setup('wireframe');
+    const onDone = vi.fn();
+    act(() => result.current.play(onDone));
+    tick(HOLD);
+    const before = result.current.version;
+    act(() => result.current.jumpTo('states'));
+    expect(result.current.state).toEqual(arrived('states'));
+    expect(result.current.playing).toBe(false);
+    expect(result.current.version).toBeGreaterThan(before);
+    expect(vi.getTimerCount()).toBe(0);
+    tick(HOLD * 20);
+    expect(onDone).not.toHaveBeenCalled();
+  });
+});
+
 describe('useBuild pickChip', () => {
   it('sets a state label as a non-live chip', () => {
     const { result } = setup('states');

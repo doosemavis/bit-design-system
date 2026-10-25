@@ -231,10 +231,12 @@ describe('PassesSection', () => {
     expect(footer()).toHaveTextContent('Shadow: --bit-shadow-md');
   });
 
-  it('Next from Tokens to the same pass never marks forward: no stale replay on Back', async () => {
+  it('picking the pass already shown marks nothing and changes no history', async () => {
     const { router } = setup('/x?pass=tokens');
+    const before = router.state.location.key;
     await userEvent.click(screen.getByRole('radio', { name: 'Tokens' }));
-    expect(router.state.historyAction).not.toBe('PUSH');
+    expect(router.state.location.key).toBe(before);
+    expect(router.state.historyAction).toBe('POP');
   });
 
   describe('Play', () => {
@@ -277,18 +279,50 @@ describe('PassesSection', () => {
       expect(screen.getByText('All 4 seen')).toBeInTheDocument();
     });
 
-    it('Stop leaves the URL unchanged and halts the run', () => {
+    it('Stop halts the run and replaces ?pass= with the stopped pass, with no new entry', () => {
       const { router } = setup('/x');
       const entries = watch(router);
       pressed('Play');
-      tick(HOLD * 2);
+      tick(HOLD * 5);
       pressed('Stop');
       const name = stage().getAttribute('aria-label');
+      expect(name).toBe('States pass: Button');
       tick(HOLD * 20);
-      expect(entries).toEqual([]);
-      expect(router.state.location.search).toBe('');
+      expect(entries).toEqual(['REPLACE ?pass=states']);
       expect(stage().getAttribute('aria-label')).toBe(name);
       expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Next: Final' })).toBeInTheDocument();
+    });
+
+    it('Stop on the URL pass changes no history', () => {
+      const { router } = setup('/x');
+      const entries = watch(router);
+      pressed('Play');
+      tick(HOLD * 0);
+      pressed('Stop');
+      expect(entries).toEqual([]);
+      expect(router.state.location.search).toBe('');
+    });
+
+    it("picking the URL's pass mid-run stops the run and shows that pass's end, with no history change", () => {
+      const { router } = setup('/x');
+      pressed('Play');
+      tick(HOLD * 5);
+      expect(stage()).toHaveAccessibleName('States pass: Button');
+      const entries = watch(router);
+      fireEvent.click(screen.getByRole('radio', { name: 'Wireframe' }));
+      expect(entries).toEqual([]);
+      expect(stage()).toHaveAccessibleName('Wireframe pass: Button');
+      expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
+      tick(HOLD * 20);
+      expect(stage()).toHaveAccessibleName('Wireframe pass: Button');
+    });
+
+    it('Next follows the shown pass mid-run', () => {
+      setup('/x');
+      pressed('Play');
+      tick(HOLD * 5);
+      expect(screen.getByRole('button', { name: 'Next: Final' })).toBeInTheDocument();
     });
 
     it("the pass control's value follows the run", () => {

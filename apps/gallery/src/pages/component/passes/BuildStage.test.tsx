@@ -84,7 +84,7 @@ afterEach(() => {
 });
 
 function api(state: BuildState, version: number, extra: Partial<BuildApi> = {}): BuildApi {
-  return { state, version, markForward: () => {}, play: () => {}, stop: () => {}, playing: false, pickChip: () => {}, ...extra };
+  return { state, version, markForward: () => {}, play: () => {}, stop: () => {}, jumpTo: () => {}, playing: false, pickChip: () => {}, ...extra };
 }
 
 /** Gives the stage's Button the computed border, radius and hard shadow the theme would. */

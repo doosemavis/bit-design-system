@@ -22,7 +22,12 @@ const SHOWS: Readonly<Record<Pass, string>> = {
  * The pass in the URL. Pushes through setPageParam on the pending query, so a draft typed inside the debounce lands in
  * the same entry and every push is already in canonical order.
  */
-export function usePassParam(pendingQuery: () => URLSearchParams): { pass: Pass; setPass: (next: Pass) => void } {
+export function usePassParam(pendingQuery: () => URLSearchParams): {
+  pass: Pass;
+  setPass: (next: Pass) => void;
+  /** Rewrites the URL's pass in place, with no history entry. */
+  replacePass: (next: Pass) => void;
+} {
   const [search, setSearch] = useSearchParams();
   const pass = parsePass(search.get('pass'));
   const setPass = useCallback(
@@ -31,7 +36,13 @@ export function usePassParam(pendingQuery: () => URLSearchParams): { pass: Pass;
     },
     [pass, pendingQuery, setSearch],
   );
-  return { pass, setPass };
+  const replacePass = useCallback(
+    (next: Pass) => {
+      if (next !== pass) setSearch(setPageParam(pendingQuery(), 'pass', next), { replace: true });
+    },
+    [pass, pendingQuery, setSearch],
+  );
+  return { pass, setPass, replacePass };
 }
 
 const nextOf = (pass: Pass): Pass => PASSES[(PASSES.indexOf(pass) + 1) % PASSES.length]!;
@@ -92,7 +103,7 @@ export function PassesSection({ manifest, pendingQuery }: PassesSectionProps) {
 }
 
 function Passes({ manifest, anatomy, pendingQuery }: PassesSectionProps & { anatomy: ManifestAnatomy }) {
-  const { pass, setPass } = usePassParam(pendingQuery);
+  const { pass, setPass, replacePass } = usePassParam(pendingQuery);
   const build = useBuild(anatomy, pass);
   const [seen, setSeen] = useState<ReadonlySet<Pass>>(() => new Set([pass]));
   // What Next announced, and for which pass: any other route to a pass (a radio, an arrow key, Back) clears it, so
@@ -111,12 +122,21 @@ function Passes({ manifest, anatomy, pendingQuery }: PassesSectionProps & { anat
 
   // While a run plays, and after one is stopped, the stage and its caption show the build's pass, not the URL's.
   const shown = build.state.pass;
-  const next = nextOf(pass);
+  const next = nextOf(shown);
 
   const pick = (target: Pass) => {
-    if (target === pass) return;
-    build.markForward();
+    if (target === pass) {
+      // Mid-run or after a Stop the stage can sit elsewhere while the URL already names the target.
+      if (target !== shown) build.jumpTo(target);
+      return;
+    }
+    if (PASSES.indexOf(target) > PASSES.indexOf(shown)) build.markForward();
     setPass(target);
+  };
+
+  const stop = () => {
+    build.stop();
+    replacePass(shown);
   };
 
   const play = () => {
@@ -141,7 +161,7 @@ function Passes({ manifest, anatomy, pendingQuery }: PassesSectionProps & { anat
             value={shown}
             onValueChange={(value) => pick(parsePass(value))}
           />
-          <Button variant="outline" onClick={build.playing ? build.stop : play}>
+          <Button variant="outline" onClick={build.playing ? stop : play}>
             {build.playing ? 'Stop' : 'Play'}
           </Button>
           <Button variant="outline" onClick={goNext}>{`Next: ${NAMES[next]}`}</Button>
