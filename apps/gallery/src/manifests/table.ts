@@ -117,7 +117,7 @@ export const table: Manifest = {
       {
         label: 'Cell padding',
         selector: '.bit-table__body .bit-table__cell',
-        tokens: ['--bit-space-12px', '--bit-space-16px'],
+        tokens: ['--bit-space-16px'],
         side: 'left',
         touch: { kind: 'bracket', edge: 'left' },
       },

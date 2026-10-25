@@ -68,7 +68,7 @@ export const box: Manifest = {
             { gap: 4 },
             createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Build status')),
             instance,
-            createElement(ScenePiece, null, createElement(Text, null, 'The note above sits in its own padded Box.')),
+            createElement(ScenePiece, null, createElement(Text, null, 'The Box above holds its badge inside its own padding.')),
           ),
         ),
     },
