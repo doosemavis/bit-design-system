@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { alert } from '../manifests/alert';
 import { button } from '../manifests/button';
+import { withoutAnatomy } from '../test/fixtures';
 import { DEFAULT_PASS, PAGE_PARAMS, parsePass, PASSES, setPageParam, withPageParams } from './pageParams';
 
 describe('parsePass', () => {
@@ -34,7 +35,7 @@ describe('withPageParams', () => {
 
   it('drops pass on a manifest without anatomy, keeps it on Button', () => {
     const current = new URLSearchParams('pass=tokens');
-    expect(withPageParams(new URLSearchParams(), current, alert).toString()).toBe('');
+    expect(withPageParams(new URLSearchParams(), current, withoutAnatomy(alert)).toString()).toBe('');
     expect(withPageParams(new URLSearchParams(), current, button).toString()).toBe('pass=tokens');
   });
 

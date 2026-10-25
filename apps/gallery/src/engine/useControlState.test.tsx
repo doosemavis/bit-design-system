@@ -5,7 +5,7 @@ import { TYPING_DEBOUNCE_MS, useControlState } from './useControlState';
 import type { ControlStateApi } from './useControlState';
 import { alert } from '../manifests/alert';
 import { button } from '../manifests/button';
-import { numberControlFixture } from '../test/fixtures';
+import { numberControlFixture, withoutAnatomy } from '../test/fixtures';
 
 let api: ControlStateApi | undefined;
 
@@ -20,8 +20,10 @@ function NumberProbe() {
   return null;
 }
 
+const noAnatomy = withoutAnatomy(alert);
+
 function AlertProbe() {
-  api = useControlState(alert);
+  api = useControlState(noAnatomy);
   return null;
 }
 

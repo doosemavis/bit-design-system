@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { badge } from '../manifests/badge';
 import type { Manifest } from '../manifests/types';
+import { withoutAnatomy } from '../test/fixtures';
 import { buildProps } from './buildProps';
 import { defaultState } from './state';
 import { importedProps } from './importedProps';
@@ -10,7 +11,7 @@ import { componentSections } from '../pages/component/sections';
 
 /** Badge with the four hooks: a color axis that starts at none, an imported prop, an HTML override and an extra section. */
 const hooked: Manifest = {
-  ...badge,
+  ...withoutAnatomy(badge),
   controls: [
     { kind: 'select', prop: 'pick', values: ['one', 'two'], default: 'one', virtual: true },
     { kind: 'axis', prop: 'color', values: ['none', 'primary', 'danger'], default: 'none' },

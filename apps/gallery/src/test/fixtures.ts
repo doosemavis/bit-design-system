@@ -9,3 +9,8 @@ export const numberControlFixture: Manifest = {
     { kind: 'boolean', prop: 'animated', default: true },
   ],
 };
+
+/** A real manifest with its anatomy removed, so a test does not depend on which pages have a Passes section. */
+export function withoutAnatomy(manifest: Manifest): Manifest {
+  return { ...manifest, anatomy: undefined };
+}
