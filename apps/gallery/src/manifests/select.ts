@@ -1,4 +1,6 @@
-import { SIZES, Select } from '@bit-ds/react';
+import { createElement } from 'react';
+import { SIZES, Box, Heading, Select, Stack, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { ControlValue, Manifest } from './types';
 
 /** The playground's choices: the five colors, then fruit, so a long list still reads well. */
@@ -70,6 +72,87 @@ export const select: Manifest = {
     { label: 'Small', state: { size: 'sm' } },
     { label: 'Disabled', state: { disabled: true } },
   ],
+  anatomy: {
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-select__control',
+        tokens: ['--bit-border-width', '--bit-radius-10px'],
+        side: 'left',
+        touch: { kind: 'ring', edge: 'left', at: 0.5 },
+        off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Face',
+        selector: '.bit-select__control',
+        tokens: ['--bit-color-surface'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.12 },
+        off: { '--bit-color-surface': 'transparent' },
+      },
+      {
+        label: 'Placeholder',
+        selector: '.bit-select__value',
+        tokens: ['--bit-color-text-muted'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.4 },
+        off: { '--bit-color-text-muted': 'transparent' },
+      },
+      {
+        label: 'Size',
+        selector: '.bit-select__control',
+        tokens: ['--bit-control-height-md'],
+        side: 'right',
+        touch: { kind: 'bracket', edge: 'right' },
+      },
+      {
+        label: 'List',
+        selector: '.bit-select__list',
+        tokens: ['--bit-color-surface', '--bit-shadow-md'],
+        side: 'left',
+        touch: { kind: 'box', edge: 'top' },
+        unseen: 'Opens in the top layer',
+      },
+      {
+        label: 'Option',
+        selector: '.bit-select__option',
+        tokens: ['--bit-radius-6px'],
+        side: 'left',
+        touch: { kind: 'box', edge: 'left' },
+        unseen: 'Opens in the top layer',
+      },
+      {
+        label: 'Chosen option',
+        selector: '.bit-select__option[aria-selected="true"]',
+        tokens: ['--bit-color-primary'],
+        side: 'right',
+        touch: { kind: 'fill', edge: 'left' },
+        unseen: 'Opens in the top layer',
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Multiple', state: { multiple: true } },
+      { label: 'Invalid', state: { invalid: true } },
+      { label: 'Read-only', state: { readOnly: true } },
+      { label: 'Disabled', state: { disabled: true } },
+    ],
+    scene: {
+      caption: 'In use: a filter bar above a list',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Find a color')),
+            instance,
+            createElement(ScenePiece, null, createElement(Text, null, 'Showing every color that matches.')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Combobox and listbox', 'Full keyboard'],
     usage: {

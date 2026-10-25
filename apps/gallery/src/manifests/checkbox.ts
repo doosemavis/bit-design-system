@@ -1,4 +1,6 @@
-import { Checkbox, SIZES } from '@bit-ds/react';
+import { createElement } from 'react';
+import { SIZES, Box, Checkbox, Heading, Stack } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
 import { CheckboxExamples } from '../pages/forms/CheckboxExamples';
 
@@ -25,6 +27,65 @@ export const checkbox: Manifest = {
     { label: 'Read-only', state: { readOnly: true } },
     { label: 'Large', state: { size: 'lg' } },
   ],
+  anatomy: {
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-checkbox__box',
+        tokens: ['--bit-border-width', '--bit-radius-6px'],
+        side: 'left',
+        touch: { kind: 'ring', edge: 'left', at: 0.5 },
+        off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Face',
+        selector: '.bit-checkbox__box',
+        tokens: ['--bit-color-surface'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.5, leave: 'top' },
+        off: { '--bit-color-surface': 'transparent' },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-checkbox__box',
+        tokens: ['--bit-shadow-sm'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.7 },
+        off: { '--bit-shadow-sm': 'none' },
+      },
+      {
+        label: 'Label',
+        selector: '.bit-checkbox__label',
+        tokens: ['--bit-color-text', '--bit-weight-normal'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.5, leave: 'right' },
+        off: { '--bit-color-text': 'transparent' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Indeterminate', state: { indeterminate: true } },
+      { label: 'Invalid', state: { invalid: true } },
+      { label: 'Read-only', state: { readOnly: true } },
+      { label: 'Disabled', state: { disabled: true } },
+    ],
+    scene: {
+      caption: 'In use: a settings list',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Account settings')),
+            createElement(ScenePiece, null, createElement(Checkbox, { defaultChecked: true }, 'Show my name')),
+            instance,
+            createElement(ScenePiece, null, createElement(Checkbox, null, 'Email me updates')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Native <input type="checkbox">', 'Own label', 'Joins a Field'],
     usage: {

@@ -1,4 +1,6 @@
-import { Switch } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Heading, Stack, Switch } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
 
 /** `switch` is a reserved word, so this manifest is `switchManifest`. */
@@ -20,6 +22,71 @@ export const switchManifest: Manifest = {
     { label: 'Small', state: { size: 'sm' } },
     { label: 'Disabled', state: { disabled: true } },
   ],
+  anatomy: {
+    parts: [
+      {
+        label: 'Track edge',
+        selector: '.bit-switch__track',
+        tokens: ['--bit-border-width', '--bit-radius-full'],
+        side: 'left',
+        touch: { kind: 'ring', edge: 'left', at: 0.5 },
+        off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Thumb',
+        selector: '.bit-switch__thumb',
+        tokens: ['--bit-color-surface'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'top', at: 0.5 },
+        off: { '--bit-color-surface': 'transparent' },
+      },
+      {
+        label: 'Track',
+        selector: '.bit-switch__track',
+        tokens: ['--bit-color-neutral-soft'],
+        side: 'right',
+        touch: { kind: 'fill', edge: 'right', at: 0.5, leave: 'top' },
+        off: { '--bit-color-neutral-soft': 'transparent' },
+      },
+      {
+        label: 'Label',
+        selector: '.bit-switch__label',
+        tokens: ['--bit-color-text', '--bit-weight-bold'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.5, leave: 'right' },
+        off: { '--bit-color-text': 'transparent' },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-switch__track',
+        tokens: ['--bit-shadow-sm'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.9 },
+        off: { '--bit-shadow-sm': 'none' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Small', state: { size: 'sm' } },
+      { label: 'Invalid', state: { invalid: true } },
+      { label: 'Disabled', state: { disabled: true } },
+    ],
+    scene: {
+      caption: 'In use: a settings row',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Connections')),
+            instance,
+            createElement(ScenePiece, null, createElement(Switch, { defaultChecked: true }, 'Bluetooth')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Native checkbox, role="switch"', 'Own label', 'Joins a Field'],
     usage: {
