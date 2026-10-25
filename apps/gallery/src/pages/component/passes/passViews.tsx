@@ -37,6 +37,8 @@ export function anchorPoint(box: DOMRect, anchor: AnchorPoint): Point {
       return { x: cx, y: box.bottom };
     case 'left':
       return { x: box.left, y: cy };
+    case 'left-upper':
+      return { x: box.left, y: box.top + box.height / 4 };
     case 'right':
       return { x: box.right, y: cy };
     case 'bottom-right':

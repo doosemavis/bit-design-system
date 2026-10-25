@@ -79,7 +79,7 @@ Added to `apps/gallery/src/manifests/types.ts`:
 
 ```ts
 /** Where a leader line meets the component: a point on the part's box. */
-export type AnchorPoint = 'center' | 'top' | 'bottom' | 'left' | 'right' | 'bottom-right';
+export type AnchorPoint = 'center' | 'top' | 'bottom' | 'left' | 'left-upper' | 'right' | 'bottom-right';
 
 /** One labeled part of a component, for the Tokens pass. */
 export interface AnatomyPart {
@@ -115,7 +115,7 @@ export interface ManifestAnatomy {
 
 | Part | Side | Anchor | Tokens |
 |---|---|---|---|
-| Face | left | center | `--bit-color-primary`, `--bit-weight-bold` |
+| Face | left | left-upper | `--bit-color-primary`, `--bit-weight-bold` |
 | Size | left | left | `--bit-control-height-md` |
 | Edge | right | top | `--bit-border-width`, `--bit-radius-10px` |
 | Shadow | right | bottom-right | `--bit-shadow-md` |

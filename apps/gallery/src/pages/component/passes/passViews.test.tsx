@@ -34,6 +34,7 @@ describe('anchorPoint', () => {
     ['top', { x: 60, y: 20 }],
     ['bottom', { x: 60, y: 60 }],
     ['left', { x: 10, y: 40 }],
+    ['left-upper', { x: 10, y: 30 }],
     ['right', { x: 110, y: 40 }],
     ['bottom-right', { x: 110, y: 60 }],
   ] as const)('%s', (anchor, point) => expect(anchorPoint(box, anchor)).toEqual(point));

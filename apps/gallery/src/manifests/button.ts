@@ -23,7 +23,7 @@ export const button: Manifest = {
   ],
   anatomy: {
     parts: [
-      { label: 'Face', selector: '.bit-button', tokens: ['--bit-color-primary', '--bit-weight-bold'], side: 'left', anchor: 'center' },
+      { label: 'Face', selector: '.bit-button', tokens: ['--bit-color-primary', '--bit-weight-bold'], side: 'left', anchor: 'left-upper' },
       { label: 'Size', selector: '.bit-button', tokens: ['--bit-control-height-md'], side: 'left', anchor: 'left' },
       { label: 'Edge', selector: '.bit-button', tokens: ['--bit-border-width', '--bit-radius-10px'], side: 'right', anchor: 'top' },
       { label: 'Shadow', selector: '.bit-button', tokens: ['--bit-shadow-md'], side: 'right', anchor: 'bottom-right' },

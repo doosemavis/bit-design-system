@@ -165,8 +165,8 @@ export interface ExtraSection {
   Component: ComponentType;
 }
 
-/** Where a leader line meets the component: a point on the part's box. */
-export type AnchorPoint = 'center' | 'top' | 'bottom' | 'left' | 'right' | 'bottom-right';
+/** Where a leader line meets the component: a point on the part's box. `left-upper` is the left edge, a quarter of the way down. */
+export type AnchorPoint = 'center' | 'top' | 'bottom' | 'left' | 'left-upper' | 'right' | 'bottom-right';
 
 /** One labeled part of a component, for the Tokens pass. */
 export interface AnatomyPart {

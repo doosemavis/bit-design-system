@@ -37,6 +37,11 @@ describe('anatomy guard', () => {
     }
   });
 
+  it.each(withAnatomy.map((m) => [m.slug, m] as const))('%s: parts on one element land on different points', (_slug, manifest) => {
+    const points = manifest.anatomy!.parts.map((part) => `${part.selector} ${part.anchor ?? part.side}`);
+    expect(new Set(points).size, points.join(', ')).toBe(points.length);
+  });
+
   it.each(withAnatomy.map((m) => [m.slug, m] as const))('%s: every state patch is valid control state', (_slug, manifest) => {
     for (const { label, state } of manifest.anatomy!.states) {
       const merged = { ...defaultState(manifest), ...state } as ControlState; // patches never hold undefined
