@@ -195,3 +195,32 @@ export function highlightColor(): string {
   const forced = typeof window.matchMedia === 'function' && window.matchMedia('(forced-colors: active)').matches;
   return forced ? 'Highlight' : HIGHLIGHT;
 }
+
+/** The instance's box relative to the stage, and its left padding, for the Wireframe dimensions. */
+export interface BoxMeasure extends Rect {
+  paddingLeft: number;
+}
+
+/** The component's root inside the stage's first `[data-instance]`: `root` (anatomy.root), or its first child. */
+function instanceRoot(stage: HTMLElement, root?: string): HTMLElement | null {
+  return stage.querySelector('[data-instance]')?.querySelector<HTMLElement>(root ?? ':scope > *') ?? null;
+}
+
+export function measureBox(stage: HTMLElement, root?: string): BoxMeasure | null {
+  const target = instanceRoot(stage, root);
+  if (!target) return null;
+  const origin = stage.getBoundingClientRect();
+  const box = target.getBoundingClientRect();
+  return {
+    x: box.left - origin.left,
+    y: box.top - origin.top,
+    width: box.width,
+    height: box.height,
+    paddingLeft: parseFloat(getComputedStyle(target).paddingLeft) || 0,
+  };
+}
+
+/** The classes the rendered root really has: the Final pass's "Reads". */
+export function renderedClasses(stage: HTMLElement, root?: string): string {
+  return instanceRoot(stage, root)?.className ?? '';
+}

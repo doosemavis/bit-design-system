@@ -6,10 +6,12 @@ import {
   calloutTarget,
   highlightColor,
   highlightShape,
+  measureBox,
   needsLoupe,
   parseShadow,
   partMetrics,
   placeCallouts,
+  renderedClasses,
   resolveTouch,
   routeLine,
   type PartMetrics,
@@ -197,5 +199,53 @@ describe('highlightColor', () => {
   it('is the system Highlight under forced colors', () => {
     restore = stubMatchMedia('(forced-colors: active)');
     expect(highlightColor()).toBe('Highlight');
+  });
+});
+
+const domRect = (left: number, top: number, width: number, height: number) =>
+  ({ left, top, width, height, right: left + width, bottom: top + height, x: left, y: top, toJSON: () => ({}) }) as DOMRect;
+
+/** A stage at (100, 50) holding `[data-instance]` with the given children; each child reports `target` as its box. */
+function stageWith(target: DOMRect, ...children: HTMLElement[]) {
+  const stage = document.createElement('div');
+  stage.getBoundingClientRect = () => domRect(100, 50, 600, 300);
+  const instance = document.createElement('div');
+  instance.dataset.instance = '';
+  for (const child of children) {
+    child.getBoundingClientRect = () => target;
+    instance.append(child);
+  }
+  stage.append(instance);
+  return stage;
+}
+const el = (tag: string, className: string) => Object.assign(document.createElement(tag), { className });
+
+describe('measureBox and renderedClasses', () => {
+  it('reads the instance box relative to the stage and its computed left padding', () => {
+    const button = el('button', 'bit-button bit-primary bit-solid bit-md');
+    button.style.paddingLeft = '16px';
+    const stage = stageWith(domRect(350, 180, 80, 40), button);
+    expect(measureBox(stage)).toEqual({ x: 250, y: 130, width: 80, height: 40, paddingLeft: 16 });
+    expect(renderedClasses(stage)).toBe('bit-button bit-primary bit-solid bit-md');
+  });
+
+  it('reads the anatomy root when the component is not the first child', () => {
+    const stage = stageWith(domRect(350, 180, 80, 40), el('span', 'bit-trigger'), el('div', 'bit-tooltip'));
+    stage.querySelector<HTMLElement>('.bit-trigger')!.getBoundingClientRect = () => domRect(100, 50, 10, 10);
+    expect(measureBox(stage, '.bit-tooltip')).toMatchObject({ x: 250, y: 130, width: 80, height: 40 });
+    expect(renderedClasses(stage, '.bit-tooltip')).toBe('bit-tooltip');
+    expect(renderedClasses(stage)).toBe('bit-trigger');
+  });
+
+  it('reads only direct children by default, never a nested part', () => {
+    const outer = el('div', 'outer');
+    outer.append(el('span', 'inner'));
+    expect(renderedClasses(stageWith(domRect(0, 0, 1, 1), outer))).toBe('outer');
+  });
+
+  it('is null and empty without an instance, or without its root', () => {
+    expect(measureBox(document.createElement('div'))).toBeNull();
+    expect(renderedClasses(document.createElement('div'))).toBe('');
+    expect(measureBox(stageWith(domRect(0, 0, 1, 1)), '.nope')).toBeNull();
   });
 });

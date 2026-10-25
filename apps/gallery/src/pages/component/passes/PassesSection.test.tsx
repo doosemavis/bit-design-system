@@ -12,6 +12,8 @@ function setup(path: string, manifest: Manifest = button) {
   return { router, ...utils };
 }
 const stage = () => screen.getByRole('group', { name: /pass: Button$/ });
+/** The caption panel: its "Reads" is the footer's, apart from the stage's own (Final shows its classes under the scene too). */
+const footer = () => screen.getByText('What this pass shows').closest<HTMLElement>('.bit-card__footer')!;
 
 // jsdom has no ResizeObserver: a stand-in that records each callback, so a test can report a resize.
 let resizeCallbacks: (() => void)[] = [];
@@ -149,14 +151,14 @@ describe('PassesSection', () => {
 
   it('reads re-measure on a pass change: Final, then Next to Wireframe', async () => {
     setup('/x?pass=final');
-    await screen.findByText(/bit-button/);
+    await within(footer()).findByText(/bit-button/);
     await userEvent.click(screen.getByRole('button', { name: 'Next: Wireframe' }));
     expect(await screen.findByText('height 0px, padding-left 0px')).toBeInTheDocument();
   });
 
   it("Final reads the element's real classes", async () => {
     setup('/x?pass=final');
-    const reads = await screen.findByText(/bit-button/);
+    const reads = await within(footer()).findByText(/bit-button/);
     expect(reads.textContent!.split(' ')).toEqual(expect.arrayContaining(['bit-button', 'bit-primary', 'bit-solid', 'bit-md']));
     expect(screen.getByText("Default props aren't printed in the code.")).toBeInTheDocument();
   });

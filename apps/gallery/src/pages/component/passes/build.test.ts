@@ -35,7 +35,7 @@ describe('stepsOf', () => {
     expect(run).toHaveLength(4);
     expect(run.map((s) => s.landed)).toEqual([ALL.slice(0, 1), ALL.slice(0, 2), ALL.slice(0, 3), ALL]);
     expect(run.map((s) => s.fresh)).toEqual(ALL);
-    for (const s of run) expect(s).toMatchObject({ lines: true, outline: false });
+    for (const s of run) expect(s).toMatchObject({ lines: true, outline: false, grid: true });
     expect(run[0]?.note).toBe('Edge: --bit-border-width, --bit-radius-10px');
     expect(run[3]).toMatchObject({ landed: ALL, fresh: 'Shadow' });
   });
@@ -48,7 +48,7 @@ describe('stepsOf', () => {
   it('states cycles Default, Disabled, Loading, Default with everything landed', () => {
     const run = stepsOf(anatomy, 'states');
     expect(run.map((s) => s.chip)).toEqual(['Default', 'Disabled', 'Loading', 'Default']);
-    for (const s of run) expect(s).toMatchObject({ landed: ALL, lines: false, live: false, fresh: null });
+    for (const s of run) expect(s).toMatchObject({ landed: ALL, lines: false, live: false, fresh: null, grid: true });
     expect(endOf(anatomy, 'states').chip).toBe('Default');
   });
 

@@ -45,12 +45,13 @@ export function stepsOf(anatomy: ManifestAnatomy, pass: Pass): BuildState[] {
         pass,
         landed: names.slice(0, i + 1),
         fresh: name,
+        grid: true,
         lines: true,
         note: noteFor(anatomy, name),
       }));
     case 'states': {
       const labels = anatomy.states.map((s) => s.label);
-      return [...labels, ...labels.slice(0, 1)].map((chip) => ({ ...BLANK, pass, landed: names, chip }));
+      return [...labels, ...labels.slice(0, 1)].map((chip) => ({ ...BLANK, pass, landed: names, chip, grid: true }));
     }
     case 'final':
       return [{ ...BLANK, pass, landed: names, scene: true, live: true, note: anatomy.scene.caption }];

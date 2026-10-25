@@ -27,14 +27,14 @@ const flushFrames = () =>
   });
 
 let measured = 0;
-function Probe() {
+function Probe({ version, swap = false }: { version?: number; swap?: boolean }) {
   const stage = useRef<HTMLDivElement>(null);
-  const value = useStageMeasure(stage, () => ++measured, 0);
+  const value = useStageMeasure(stage, () => ++measured, 0, version);
   return (
     <div ref={stage}>
       <span data-testid="value">{value}</span>
       <div data-instance="">
-        <span data-testid="instance">instance</span>
+        {swap ? <em data-testid="swapped">swapped</em> : <span data-testid="instance">instance</span>}
       </div>
     </div>
   );
@@ -96,6 +96,30 @@ describe('useStageMeasure', () => {
     await act(async () => fontsReady());
     flushFrames();
     expect(measured).toBe(2);
+  });
+
+  it('a new version schedules one new measure, with no new observer', () => {
+    const { rerender } = render(<Probe version={0} />);
+    flushFrames();
+    expect(measured).toBe(1);
+    rerender(<Probe version={1} />);
+    expect(measured).toBe(1);
+    flushFrames();
+    expect(measured).toBe(2);
+    expect(disconnect).not.toHaveBeenCalled();
+    rerender(<Probe version={1} />);
+    flushFrames();
+    expect(measured).toBe(2);
+  });
+
+  it('a new version watches an instance that mounted since, once', () => {
+    const { rerender } = render(<Probe version={0} />);
+    flushFrames();
+    rerender(<Probe version={1} swap />);
+    flushFrames();
+    const swapped = screen.getByTestId('swapped');
+    expect(observed.filter((target) => target === swapped)).toHaveLength(1);
+    expect(observed.filter((target) => target === swapped.closest('[data-instance]')!.parentElement)).toHaveLength(1);
   });
 
   it('returns empty without ResizeObserver, and never measures', () => {

@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CSSProperties, RefObject } from 'react';
+import type { RefObject } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button, Card, CardBody, CardFooter, Code, SegmentedControl, Stack, Text } from '@bit-ds/react';
-import type { AnatomyPart, Manifest } from '../../../manifests/types';
+import type { Manifest, ManifestAnatomy } from '../../../manifests/types';
 import { parsePass, PASSES, setPageParam } from '../../../engine/pageParams';
 import type { Pass } from '../../../engine/pageParams';
 import { useStageMeasure } from './useStageMeasure';
-import { FinalPass, measureBox, renderedClasses, StatesPass, TokensPass, WireframePass } from './passViews';
-
-const NAMES: Readonly<Record<Pass, string>> = { wireframe: 'Wireframe', tokens: 'Tokens', states: 'States', final: 'Final' };
+import { BuildStage, PASS_NAMES as NAMES } from './BuildStage';
+import { measureBox, renderedClasses } from './geometry';
+import { useBuild } from './useBuild';
 
 /** One sentence per pass, shared by every component. */
 const SHOWS: Readonly<Record<Pass, string>> = {
@@ -17,9 +17,6 @@ const SHOWS: Readonly<Record<Pass, string>> = {
   states: 'The states its props set, side by side. The last one is live: point at it, press it, or Tab to it.',
   final: 'The finished component and the JSX that makes it.',
 };
-
-/** Below this stage width the callouts stack under the instance and the lines go away. */
-const STACK_BELOW = 600;
 
 /** The pass in the URL. Reads, and pushes through setPageParam, so every push is already in canonical order. */
 export function usePassParam(): { pass: Pass; setPass: (next: Pass) => void } {
@@ -32,17 +29,6 @@ export function usePassParam(): { pass: Pass; setPass: (next: Pass) => void } {
     [pass, search, setSearch],
   );
   return { pass, setPass };
-}
-
-/**
- * What the stage must hold on the Tokens pass: a callout is its label line plus one line per token chip, and callouts
- * stack with a gap between them. Each count comes from the side with more of it, so both sides fit.
- */
-export function stageSize(parts: readonly AnatomyPart[]): { lines: number; callouts: number } {
-  const side = (name: AnatomyPart['side']) => parts.filter((part) => part.side === name);
-  const lines = (list: readonly AnatomyPart[]) => list.reduce((sum, part) => sum + 1 + part.tokens.length, 0);
-  const [left, right] = [side('left'), side('right')];
-  return { lines: Math.max(lines(left), lines(right)), callouts: Math.max(left.length, right.length) };
 }
 
 const nextOf = (pass: Pass): Pass => PASSES[(PASSES.indexOf(pass) + 1) % PASSES.length]!;
@@ -58,9 +44,9 @@ function dataReads(manifest: Manifest, pass: Exclude<Pass, MeasuredPass>): strin
 }
 
 /** What Wireframe and Final read: the rendered instance (its sizes, its classes). */
-function measuredReads(pass: MeasuredPass, stage: HTMLElement): string {
-  if (pass === 'final') return renderedClasses(stage);
-  const box = measureBox(stage);
+function measuredReads(pass: MeasuredPass, stage: HTMLElement, root: string | undefined): string {
+  if (pass === 'final') return renderedClasses(stage, root);
+  const box = measureBox(stage, root);
   return box ? `height ${Math.round(box.height)}px, padding-left ${Math.round(box.paddingLeft)}px` : '';
 }
 
@@ -68,8 +54,8 @@ function measuredReads(pass: MeasuredPass, stage: HTMLElement): string {
  * The measured "Reads", through the same measurement as the stage's dimensions, so it follows the instance when it
  * resizes. Keyed by pass, so each pass mounts fresh and measures its own instance.
  */
-function MeasuredReads({ stage, pass }: { stage: RefObject<HTMLElement | null>; pass: MeasuredPass }) {
-  const reads = useStageMeasure(stage, (el) => measuredReads(pass, el), '');
+function MeasuredReads({ stage, pass, root }: { stage: RefObject<HTMLElement | null>; pass: MeasuredPass; root: string | undefined }) {
+  const reads = useStageMeasure(stage, (el) => measuredReads(pass, el, root), '');
   return reads ? <Code>{reads}</Code> : null;
 }
 
@@ -94,21 +80,23 @@ function Pips({ seen }: { seen: ReadonlySet<Pass> }) {
 }
 
 export function PassesSection({ manifest }: { manifest: Manifest }) {
+  return manifest.anatomy ? <Passes manifest={manifest} anatomy={manifest.anatomy} /> : null;
+}
+
+function Passes({ manifest, anatomy }: { manifest: Manifest; anatomy: ManifestAnatomy }) {
   const { pass, setPass } = usePassParam();
+  const build = useBuild(anatomy, pass);
   const [seen, setSeen] = useState<ReadonlySet<Pass>>(() => new Set([pass]));
   // What Next announced, and for which pass: any other route to a pass (a radio, an arrow key, Back) clears it, so
   // the same words can be spoken again by the next Next.
   const [spoken, setSpoken] = useState<{ pass: Pass; text: string } | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const stacked = useStageMeasure(stageRef, (el) => el.getBoundingClientRect().width < STACK_BELOW, false);
 
   useEffect(() => {
     setSeen((current) => (current.has(pass) ? current : new Set([...current, pass])));
     setSpoken((current) => (current?.pass === pass ? current : null));
   }, [pass]);
 
-  if (!manifest.anatomy) return null;
-  const size = stageSize(manifest.anatomy.parts);
   const next = nextOf(pass);
 
   const goNext = () => {
@@ -135,17 +123,8 @@ export function PassesSection({ manifest }: { manifest: Manifest }) {
             {spoken?.pass === pass ? spoken.text : ''}
           </span>
         </div>
-        <div
-          ref={stageRef}
-          role="group"
-          aria-label={`${NAMES[pass]} pass: ${manifest.name}`}
-          className="gallery-passes__stage"
-          style={{ '--_gallery-passes-lines': String(size.lines), '--_gallery-passes-callouts': String(size.callouts) } as CSSProperties}
-        >
-          {pass === 'wireframe' ? <WireframePass manifest={manifest} /> : null}
-          {pass === 'tokens' ? <TokensPass key={String(stacked)} manifest={manifest} stacked={stacked} /> : null}
-          {pass === 'states' ? <StatesPass manifest={manifest} /> : null}
-          {pass === 'final' ? <FinalPass manifest={manifest} /> : null}
+        <div ref={stageRef}>
+          <BuildStage manifest={manifest} build={build} />
         </div>
       </CardBody>
       <CardFooter>
@@ -154,7 +133,7 @@ export function PassesSection({ manifest }: { manifest: Manifest }) {
           <Text size={16}>{`${SHOWS[pass]} The default ${manifest.name}. Change it in the Playground above.`}</Text>
           {pass === 'final' ? <Text>Default props aren&apos;t printed in the code.</Text> : null}
           <Text weight="bold">Reads</Text>
-          {isMeasured(pass) ? <MeasuredReads key={pass} stage={stageRef} pass={pass} /> : <Code>{dataReads(manifest, pass)}</Code>}
+          {isMeasured(pass) ? <MeasuredReads key={pass} stage={stageRef} pass={pass} root={anatomy.root} /> : <Code>{dataReads(manifest, pass)}</Code>}
         </Stack>
       </CardFooter>
     </Card>

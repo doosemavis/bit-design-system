@@ -165,9 +165,6 @@ export interface ExtraSection {
   Component: ComponentType;
 }
 
-/** Where a leader line meets the component: a point on the part's box. `left-upper` is the left edge, a quarter of the way down. */
-export type AnchorPoint = 'center' | 'top' | 'bottom' | 'left' | 'left-upper' | 'right' | 'bottom-right';
-
 export type Edge = 'top' | 'right' | 'bottom' | 'left';
 /** What a part's line touches, and the shape it lights up in. */
 export type HighlightKind = 'ring' | 'fill' | 'bracket' | 'strip' | 'box' | 'text';
@@ -191,8 +188,6 @@ export interface AnatomyPart {
   tokens: readonly string[];
   /** Which column its callout sits in. */
   side: 'left' | 'right';
-  /** Where its leader line lands on the part. Default: the middle of the edge facing its column. */
-  anchor?: AnchorPoint;
   touch: Touch;
   /** Token overrides that make the part draw nothing before it lands. Absent: a measure step (it only lights up). Keys must be in `tokens`. */
   off?: Readonly<Record<string, string>>;
