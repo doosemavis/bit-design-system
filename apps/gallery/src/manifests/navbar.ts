@@ -109,7 +109,7 @@ export const navbar: Manifest = {
       {
         label: 'Action',
         selector: '.bit-navbar__actions .bit-button',
-        tokens: ['--bit-color-primary', '--bit-shadow-md'],
+        tokens: ['--bit-color-primary'],
         side: 'right',
         touch: { kind: 'fill', edge: 'top', at: 0.07 },
         off: { '--bit-color-primary': 'transparent' },
