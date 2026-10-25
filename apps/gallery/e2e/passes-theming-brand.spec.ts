@@ -5,7 +5,7 @@ import { calloutGaps, calloutOverlaps, gotoPass, loupeOverlaps, passesAxe, touch
 /** The Theming and Brand groups' Passes: each slug with its anatomy parts as callouts. Logo is passesExempt. */
 const SLUGS: Record<string, string[]> = {
   bittheme: ['Page color', 'Text color'],
-  icon: ['Glyph', 'Glyph box', 'Size'],
+  icon: ['Glyph', 'Size (16/20/24px scale)'],
   modetoggle: ['Size', 'Pressed', 'Label', 'Edge', 'Surface', 'Shadow'],
 };
 

@@ -62,10 +62,9 @@ export const bitTheme: Manifest = {
     states: [
       { label: 'Dark', state: {} },
       { label: 'Light', state: { mode: 'light' } },
-      { label: 'Power-up theme', state: { theme: 'power-up' } },
     ],
     scene: {
-      caption: 'In use: a dark island on a light page',
+      caption: 'In use: an island in its own mode',
       render: (instance) =>
         createElement(
           Box,

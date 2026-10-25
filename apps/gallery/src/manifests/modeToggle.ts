@@ -27,17 +27,18 @@ export const modeToggle: Manifest = {
       {
         label: 'Pressed',
         selector: '.bit-mode-toggle__option[aria-pressed="true"]',
-        tokens: ['--bit-color-warning'],
+        tokens: ['--bit-color-warning', '--bit-color-warning-contrast'],
         side: 'left',
         touch: { kind: 'fill', edge: 'top', at: 0.2, leave: 'top' },
-        off: { '--bit-color-warning': 'transparent' },
+        off: { '--bit-color-warning': 'transparent', '--bit-color-warning-contrast': 'transparent' },
       },
       {
         label: 'Label',
         selector: '.bit-mode-toggle__option',
-        tokens: ['--bit-font-body', '--bit-weight-bold'],
+        tokens: ['--bit-font-body', '--bit-weight-bold', '--bit-color-text'],
         side: 'left',
         touch: { kind: 'text', edge: 'bottom', at: 0.5, leave: 'bottom' },
+        off: { '--bit-color-text': 'transparent' },
       },
       {
         label: 'Edge',

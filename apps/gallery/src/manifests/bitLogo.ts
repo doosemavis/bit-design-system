@@ -13,7 +13,7 @@ export const bitLogo: Manifest = {
     { kind: 'select', prop: 'era', values: ['none', ...ERAS.map(String)], default: 'none', numeric: true },
   ],
   presets: [{ label: 'Pinned at 32-bit', state: { era: '32' } }],
-  passesExempt: 'One drawn wordmark: it has no token parts to build.',
+  passesExempt: 'One drawn wordmark in fixed era colors: it isn\'t built from layered token parts.',
   docs: {
     badges: ['role="img"', 'Four eras'],
     usage: {

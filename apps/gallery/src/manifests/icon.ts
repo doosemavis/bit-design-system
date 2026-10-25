@@ -53,14 +53,7 @@ export const icon: Manifest = {
         off: { '--bit-color-primary': 'transparent' },
       },
       {
-        label: 'Glyph box',
-        selector: '.bit-icon',
-        tokens: [],
-        side: 'right',
-        touch: { kind: 'box', edge: 'right', at: 0.5 },
-      },
-      {
-        label: 'Size',
+        label: 'Size (16/20/24px scale)',
         selector: '.bit-icon',
         tokens: [],
         side: 'right',
