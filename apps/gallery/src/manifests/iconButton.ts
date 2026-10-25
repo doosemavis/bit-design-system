@@ -1,4 +1,6 @@
-import { COLORS, IconButton, SIZES, VARIANTS } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, COLORS, Heading, IconButton, iconAdd, iconEdit, iconSettings, iconShare, SIZES, Stack, VARIANTS } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { ControlState, Manifest } from './types';
 import { exportNameFor, findIcon, iconHtml, ICONS_CSS_IMPORT, PLAYGROUND_ICONS } from '../pages/icons/iconCatalog';
 
@@ -43,6 +45,66 @@ export const iconButton: Manifest = {
     { label: 'With tooltip', state: { tooltip: 'Delete' } },
     { label: 'Primary solid', state: { iconName: 'add', label: 'Add', color: 'primary', variant: 'solid' } },
   ],
+  anatomy: {
+    // IconButton is a Button with a square width, so the face, edge and shadow tokens live in button.css.
+    css: 'button.css',
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-iconButton',
+        tokens: ['--bit-border-width', '--bit-radius-10px'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.68 },
+        off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Face',
+        selector: '.bit-iconButton',
+        tokens: ['--bit-color-surface'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.3, leave: 'top' },
+        off: { '--bit-color-surface': 'transparent' },
+      },
+      {
+        label: 'Size',
+        selector: '.bit-iconButton',
+        tokens: ['--bit-control-height-md'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'left' },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-iconButton',
+        tokens: ['--bit-color-shadow'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.72 },
+        off: { '--bit-color-shadow': 'transparent' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Danger', state: { color: 'danger' } },
+      { label: 'Primary solid', state: { color: 'primary', variant: 'solid' } },
+    ],
+    scene: {
+      caption: 'In use: an editor toolbar',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 16, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { direction: 'row', gap: 12, align: 'center' },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Level 3')),
+            createElement(ScenePiece, null, createElement(IconButton, { icon: iconAdd, label: 'Add' })),
+            createElement(ScenePiece, null, createElement(IconButton, { icon: iconEdit, label: 'Edit' })),
+            createElement(ScenePiece, null, createElement(IconButton, { icon: iconShare, label: 'Share' })),
+            instance,
+            createElement(ScenePiece, null, createElement(IconButton, { icon: iconSettings, label: 'Settings' })),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Native <button>', 'Square'],
     usage: {

@@ -1,6 +1,7 @@
 import { createElement } from 'react';
-import { Button, Menu } from '@bit-ds/react';
+import { Box, Button, Heading, Menu, Stack } from '@bit-ds/react';
 import type { ChildSpec, Manifest } from './types';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import { MenuExamples } from '../pages/menu/MenuExamples';
 
 
@@ -38,6 +39,77 @@ export const menu: Manifest = {
   ],
   interactive: true,
   extraSection: { id: 'section-examples', title: 'Examples', Component: MenuExamples },
+  anatomy: {
+    // The trigger is a Button, so its parts are seen. The window opens in the top layer, so its parts are listed only.
+    root: '.bit-button',
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-button',
+        tokens: ['--bit-border-width', '--bit-radius-10px'],
+        side: 'left',
+        touch: { kind: 'ring', edge: 'top', at: 0.68 },
+        off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Face',
+        selector: '.bit-button',
+        tokens: ['--bit-color-surface'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.3, leave: 'top' },
+        off: { '--bit-color-surface': 'transparent' },
+      },
+      {
+        label: 'Title',
+        selector: '.bit-button',
+        tokens: ['--bit-weight-bold'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.5 },
+      },
+      {
+        label: 'List',
+        selector: '.bit-menu',
+        tokens: ['--bit-shadow-md', '--bit-color-surface'],
+        side: 'right',
+        touch: { kind: 'box', edge: 'right' },
+        unseen: 'Opens in the top layer',
+      },
+      {
+        label: 'Item',
+        selector: '.bit-menu__item',
+        tokens: ['--bit-color-primary-soft', '--bit-radius-6px'],
+        side: 'right',
+        touch: { kind: 'fill', edge: 'right' },
+        unseen: 'Opens in the top layer',
+      },
+      {
+        label: 'Danger item',
+        selector: '.bit-menu__item[data-danger]',
+        tokens: ['--bit-color-danger-text', '--bit-color-danger'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'right' },
+        unseen: 'Opens in the top layer',
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Small', state: { size: 'sm' } },
+    ],
+    scene: {
+      caption: 'In use: the file menu in a header',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 16, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { direction: 'row', gap: 16, align: 'center', justify: 'between' },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Level 3 save')),
+            instance,
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['WAI-ARIA menu button', 'Top layer'],
     usage: {
