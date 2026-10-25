@@ -3,9 +3,8 @@ import { Box, Button, Stack, Tooltip } from '@bit-ds/react';
 import type { Manifest } from './types';
 import { ScenePiece } from '../pages/component/passes/ScenePiece';
 
-
 /** The bubble draws in the top layer, above the stage's diagram, so a line, dot or highlight on it would be hidden. */
-const UNSEEN = 'Opens in the top layer';
+const UNSEEN = 'Draws in the top layer, above the diagram, so a line can\'t reach it';
 
 export const tooltip: Manifest = {
   name: 'Tooltip',

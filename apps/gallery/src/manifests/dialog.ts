@@ -109,6 +109,7 @@ export const dialog: Manifest = {
       },
       {
         label: 'Footer',
+        // --bit-space-8px is the gap between the footer's buttons; the footer's padding is --bit-space-16px, shared with the header and body.
         selector: '.bit-dialog__footer',
         tokens: ['--bit-space-8px'],
         side: 'right',

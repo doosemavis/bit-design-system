@@ -3,7 +3,6 @@ import { Box, COLORS, Heading, SIZES, Spinner, Stack, Text } from '@bit-ds/react
 import type { Manifest } from './types';
 import { ScenePiece } from '../pages/component/passes/ScenePiece';
 
-
 export const spinner: Manifest = {
   name: 'Spinner',
   slug: 'spinner',
@@ -22,10 +21,12 @@ export const spinner: Manifest = {
       {
         label: 'Ring',
         selector: '.bit-spinner',
-        tokens: ['--bit-color-line'],
+        // Light draws the ring with color-line; dark draws it with color-bg (spinner.css), so both are listed and cleared.
+        tokens: ['--bit-color-line', '--bit-color-bg'],
         side: 'right',
         touch: { kind: 'ring', edge: 'right', at: 0.5 },
-        off: { '--bit-color-line': 'transparent' },
+        off: { '--bit-color-line': 'transparent', '--bit-color-bg': 'transparent' },
+        offOn: 'part',
       },
       {
         label: 'Arc',

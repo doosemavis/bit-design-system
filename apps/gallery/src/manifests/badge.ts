@@ -3,7 +3,6 @@ import { Badge, Box, COLORS, SIZES, Stack, Text } from '@bit-ds/react';
 import type { Manifest } from './types';
 import { ScenePiece } from '../pages/component/passes/ScenePiece';
 
-
 export const badge: Manifest = {
   name: 'Badge',
   slug: 'badge',
