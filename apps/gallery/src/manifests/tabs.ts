@@ -1,4 +1,6 @@
-import { Tabs } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Button, Heading, Stack, Tabs, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { ChildSpec, ControlState, ControlValue, Manifest } from './types';
 
 /** The playground's tabs: the first N of these, with one line of panel text each. */
@@ -56,6 +58,101 @@ export const tabs: Manifest = {
     { label: 'Manual', state: { activation: 'manual' } },
   ],
   interactive: true,
+  anatomy: {
+    parts: [
+      {
+        label: 'Panel edge',
+        selector: '.bit-tabs__panel',
+        tokens: ['--bit-border-width', '--bit-color-line'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'right', at: 0.5 },
+        off: { '--bit-border-width': '0px' },
+        step: 'Edges',
+      },
+      {
+        label: 'Tab edge',
+        selector: '.bit-tabs__tab:last-child',
+        tokens: ['--bit-border-width'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'right', at: 0.5 },
+        off: { '--bit-border-width': '0px' },
+        step: 'Edges',
+      },
+      {
+        label: 'Panel face',
+        selector: '.bit-tabs__panel',
+        tokens: ['--bit-color-surface'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.7 },
+        off: { '--bit-color-surface': 'transparent' },
+      },
+      {
+        label: 'Tab face',
+        selector: '.bit-tabs__tab:not([aria-selected="true"])',
+        tokens: ['--bit-color-neutral-soft', '--bit-color-text-muted'],
+        side: 'right',
+        touch: { kind: 'fill', edge: 'top', at: 0.12 },
+        off: { '--bit-color-neutral-soft': 'transparent' },
+      },
+      {
+        label: 'Power',
+        selector: '.bit-tabs__tab[aria-selected="true"]',
+        tokens: ['--bit-color-primary', '--bit-color-primary-contrast'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'top', at: 0.8 },
+        off: { '--bit-color-primary': 'transparent' },
+        step: 'Power',
+      },
+      {
+        label: 'Slot',
+        selector: '.bit-tabs__slot',
+        tokens: ['--bit-color-primary'],
+        side: 'left',
+        touch: { kind: 'box', edge: 'left', at: 0.5 },
+        off: { '--bit-color-primary': 'transparent' },
+        step: 'Power',
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-tabs__panel',
+        tokens: ['--bit-shadow-md'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.6 },
+        off: { '--bit-shadow-md': 'none' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Manual', state: { activation: 'manual' } },
+      { label: 'Five tabs', state: { tabCount: '5' } },
+      { label: 'Disabled tab', state: { disabledTab: true } },
+    ],
+    scene: {
+      caption: 'In use: the sections of a settings panel',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Heading, { size: 20 }, 'Settings'),
+              createElement(Text, null, 'Pick a section to change how the app looks and behaves.'),
+            ),
+            instance,
+            createElement(
+              Stack,
+              { direction: 'row', gap: 12, justify: 'end' },
+              createElement(ScenePiece, null, createElement(Button, { variant: 'outline' }, 'Cancel')),
+              createElement(ScenePiece, null, createElement(Button, null, 'Save')),
+            ),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['WAI-ARIA tabs', 'Arrow keys', 'Plug-in animation'],
     usage: {
