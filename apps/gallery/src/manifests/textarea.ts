@@ -52,13 +52,6 @@ export const textarea: Manifest = {
         off: { '--bit-color-surface': 'transparent', '--bit-shadow-inset': 'none' },
       },
       {
-        label: 'Size',
-        selector: '.bit-textarea',
-        tokens: ['--bit-control-height-md'],
-        side: 'left',
-        touch: { kind: 'bracket', edge: 'left' },
-      },
-      {
         label: 'Count',
         selector: '.bit-textarea__count',
         tokens: ['--bit-color-text-muted', '--bit-text-14px'],

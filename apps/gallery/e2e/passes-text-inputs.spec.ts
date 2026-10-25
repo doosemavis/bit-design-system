@@ -6,7 +6,7 @@ import { calloutGaps, calloutOverlaps, gotoPass, loupeOverlaps, passesAxe, touch
 const SLUGS = [
   { slug: 'field', parts: ['Label', 'Gap', 'Hint', 'Error'] },
   { slug: 'input', parts: ['Edge', 'Face', 'Size'] },
-  { slug: 'textarea', parts: ['Edge', 'Face', 'Size', 'Count'] },
+  { slug: 'textarea', parts: ['Edge', 'Face', 'Count'] },
 ] as const;
 
 test.describe('Passes: Text inputs', () => {
