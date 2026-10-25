@@ -1,10 +1,10 @@
 import { useRef } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { Code, CodeBlock, Text } from '@bit-ds/react';
-import type { AnatomyPart, AnchorPoint, ControlState, Manifest } from '../../../manifests/types';
-import { renderManifest } from '../../../engine/renderManifest';
+import type { AnatomyPart, AnchorPoint, Manifest } from '../../../manifests/types';
 import { defaultState } from '../../../engine/state';
 import { toJsx } from '../../../code/toJsx';
+import { Instance } from './Instance';
 import { useStageMeasure } from './useStageMeasure';
 
 export interface Point {
@@ -83,22 +83,6 @@ export function measureBox(stage: HTMLElement): BoxMeasure | null {
 /** The classes the rendered element really has: the Final pass's "Reads". */
 export function renderedClasses(stage: HTMLElement): string {
   return stage.querySelector('[data-instance] > *')?.className ?? '';
-}
-
-interface InstanceProps {
-  manifest: Manifest;
-  patch?: Partial<ControlState>;
-  inert?: boolean;
-}
-
-/** The manifest's default state, plus a patch: never the Playground's state, so the chips stay true. */
-function Instance({ manifest, patch = {}, inert = false }: InstanceProps) {
-  const state = { ...defaultState(manifest), ...patch } as ControlState;
-  return (
-    <div data-instance="" inert={inert} className="gallery-passes__instance">
-      {renderManifest(manifest, state, { sample: true })}
-    </div>
-  );
 }
 
 const LINE = { stroke: 'currentColor', strokeWidth: 1.5, fill: 'none' } as const;

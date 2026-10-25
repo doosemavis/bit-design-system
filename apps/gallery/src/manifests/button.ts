@@ -1,4 +1,6 @@
-import { Button, COLORS, SIZES, VARIANTS } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Button, COLORS, Heading, SIZES, Stack, Text, VARIANTS } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
 
 export const button: Manifest = {
@@ -64,7 +66,28 @@ export const button: Manifest = {
       { label: 'Disabled', state: { disabled: true } },
       { label: 'Loading', state: { loading: true } },
     ],
-    scene: { caption: 'In use: the main action in a dialog', render: (instance) => instance },
+    scene: { caption: 'In use: the main action in a dialog', render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Heading, { size: 20 }, 'Save changes?'),
+              createElement(Text, null, 'Your theme edits stay in this tab until you save them.'),
+            ),
+            createElement(
+              Stack,
+              { direction: 'row', gap: 12, justify: 'end' },
+              createElement(ScenePiece, null, createElement(Button, { variant: 'outline' }, 'Cancel')),
+              instance,
+            ),
+          ),
+        ),
+    },
   },
   docs: {
     badges: ['Native <button>', 'Keyboard ready', 'asChild for links'],
