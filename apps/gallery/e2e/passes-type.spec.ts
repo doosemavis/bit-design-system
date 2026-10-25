@@ -6,8 +6,8 @@ import { calloutGaps, calloutOverlaps, gotoPass, loupeOverlaps, passesAxe, touch
 const SLUGS: Record<string, string[]> = {
   code: ['Pill', 'Text color', 'Font'],
   codeblock: ['Panel', 'Edge', 'Bar rule', 'Shadow', 'Language label', 'Code font and size', 'Code text', 'Copy button', 'Syntax'],
-  heading: ['Color', 'Face', 'Size', 'Line height'],
-  text: ['Color', 'Face', 'Size', 'Line height'],
+  heading: ['Color', 'Face', 'Line box (size × line height)'],
+  text: ['Color', 'Face', 'Line box (size × line height)'],
 };
 
 test.describe('Passes: Type', () => {

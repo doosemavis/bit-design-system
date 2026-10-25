@@ -40,16 +40,10 @@ export const heading: Manifest = {
         touch: { kind: 'text', edge: 'bottom', at: 0.3 },
       },
       {
-        label: 'Size',
+        // The box is font size × line height tall, so the bracket names both tokens.
+        label: 'Line box (size × line height)',
         selector: '.bit-heading',
-        tokens: ['--bit-heading-32px'],
-        side: 'left',
-        touch: { kind: 'bracket', edge: 'left' },
-      },
-      {
-        label: 'Line height',
-        selector: '.bit-heading',
-        tokens: ['--bit-leading-tight'],
+        tokens: ['--bit-heading-32px', '--bit-leading-tight'],
         side: 'right',
         touch: { kind: 'bracket', edge: 'right' },
       },

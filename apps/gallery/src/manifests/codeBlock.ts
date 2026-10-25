@@ -101,7 +101,7 @@ export const codeBlock: Manifest = {
         selector: '.bit-code__pre',
         tokens: ['--bit-font-mono', '--bit-text-14px'],
         side: 'left',
-        touch: { kind: 'bracket', edge: 'left' },
+        touch: { kind: 'text', edge: 'bottom', at: 0.2 },
       },
     ],
     states: [

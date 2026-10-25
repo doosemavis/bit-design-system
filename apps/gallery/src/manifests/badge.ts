@@ -49,13 +49,6 @@ export const badge: Manifest = {
         touch: { kind: 'text', edge: 'bottom', at: 0.5, leave: 'left' },
       },
       {
-        label: 'Shape',
-        selector: '.bit-badge',
-        tokens: ['--bit-radius-full'],
-        side: 'right',
-        touch: { kind: 'bracket', edge: 'right' },
-      },
-      {
         label: 'Shadow',
         selector: '.bit-badge',
         tokens: ['--bit-shadow-sm'],

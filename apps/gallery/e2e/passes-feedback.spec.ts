@@ -6,7 +6,7 @@ import { calloutGaps, calloutOverlaps, expectLinesDrawn, gotoPass, loupeOverlaps
 const GROUP: Record<string, string[]> = {
   alert: ['Edge', 'Fill', 'Shadow', 'Title', 'Message'],
   avatar: ['Edge', 'Face', 'Initials', 'Size', 'Shadow'],
-  badge: ['Edge', 'Face', 'Label', 'Shape', 'Shadow'],
+  badge: ['Edge', 'Face', 'Label', 'Shadow'],
   dialog: ['Edge', 'Surface', 'Shadow', 'Title bar', 'Body', 'Footer'],
   spinner: ['Ring', 'Arc', 'Size'],
   tooltip: ['Bubble', 'Type', 'Corner'],
