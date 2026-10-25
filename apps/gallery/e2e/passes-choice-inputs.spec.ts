@@ -12,14 +12,6 @@ const COMPONENTS: readonly { slug: string; parts: readonly string[] }[] = [
   { slug: 'switch', parts: ['Track edge', 'Thumb', 'Track', 'Label', 'Shadow'] },
 ];
 
-/**
- * Known engine limit, reported to the controller: a fill dot sits 10px inside the border (FILL_INSET in geometry.ts).
- * The Switch thumb is 16px with a 3px border, so its padding box is only 10px wide and the dot lands exactly on the
- * boundary between face and border, which the touch rule reads as outside. Only this message is tolerated, and only
- * for the Switch.
- */
-const KNOWN_TOUCH_LIMITS: Readonly<Record<string, RegExp>> = { switch: /^Thumb \(fill\): outside the padding box/ };
-
 test.describe('Passes: Choice inputs', () => {
   for (const mode of MODES) {
     test.describe(`${mode} mode`, () => {
@@ -35,10 +27,7 @@ test.describe('Passes: Choice inputs', () => {
           const callouts = page.locator('[role="listitem"][data-part]');
           await expect(callouts).toHaveCount(parts.length);
           for (const label of parts) await expect(page.locator(`[role="listitem"][data-part="${label}"]`)).toHaveCount(1);
-          const known = KNOWN_TOUCH_LIMITS[slug];
-          await expect
-            .poll(async () => (await touchErrors(page)).filter((e) => !known?.test(e)), { message: `${slug} touch rule` })
-            .toEqual([]);
+          await expect.poll(() => touchErrors(page), { message: `${slug} touch rule` }).toEqual([]);
           await expect.poll(() => calloutGaps(page), { message: `${slug} callout ends` }).toEqual([]);
           await expect.poll(() => loupeOverlaps(page), { message: `${slug} loupe placement` }).toEqual([]);
           await expect.poll(() => calloutOverlaps(page), { message: `${slug} callout placement` }).toEqual([]);
