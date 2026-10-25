@@ -1,8 +1,9 @@
 import { createElement } from 'react';
 import type { ReactElement } from 'react';
-import { SPACE_STEPS, Stack } from '@bit-ds/react';
+import { Box, Heading, SPACE_STEPS, Stack, Text } from '@bit-ds/react';
 import type { StackProps } from '@bit-ds/react';
 import type { ControlState, Manifest } from './types';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import { StackDemo } from '../demos/StackDemo';
 
 /** The Box's width: px as a number, or the string '100%'. */
@@ -71,6 +72,49 @@ export const stack: Manifest = {
     { label: 'Row, centered', state: { direction: 'row', align: 'center', gap: '16' } },
     { label: 'Row, space between', state: { direction: 'row', justify: 'between' } },
   ],
+  anatomy: {
+    root: '.bit-stack',
+    parts: [
+      {
+        label: 'Gap, One to Two',
+        selector: '.bit-stack > :nth-child(2)',
+        tokens: ['--bit-space-12px'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'top', at: 0.15, leave: 'left' },
+      },
+      {
+        label: 'Gap, Two to Three',
+        selector: '.bit-stack > :nth-child(3)',
+        tokens: ['--bit-space-12px'],
+        side: 'right',
+        touch: { kind: 'bracket', edge: 'top', at: 0.85, leave: 'right' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Row', state: { direction: 'row' } },
+      { label: 'Row, centered', state: { direction: 'row', align: 'center', gap: '16' } },
+    ],
+    scene: {
+      caption: 'In use: the labels on an issue',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Heading, { size: 20 }, 'Labels'),
+              createElement(Text, null, 'Each label sits one gap from the next.'),
+            ),
+            instance,
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Layout', 'Every prop is a data attribute, never a class'],
     usage: {

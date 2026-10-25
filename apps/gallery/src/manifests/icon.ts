@@ -1,5 +1,7 @@
-import { COLORS, Icon, SIZES } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, COLORS, Icon, SIZES, Stack, Text } from '@bit-ds/react';
 import type { IconData } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { ControlState, Manifest } from './types';
 import { AllIcons } from '../pages/icons/AllIcons';
 import { exportNameFor, findIcon, iconHtml, ICONS_CSS_IMPORT, PLAYGROUND_ICONS } from '../pages/icons/iconCatalog';
@@ -39,6 +41,51 @@ export const icon: Manifest = {
     { label: 'Danger delete', state: { iconName: 'delete', color: 'danger' } },
     { label: 'Filled heart', state: { iconName: 'favorite', iconFilled: true, color: 'danger' } },
   ],
+  anatomy: {
+    base: { color: 'primary' },
+    parts: [
+      {
+        label: 'Glyph',
+        selector: '.bit-icon',
+        tokens: ['--bit-color-primary'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.35, leave: 'left' },
+        off: { '--bit-color-primary': 'transparent' },
+      },
+      {
+        label: 'Size (16/20/24px scale)',
+        selector: '.bit-icon',
+        tokens: [],
+        side: 'right',
+        touch: { kind: 'bracket', edge: 'bottom' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Filled', state: { iconFilled: true } },
+      { label: 'Large', state: { size: 'lg' } },
+      { label: 'Danger', state: { color: 'danger' } },
+    ],
+    scene: {
+      caption: 'In use: beside a label in a list row',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 16, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 12 },
+            createElement(ScenePiece, null, createElement(Text, null, 'Saved for later')),
+            createElement(
+              Stack,
+              { direction: 'row', gap: 8, align: 'center' },
+              instance,
+              createElement(ScenePiece, null, createElement(Text, null, 'Add to favorites')),
+            ),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Inline <svg>', 'Apache 2.0 artwork'],
     usage: {

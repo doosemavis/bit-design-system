@@ -1,7 +1,8 @@
 import { createElement } from 'react';
 import type { ComponentProps, ReactElement } from 'react';
-import { Alert, COLORS } from '@bit-ds/react';
+import { Alert, Box, COLORS, Field, Heading, Input, Stack } from '@bit-ds/react';
 import type { ControlState, Manifest } from './types';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import { AlertDemo } from '../demos/AlertDemo';
 
 const dismissible = (state: ControlState) => state.dismissible === true;
@@ -47,6 +48,72 @@ export const alert: Manifest = {
     },
   },
   interactive: dismissible,
+  anatomy: {
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-alert',
+        tokens: ['--bit-border-width', '--bit-color-line', '--bit-radius-10px'],
+        side: 'left',
+        touch: { kind: 'ring', edge: 'top', at: 0.2 },
+        off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Fill',
+        selector: '.bit-alert',
+        tokens: ['--bit-color-neutral-soft'],
+        side: 'right',
+        touch: { kind: 'fill', edge: 'right', at: 0.3 },
+        off: { '--bit-color-neutral-soft': 'transparent' },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-alert',
+        tokens: ['--bit-color-shadow'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.72 },
+        off: { '--bit-color-shadow': 'transparent' },
+      },
+      {
+        label: 'Title',
+        selector: '.bit-alert__title',
+        tokens: ['--bit-font-display', '--bit-text-18px'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.05, leave: 'left' },
+      },
+      {
+        label: 'Message',
+        selector: '.bit-alert__body',
+        tokens: ['--bit-text-16px'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.3 },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Danger solid', state: { color: 'danger', variant: 'solid', title: 'Something broke' } },
+      { label: 'No title', state: { title: '' } },
+    ],
+    scene: {
+      caption: 'In use: a notice at the top of a form',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Create your account')),
+            instance,
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Field, { label: 'Email', children: createElement(Input, { placeholder: 'you@example.com' }) }),
+            ),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['role="status"', 'Outline or solid', 'Title in the display face'],
     usage: {

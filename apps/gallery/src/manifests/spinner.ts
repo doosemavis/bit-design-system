@@ -1,5 +1,7 @@
-import { COLORS, SIZES, Spinner } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, COLORS, Heading, SIZES, Spinner, Stack, Text } from '@bit-ds/react';
 import type { Manifest } from './types';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 
 export const spinner: Manifest = {
   name: 'Spinner',
@@ -14,6 +16,63 @@ export const spinner: Manifest = {
     { kind: 'text', prop: 'aria-label', default: 'Loading coins', label: 'aria-label' },
   ],
   presets: [{ label: 'Large neutral', state: { color: 'neutral', size: 'lg' } }],
+  anatomy: {
+    parts: [
+      {
+        label: 'Ring',
+        selector: '.bit-spinner',
+        // Light draws the ring with color-line; dark draws it with color-bg (spinner.css), so both are listed and cleared.
+        tokens: ['--bit-color-line', '--bit-color-bg'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'right', at: 0.5 },
+        off: { '--bit-color-line': 'transparent', '--bit-color-bg': 'transparent' },
+        offOn: 'part',
+      },
+      {
+        label: 'Arc',
+        selector: '.bit-spinner',
+        tokens: ['--bit-color-primary'],
+        side: 'left',
+        touch: { kind: 'ring', edge: 'top', at: 0.5 },
+        off: { '--bit-color-primary': 'transparent' },
+      },
+      {
+        label: 'Size',
+        selector: '.bit-spinner',
+        tokens: ['--bit-control-height-md'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'left' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Neutral', state: { color: 'neutral' } },
+      { label: 'Large', state: { size: 'lg' } },
+    ],
+    scene: {
+      caption: 'In use: a loading panel',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { direction: 'row', gap: 16, align: 'center' },
+            instance,
+            createElement(
+              ScenePiece,
+              null,
+              createElement(
+                Stack,
+                { gap: 4 },
+                createElement(Heading, { size: 20 }, 'Loading coins'),
+                createElement(Text, null, 'Counting your high scores.'),
+              ),
+            ),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['role="status"'],
     usage: {

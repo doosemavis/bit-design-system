@@ -1,4 +1,6 @@
-import { Button, COLORS, SIZES, VARIANTS } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Button, COLORS, Heading, SIZES, Stack, Text, VARIANTS } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
 
 export const button: Manifest = {
@@ -23,16 +25,65 @@ export const button: Manifest = {
   ],
   anatomy: {
     parts: [
-      { label: 'Face', selector: '.bit-button', tokens: ['--bit-color-primary', '--bit-weight-bold'], side: 'left', anchor: 'left-upper' },
-      { label: 'Size', selector: '.bit-button', tokens: ['--bit-control-height-md'], side: 'left', anchor: 'left' },
-      { label: 'Edge', selector: '.bit-button', tokens: ['--bit-border-width', '--bit-radius-10px'], side: 'right', anchor: 'top' },
-      { label: 'Shadow', selector: '.bit-button', tokens: ['--bit-shadow-md'], side: 'right', anchor: 'bottom-right' },
+      {
+        label: 'Edge',
+        selector: '.bit-button',
+        tokens: ['--bit-border-width', '--bit-radius-10px'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.68 },
+        off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Face',
+        selector: '.bit-button',
+        tokens: ['--bit-color-primary', '--bit-weight-bold'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.3, leave: 'top' },
+        off: { '--bit-color-primary': 'transparent' },
+      },
+      {
+        label: 'Size',
+        selector: '.bit-button',
+        tokens: ['--bit-control-height-md'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'left' },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-button',
+        tokens: ['--bit-shadow-md'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.72 },
+        off: { '--bit-shadow-md': 'none' },
+      },
     ],
     states: [
       { label: 'Default', state: {} },
       { label: 'Disabled', state: { disabled: true } },
       { label: 'Loading', state: { loading: true } },
     ],
+    scene: { caption: 'In use: the main action in a dialog', render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Heading, { size: 20 }, 'Save changes?'),
+              createElement(Text, null, 'Your theme edits stay in this tab until you save them.'),
+            ),
+            createElement(
+              Stack,
+              { direction: 'row', gap: 12, justify: 'end' },
+              createElement(ScenePiece, null, createElement(Button, { variant: 'outline' }, 'Cancel')),
+              instance,
+            ),
+          ),
+        ),
+    },
   },
   docs: {
     badges: ['Native <button>', 'Keyboard ready', 'asChild for links'],

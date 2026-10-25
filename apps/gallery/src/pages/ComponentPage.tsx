@@ -47,7 +47,7 @@ export function ComponentPage({ manifest }: ComponentPageProps) {
       </PageSection>
       {manifest.anatomy ? (
         <PageSection {...SECTIONS.passes}>
-          <PassesSection manifest={manifest} />
+          <PassesSection manifest={manifest} pendingQuery={controls.pendingQuery} />
         </PageSection>
       ) : null}
       {axes ? (

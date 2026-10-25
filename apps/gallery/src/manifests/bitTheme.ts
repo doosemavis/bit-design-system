@@ -1,4 +1,6 @@
-import { BitTheme } from '@bit-ds/react';
+import { createElement } from 'react';
+import { BitTheme, Box, Heading, Stack, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
 import { BitThemeExamples } from '../pages/theme/BitThemeExamples';
 
@@ -35,6 +37,53 @@ export const bitTheme: Manifest = {
     { label: 'Theme by name', state: { theme: 'power-up' } },
   ],
   extraSection: { id: 'section-examples', title: 'Examples', Component: BitThemeExamples },
+  anatomy: {
+    css: 'theme.css',
+    parts: [
+      {
+        label: 'Page color',
+        selector: '.bit-theme',
+        tokens: ['--bit-color-bg'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.5, leave: 'left' },
+        off: { '--bit-color-bg': 'transparent' },
+        offOn: 'part',
+      },
+      {
+        label: 'Text color',
+        selector: '.bit-theme',
+        tokens: ['--bit-color-text'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.3, leave: 'right' },
+        off: { '--bit-color-text': 'transparent' },
+        offOn: 'part',
+      },
+    ],
+    states: [
+      { label: 'Dark', state: {} },
+      { label: 'Light', state: { mode: 'light' } },
+    ],
+    scene: {
+      caption: 'In use: an island in its own mode',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Heading, { size: 20 }, 'Release notes'),
+              createElement(Text, null, 'The page keeps its own mode. The panel below sets its own.'),
+            ),
+            instance,
+            createElement(ScenePiece, null, createElement(Text, null, 'Back on the page again, in its own colors.')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['bit-theme-power-up, bit-light, bit-dark', 'asChild'],
     usage: {

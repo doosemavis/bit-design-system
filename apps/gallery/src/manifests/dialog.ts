@@ -1,8 +1,9 @@
 import { createElement } from 'react';
 import type { ReactElement } from 'react';
-import { Dialog, SIZES } from '@bit-ds/react';
+import { Box, Button, Dialog, SIZES, Stack, Text } from '@bit-ds/react';
 import type { DialogProps } from '@bit-ds/react';
 import type { ChildSpec, ControlState, Manifest } from './types';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import { DialogDemo } from '../demos/DialogDemo';
 
 /** The two dialogs the page shows: a calm save, and an alert that deletes. */
@@ -33,6 +34,8 @@ const indent = (jsx: string) =>
     .map((line) => `  ${line}`)
     .join('\n');
 
+const UNSEEN = 'Opens only with showModal(), which would make the page inert';
+
 export const dialog: Manifest = {
   name: 'Dialog',
   slug: 'dialog',
@@ -60,6 +63,81 @@ export const dialog: Manifest = {
     },
   },
   interactive: true,
+  anatomy: {
+    // A closed Dialog isn't mounted: the stage shows its trigger, and every part is listed without a line.
+    root: '.bit-button',
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-dialog',
+        tokens: ['--bit-border-width'],
+        side: 'left',
+        touch: { kind: 'ring', edge: 'top', at: 0.68 },
+        unseen: UNSEEN,
+      },
+      {
+        label: 'Surface',
+        selector: '.bit-dialog',
+        tokens: ['--bit-color-surface'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.3, leave: 'top' },
+        unseen: UNSEEN,
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-dialog',
+        tokens: ['--bit-shadow-lg'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.72 },
+        unseen: UNSEEN,
+      },
+      {
+        label: 'Title bar',
+        selector: '.bit-dialog__header',
+        tokens: ['--bit-color-primary'],
+        side: 'left',
+        touch: { kind: 'box', edge: 'top', at: 0.5 },
+        unseen: UNSEEN,
+      },
+      {
+        label: 'Body',
+        selector: '.bit-dialog__body',
+        tokens: ['--bit-space-16px'],
+        side: 'right',
+        touch: { kind: 'box', edge: 'right', at: 0.5 },
+        unseen: UNSEEN,
+      },
+      {
+        label: 'Footer',
+        // --bit-space-8px is the gap between the footer's buttons; the footer's padding is --bit-space-16px, shared with the header and body.
+        selector: '.bit-dialog__footer',
+        tokens: ['--bit-space-8px'],
+        side: 'right',
+        touch: { kind: 'box', edge: 'bottom', at: 0.5 },
+        unseen: UNSEEN,
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Alert', state: { alert: true, title: 'Delete report?' } },
+      { label: 'Small', state: { size: 'sm' } },
+    ],
+    scene: {
+      caption: 'In use: opened from a toolbar',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 16, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { direction: 'row', gap: 12, align: 'center' },
+            createElement(ScenePiece, null, createElement(Text, { weight: 'bold' }, 'Q3 report')),
+            createElement(ScenePiece, null, createElement(Button, { variant: 'outline', color: 'neutral' }, 'Share')),
+            instance,
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Native <dialog>', 'Pixel fold'],
     usage: {

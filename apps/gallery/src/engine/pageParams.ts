@@ -5,6 +5,8 @@
  * already canonical.
  */
 
+import type { Manifest } from '../manifests/types';
+
 export const PASSES = ['wireframe', 'tokens', 'states', 'final'] as const;
 export type Pass = (typeof PASSES)[number];
 export const DEFAULT_PASS: Pass = 'wireframe';
@@ -17,6 +19,8 @@ export function parsePass(raw: string | null): Pass {
 interface PageParam {
   /** The canonical value to keep, or undefined to drop the key (its default, or a value it doesn't know). */
   parse: (raw: string) => string | undefined;
+  /** Whether the key means anything on this page; where it doesn't, withPageParams drops it. Default: everywhere. */
+  appliesTo?: (manifest: Manifest) => boolean;
 }
 
 export const PAGE_PARAMS: Readonly<Record<string, PageParam>> = {
@@ -25,13 +29,15 @@ export const PAGE_PARAMS: Readonly<Record<string, PageParam>> = {
       const pass = parsePass(raw);
       return pass === DEFAULT_PASS ? undefined : pass;
     },
+    appliesTo: (manifest) => manifest.anatomy !== undefined,
   },
 };
 
-/** `next`'s control keys, then each page key from `current` that parses, in registry order. A new object. */
-export function withPageParams(next: URLSearchParams, current: URLSearchParams): URLSearchParams {
-  const out = new URLSearchParams([...next].filter(([key]) => !(key in PAGE_PARAMS)));
+/** `next`'s control keys, then each page key from `current` that parses, in registry order, minus those that don't apply to `manifest`. A new object. */
+export function withPageParams(next: URLSearchParams, current: URLSearchParams, manifest?: Manifest): URLSearchParams {
+  const out = new URLSearchParams([...next].filter(([key]) => !Object.hasOwn(PAGE_PARAMS, key)));
   for (const [key, param] of Object.entries(PAGE_PARAMS)) {
+    if (manifest !== undefined && param.appliesTo?.(manifest) === false) continue;
     const raw = current.get(key);
     const value = raw === null ? undefined : param.parse(raw);
     if (value !== undefined) out.append(key, value);
@@ -44,7 +50,7 @@ export function withPageParams(next: URLSearchParams, current: URLSearchParams):
  * canonical order withPageParams writes: control keys as they were, then page keys in registry order. A new object.
  */
 export function setPageParam(current: URLSearchParams, key: string, value: string | undefined): URLSearchParams {
-  if (!(key in PAGE_PARAMS)) throw new Error(`${key} is not a page key`);
+  if (!Object.hasOwn(PAGE_PARAMS, key)) throw new Error(`${key} is not a page key`);
   const updated = new URLSearchParams([...current].filter(([name]) => name !== key));
   if (value !== undefined) updated.append(key, value);
   return withPageParams(updated, updated);

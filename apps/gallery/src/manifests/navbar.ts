@@ -1,6 +1,7 @@
 import { createElement } from 'react';
 import type { ReactElement } from 'react';
-import { Button, Navbar } from '@bit-ds/react';
+import { Box, Button, Navbar, Stack, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { NavbarProps } from '@bit-ds/react';
 import type { ChildSpec, ControlState, Manifest } from './types';
 import { NavbarDemo } from '../demos/NavbarDemo';
@@ -10,6 +11,9 @@ import { NavbarExamples } from '../pages/navbar/NavbarExamples';
 const onBar = (state: ControlState) => state.variant === 'bar';
 const actionsJsx = (state: ControlState) =>
   onBar(state) ? '<Button variant="outline" color="neutral" size="sm">Sign in</Button>' : '<Button size="sm">Sign in</Button>';
+
+/** The room the scene's Navbar needs to show brand, three links and an action without crowding. */
+const SCENE_MIN_WIDTH = 'min(34rem, 100%)';
 
 const LINKS: readonly ChildSpec[] = [
   { component: 'NavbarLink', props: { href: '/games', current: true }, children: 'Games' },
@@ -53,6 +57,114 @@ export const navbar: Manifest = {
   // The row of links is plain HTML and CSS; folding them into a Menu needs React.
   interactive: (state) => state.collapse !== 'never',
   extraSection: { id: 'section-examples', title: 'Examples', Component: NavbarExamples },
+  anatomy: {
+    root: '.bit-navbar',
+    wide: true,
+    base: { collapse: 'never' },
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-navbar',
+        tokens: ['--bit-border-width', '--bit-color-line'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.8 },
+        off: { '--bit-border-width': '0px' },
+        step: 'Edges',
+      },
+      {
+        label: 'Pill edge',
+        selector: '.bit-navbar__links',
+        tokens: ['--bit-border-width', '--bit-color-line'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.5 },
+        off: { '--bit-border-width': '0px' },
+        step: 'Edges',
+      },
+      {
+        label: 'Pill face',
+        selector: '.bit-navbar__links',
+        tokens: ['--bit-color-neutral-soft'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'bottom', at: 0.5 },
+        off: { '--bit-color-neutral-soft': 'transparent' },
+        offOn: 'part',
+      },
+      {
+        label: 'Face',
+        selector: '.bit-navbar',
+        tokens: ['--bit-color-surface'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.5 },
+        off: { '--bit-color-surface': 'transparent' },
+      },
+      {
+        label: 'Current link',
+        selector: '.bit-navbar__link[aria-current="page"]',
+        tokens: ['--bit-color-primary', '--bit-color-primary-contrast'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'top', at: 0.3 },
+        off: { '--bit-color-primary': 'transparent' },
+        step: 'Current link',
+      },
+      {
+        label: 'Action',
+        selector: '.bit-navbar__actions .bit-button',
+        tokens: ['--bit-color-primary'],
+        side: 'right',
+        touch: { kind: 'fill', edge: 'top', at: 0.07 },
+        off: { '--bit-color-primary': 'transparent' },
+        offOn: 'part',
+        step: 'Current link',
+      },
+      {
+        label: 'Height',
+        selector: '.bit-navbar',
+        tokens: ['--bit-control-height-lg'],
+        side: 'right',
+        touch: { kind: 'bracket', edge: 'right' },
+      },
+      {
+        label: 'Brand',
+        selector: '.bit-navbar__brand',
+        tokens: ['--bit-font-display', '--bit-heading-22px'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.5 },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-navbar',
+        tokens: ['--bit-shadow-md'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.72 },
+        off: { '--bit-shadow-md': 'none' },
+      },
+    ],
+    states: [
+      { label: 'Pill', state: {} },
+      { label: 'Purple bar', state: { variant: 'bar' } },
+      { label: 'Small', state: { size: 'sm' } },
+    ],
+    scene: {
+      caption: 'In use: the top of a page',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 16, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            // A Navbar sizes to its container, so the scene gives it the room for brand, links and action.
+            createElement(Box, { style: { minWidth: SCENE_MIN_WIDTH } }, instance),
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Text, { size: 24 }, 'Scores'),
+              createElement(Text, null, 'Pick a game to see the top ten, updated every hour.'),
+            ),
+          ),
+        ),
+    },
+  },
   presets: [
     { label: 'Purple bar', state: { variant: 'bar' } },
     { label: 'Folded', state: { collapse: 'always' } },

@@ -1,4 +1,6 @@
-import { Link } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Heading, Link, Stack, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
 
 export const link: Manifest = {
@@ -15,6 +17,49 @@ export const link: Manifest = {
   ],
   children: 'Read the install guide',
   presets: [{ label: 'Neutral', state: { color: 'neutral' } }],
+  anatomy: {
+    parts: [
+      {
+        label: 'Color',
+        selector: '.bit-link',
+        tokens: ['--bit-color-link', '--bit-color-link-visited'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.3 },
+        off: { '--bit-color-link': 'transparent', '--bit-color-link-visited': 'transparent' },
+      },
+      {
+        label: 'Weight',
+        selector: '.bit-link',
+        tokens: ['--bit-weight-bold'],
+        side: 'left',
+        touch: { kind: 'box', edge: 'left', at: 0.5 },
+      },
+    ],
+    states: [
+      { label: 'Primary', state: {} },
+      { label: 'Neutral', state: { color: 'neutral' } },
+    ],
+    scene: {
+      caption: 'In use: a link inside a paragraph of text',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 12 },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Getting started')),
+            createElement(
+              Stack,
+              { direction: 'row', gap: 4, align: 'center', wrap: true },
+              createElement(ScenePiece, null, createElement(Text, null, 'Not sure where to begin?')),
+              instance,
+              createElement(ScenePiece, null, createElement(Text, null, 'It takes about five minutes.')),
+            ),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Native <a>'],
     usage: {

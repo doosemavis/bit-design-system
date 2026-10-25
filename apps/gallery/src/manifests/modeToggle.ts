@@ -1,4 +1,6 @@
-import { ModeToggle } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Heading, ModeToggle, Stack, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
 
 export const modeToggle: Manifest = {
@@ -13,6 +15,81 @@ export const modeToggle: Manifest = {
     { kind: 'axis', prop: 'size', values: ['sm', 'md'], default: 'md' },
     { kind: 'boolean', prop: 'iconOnly', default: false },
   ],
+  anatomy: {
+    parts: [
+      {
+        label: 'Size',
+        selector: '.bit-mode-toggle',
+        tokens: ['--bit-control-height-md'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'left' },
+      },
+      {
+        label: 'Pressed',
+        selector: '.bit-mode-toggle__option[aria-pressed="true"]',
+        tokens: ['--bit-color-warning', '--bit-color-warning-contrast'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'top', at: 0.2, leave: 'top' },
+        off: { '--bit-color-warning': 'transparent', '--bit-color-warning-contrast': 'transparent' },
+      },
+      {
+        label: 'Label',
+        selector: '.bit-mode-toggle__option',
+        tokens: ['--bit-font-body', '--bit-weight-bold', '--bit-color-text'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.5, leave: 'bottom' },
+        off: { '--bit-color-text': 'transparent' },
+      },
+      {
+        label: 'Edge',
+        selector: '.bit-mode-toggle',
+        tokens: ['--bit-border-width', '--bit-color-line'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.85 },
+        off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Surface',
+        selector: '.bit-mode-toggle__option[aria-pressed="false"]',
+        tokens: ['--bit-color-surface'],
+        side: 'right',
+        touch: { kind: 'fill', edge: 'bottom', at: 0.7, leave: 'bottom' },
+        off: { '--bit-color-surface': 'transparent' },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-mode-toggle',
+        tokens: ['--bit-shadow-sm'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.5 },
+        off: { '--bit-shadow-sm': 'none' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Small', state: { size: 'sm' } },
+      { label: 'Icons only', state: { iconOnly: true } },
+    ],
+    scene: {
+      caption: 'In use: the corner of a page header',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 16, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(
+              Stack,
+              { direction: 'row', gap: 12, align: 'center', justify: 'between' },
+              createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Arcade')),
+              instance,
+            ),
+            createElement(ScenePiece, null, createElement(Text, null, 'Pick light or dark. It switches the whole page and remembers.')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Needs React'],
     usage: {

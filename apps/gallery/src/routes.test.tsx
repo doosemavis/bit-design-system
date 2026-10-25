@@ -156,9 +156,9 @@ describe('Passes routes', () => {
     await expectNoA11yViolations(container);
   });
 
-  it('a page without anatomy has no Passes section', async () => {
-    renderAt('/components/badge');
-    await screen.findByRole('heading', { level: 1, name: 'Badge' });
+  it('a page without anatomy (Logo) has no Passes section', async () => {
+    renderAt('/brand/logo');
+    await screen.findByRole('heading', { level: 1, name: 'BitLogo' });
     expect(screen.queryByRole('heading', { level: 2, name: 'Passes' })).toBeNull();
   });
 });

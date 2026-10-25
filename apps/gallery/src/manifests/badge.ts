@@ -1,5 +1,7 @@
-import { Badge, COLORS, SIZES } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Badge, Box, COLORS, SIZES, Stack, Text } from '@bit-ds/react';
 import type { Manifest } from './types';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 
 export const badge: Manifest = {
   name: 'Badge',
@@ -21,6 +23,66 @@ export const badge: Manifest = {
     { label: 'Warning outline', state: { color: 'warning', variant: 'outline' } },
     { label: 'Square tag', state: { shape: 'square', variant: 'outline' } },
   ],
+  anatomy: {
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-badge',
+        tokens: ['--bit-color-line'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.68 },
+        off: { '--bit-color-line': 'transparent' },
+      },
+      {
+        label: 'Face',
+        selector: '.bit-badge',
+        tokens: ['--bit-color-neutral'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.3 },
+        off: { '--bit-color-neutral': 'transparent' },
+      },
+      {
+        label: 'Label',
+        selector: '.bit-badge',
+        tokens: ['--bit-font-pixel'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.5, leave: 'left' },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-badge',
+        tokens: ['--bit-shadow-sm'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.5 },
+        off: { '--bit-shadow-sm': 'none' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Outline', state: { variant: 'outline' } },
+      { label: 'Square', state: { shape: 'square' } },
+    ],
+    scene: {
+      caption: 'In use: a count beside a nav item',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 16, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { direction: 'row', gap: 24, align: 'center' },
+            createElement(ScenePiece, null, createElement(Text, { weight: 'bold' }, 'Home')),
+            createElement(
+              Stack,
+              { direction: 'row', gap: 8, align: 'center' },
+              createElement(ScenePiece, null, createElement(Text, { weight: 'bold' }, 'Inbox')),
+              instance,
+            ),
+            createElement(ScenePiece, null, createElement(Text, { weight: 'bold' }, 'Settings')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Static <span>', 'Solid or outline', 'Three sizes', 'Pill or square'],
     usage: {

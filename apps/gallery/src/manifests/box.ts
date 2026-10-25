@@ -1,4 +1,6 @@
-import { Box, SPACE_STEPS } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Heading, SPACE_STEPS, Stack, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
 
 /** none leaves the prop off; 0 sets 0. */
@@ -31,6 +33,46 @@ export const box: Manifest = {
     { label: 'Y beats padding', state: { paddingY: '0' } },
     { label: 'Pushed down', state: { marginTop: '32' } },
   ],
+  anatomy: {
+    // The margin shows only with a margin set, so every pass renders with one.
+    base: { marginTop: '24' },
+    parts: [
+      {
+        label: 'Padding',
+        selector: '.bit-box',
+        tokens: ['--bit-space-16px'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'left' },
+      },
+      {
+        label: 'Margin',
+        selector: '.bit-box',
+        tokens: ['--bit-space-24px'],
+        side: 'right',
+        touch: { kind: 'bracket', edge: 'top' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Wide and short', state: { padding: 'none', paddingX: '24', paddingY: '8' } },
+      { label: 'No padding', state: { padding: '0' } },
+    ],
+    scene: {
+      caption: 'In use: a note on a status page',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 4 },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Build status')),
+            instance,
+            createElement(ScenePiece, null, createElement(Text, null, 'The Box above holds its badge inside its own padding.')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Layout', 'Most specific wins: a side, then an axis, then all four'],
     usage: {

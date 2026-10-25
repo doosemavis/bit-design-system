@@ -1,8 +1,9 @@
 import { cloneElement, createElement } from 'react';
 import type { ReactElement } from 'react';
-import { Avatar, COLORS, SIZES } from '@bit-ds/react';
+import { Avatar, Box, COLORS, SIZES, Stack, Text } from '@bit-ds/react';
 import type { AvatarProps } from '@bit-ds/react';
 import type { ControlState, Manifest } from './types';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import { toHtml } from '../code/toHtml';
 import { AVATAR_PHOTO, BROKEN_PHOTO, PRINTED_BROKEN, PRINTED_PHOTO } from '../content/avatarPhoto';
 
@@ -71,6 +72,76 @@ export const avatar: Manifest = {
     { label: 'Pixel player', state: { shape: 'pixel', color: 'primary', size: 'lg', name: 'Player One' } },
     { label: 'Square, flat', state: { shape: 'square', flat: true, color: 'success', name: 'Alan Turing' } },
   ],
+  anatomy: {
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-avatar',
+        tokens: ['--bit-color-line'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.5 },
+        off: { '--bit-color-line': 'transparent' },
+      },
+      {
+        label: 'Face',
+        selector: '.bit-avatar',
+        tokens: ['--bit-color-neutral'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.25 },
+        off: { '--bit-color-neutral': 'transparent' },
+      },
+      {
+        label: 'Initials',
+        selector: '.bit-avatar__initials',
+        tokens: ['--bit-font-body', '--bit-weight-bold'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.5, leave: 'right' },
+      },
+      {
+        label: 'Size',
+        selector: '.bit-avatar',
+        tokens: ['--bit-control-height-md'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'left', at: 0.75 },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-avatar',
+        tokens: ['--bit-shadow-sm'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.5 },
+        off: { '--bit-shadow-sm': 'none' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Square', state: { shape: 'square' } },
+      { label: 'Pixel', state: { shape: 'pixel' } },
+    ],
+    scene: {
+      caption: 'In use: beside a comment',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { direction: 'row', gap: 16, align: 'start' },
+            instance,
+            createElement(
+              ScenePiece,
+              null,
+              createElement(
+                Stack,
+                { gap: 4 },
+                createElement(Text, { weight: 'bold' }, 'Ada Lovelace'),
+                createElement(Text, null, 'The new color tokens look great. Shipping them today.'),
+              ),
+            ),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['role="img"', 'Photo or initials', 'Three shapes', 'Button heights'],
     usage: {

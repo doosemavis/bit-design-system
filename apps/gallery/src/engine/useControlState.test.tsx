@@ -3,8 +3,9 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { TYPING_DEBOUNCE_MS, useControlState } from './useControlState';
 import type { ControlStateApi } from './useControlState';
+import { alert } from '../manifests/alert';
 import { button } from '../manifests/button';
-import { numberControlFixture } from '../test/fixtures';
+import { numberControlFixture, withoutAnatomy } from '../test/fixtures';
 
 let api: ControlStateApi | undefined;
 
@@ -19,10 +20,18 @@ function NumberProbe() {
   return null;
 }
 
+const noAnatomy = withoutAnatomy(alert);
+
+function AlertProbe() {
+  api = useControlState(noAnatomy);
+  return null;
+}
+
 function setup(...entries: string[]) {
   const router = createMemoryRouter(
     [
       { path: '/x', element: <Probe /> },
+      { path: '/a', element: <AlertProbe /> },
       { path: '/n', element: <NumberProbe /> },
       { path: '/elsewhere', element: <p>elsewhere</p> },
     ],
@@ -225,5 +234,26 @@ describe('useControlState keeps page keys (?pass=)', () => {
     first.unmount();
     const second = setup('/x?size=lg&pass=xray');
     await waitFor(() => expect(second.router.state.location.search).toBe('?size=lg'));
+  });
+
+  it('the canonical rewrite drops ?pass= on a page without anatomy, in the same replace', async () => {
+    const { router } = setup('/a?color=purple&pass=tokens');
+    await waitFor(() => expect(router.state.location.search).toBe(''));
+    expect(router.state.historyAction).toBe('REPLACE');
+  });
+});
+
+describe('useControlState pendingQuery', () => {
+  it('holds the typed draft before it reaches the URL, then the page keys', () => {
+    vi.useFakeTimers();
+    const { router } = setup('/x?pass=tokens');
+    act(() => api?.setProp('children', 'Sav'));
+    expect(router.state.location.search).toBe('?pass=tokens');
+    expect(api?.pendingQuery().toString()).toBe('children=Sav&pass=tokens');
+  });
+
+  it('is the URL itself when there is no draft', () => {
+    setup('/x?variant=outline&pass=final');
+    expect(api?.pendingQuery().toString()).toBe('variant=outline&pass=final');
   });
 });

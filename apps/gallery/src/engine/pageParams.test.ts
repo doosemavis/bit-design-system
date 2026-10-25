@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { alert } from '../manifests/alert';
+import { button } from '../manifests/button';
+import { withoutAnatomy } from '../test/fixtures';
 import { DEFAULT_PASS, PAGE_PARAMS, parsePass, PASSES, setPageParam, withPageParams } from './pageParams';
 
 describe('parsePass', () => {
@@ -30,6 +33,12 @@ describe('withPageParams', () => {
     expect(withPageParams(new URLSearchParams('pass=final'), new URLSearchParams()).toString()).toBe('');
   });
 
+  it('drops pass on a manifest without anatomy, keeps it on Button', () => {
+    const current = new URLSearchParams('pass=tokens');
+    expect(withPageParams(new URLSearchParams(), current, withoutAnatomy(alert)).toString()).toBe('');
+    expect(withPageParams(new URLSearchParams(), current, button).toString()).toBe('pass=tokens');
+  });
+
   it('does not mutate its inputs', () => {
     const next = new URLSearchParams('variant=outline');
     const current = new URLSearchParams('pass=tokens');
@@ -58,6 +67,10 @@ describe('setPageParam', () => {
 
   it('refuses a key that is not a page key', () => {
     expect(() => setPageParam(new URLSearchParams(), 'variant', 'outline')).toThrow('variant is not a page key');
+  });
+
+  it.each(['constructor', 'toString', '__proto__'])('refuses the prototype name %s', (key) => {
+    expect(() => setPageParam(new URLSearchParams(), key, 'x')).toThrow(`${key} is not a page key`);
   });
 
   it('does not mutate its input', () => {

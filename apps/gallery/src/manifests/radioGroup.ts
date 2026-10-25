@@ -1,4 +1,6 @@
-import { RadioGroup, SIZES } from '@bit-ds/react';
+import { createElement } from 'react';
+import { SIZES, Box, Heading, RadioGroup, Stack, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
 import { RadioGroupExamples } from '../pages/forms/RadioGroupExamples';
 
@@ -32,6 +34,82 @@ export const radioGroup: Manifest = {
     { label: 'Read-only', state: { readOnly: true } },
     { label: 'Small', state: { size: 'sm' } },
   ],
+  anatomy: {
+    css: 'radio.css',
+    parts: [
+      {
+        label: 'Legend',
+        selector: '.bit-radio-group__legend',
+        tokens: ['--bit-color-text', '--bit-weight-bold'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.15, leave: 'right' },
+        off: { '--bit-color-text': 'transparent' },
+        step: 'Text',
+      },
+      {
+        label: 'Edge',
+        selector: '.bit-radio-group__options > .bit-radio:nth-child(3) .bit-radio__dot',
+        tokens: ['--bit-border-width'],
+        side: 'left',
+        touch: { kind: 'ring', edge: 'left', at: 0.5 },
+        off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Chosen',
+        selector: '.bit-radio__dot',
+        tokens: ['--bit-color-primary', '--bit-color-primary-contrast'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.5 },
+        off: { '--bit-color-primary': 'transparent', '--bit-color-primary-contrast': 'transparent' },
+      },
+      {
+        label: 'Face',
+        selector: '.bit-radio-group__options > .bit-radio:nth-child(2) .bit-radio__dot',
+        tokens: ['--bit-color-surface'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.5 },
+        off: { '--bit-color-surface': 'transparent' },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-radio-group__options > .bit-radio:nth-child(3) .bit-radio__dot',
+        tokens: ['--bit-shadow-sm'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.7 },
+        off: { '--bit-shadow-sm': 'none' },
+      },
+      {
+        label: 'Label',
+        selector: '.bit-radio-group__options > .bit-radio:nth-child(2) .bit-radio__label',
+        tokens: ['--bit-color-text', '--bit-weight-normal'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.5, leave: 'right' },
+        off: { '--bit-color-text': 'transparent' },
+        step: 'Text',
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Invalid', state: { invalid: true } },
+      { label: 'Read-only', state: { readOnly: true } },
+      { label: 'Disabled', state: { disabled: true } },
+    ],
+    scene: {
+      caption: 'In use: shipping options at checkout',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Checkout')),
+            instance,
+            createElement(ScenePiece, null, createElement(Text, null, 'You can change this until your order ships.')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Native radios in a fieldset', 'Joins a Field'],
     usage: {

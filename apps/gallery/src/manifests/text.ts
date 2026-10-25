@@ -1,6 +1,10 @@
-import { TEXT_SIZES, Text } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Heading, Stack, TEXT_SIZES, Text } from '@bit-ds/react';
 import type { ControlState, Manifest } from './types';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import { TextExamples } from '../pages/text/TextExamples';
+
+const BORDER = { border: '2px solid var(--bit-color-text)' };
 
 /** 24, 32 and 40 switch to the display face, which ships one weight (text.css), so weight does nothing there. */
 const DISPLAY_SIZES: readonly string[] = ['24', '32', '40'];
@@ -33,6 +37,55 @@ export const text: Manifest = {
     { label: 'Display text', state: { size: '32' } },
     { label: 'Muted caption', state: { size: '14', color: 'neutral' } },
   ],
+  anatomy: {
+    parts: [
+      {
+        label: 'Color',
+        selector: '.bit-text',
+        tokens: ['--bit-color-text'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.7 },
+        off: { '--bit-color-text': 'transparent' },
+      },
+      {
+        label: 'Face',
+        selector: '.bit-text',
+        tokens: ['--bit-font-body'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.3 },
+      },
+      {
+        // The box is font size × line height tall, so the bracket names both tokens.
+        label: 'Line box (size × line height)',
+        selector: '.bit-text',
+        tokens: ['--bit-text-16px', '--bit-leading-normal'],
+        side: 'right',
+        touch: { kind: 'bracket', edge: 'right' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Muted', state: { color: 'neutral' } },
+      { label: 'Bold', state: { weight: 'bold' } },
+      { label: 'Italic', state: { italic: true } },
+      { label: 'Display', state: { size: '32' } },
+    ],
+    scene: {
+      caption: 'In use: a paragraph in an article body',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: BORDER },
+          createElement(
+            Stack,
+            { gap: 12 },
+            createElement(ScenePiece, null, createElement(Heading, { size: 24 }, 'Why a design system?')),
+            instance,
+            createElement(ScenePiece, null, createElement(Text, { color: 'neutral' }, 'One set of parts means every page speaks the same way.')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Typography', 'Renders <p>, or <span> inside a Text'],
     usage: {

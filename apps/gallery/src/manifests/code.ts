@@ -1,5 +1,9 @@
-import { Code } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Code, Stack, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
+
+const BORDER = { border: '2px solid var(--bit-color-text)' };
 
 export const code: Manifest = {
   name: 'Code',
@@ -10,6 +14,52 @@ export const code: Manifest = {
   description: 'Marks a bit of code inside a sentence, such as a prop name or a file path.',
   controls: [],
   children: 'color="danger"',
+  anatomy: {
+    parts: [
+      {
+        label: 'Pill',
+        selector: '.bit-code',
+        tokens: ['--bit-code-inline-bg', '--bit-radius-6px'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.14, leave: 'left' },
+        off: { '--bit-code-inline-bg': 'transparent' },
+      },
+      {
+        label: 'Text color',
+        selector: '.bit-code',
+        tokens: ['--bit-code-inline-text'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.75 },
+        off: { '--bit-code-inline-text': 'transparent' },
+      },
+      {
+        label: 'Font',
+        selector: '.bit-code',
+        tokens: ['--bit-font-mono'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.25 },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'A file path', state: { children: 'src/index.css' } },
+    ],
+    scene: {
+      caption: 'In use: a prop name inside a sentence',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: BORDER },
+          createElement(
+            Stack,
+            { direction: 'row', gap: 8, align: 'center', wrap: true },
+            createElement(ScenePiece, null, createElement(Text, null, 'To make a delete button red, pass')),
+            instance,
+            createElement(ScenePiece, null, createElement(Text, null, 'to Button.')),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Inline <code>', 'Mono', 'Light violet in light mode, yellow in dark'],
     usage: {

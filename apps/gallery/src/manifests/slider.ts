@@ -1,4 +1,6 @@
-import { COLORS, SIZES, Slider } from '@bit-ds/react';
+import { createElement } from 'react';
+import { COLORS, SIZES, Box, Heading, Slider, Stack, Text } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { ControlState, Manifest } from './types';
 import { SliderExamples } from '../pages/forms/SliderExamples';
 
@@ -60,6 +62,87 @@ export const slider: Manifest = {
   ],
   // The drawn fill follows the value through React, so the markup alone doesn't move.
   interactive: true,
+  anatomy: {
+    parts: [
+      {
+        label: 'Thumb',
+        selector: '.bit-slider__thumb',
+        tokens: ['--bit-color-surface'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'top', at: 0.75 },
+        off: { '--bit-color-surface': 'transparent' },
+      },
+      {
+        label: 'Thumb edge',
+        selector: '.bit-slider__thumb',
+        tokens: ['--bit-border-width', '--bit-radius-6px'],
+        side: 'left',
+        touch: { kind: 'ring', edge: 'top', at: 0.15 },
+        off: { '--bit-border-width': '0px' },
+        step: 'Edge',
+      },
+      {
+        label: 'Fill',
+        selector: '.bit-slider__fill',
+        tokens: ['--bit-color-primary'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.5 },
+        off: { '--bit-color-primary': 'transparent' },
+      },
+      {
+        label: 'Track edge',
+        selector: '.bit-slider__track',
+        tokens: ['--bit-border-width', '--bit-radius-full'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.9 },
+        off: { '--bit-border-width': '0px' },
+        step: 'Edge',
+      },
+      {
+        label: 'Track',
+        selector: '.bit-slider__track',
+        tokens: ['--bit-color-neutral-soft'],
+        side: 'right',
+        touch: { kind: 'fill', edge: 'right', at: 0.5 },
+        off: { '--bit-color-neutral-soft': 'transparent' },
+      },
+      {
+        label: 'Shadow',
+        selector: '.bit-slider__thumb',
+        tokens: ['--bit-shadow-sm'],
+        side: 'right',
+        touch: { kind: 'strip', edge: 'bottom', at: 0.8 },
+        off: { '--bit-shadow-sm': 'none' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Blocks', state: { variant: 'blocks' } },
+      { label: 'Round', state: { variant: 'round' } },
+      { label: 'Notched', state: { notched: true } },
+      { label: 'Invalid', state: { invalid: true } },
+      { label: 'Disabled', state: { disabled: true } },
+    ],
+    scene: {
+      caption: 'In use: a volume row in a sound panel',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Sound')),
+            createElement(
+              Stack,
+              { direction: 'row', gap: 16, align: 'center' },
+              createElement(ScenePiece, null, createElement(Text, { weight: 'bold' }, 'Volume')),
+              createElement(Box, { style: { flex: 1 } }, instance),
+            ),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Native <input type="range">', 'Square, blocks or round', 'Smooth or notched', 'Joins a Field'],
     usage: {

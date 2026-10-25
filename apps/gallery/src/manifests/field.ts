@@ -1,4 +1,6 @@
-import { Field } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Button, Field, Heading, Input, Stack } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { ChildSpec, Manifest } from './types';
 
 /** Field's children, one per control it can wrap. The Select's and RadioGroup's options print as one `const options`. */
@@ -72,6 +74,73 @@ export const field: Manifest = {
     { label: 'Select', state: { control: 'Select', label: 'Favorite color', hint: 'We use it for your avatar.' } },
     { label: 'Radio group', state: { control: 'RadioGroup', label: 'Shipping', error: 'Pick a shipping option.', required: true } },
   ],
+  anatomy: {
+    // The hint and error only render when set, so every pass builds with both.
+    base: { hint: 'We never share your email.', error: 'Enter a valid email address.' },
+    parts: [
+      {
+        label: 'Label',
+        selector: '.bit-field__label',
+        tokens: ['--bit-weight-bold', '--bit-text-16px'],
+        side: 'left',
+        touch: { kind: 'text', edge: 'bottom', at: 0.1, leave: 'left' },
+      },
+      {
+        label: 'Gap',
+        selector: '.bit-field',
+        tokens: ['--bit-space-8px'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'left' },
+      },
+      {
+        label: 'Hint',
+        selector: '.bit-field__hint',
+        tokens: ['--bit-color-text-muted', '--bit-text-14px'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.5, leave: 'right' },
+        off: { '--bit-color-text-muted': 'transparent' },
+        offOn: 'part',
+      },
+      {
+        label: 'Error',
+        selector: '.bit-field__error',
+        tokens: ['--bit-color-danger-text', '--bit-weight-bold'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.5, leave: 'right' },
+        off: { '--bit-color-danger-text': 'transparent' },
+        offOn: 'part',
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Hint only', state: { error: '' } },
+      { label: 'Required', state: { required: true } },
+    ],
+    scene: {
+      caption: 'In use: the email field of a sign-up form',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Create your account')),
+            instance,
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Field, { label: 'Password', hint: 'At least 12 characters.', children: createElement(Input, { type: 'password' }) }),
+            ),
+            createElement(
+              Stack,
+              { direction: 'row', gap: 12, justify: 'end' },
+              createElement(ScenePiece, null, createElement(Button, null, 'Sign up')),
+            ),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['One control per Field'],
     usage: {
