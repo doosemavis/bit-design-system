@@ -60,6 +60,15 @@ export const segmentedControl: Manifest = {
         off: { '--bit-color-primary': 'transparent' },
       },
       {
+        label: 'Divider',
+        selector: '.bit-segmented-control__option:nth-child(3)',
+        tokens: ['--bit-border-width'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'left', at: 0.5, leave: 'top' },
+        off: { '--bit-border-width': '0px' },
+        step: 'Edge',
+      },
+      {
         label: 'Size',
         selector: '.bit-segmented-control__options',
         tokens: ['--bit-control-height-md'],
