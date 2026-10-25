@@ -177,7 +177,7 @@ describe('PassesSection', () => {
     it('a heavier side sets both: left gains Label (1+3), 9 lines in 3 callouts', () => {
       setup(
         '/x',
-        withParts({ label: 'Label', selector: '.bit-button', tokens: ['--bit-weight-bold', '--bit-font-mono', '--bit-border-width'], side: 'left' }),
+        withParts({ label: 'Label', selector: '.bit-button', tokens: ['--bit-weight-bold', '--bit-font-mono', '--bit-border-width'], side: 'left', touch: { kind: 'fill', edge: 'left' } }),
       );
       expect(vars()).toEqual(['9', '3']);
     });
@@ -187,9 +187,9 @@ describe('PassesSection', () => {
       setup(
         '/x',
         withParts(
-          { label: 'Label', selector: '.bit-button', tokens: ['--bit-weight-bold', '--bit-font-mono', '--bit-border-width', '--bit-shadow-md'], side: 'left' },
-          { label: 'Ring', selector: '.bit-button', tokens: ['--bit-border-width'], side: 'right' },
-          { label: 'Text', selector: '.bit-button', tokens: ['--bit-weight-bold'], side: 'right' },
+          { label: 'Label', selector: '.bit-button', tokens: ['--bit-weight-bold', '--bit-font-mono', '--bit-border-width', '--bit-shadow-md'], side: 'left', touch: { kind: 'fill', edge: 'left' } },
+          { label: 'Ring', selector: '.bit-button', tokens: ['--bit-border-width'], side: 'right', touch: { kind: 'fill', edge: 'left' } },
+          { label: 'Text', selector: '.bit-button', tokens: ['--bit-weight-bold'], side: 'right', touch: { kind: 'fill', edge: 'left' } },
         ),
       );
       expect(vars()).toEqual(['10', '4']);

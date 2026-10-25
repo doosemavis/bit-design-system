@@ -49,3 +49,12 @@ export function anatomyErrors(
     }),
   );
 }
+
+/** Every `off` key must be a token its part lists, or the part would switch off something the callout never names. */
+export function offErrors(manifest: Manifest): string[] {
+  return (manifest.anatomy?.parts ?? []).flatMap((part) =>
+    Object.keys(part.off ?? {})
+      .filter((key) => !part.tokens.includes(key))
+      .map((key) => `${manifest.slug} anatomy "${part.label}": off sets ${key}, which the part doesn't list`),
+  );
+}

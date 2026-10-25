@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import type { ReactElement } from 'react';
 import { render } from '@testing-library/react';
 import { SEMANTIC_TOKENS } from '@bit-ds/react';
 import { describe, expect, it } from 'vitest';
@@ -8,7 +9,7 @@ import type { ControlState, Manifest } from './types';
 import { button } from './button';
 import { renderManifest } from '../engine/renderManifest';
 import { defaultState, parseState, serializeState } from '../engine/state';
-import { anatomyErrors, cssFileFor } from '../test/anatomyGuard';
+import { anatomyErrors, cssFileFor, offErrors } from '../test/anatomyGuard';
 
 // Plain paths, not URLs: jsdom replaces the global URL class, and node:fs rejects its instances.
 const CORE = resolve(import.meta.dirname, '../../../../packages/core/src');
@@ -31,15 +32,20 @@ describe('anatomy guard', () => {
   });
 
   it.each(withAnatomy.map((m) => [m.slug, m] as const))('%s: every selector matches the default instance', (_slug, manifest) => {
-    const { container } = render(<div>{renderManifest(manifest, defaultState(manifest), { sample: true })}</div>);
-    for (const part of manifest.anatomy!.parts) {
+    const state: ControlState = { ...defaultState(manifest), ...manifest.anatomy!.base } as ControlState;
+    const { container } = render(<div>{renderManifest(manifest, state, { sample: true })}</div>);
+    for (const part of manifest.anatomy!.parts.filter((p) => !p.unseen)) {
       expect(container.querySelector(part.selector), `${manifest.slug} "${part.label}"`).not.toBeNull();
     }
   });
 
-  it.each(withAnatomy.map((m) => [m.slug, m] as const))('%s: parts on one element land on different points', (_slug, manifest) => {
-    const points = manifest.anatomy!.parts.map((part) => `${part.selector} ${part.anchor ?? part.side}`);
+  it.each(withAnatomy.map((m) => [m.slug, m] as const))('%s: parts on one element touch different points', (_slug, manifest) => {
+    const points = manifest.anatomy!.parts.map((part) => `${part.selector} ${part.touch.kind} ${part.touch.edge} ${part.touch.at ?? 0.5}`);
     expect(new Set(points).size, points.join(', ')).toBe(points.length);
+  });
+
+  it.each(withAnatomy.map((m) => [m.slug, m] as const))("%s: off only sets the part's own tokens", (_slug, manifest) => {
+    expect(offErrors(manifest)).toEqual([]);
   });
 
   it.each(withAnatomy.map((m) => [m.slug, m] as const))('%s: every state patch is valid control state', (_slug, manifest) => {
@@ -51,9 +57,15 @@ describe('anatomy guard', () => {
 });
 
 describe('anatomy guard proves itself on fixtures', () => {
+  const scene = { caption: 'In use', render: (instance: ReactElement) => instance };
   const fixture = (tokens: readonly string[], css?: string): Manifest => ({
     ...button,
-    anatomy: { parts: [{ label: 'Face', selector: '.bit-button', tokens, side: 'left' }], states: [], ...(css ? { css } : {}) },
+    anatomy: {
+      parts: [{ label: 'Face', selector: '.bit-button', tokens, side: 'left', touch: { kind: 'fill', edge: 'left' } }],
+      states: [],
+      scene,
+      ...(css ? { css } : {}),
+    },
   });
   const buttonCss = componentCss(button);
 
@@ -88,9 +100,15 @@ describe('anatomy guard proves itself on fixtures', () => {
     ]);
   });
 
+  it('fails an off key the part does not list', () => {
+    const face = { ...fixture(['--bit-color-primary']).anatomy!.parts[0]!, off: { '--bit-shadow-md': 'none' } };
+    const manifest = { ...button, anatomy: { ...fixture([]).anatomy!, parts: [face] } };
+    expect(offErrors(manifest)).toEqual(['button anatomy "Face": off sets --bit-shadow-md, which the part doesn\'t list']);
+  });
+
   it('names the CSS file from the anatomy override, else the kebab-case name', () => {
     expect(cssFileFor(button)).toBe('button.css');
     expect(cssFileFor({ ...button, name: 'IconButton', anatomy: undefined })).toBe('icon-button.css');
-    expect(cssFileFor({ ...button, name: 'RadioGroup', anatomy: { parts: [], states: [], css: 'radio.css' } })).toBe('radio.css');
+    expect(cssFileFor({ ...button, name: 'RadioGroup', anatomy: { parts: [], states: [], scene, css: 'radio.css' } })).toBe('radio.css');
   });
 });

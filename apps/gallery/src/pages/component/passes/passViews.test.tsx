@@ -45,8 +45,8 @@ describe('measureLines', () => {
   it('runs from the callout edge facing the instance to the anchor, relative to the stage', () => {
     const stage = stageWith({ Face: rect(120, 160, 100, 30), Edge: rect(560, 160, 100, 30) }, target);
     const lines = measureLines(stage, [
-      { label: 'Face', selector: '.bit-button', tokens: [], side: 'left', anchor: 'center' },
-      { label: 'Edge', selector: '.bit-button', tokens: [], side: 'right' },
+      { label: 'Face', selector: '.bit-button', tokens: [], side: 'left', anchor: 'center', touch: { kind: 'fill', edge: 'left' } },
+      { label: 'Edge', selector: '.bit-button', tokens: [], side: 'right', touch: { kind: 'fill', edge: 'left' } },
     ]);
     expect(lines).toEqual([
       { part: 'Face', from: { x: 120, y: 125 }, to: { x: 290, y: 150 } },
@@ -58,8 +58,8 @@ describe('measureLines', () => {
     const stage = stageWith({ Face: rect(120, 160, 100, 30) }, target);
     expect(
       measureLines(stage, [
-        { label: 'Face', selector: '.nope', tokens: [], side: 'left' },
-        { label: 'Ghost', selector: '.bit-button', tokens: [], side: 'left' },
+        { label: 'Face', selector: '.nope', tokens: [], side: 'left', touch: { kind: 'fill', edge: 'left' } },
+        { label: 'Ghost', selector: '.bit-button', tokens: [], side: 'left', touch: { kind: 'fill', edge: 'left' } },
       ]),
     ).toEqual([]);
   });

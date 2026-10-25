@@ -168,6 +168,19 @@ export interface ExtraSection {
 /** Where a leader line meets the component: a point on the part's box. `left-upper` is the left edge, a quarter of the way down. */
 export type AnchorPoint = 'center' | 'top' | 'bottom' | 'left' | 'left-upper' | 'right' | 'bottom-right';
 
+export type Edge = 'top' | 'right' | 'bottom' | 'left';
+/** What a part's line touches, and the shape it lights up in. */
+export type HighlightKind = 'ring' | 'fill' | 'bracket' | 'strip' | 'box' | 'text';
+export interface Touch {
+  kind: HighlightKind;
+  /** The side of the part's box the touch point sits on (ring, strip, bracket, box, text) or near (fill). */
+  edge: Edge;
+  /** 0–1 along that side. Default 0.5. */
+  at?: number;
+  /** The direction the line leaves the part. Default: `edge`. */
+  leave?: Edge;
+}
+
 /** One labeled part of a component, for the Tokens pass. */
 export interface AnatomyPart {
   /** Shown above the part's token chips: "Face", "Edge". */
@@ -180,6 +193,22 @@ export interface AnatomyPart {
   side: 'left' | 'right';
   /** Where its leader line lands on the part. Default: the middle of the edge facing its column. */
   anchor?: AnchorPoint;
+  touch: Touch;
+  /** Token overrides that make the part draw nothing before it lands. Absent: a measure step (it only lights up). Keys must be in `tokens`. */
+  off?: Readonly<Record<string, string>>;
+  /** Where `off` is set: on the instance wrapper (default), or on the part's own matched element (BitTheme). */
+  offOn?: 'instance' | 'part';
+  /** Parts with the same step land together. Default: `label`. */
+  step?: string;
+  /** Why the part has no line: it renders in the top layer (Menu list, Select listbox, Dialog). Listed only; its selector isn't checked. */
+  unseen?: string;
+}
+
+export interface AnatomyScene {
+  /** One line for the caption: "In use: the main action in a dialog". */
+  caption: string;
+  /** The scene around the instance. Built from bit components only; every piece but `instance` is wrapped in `ScenePiece` (Task 6). */
+  render: (instance: ReactElement) => ReactElement;
 }
 
 /** The Passes section's data. A manifest without it has no Passes section. */
@@ -192,6 +221,11 @@ export interface ManifestAnatomy {
    * RadioGroup reads `radio.css`, BitTheme reads `theme.css`.
    */
   css?: string;
+  /** The component's root inside `[data-instance]`, when it isn't the first child (Tooltip, Menu, Dialog). */
+  root?: string;
+  /** A patch every pass renders with, over the defaults (Tooltip: `{ pinned: true }`). */
+  base?: Partial<ControlState>;
+  scene: AnatomyScene;
 }
 
 export interface Manifest {
@@ -236,6 +270,8 @@ export interface Manifest {
   extraSection?: ExtraSection;
   /** Parts, tokens and states for the Passes section (Wireframe, Tokens, States, Final). */
   anatomy?: ManifestAnatomy;
+  /** Why this page has no Passes section (Logo). Every manifest has `anatomy` or this. */
+  passesExempt?: string;
   presets?: readonly Preset[];
   /**
    * Slugs of other component pages to suggest in the page's Related section, closest first. Only pages that exist
