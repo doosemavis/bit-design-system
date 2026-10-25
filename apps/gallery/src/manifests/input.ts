@@ -1,4 +1,6 @@
-import { Input, SIZES } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Button, Field, Heading, Input, SIZES, Stack } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
 
 export const input: Manifest = {
@@ -24,6 +26,63 @@ export const input: Manifest = {
     { label: 'Read-only', state: { readOnly: true } },
     { label: 'Disabled', state: { disabled: true } },
   ],
+  anatomy: {
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-input',
+        tokens: ['--bit-border-width', '--bit-color-line', '--bit-radius-10px'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.68 },
+        off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Face',
+        selector: '.bit-input',
+        tokens: ['--bit-color-surface', '--bit-shadow-inset'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.3, leave: 'top' },
+        off: { '--bit-color-surface': 'transparent', '--bit-shadow-inset': 'none' },
+      },
+      {
+        label: 'Size',
+        selector: '.bit-input',
+        tokens: ['--bit-control-height-md'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'left' },
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Invalid', state: { invalid: true } },
+      { label: 'Read-only', state: { readOnly: true } },
+      { label: 'Disabled', state: { disabled: true } },
+    ],
+    scene: {
+      caption: 'In use: the email box of a sign-in form',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Sign in')),
+            createElement(Field, { label: 'Email', children: instance }),
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Field, { label: 'Password', children: createElement(Input, { type: 'password' }) }),
+            ),
+            createElement(
+              Stack,
+              { direction: 'row', gap: 12, justify: 'end' },
+              createElement(ScenePiece, null, createElement(Button, null, 'Sign in')),
+            ),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Native <input>', 'Recessed'],
     usage: {

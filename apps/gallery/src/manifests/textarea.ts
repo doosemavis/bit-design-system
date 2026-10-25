@@ -1,4 +1,6 @@
-import { SIZES, Textarea } from '@bit-ds/react';
+import { createElement } from 'react';
+import { Box, Button, Field, Heading, Input, SIZES, Stack, Textarea } from '@bit-ds/react';
+import { ScenePiece } from '../pages/component/passes/ScenePiece';
 import type { Manifest } from './types';
 import { TextareaExamples } from '../pages/forms/TextareaExamples';
 
@@ -29,6 +31,74 @@ export const textarea: Manifest = {
     { label: 'Read-only', state: { readOnly: true } },
     { label: 'With a count', state: { showCount: true } },
   ],
+  anatomy: {
+    // The count only renders with showCount, so every pass builds with it on.
+    base: { showCount: true },
+    parts: [
+      {
+        label: 'Edge',
+        selector: '.bit-textarea',
+        tokens: ['--bit-border-width', '--bit-color-line', '--bit-radius-10px'],
+        side: 'right',
+        touch: { kind: 'ring', edge: 'top', at: 0.68 },
+        off: { '--bit-border-width': '0px' },
+      },
+      {
+        label: 'Face',
+        selector: '.bit-textarea',
+        tokens: ['--bit-color-surface', '--bit-shadow-inset'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'left', at: 0.3, leave: 'top' },
+        off: { '--bit-color-surface': 'transparent', '--bit-shadow-inset': 'none' },
+      },
+      {
+        label: 'Size',
+        selector: '.bit-textarea',
+        tokens: ['--bit-control-height-md'],
+        side: 'left',
+        touch: { kind: 'bracket', edge: 'left' },
+      },
+      {
+        label: 'Count',
+        selector: '.bit-textarea__count',
+        tokens: ['--bit-color-text-muted', '--bit-text-14px'],
+        side: 'right',
+        touch: { kind: 'text', edge: 'bottom', at: 0.88, leave: 'right' },
+        off: { '--bit-color-text-muted': 'transparent' },
+        offOn: 'part',
+      },
+    ],
+    states: [
+      { label: 'Default', state: {} },
+      { label: 'Invalid', state: { invalid: true } },
+      { label: 'Read-only', state: { readOnly: true } },
+      { label: 'Disabled', state: { disabled: true } },
+    ],
+    scene: {
+      caption: 'In use: the message box of a feedback form',
+      render: (instance) =>
+        createElement(
+          Box,
+          { padding: 24, style: { border: '2px solid var(--bit-color-text)' } },
+          createElement(
+            Stack,
+            { gap: 16 },
+            createElement(ScenePiece, null, createElement(Heading, { size: 20 }, 'Send feedback')),
+            createElement(
+              ScenePiece,
+              null,
+              createElement(Field, { label: 'Subject', children: createElement(Input, { placeholder: 'What is this about?' }) }),
+            ),
+            createElement(Field, { label: 'Message', children: instance }),
+            createElement(
+              Stack,
+              { direction: 'row', gap: 12, justify: 'end' },
+              createElement(ScenePiece, null, createElement(Button, null, 'Send')),
+            ),
+          ),
+        ),
+    },
+  },
   docs: {
     badges: ['Native <textarea>', 'Recessed', 'Grows downward', 'Live count'],
     usage: {
