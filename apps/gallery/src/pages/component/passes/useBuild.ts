@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { PASSES, type Pass } from '../../../engine/pageParams';
 import type { ManifestAnatomy } from '../../../manifests/types';
 import { endOf, stepsOf, type BuildState } from './build';
-import { durationMs, prefersReducedMotion } from './motion';
+import { durationMs, HOLD_STEPS, prefersReducedMotion } from './motion';
 
 export interface BuildApi {
   state: BuildState;
@@ -19,8 +19,6 @@ export interface BuildApi {
   /** States: apply a chip (a state label, or 'Try it'). */
   pickChip: (label: string) => void;
 }
-
-const HOLD_STEPS = 6;
 
 /** A pass's end as an arrival shows it: nothing fresh, so nothing replays (only played steps carry `fresh`). */
 const arrival = (anatomy: ManifestAnatomy, pass: Pass): BuildState => ({ ...endOf(anatomy, pass), fresh: null });

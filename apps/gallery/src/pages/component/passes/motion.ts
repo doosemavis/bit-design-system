@@ -1,5 +1,8 @@
 const FALLBACK_MS = 160;
 
+/** How many step durations a build step holds (the fresh beat's length, and the gap between played steps). */
+export const HOLD_STEPS = 6;
+
 export function prefersReducedMotion(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }

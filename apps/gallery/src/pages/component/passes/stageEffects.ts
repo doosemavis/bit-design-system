@@ -1,10 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { AnatomyPart } from '../../../manifests/types';
-import { drawIn, durationMs, fadeIn, fadeOut, slide } from './motion';
+import { drawIn, durationMs, fadeIn, fadeOut, HOLD_STEPS, slide } from './motion';
 import { applyOverrides } from './overrides';
 
-const HOLD_STEPS = 6;
 const DRAW_STEPS = 3;
 const stepMs = (steps: number) => steps * durationMs(document.documentElement);
 /** The stage's own instance: the first `[data-instance]` (the loupe's copy comes after it). */

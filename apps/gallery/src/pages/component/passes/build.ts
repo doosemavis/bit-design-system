@@ -19,7 +19,8 @@ export interface BuildState {
   note: string;
 }
 
-const stepOf = (part: AnatomyPart) => part.step ?? part.label;
+/** The step a part lands with: its `step`, else its own label. */
+export const stepOf = (part: AnatomyPart) => part.step ?? part.label;
 
 export function stepNames(anatomy: ManifestAnatomy): string[] {
   return [...new Set(anatomy.parts.map(stepOf))];

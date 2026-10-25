@@ -1,4 +1,5 @@
 import type { AnatomyPart, Edge, HighlightKind, ManifestAnatomy } from '../../../manifests/types';
+import { stepOf } from './build';
 import {
   calloutTarget,
   columnHeight,
@@ -20,7 +21,8 @@ import {
 
 /** Below this stage width the callouts stack under the instance and the diagram goes away. */
 export const STACK_BELOW = 600;
-const CALLOUT_GAP = 16;
+/** The vertical space kept between two callouts in a column (geometry.ts's CALLOUT_GAP is the callout-to-instance distance). */
+const CALLOUT_SPACING = 16;
 const LENS_RADIUS = 48;
 const LENS_GAP = 24;
 /** The loupe keeps this far from the instance (its shadow and focus ring included) and from every callout. */
@@ -88,7 +90,6 @@ interface Draft {
   seen: Seen | null;
 }
 
-const stepOf = (part: AnatomyPart) => part.step ?? part.label;
 const leaveOf = (part: AnatomyPart) => part.touch.leave ?? part.touch.edge;
 
 function thicknessOf(part: AnatomyPart, box: Rect, m: PartMetrics): number {
@@ -115,7 +116,7 @@ function placeSide(drafts: Draft[], bounds: { top: number; bottom: number }) {
     drafts.map((d) => ({ key: d.part.label, target: d.target, height: d.callout.height })),
     bounds.top,
     bounds.bottom,
-    CALLOUT_GAP,
+    CALLOUT_SPACING,
   );
   const tops: Record<string, number> = {};
   const boxes: Record<string, Rect> = {};
@@ -203,6 +204,6 @@ export function measureStage(stage: HTMLElement, anatomy: ManifestAnatomy): Stag
   const placed = { tops: Object.assign({}, ...sides.map((s) => s.tops)), boxes: Object.assign({}, ...sides.map((s) => s.boxes)) };
   const order = anatomy.parts.map((p) => p.label);
   const parts = routeParts(drafts.flat(), placed, instance, area).sort((a, b) => order.indexOf(a.label) - order.indexOf(b.label));
-  const column = Math.max(...drafts.map((list) => columnHeight(list.map((d) => d.callout.height), CALLOUT_GAP)));
+  const column = Math.max(...drafts.map((list) => columnHeight(list.map((d) => d.callout.height), CALLOUT_SPACING)));
   return { ...base, parts, tops: placed.tops, callouts: placed.boxes, column };
 }

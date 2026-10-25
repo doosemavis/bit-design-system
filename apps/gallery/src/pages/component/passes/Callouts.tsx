@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactElement } from 'react';
 import { Code, Text } from '@bit-ds/react';
 import type { AnatomyPart } from '../../../manifests/types';
+import { stepOf } from './build';
 
 const HIDDEN: CSSProperties = { visibility: 'hidden' };
 
@@ -25,7 +26,7 @@ function placement(label: string, tops: CalloutsProps['tops'], stacked: boolean)
 }
 
 const hasLanded = (part: AnatomyPart, landed: readonly string[] | null) =>
-  landed !== null && (part.unseen !== undefined || landed.includes(part.step ?? part.label));
+  landed !== null && (part.unseen !== undefined || landed.includes(stepOf(part)));
 
 /**
  * A callout names its part as the part lands. Until then it keeps its slot (so nothing moves when it shows) but is
