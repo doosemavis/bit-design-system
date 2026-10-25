@@ -25,7 +25,7 @@ export const link: Manifest = {
         tokens: ['--bit-color-link', '--bit-color-link-visited'],
         side: 'right',
         touch: { kind: 'text', edge: 'bottom', at: 0.3 },
-        off: { '--bit-color-link': 'transparent' },
+        off: { '--bit-color-link': 'transparent', '--bit-color-link-visited': 'transparent' },
       },
       {
         label: 'Weight',

@@ -13,7 +13,7 @@ const actionsJsx = (state: ControlState) =>
   onBar(state) ? '<Button variant="outline" color="neutral" size="sm">Sign in</Button>' : '<Button size="sm">Sign in</Button>';
 
 /** The room the scene's Navbar needs to show brand, three links and an action without crowding. */
-const SCENE_MIN_WIDTH = '34rem';
+const SCENE_MIN_WIDTH = 'min(34rem, 100%)';
 
 const LINKS: readonly ChildSpec[] = [
   { component: 'NavbarLink', props: { href: '/games', current: true }, children: 'Games' },
@@ -74,11 +74,20 @@ export const navbar: Manifest = {
       {
         label: 'Pill edge',
         selector: '.bit-navbar__links',
-        tokens: ['--bit-border-width'],
+        tokens: ['--bit-border-width', '--bit-color-line'],
         side: 'right',
         touch: { kind: 'ring', edge: 'top', at: 0.5 },
         off: { '--bit-border-width': '0px' },
         step: 'Edges',
+      },
+      {
+        label: 'Pill face',
+        selector: '.bit-navbar__links',
+        tokens: ['--bit-color-neutral-soft'],
+        side: 'left',
+        touch: { kind: 'fill', edge: 'bottom', at: 0.5 },
+        off: { '--bit-color-neutral-soft': 'transparent' },
+        offOn: 'part',
       },
       {
         label: 'Face',
@@ -95,6 +104,17 @@ export const navbar: Manifest = {
         side: 'left',
         touch: { kind: 'fill', edge: 'top', at: 0.3 },
         off: { '--bit-color-primary': 'transparent' },
+        step: 'Current link',
+      },
+      {
+        label: 'Action',
+        selector: '.bit-navbar__actions .bit-button',
+        tokens: ['--bit-color-primary', '--bit-shadow-md'],
+        side: 'right',
+        touch: { kind: 'fill', edge: 'top', at: 0.07 },
+        off: { '--bit-color-primary': 'transparent' },
+        offOn: 'part',
+        step: 'Current link',
       },
       {
         label: 'Height',
@@ -134,7 +154,7 @@ export const navbar: Manifest = {
             Stack,
             { gap: 16 },
             // A Navbar sizes to its container, so the scene gives it the room for brand, links and action.
-            createElement('div', { style: { minWidth: SCENE_MIN_WIDTH } }, instance),
+            createElement(Box, { style: { minWidth: SCENE_MIN_WIDTH } }, instance),
             createElement(
               ScenePiece,
               null,

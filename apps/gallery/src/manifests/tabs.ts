@@ -72,7 +72,7 @@ export const tabs: Manifest = {
       {
         label: 'Tab edge',
         selector: '.bit-tabs__tab:last-child',
-        tokens: ['--bit-border-width'],
+        tokens: ['--bit-border-width', '--bit-color-line'],
         side: 'right',
         touch: { kind: 'ring', edge: 'right', at: 0.5 },
         off: { '--bit-border-width': '0px' },
@@ -106,10 +106,11 @@ export const tabs: Manifest = {
       {
         label: 'Slot',
         selector: '.bit-tabs__slot',
-        tokens: ['--bit-color-primary'],
+        tokens: ['--bit-color-primary', '--bit-color-neutral-soft'],
         side: 'left',
         touch: { kind: 'box', edge: 'left', at: 0.5 },
-        off: { '--bit-color-primary': 'transparent' },
+        off: { '--bit-color-primary': 'transparent', '--bit-color-neutral-soft': 'transparent' },
+        offOn: 'part',
         step: 'Power',
       },
       {
@@ -123,7 +124,6 @@ export const tabs: Manifest = {
     ],
     states: [
       { label: 'Default', state: {} },
-      { label: 'Manual', state: { activation: 'manual' } },
       { label: 'Five tabs', state: { tabCount: '5' } },
       { label: 'Disabled tab', state: { disabledTab: true } },
     ],

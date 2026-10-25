@@ -5,7 +5,7 @@ import { calloutGaps, calloutOverlaps, gotoPass, loupeOverlaps, passesAxe, touch
 /** The Navigation group's Passes: each slug with its anatomy parts, as the manifests list them. */
 const SLUGS: Record<string, readonly string[]> = {
   link: ['Color', 'Weight'],
-  navbar: ['Edge', 'Pill edge', 'Face', 'Current link', 'Height', 'Brand', 'Shadow'],
+  navbar: ['Edge', 'Pill edge', 'Pill face', 'Face', 'Current link', 'Action', 'Height', 'Brand', 'Shadow'],
   tabs: ['Panel edge', 'Tab edge', 'Panel face', 'Tab face', 'Power', 'Slot', 'Shadow'],
 };
 
