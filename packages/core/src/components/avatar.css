@@ -11,7 +11,7 @@
   overflow: hidden;
   border: 2px solid var(--bit-color-line);
   border-radius: var(--bit-radius-full);
-  box-shadow: var(--bit-shadow-sm);
+  box-shadow: var(--bit-shadow-chip);
   background: var(--_bit-color);
   color: var(--_bit-color-contrast);
   font-family: var(--bit-font-body);
@@ -36,7 +36,7 @@
 }
 
 .bit-avatar[data-shape="square"] {
-  border-radius: var(--bit-radius-6px);
+  border-radius: var(--bit-radius-chip);
 }
 
 .bit-avatar[data-shape="pixel"] {
