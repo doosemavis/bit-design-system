@@ -372,9 +372,9 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
       // After the hover and press rules, at their weight, so a focused, hovered button never shows two shadows.
       expect(button.indexOf(':focus-visible:not(:disabled)')).toBeGreaterThan(button.indexOf('.bit-button.bit-ghost:active'));
       // The lift is each variant's own resting shadow.
-      expect(button).toMatch(/\.bit-button \{\s*--_bit-lift: var\(--bit-shadow-md\);\s*--_bit-lift-radius: var\(--bit-radius-10px\);\s*\}/);
+      expect(button).toMatch(/\.bit-button \{\s*--_bit-lift: var\(--bit-shadow-control\);\s*--_bit-lift-radius: var\(--bit-radius-control\);\s*\}/);
       expect(button).toMatch(/\.bit-button\.bit-outline \{\s*--_bit-lift: 4px 4px 0 var\(--_bit-color-outline-shadow\);\s*\}/);
-      expect(button).toMatch(/\.bit-button\.bit-solid:hover:not\(:disabled\):not\(\[aria-disabled="true"\]\) \{\s*--_bit-lift: var\(--bit-shadow-sm\);\s*\}/);
+      expect(button).toMatch(/\.bit-button\.bit-solid:hover:not\(:disabled\):not\(\[aria-disabled="true"\]\) \{\s*--_bit-lift: var\(--bit-shadow-control-hover\);\s*\}/);
       expect(decl(block(button, '.bit-button:is(.bit-solid, .bit-outline):active:not(:disabled):not([aria-disabled="true"])')!, '--_bit-lift')).toBe('none');
     });
 
@@ -386,7 +386,7 @@ describe('focus ring (dark mode spec: one ring, no band)', () => {
 
     it("a focused Switch's track drops its shadow, and the moved one is the track's", () => {
       expect(decl(block(track, '.bit-switch__input:focus-visible + .bit-switch__track')!, 'box-shadow')).toBe('none');
-      expect(track).toContain('--_bit-lift: var(--bit-shadow-sm);');
+      expect(track).toContain('--_bit-lift: var(--bit-shadow-chip);');
       expect(track).toContain('--_bit-lift-radius: var(--bit-radius-full);');
     });
 
@@ -471,7 +471,7 @@ describe('components/badge.css', () => {
   });
   it('a pill reads radius-full; data-shape="square" reads the 6px radius', () => {
     expect(block(css, '.bit-badge')).toContain('border-radius: var(--bit-radius-full);');
-    expect(block(css, '.bit-badge[data-shape="square"]')).toContain('border-radius: var(--bit-radius-6px);');
+    expect(block(css, '.bit-badge[data-shape="square"]')).toContain('border-radius: var(--bit-radius-chip);');
   });
   it('centers its label when made wider than its text (a stretched Stack child, a grid cell), like Button', () => {
     expect(decl(block(css, '.bit-badge') ?? '', 'justify-content')).toBe('center');
@@ -548,6 +548,6 @@ describe('components/mode-toggle.css', () => {
   it('the pill is outlined with the line color and has the small hard shadow', () => {
     const body = block(css, '.bit-mode-toggle');
     expect(body).toContain('border: var(--bit-border-width) solid var(--bit-color-line);');
-    expect(body).toContain('box-shadow: var(--bit-shadow-sm);');
+    expect(body).toContain('box-shadow: var(--bit-shadow-chip);');
   });
 });

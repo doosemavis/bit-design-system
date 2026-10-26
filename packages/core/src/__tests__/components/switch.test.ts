@@ -27,7 +27,7 @@ describe('components/switch.css', () => {
     const track = block(css, '.bit-switch__track')!;
     expect(track).toContain('background: var(--bit-color-neutral-soft);');
     expect(track).toContain('border: var(--bit-border-width) solid var(--bit-color-line);');
-    expect(track).toContain('box-shadow: var(--bit-shadow-sm);');
+    expect(track).toContain('box-shadow: var(--bit-shadow-chip);');
     const thumb = block(css, '.bit-switch__thumb')!;
     expect(thumb).toContain('background: var(--bit-color-surface);');
     expect(thumb).toContain('border: var(--bit-border-width) solid var(--bit-color-line);');

@@ -34,9 +34,9 @@ describe('components/checkbox.css', () => {
     const box = block(checkbox, '.bit-checkbox__box')!;
     expect(decl(box, 'background')).toBe('var(--bit-color-surface)');
     expect(decl(box, 'border')).toBe('var(--bit-border-width) solid var(--bit-color-line)');
-    expect(decl(box, 'border-radius')).toBe('var(--bit-radius-6px)');
-    expect(decl(box, 'box-shadow')).toBe('var(--bit-shadow-sm)');
-    expect(decl(box, '--_bit-lift')).toBe('var(--bit-shadow-sm)');
+    expect(decl(box, 'border-radius')).toBe('var(--bit-radius-chip)');
+    expect(decl(box, 'box-shadow')).toBe('var(--bit-shadow-chip)');
+    expect(decl(box, '--_bit-lift')).toBe('var(--bit-shadow-chip)');
     expect(decl(block(checkbox, '.bit-checkbox__input:focus-visible + .bit-checkbox__box')!, 'box-shadow')).toBe('none');
   });
 
@@ -95,7 +95,7 @@ describe('components/radio.css', () => {
     const dot = block(radio, '.bit-radio__dot')!;
     expect(decl(dot, 'border-radius')).toBe('var(--bit-radius-full)');
     expect(decl(dot, 'border')).toBe('var(--bit-border-width) solid var(--bit-color-line)');
-    expect(decl(dot, 'box-shadow')).toBe('var(--bit-shadow-sm)');
+    expect(decl(dot, 'box-shadow')).toBe('var(--bit-shadow-chip)');
     expect(decl(dot, '--_bit-lift-radius')).toBe('var(--bit-radius-full)');
   });
 

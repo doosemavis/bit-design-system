@@ -15,8 +15,8 @@ describe('components/menu.css', () => {
       'position: fixed;',
       'background: var(--bit-color-surface);',
       'border: var(--bit-border-width) solid var(--bit-color-line);',
-      'border-radius: var(--bit-radius-10px);',
-      'box-shadow: var(--bit-shadow-md);',
+      'border-radius: var(--bit-radius-surface);',
+      'box-shadow: var(--bit-shadow-surface);',
       'max-height: min(24rem, var(--_bit-menu-room, 24rem));',
       'font-size: var(--_bit-size-text);',
     ]) {

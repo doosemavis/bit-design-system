@@ -15,13 +15,13 @@ describe('components/avatar.css', () => {
     expect(decl(root, 'background')).toBe('var(--_bit-color)');
     expect(decl(root, 'color')).toBe('var(--_bit-color-contrast)');
     expect(decl(root, 'border')).toBe('2px solid var(--bit-color-line)');
-    expect(decl(root, 'box-shadow')).toBe('var(--bit-shadow-sm)');
+    expect(decl(root, 'box-shadow')).toBe('var(--bit-shadow-chip)');
     expect(decl(root, 'font-weight')).toBe('var(--bit-weight-bold)');
   });
 
   it('is a circle by default, the 6px radius when square, square corners and the pixel font when pixel', () => {
     expect(decl(root, 'border-radius')).toBe('var(--bit-radius-full)');
-    expect(decl(block(css, '.bit-avatar[data-shape="square"]')!, 'border-radius')).toBe('var(--bit-radius-6px)');
+    expect(decl(block(css, '.bit-avatar[data-shape="square"]')!, 'border-radius')).toBe('var(--bit-radius-chip)');
     const pixel = block(css, '.bit-avatar[data-shape="pixel"]')!;
     expect(decl(pixel, 'border-radius')).toBe('0');
     expect(decl(pixel, 'border-width')).toBe('var(--bit-border-width)');

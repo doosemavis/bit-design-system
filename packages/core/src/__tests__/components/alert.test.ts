@@ -8,7 +8,7 @@ describe('components/alert.css', () => {
   it('the panel: a line border, 10px radius and 16px padding', () => {
     const body = block(css, '.bit-alert')!;
     expect(body).toContain('border: var(--bit-border-width) solid var(--bit-color-line);');
-    expect(body).toContain('border-radius: var(--bit-radius-10px);');
+    expect(body).toContain('border-radius: var(--bit-radius-surface);');
     expect(body).toContain('padding: var(--bit-space-16px);');
   });
 
@@ -17,7 +17,7 @@ describe('components/alert.css', () => {
     expect(decl(body, 'background')).toBe('var(--_bit-color)');
     expect(decl(body, 'color')).toBe('var(--_bit-color-contrast)');
     expect(decl(body, '--_bit-focus-ring')).toBe('var(--_bit-color-contrast)');
-    expect(decl(body, 'box-shadow')).toBe('var(--bit-shadow-md)');
+    expect(decl(body, 'box-shadow')).toBe('var(--bit-shadow-surface)');
     expect(decl(body, 'border-color')).toBeNull();
   });
 

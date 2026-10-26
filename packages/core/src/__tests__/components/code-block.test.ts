@@ -11,8 +11,8 @@ describe('components/code-block.css', () => {
       'background: var(--bit-code-bg);',
       'color: var(--bit-code-text);',
       'border: var(--bit-border-width) solid var(--bit-color-accent);',
-      'box-shadow: var(--bit-shadow-md);',
-      'border-radius: var(--bit-radius-10px);',
+      'box-shadow: var(--bit-shadow-surface);',
+      'border-radius: var(--bit-radius-surface);',
       'overflow: hidden;',
     ]) {
       expect(panel).toContain(line);
@@ -91,7 +91,7 @@ describe('components/code-block.css', () => {
   it('the Copy button is light with a 2px ink border and a 6px radius; failed is a solid danger button', () => {
     const copy = block(css, '.bit-code__copy')!;
     expect(copy).toContain('border: 2px solid var(--bit-color-ink);');
-    expect(copy).toContain('border-radius: var(--bit-radius-6px);');
+    expect(copy).toContain('border-radius: var(--bit-radius-chip);');
     expect(copy).toContain('background: var(--bit-code-text);');
     expect(copy).toContain('color: var(--bit-color-ink);');
     // Amendment 1, P2 (board-3 F1): solid danger red with its contrast text, in both modes.

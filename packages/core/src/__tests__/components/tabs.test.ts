@@ -12,7 +12,7 @@ describe('components/tabs.css', () => {
     expect(tab).not.toMatch(/border-bottom/);
     for (const line of [
       'border: var(--bit-border-width) solid var(--bit-color-line);',
-      'border-radius: var(--bit-radius-6px) var(--bit-radius-6px) 0 0;',
+      'border-radius: var(--bit-radius-chip) var(--bit-radius-chip) 0 0;',
       'clip-path: polygon(0 0, 36% 0, 40% 6px, 60% 6px, 64% 0, 100% 0, 100% calc(100% + 1px), 0 calc(100% + 1px));',
       'background: var(--bit-color-neutral-soft);',
       'color: var(--bit-color-text-muted);',
@@ -77,7 +77,7 @@ describe('components/tabs.css', () => {
   });
 
   it('the slot and the panel share one shadow, from the top of the slot to the bottom of the panel', () => {
-    const shadow = 'box-shadow: var(--bit-shadow-md);';
+    const shadow = 'box-shadow: var(--bit-shadow-surface);';
     expect(block(css, '.bit-tabs__slot')).toContain(shadow);
     const panel = block(css, '.bit-tabs__panel')!;
     expect(panel).toContain(shadow);
