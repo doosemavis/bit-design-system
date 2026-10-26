@@ -16,7 +16,7 @@ describe('components/select.css', () => {
         'font-size: var(--_bit-size-text);',
         'background: var(--bit-color-surface);',
         'border: var(--bit-border-width) solid var(--bit-color-line);',
-        'border-radius: var(--bit-radius-10px);',
+        'border-radius: var(--bit-radius-control);',
         'box-shadow: var(--bit-shadow-inset);',
       ]) {
         expect(control).toContain(line);
@@ -76,8 +76,8 @@ describe('components/select.css', () => {
         'background: var(--bit-color-surface);',
         'color: var(--bit-color-text);',
         'border: var(--bit-border-width) solid var(--bit-color-line);',
-        'border-radius: var(--bit-radius-10px);',
-        'box-shadow: var(--bit-shadow-md);',
+        'border-radius: var(--bit-radius-surface);',
+        'box-shadow: var(--bit-shadow-surface);',
         'font-family: var(--bit-font-body);',
         'font-size: var(--_bit-size-text);',
       ]) {
@@ -116,7 +116,7 @@ describe('components/select.css', () => {
     it('option rows are 8px by 12px with 6px corners', () => {
       const row = block(css, '.bit-select__option')!;
       expect(decl(row, 'padding')).toBe('var(--bit-space-8px) var(--bit-space-12px)');
-      expect(decl(row, 'border-radius')).toBe('var(--bit-radius-6px)');
+      expect(decl(row, 'border-radius')).toBe('var(--bit-radius-chip)');
       expect(decl(row, 'cursor')).toBe('pointer');
     });
 
@@ -224,7 +224,7 @@ describe('components/select.css', () => {
         'width: 18px;',
         'height: 18px;',
         'border: var(--bit-border-width) solid var(--bit-color-line);',
-        'border-radius: var(--bit-radius-6px);',
+        'border-radius: var(--bit-radius-chip);',
         'background: var(--bit-color-surface);',
       ]) {
         expect(box).toContain(line);

@@ -21,8 +21,8 @@ describe('components/segmented-control.css', () => {
     const row = block(css, '.bit-segmented-control__options')!;
     for (const line of [
       'border: var(--bit-border-width) solid var(--bit-color-line);',
-      'border-radius: var(--bit-radius-10px);',
-      'box-shadow: var(--bit-shadow-md);',
+      'border-radius: var(--bit-radius-control);',
+      'box-shadow: var(--bit-shadow-control);',
       'background: var(--bit-color-surface);',
       'overflow: hidden;',
     ]) {

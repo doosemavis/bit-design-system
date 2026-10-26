@@ -10,8 +10,8 @@
   color: var(--bit-code-text);
   background: var(--bit-code-bg);
   border: var(--bit-border-width) solid var(--bit-color-accent);
-  border-radius: var(--bit-radius-10px);
-  box-shadow: var(--bit-shadow-md);
+  border-radius: var(--bit-radius-surface);
+  box-shadow: var(--bit-shadow-surface);
   /* A solid Alert sets the ring to its contrast colour, which can be ink: invisible on code-bg.
      Reset it so the pre and Copy rings fall back to --bit-focus-ring-color, tested on code-bg. */
   --_bit-focus-ring: initial;
@@ -55,7 +55,7 @@
   color: var(--bit-color-ink);
   background: var(--bit-code-text);
   border: 2px solid var(--bit-color-ink);
-  border-radius: var(--bit-radius-6px);
+  border-radius: var(--bit-radius-chip);
   cursor: pointer;
 }
 

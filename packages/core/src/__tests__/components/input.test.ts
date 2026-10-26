@@ -9,7 +9,7 @@ describe('components/input.css', () => {
     for (const line of [
       'background: var(--bit-color-surface);',
       'border: var(--bit-border-width) solid var(--bit-color-line);',
-      'border-radius: var(--bit-radius-10px);',
+      'border-radius: var(--bit-radius-control);',
       'box-shadow: var(--bit-shadow-inset);',
     ]) {
       expect(root).toContain(line);

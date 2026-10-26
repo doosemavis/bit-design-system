@@ -108,7 +108,7 @@ Four rules sit under the component API row:
 ### Tokens, tier by tier
 
 - **Tier 1, palette.** Private to each theme file.
-- **Tier 2, semantic.** The public API: colors, shape, type, space, controls, motion, focus ring and code. Space, radius and text tokens are named by their value (`--bit-space-16px`). That rename (D13) changed no rendered size, and a frozen table proves it. `TODO(owner): confirm rationale` for value names over ordinal names.
+- **Tier 2, semantic.** The public API: colors, shape, type, space, controls, motion, focus ring and code. Space, radius and text tokens are named by their value (`--bit-space-16px`). That rename (D13) changed no rendered size, and a frozen table proves it. `TODO(owner): confirm rationale` for value names over ordinal names. Components never read those sizes for corners and shadows: they read role tokens (`--bit-radius-control`, `--bit-shadow-raised` …, 0.1.12), which point at the scale, so a theme retunes a role without renaming a size.
 - **Tier 3, component tokens.** There's no separate tier. When one component needs a knob the others don't, it becomes a named tier-2 role that every theme must declare, such as `--bit-color-knob` (the Switch thumb), `--bit-color-stripe` (Table stripes) and the `--bit-code-*` set.
 
 ### Interactive behavior

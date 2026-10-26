@@ -47,14 +47,14 @@
   background: var(--bit-color-neutral-soft);
   border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-full);
-  box-shadow: var(--bit-shadow-sm);
+  box-shadow: var(--bit-shadow-chip);
   transition: background-color var(--bit-duration-fast);
 }
 
 /* Keyboard focus: the track's shadow moves out to under the focus ring, so the ring's gap is even all round
    (reset.css casts it from ::after). The track is already position: relative. */
 .bit-switch__track {
-  --_bit-lift: var(--bit-shadow-sm);
+  --_bit-lift: var(--bit-shadow-chip);
   --_bit-lift-radius: var(--bit-radius-full);
 }
 

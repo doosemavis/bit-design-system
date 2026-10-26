@@ -9,7 +9,7 @@
   max-width: min(20rem, calc(100vw - 16px));
   padding: 5px 8px;
   border: 1px solid transparent;
-  border-radius: var(--bit-radius-6px);
+  border-radius: var(--bit-radius-chip);
   background: var(--bit-color-text);
   color: var(--bit-color-bg);
   font-family: var(--bit-font-body);

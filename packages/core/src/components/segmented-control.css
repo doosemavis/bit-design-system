@@ -39,8 +39,8 @@
   overflow: hidden;
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-10px);
-  box-shadow: var(--bit-shadow-md);
+  border-radius: var(--bit-radius-control);
+  box-shadow: var(--bit-shadow-control);
 }
 
 .bit-segmented-control__option {

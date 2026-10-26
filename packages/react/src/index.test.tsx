@@ -151,11 +151,16 @@ describe('public index', () => {
     expect(lib.HEADING_SIZES.map(lib.headingTag)).toEqual(['h6', 'h5', 'h4', 'h3', 'h3', 'h3', 'h2', 'h2', 'h2', 'h2', 'h1', 'h1', 'h1']);
   });
 
-  it('exports SEMANTIC_TOKENS, the 110 tier-2 token names every theme declares, from @bit-ds/core', () => {
-    expect(lib.SEMANTIC_TOKENS).toHaveLength(110);
+  it('exports SEMANTIC_TOKENS, the 119 tier-2 token names every theme declares, from @bit-ds/core', () => {
+    expect(lib.SEMANTIC_TOKENS).toHaveLength(119);
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-color-primary');
     expect(lib.SEMANTIC_TOKENS).toContain('--bit-space-64px');
     expect(lib.SEMANTIC_TOKENS.every((name) => name.startsWith('--bit-'))).toBe(true);
+  });
+
+  it('exports ROLE_TOKENS, the nine corner and shadow roles components read', () => {
+    expect(lib.ROLE_TOKENS).toHaveLength(9);
+    for (const name of lib.ROLE_TOKENS) expect(lib.SEMANTIC_TOKENS).toContain(name);
   });
 
   it('exports BRAND_TOKENS, the five logo colors styles.css declares once for every theme', () => {

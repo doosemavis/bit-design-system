@@ -9,8 +9,8 @@ describe('components/table.css', () => {
     for (const line of [
       'overflow-x: auto;',
       'border: var(--bit-border-width) solid var(--bit-color-line);',
-      'border-radius: var(--bit-radius-10px);',
-      'box-shadow: var(--bit-shadow-md);',
+      'border-radius: var(--bit-radius-surface);',
+      'box-shadow: var(--bit-shadow-surface);',
       'background: var(--bit-color-surface);',
     ]) {
       expect(wrapper).toContain(line);

@@ -5,14 +5,14 @@
   gap: var(--bit-space-4px);
   padding: var(--bit-space-16px);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-10px);
+  border-radius: var(--bit-radius-surface);
 }
 
 .bit-alert.bit-solid {
   background: var(--_bit-color);
   color: var(--_bit-color-contrast);
   --_bit-focus-ring: var(--_bit-color-contrast);
-  box-shadow: var(--bit-shadow-md);
+  box-shadow: var(--bit-shadow-surface);
 }
 
 /* outline (O2): the soft tint, edged and shadowed in the colour, as vivid as an outline Button.

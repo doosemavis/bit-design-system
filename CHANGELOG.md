@@ -2,6 +2,15 @@
 
 Package releases only. Docs-site changes don't appear here. One bullet per line.
 
+## 0.1.12 — 2026-10-26
+### Added
+- Role tokens for corners and shadows: `--bit-radius-control`, `--bit-radius-surface`, `--bit-radius-card`, `--bit-radius-chip`, `--bit-shadow-control`, `--bit-shadow-control-hover`, `--bit-shadow-surface`, `--bit-shadow-raised` and `--bit-shadow-chip`. Each points at a step of the size scale, so a theme can make buttons squarer or cards float higher without renaming a size. Nothing looks different: power-up points each one at the step its components used before.
+- `ROLE_TOKENS`: the nine names, exported beside `SEMANTIC_TOKENS` (which now has 119). A theme must declare all nine.
+- The size scale (`--bit-radius-6px`, `-10px`, `-14px`, `-full`; `--bit-shadow-sm`, `-md`, `-lg`, `-inset`) is unchanged.
+### Changed
+- Components read the role tokens now, never the size scale. So overriding a size token on part of a page (say `--bit-radius-10px` on one section) no longer reaches the components there: override the role token instead (`--bit-radius-control`).
+- Your own theme file must declare the nine role tokens in its light block (each pointing at a step of its scale). Without them, components inside your theme take power-up's corners and shadows from the page root, or none if power-up isn't loaded.
+
 ## 0.1.11 — 2026-10-19
 ### Changed
 - Nothing you import changes: the components, CSS, tokens and types build to the same code as 0.1.10. Only a version number in a comment in `icons.css` differs.

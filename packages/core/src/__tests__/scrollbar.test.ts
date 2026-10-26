@@ -93,7 +93,7 @@ describe(FILE, () => {
 
   it("the Textarea's track is rounded to the box's inner corner, so it never pokes past the rounded border", () => {
     expect(decl(ruleFor('.bit-textarea::-webkit-scrollbar-track', 'border-radius'), 'border-radius')).toBe(
-      'calc(var(--bit-radius-10px) - var(--bit-border-width))',
+      'calc(var(--bit-radius-control) - var(--bit-border-width))',
     );
   });
 

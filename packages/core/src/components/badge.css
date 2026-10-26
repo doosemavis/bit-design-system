@@ -13,7 +13,7 @@
   line-height: 1;
   border: 2px solid var(--bit-color-line);
   border-radius: var(--bit-radius-full);
-  box-shadow: var(--bit-shadow-sm);
+  box-shadow: var(--bit-shadow-chip);
   white-space: nowrap;
 }
 
@@ -50,7 +50,7 @@
 }
 
 .bit-badge[data-shape="square"] {
-  border-radius: var(--bit-radius-6px);
+  border-radius: var(--bit-radius-chip);
 }
 
 /* flat: no hard shadow. Listed with the variant combos so it wins over .bit-outline's shadow. */

@@ -83,6 +83,7 @@ Keep the file's shape, with your theme's name in place of `power-up`:
 - The theme's own class (`bit-theme-<name>`) and `data-theme` apply it; the descendant form re-declares the tokens on a mode element inside it, so a dark subtree re-resolves the shadows. power-up, the default, uses `:where(:root)` and bare `:where()` modes instead of the descendant form; only the default theme does.
 - Write the dark block once. Don't write a `@media (prefers-color-scheme: dark)` copy for `data-mode="system"`: the build (`packages/react/scripts/system-mode.mjs`) adds it to the shipped file, and fails if the theme already has one.
 - Put `@font-face` rules after the layer block, outside it.
+- Declare the role tokens (`ROLE_TOKENS`: control, surface, card and chip corners; control, control-hover, surface, raised and chip shadows) in the light block, each pointing at a step of your scale. Components read only these for corners and shadows, so they are how your theme changes shape. They aren't mode tokens: leave them out of the dark block.
 
 Add it to `THEMES` in `apps/gallery/src/shell/themes.ts`, after adding its CSS import in `apps/gallery/src/main.tsx`. Run `npm test -w @bit-ds/core`. The test fails if any token is missing, the selectors don't follow the shape, or any color fails WCAG AA contrast.
 

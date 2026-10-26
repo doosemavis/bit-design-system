@@ -12,7 +12,7 @@ describe('components/code.css', () => {
       'font-weight: 400;',
       'font-variant-ligatures: none;',
       'padding: 1px 6px;',
-      'border-radius: var(--bit-radius-6px);',
+      'border-radius: var(--bit-radius-chip);',
       'background: var(--bit-code-inline-bg, var(--bit-code-bg));',
       'color: var(--bit-code-inline-text, var(--bit-code-text));',
     ]) {

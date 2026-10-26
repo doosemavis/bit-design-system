@@ -40,7 +40,7 @@
 
   /* The Textarea's bar runs inside its rounded border, so the track takes the border's inner curve and never
      pokes past it. The corner under the bar holds the resize grip: no block of color there. */
-  .bit-textarea::-webkit-scrollbar-track { border-radius: calc(var(--bit-radius-10px) - var(--bit-border-width)); }
+  .bit-textarea::-webkit-scrollbar-track { border-radius: calc(var(--bit-radius-control) - var(--bit-border-width)); }
   .bit-textarea::-webkit-scrollbar-corner { background: transparent; }
 
   .bit-code__pre::-webkit-scrollbar-thumb,
@@ -51,7 +51,7 @@
     background: var(--bit-color-accent);
     background-clip: padding-box;
     border: 3px solid transparent;
-    border-radius: var(--bit-radius-10px);
+    border-radius: var(--bit-radius-control);
   }
 
   /* The standard scrollbar-color (from reset.css) and scrollbar-width (above), which Chrome 121+ lets override ::-webkit-scrollbar.

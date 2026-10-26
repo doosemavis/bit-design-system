@@ -13,8 +13,8 @@ describe('components/dialog.css', () => {
       'color: var(--bit-color-text);',
       'background: var(--bit-color-surface);',
       'border: var(--bit-border-width) solid var(--bit-color-line);',
-      'border-radius: var(--bit-radius-10px);',
-      'box-shadow: var(--bit-shadow-lg);',
+      'border-radius: var(--bit-radius-surface);',
+      'box-shadow: var(--bit-shadow-raised);',
       'max-width: calc(100vw - var(--bit-space-32px));',
     ]) {
       expect(box).toContain(line);

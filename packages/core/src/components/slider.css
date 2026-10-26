@@ -119,14 +119,14 @@
   block-size: var(--_bit-slider-thumb);
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-6px);
-  box-shadow: var(--bit-shadow-sm);
+  border-radius: var(--bit-radius-chip);
+  box-shadow: var(--bit-shadow-chip);
   pointer-events: none;
   transition:
     background-color var(--bit-duration-fast),
     translate var(--bit-duration-fast);
-  --_bit-lift: var(--bit-shadow-sm);
-  --_bit-lift-radius: var(--bit-radius-6px);
+  --_bit-lift: var(--bit-shadow-chip);
+  --_bit-lift-radius: var(--bit-radius-chip);
 }
 
 /* round: a thumb in the color role. */
@@ -165,7 +165,7 @@
   translate: -50% 0;
   padding: 4px 6px;
   border: 1px solid transparent;
-  border-radius: var(--bit-radius-6px);
+  border-radius: var(--bit-radius-chip);
   background: var(--bit-color-text);
   color: var(--bit-color-bg);
   font-family: var(--bit-font-pixel);
@@ -260,8 +260,8 @@
   flex-direction: column;
   inline-size: var(--_bit-slider-spin);
   border-inline-start: var(--bit-border-width) solid var(--bit-color-line);
-  border-start-end-radius: calc(var(--bit-radius-10px) - var(--bit-border-width));
-  border-end-end-radius: calc(var(--bit-radius-10px) - var(--bit-border-width));
+  border-start-end-radius: calc(var(--bit-radius-control) - var(--bit-border-width));
+  border-end-end-radius: calc(var(--bit-radius-control) - var(--bit-border-width));
   overflow: hidden;
 }
 
@@ -314,7 +314,7 @@
   background: var(--bit-color-primary-soft);
   color: var(--bit-color-text);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-10px);
+  border-radius: var(--bit-radius-control);
   font-size: var(--_bit-size-text);
   font-weight: var(--bit-weight-bold);
   white-space: nowrap;
@@ -366,12 +366,12 @@
   padding: var(--_bit-slider-gap);
   background: var(--bit-color-neutral-soft);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-6px);
-  box-shadow: var(--bit-shadow-sm);
+  border-radius: var(--bit-radius-chip);
+  box-shadow: var(--bit-shadow-chip);
   cursor: pointer;
   touch-action: pan-y;
-  --_bit-lift: var(--bit-shadow-sm);
-  --_bit-lift-radius: var(--bit-radius-6px);
+  --_bit-lift: var(--bit-shadow-chip);
+  --_bit-lift-radius: var(--bit-radius-chip);
 }
 
 .bit-slider__input:focus-visible ~ .bit-slider__blocks {

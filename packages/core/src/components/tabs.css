@@ -33,7 +33,7 @@
   color: var(--bit-color-text-muted);
   background: var(--bit-color-neutral-soft);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-6px) var(--bit-radius-6px) 0 0;
+  border-radius: var(--bit-radius-chip) var(--bit-radius-chip) 0 0;
   /* raw: the cartridge's notch, a 6px dip across the middle of the top edge. The bottom points sit 1px below
      the box: a clip edge is drawn unsnapped, and one on the bottom edge leaves a hairline seam into the slot. */
   clip-path: polygon(0 0, 36% 0, 40% 6px, 60% 6px, 64% 0, 100% 0, 100% calc(100% + 1px), 0 calc(100% + 1px));
@@ -51,7 +51,7 @@
 
 .bit-tabs__label {
   position: relative;
-  border-radius: var(--bit-radius-6px);
+  border-radius: var(--bit-radius-chip);
 }
 
 /* Not on the chosen tab: this rule outranks [aria-selected], and its label must stay primary-contrast. */
@@ -88,9 +88,9 @@
   background: var(--bit-color-neutral-soft);
   border: var(--bit-border-width) solid var(--bit-color-line);
   border-bottom: 0;
-  border-radius: var(--bit-radius-10px) var(--bit-radius-10px) 0 0;
+  border-radius: var(--bit-radius-surface) var(--bit-radius-surface) 0 0;
   /* The same shadow as the panel, so one shadow runs down the outside from the slot's top, as on a Card. */
-  box-shadow: var(--bit-shadow-md);
+  box-shadow: var(--bit-shadow-surface);
 }
 
 .bit-tabs__slot::before {
@@ -107,8 +107,8 @@
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
   border-top: 0;
-  border-radius: 0 0 var(--bit-radius-10px) var(--bit-radius-10px);
-  box-shadow: var(--bit-shadow-md);
+  border-radius: 0 0 var(--bit-radius-surface) var(--bit-radius-surface);
+  box-shadow: var(--bit-shadow-surface);
 }
 
 .bit-tabs__panel[hidden] {

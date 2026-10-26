@@ -75,9 +75,9 @@
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-full);
-  box-shadow: var(--bit-shadow-sm);
+  box-shadow: var(--bit-shadow-chip);
   transition: background-color var(--bit-duration-fast);
-  --_bit-lift: var(--bit-shadow-sm);
+  --_bit-lift: var(--bit-shadow-chip);
   --_bit-lift-radius: var(--bit-radius-full);
 }
 

@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterAll, afterEach, beforeAll, describe, it, expect, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import { ROLE_TOKENS } from '@bit-ds/react';
 import { CURRENT_TOKENS } from '../content/currentTokens';
 import { renderAt } from '../test/renderRoute';
 import { TokensPage } from './TokensPage';
@@ -23,7 +24,8 @@ vi.mock('./tokens/themeFlows', async () => {
 
 /** jsdom loads no CSS, so give it a few literal token values, light and dark, to compute. */
 const THEME = `
-  :root { --bit-color-primary: #7C3AED; --bit-color-neutral: #FFFFFF; --bit-color-bg: #EEEFE9; --bit-radius-6px: 6px; --bit-space-16px: 16px; }
+  :root { --bit-color-primary: #7C3AED; --bit-color-neutral: #FFFFFF; --bit-color-bg: #EEEFE9; --bit-radius-6px: 6px; --bit-space-16px: 16px;
+    --bit-radius-10px: 10px; --bit-radius-control: 10px; --bit-shadow-chip: none; }
   [data-mode="dark"] { --bit-color-neutral: #2B2B37; --bit-color-bg: #15151C; }
 `;
 let style: HTMLStyleElement;
@@ -90,9 +92,10 @@ describe('TokensPage', () => {
     await open();
     expect(cardsIn('Type')).toEqual(['faces', 'text sizes', 'heading sizes', 'weight & leading']);
     expect(cardsIn('Space')).toEqual(['space', 'controls']);
-    // Shadow last and full width: its values are the longest, so it gets the room to keep each on one line.
-    expect(cardsIn('Shape')).toEqual(['radius', 'lines', 'shadow']);
+    // Shadow and roles full width: their values are the longest, so they get the room to keep each on one line.
+    expect(cardsIn('Shape')).toEqual(['radius', 'lines', 'shadow', 'roles']);
     expect(card('shadow')).toHaveClass('gallery-token-card--full');
+    expect(card('roles')).toHaveClass('gallery-token-card--full');
     expect(cardsIn('System')).toEqual(['motion', 'text colors', 'logo', 'code syntax']);
     for (const section of ['Type', 'Space', 'Shape', 'System']) {
       expect(region(section).querySelector('.gallery-token-grid')).not.toBeNull();
@@ -118,6 +121,27 @@ describe('TokensPage', () => {
       // The leader is decoration: screen readers hear the name, then the value.
       expect(text!.querySelector('.gallery-token-row__leader')).toHaveAttribute('aria-hidden', 'true');
     }
+  });
+
+  it('Shape keeps the scale in its radius and shadow cards, and lists the role tokens in their own card', async () => {
+    await open();
+    const copied = (name: string) =>
+      within(card(name))
+        .getAllByRole('button')
+        .map((button) => button.getAttribute('aria-label') ?? '')
+        .filter((label) => label.startsWith('Copy --bit-'))
+        .map((label) => label.slice('Copy '.length));
+    expect(copied('radius')).toEqual(['--bit-radius-6px', '--bit-radius-10px', '--bit-radius-14px', '--bit-radius-full']);
+    expect(copied('shadow')).toEqual(['--bit-shadow-sm', '--bit-shadow-md', '--bit-shadow-lg', '--bit-shadow-inset']);
+    expect(copied('roles')).toEqual([...ROLE_TOKENS]);
+  });
+
+  it('a role row names the scale step it equals as the scale card does, or shows only its value when it equals none', async () => {
+    await open();
+    const value = (token: string) =>
+      screen.getByRole('button', { name: `Copy ${token}` }).closest('.gallery-token-row')!.querySelector('.gallery-token-row__value');
+    expect(value('--bit-radius-control')).toHaveTextContent(/^10px = 10$/);
+    expect(value('--bit-shadow-chip')).toHaveTextContent(/^none$/);
   });
 
   it('values come from the live page', async () => {

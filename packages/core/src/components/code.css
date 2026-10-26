@@ -15,7 +15,7 @@
   color: var(--bit-code-inline-text, var(--bit-code-text));
   background: var(--bit-code-inline-bg, var(--bit-code-bg));
   border: 2px solid transparent;
-  border-radius: var(--bit-radius-6px);
+  border-radius: var(--bit-radius-chip);
 }
 
 /* Selected text: yellow in light mode like the rest of the page; lilac in dark, where the text itself is yellow. */

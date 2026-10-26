@@ -70,8 +70,8 @@ describe('components/slider.css', () => {
     const thumb = block(css, '.bit-slider__thumb')!;
     expect(decl(thumb, 'background')).toBe('var(--bit-color-surface)');
     expect(decl(thumb, 'border')).toBe('var(--bit-border-width) solid var(--bit-color-line)');
-    expect(decl(thumb, 'border-radius')).toBe('var(--bit-radius-6px)');
-    expect(decl(thumb, 'box-shadow')).toBe('var(--bit-shadow-sm)');
+    expect(decl(thumb, 'border-radius')).toBe('var(--bit-radius-chip)');
+    expect(decl(thumb, 'box-shadow')).toBe('var(--bit-shadow-chip)');
     expect(decl(thumb, 'inset-inline-start')).toBe('calc(var(--_bit-slider-fill) * (100% - var(--_bit-slider-thumb)))');
     expect(css).not.toMatch(/(?<![-\w])(left|right)\s*:\s*calc/);
   });
@@ -105,8 +105,8 @@ describe('components/slider.css', () => {
     const frame = block(css, '.bit-slider__blocks')!;
     expect(decl(frame, 'background')).toBe('var(--bit-color-neutral-soft)');
     expect(decl(frame, 'border')).toBe('var(--bit-border-width) solid var(--bit-color-line)');
-    expect(decl(frame, 'box-shadow')).toBe('var(--bit-shadow-sm)');
-    expect(decl(frame, '--_bit-lift')).toBe('var(--bit-shadow-sm)');
+    expect(decl(frame, 'box-shadow')).toBe('var(--bit-shadow-chip)');
+    expect(decl(frame, '--_bit-lift')).toBe('var(--bit-shadow-chip)');
     expect(decl(block(css, '.bit-slider__block')!, 'background')).toBe('var(--bit-color-surface)');
     expect(decl(block(css, '.bit-slider__block[data-state="on"]')!, 'background')).toBe('var(--_bit-color)');
     const current = block(css, '.bit-slider__block[data-state="current"]')!;
@@ -191,7 +191,7 @@ describe('components/slider.css', () => {
     const steps = block(css, '.bit-slider__steps')!;
     expect(decl(steps, 'inset-inline-end')).toBe('var(--bit-border-width)');
     expect(decl(steps, 'border-inline-start')).toBe('var(--bit-border-width) solid var(--bit-color-line)');
-    expect(decl(steps, 'border-start-end-radius')).toBe('calc(var(--bit-radius-10px) - var(--bit-border-width))');
+    expect(decl(steps, 'border-start-end-radius')).toBe('calc(var(--bit-radius-control) - var(--bit-border-width))');
     expect(decl(steps, 'border-start-start-radius')).toBeNull();
     expect(decl(block(css, '.bit-slider__step:hover:not(:disabled)')!, 'background')).toBe('var(--bit-color-primary-soft)');
     expect(decl(block(css, '.bit-slider__step:active:not(:disabled) > .bit-icon')!, 'translate')).toBe('var(--bit-press-offset) var(--bit-press-offset)');
@@ -202,7 +202,7 @@ describe('components/slider.css', () => {
     const unit = block(css, '.bit-slider__unit')!;
     expect(decl(unit, 'background')).toBe('var(--bit-color-primary-soft)');
     expect(decl(unit, 'border')).toBe('var(--bit-border-width) solid var(--bit-color-line)');
-    expect(decl(unit, 'border-radius')).toBe('var(--bit-radius-10px)');
+    expect(decl(unit, 'border-radius')).toBe('var(--bit-radius-control)');
   });
 
   it('unit after the number (data-unit="end"): the tab drops its start border and corners, the box its end corners', () => {

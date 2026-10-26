@@ -76,7 +76,7 @@ describe('components/navbar.css: looks', () => {
     const chip = block(css, '.bit-navbar.bit-bar .bit-navbar__link[aria-current="page"]')!;
     expect(chip).toContain('background: var(--bit-color-bg);');
     expect(chip).toContain('color: var(--bit-color-text);');
-    expect(chip).toContain('box-shadow: var(--bit-shadow-sm);');
+    expect(chip).toContain('box-shadow: var(--bit-shadow-chip);');
     expect(chip).toContain('--_bit-focus-ring: var(--bit-focus-ring-color);');
   });
 
