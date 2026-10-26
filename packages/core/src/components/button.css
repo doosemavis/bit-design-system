@@ -13,8 +13,8 @@
   color: var(--bit-color-text);
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-10px);
-  box-shadow: var(--bit-shadow-md);
+  border-radius: var(--bit-radius-control);
+  box-shadow: var(--bit-shadow-control);
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
@@ -29,7 +29,7 @@
 .bit-button.bit-solid {
   background: var(--_bit-color);
   color: var(--_bit-color-contrast);
-  box-shadow: var(--bit-shadow-md);
+  box-shadow: var(--bit-shadow-control);
 }
 
 .bit-button.bit-outline {
@@ -52,7 +52,7 @@
 
 .bit-button.bit-solid:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--_bit-color-hover);
-  box-shadow: var(--bit-shadow-sm);
+  box-shadow: var(--bit-shadow-control-hover);
 }
 
 .bit-button.bit-outline:hover:not(:disabled):not([aria-disabled="true"]) {
@@ -77,8 +77,8 @@
    so the moved shadow lands where the button's own would. These selectors match the hover and press rules'
    weight and come after them, so a focused button never shows both shadows. */
 .bit-button {
-  --_bit-lift: var(--bit-shadow-md);
-  --_bit-lift-radius: var(--bit-radius-10px);
+  --_bit-lift: var(--bit-shadow-control);
+  --_bit-lift-radius: var(--bit-radius-control);
 }
 
 .bit-button.bit-outline {
@@ -86,7 +86,7 @@
 }
 
 .bit-button.bit-solid:hover:not(:disabled):not([aria-disabled="true"]) {
-  --_bit-lift: var(--bit-shadow-sm);
+  --_bit-lift: var(--bit-shadow-control-hover);
 }
 
 .bit-button.bit-outline:hover:not(:disabled):not([aria-disabled="true"]) {
