@@ -136,11 +136,11 @@ describe('TokensPage', () => {
     expect(copied('roles')).toEqual([...ROLE_TOKENS]);
   });
 
-  it('a role row names the scale step it equals, or shows only its value when it equals none', async () => {
+  it('a role row names the scale step it equals as the scale card does, or shows only its value when it equals none', async () => {
     await open();
     const value = (token: string) =>
       screen.getByRole('button', { name: `Copy ${token}` }).closest('.gallery-token-row')!.querySelector('.gallery-token-row__value');
-    expect(value('--bit-radius-control')).toHaveTextContent('10px = --bit-radius-10px');
+    expect(value('--bit-radius-control')).toHaveTextContent(/^10px = 10$/);
     expect(value('--bit-shadow-chip')).toHaveTextContent(/^none$/);
   });
 

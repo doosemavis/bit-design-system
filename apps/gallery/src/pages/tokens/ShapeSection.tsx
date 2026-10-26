@@ -31,14 +31,16 @@ const step = (token: string, family: string) => token.slice(`--bit-${family}-`.l
 const familyOf = (token: string) => (token.startsWith('--bit-radius-') ? 'radius' : 'shadow');
 
 /**
- * A role's value, and the scale step it equals: "10px = --bit-radius-10px". Found by value, not by reading the
- * theme's var(), so another theme's file shows its own mapping; a value that equals no step is shown alone.
+ * A role's value, and the scale step it equals, named as the scale card names it: "10px = 10", "4px 4px 0 #151515
+ * = md" (short, so a shadow's still fits a phone's row). Found by value, not by reading the theme's var(), so
+ * another theme's file shows its own mapping; a value that equals no step is shown alone.
  */
 function roleValue(token: string, value: (token: string) => string): string {
   const own = value(token);
-  const steps = familyOf(token) === 'radius' ? RADII : SHADOWS;
-  const step = own === '' ? undefined : steps.find((candidate) => value(candidate) === own);
-  return step ? `${own} = ${step}` : own;
+  const family = familyOf(token);
+  const steps = family === 'radius' ? RADII : SHADOWS;
+  const match = own === '' ? undefined : steps.find((candidate) => value(candidate) === own);
+  return match ? `${own} = ${step(match, family).replace(/px$/, '')}` : own;
 }
 
 /** Radius, lines, shadow and roles: a card each, every row a surface tile drawn with its own token. */
