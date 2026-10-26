@@ -43,7 +43,7 @@
   color: var(--bit-color-text);
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-10px);
+  border-radius: var(--bit-radius-control);
   box-shadow: var(--bit-shadow-inset);
   cursor: pointer;
 }
@@ -123,8 +123,8 @@
   color: var(--bit-color-text);
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-10px);
-  box-shadow: var(--bit-shadow-md);
+  border-radius: var(--bit-radius-surface);
+  box-shadow: var(--bit-shadow-surface);
   opacity: 0;
   transform: translateY(-8px);
 }
@@ -145,7 +145,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  border-radius: var(--bit-radius-6px);
+  border-radius: var(--bit-radius-chip);
   cursor: pointer;
   user-select: none;
 }
@@ -195,7 +195,7 @@
   width: 18px; /* raw: the checkbox, sized to the row's text */
   height: 18px;
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-6px);
+  border-radius: var(--bit-radius-chip);
   background: var(--bit-color-surface);
 }
 
