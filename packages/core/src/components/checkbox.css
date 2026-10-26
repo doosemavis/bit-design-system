@@ -57,11 +57,11 @@
   margin-block-start: calc((var(--_bit-size-text) * var(--bit-leading-normal) - var(--_bit-checkbox-size)) / 2);
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-6px);
-  box-shadow: var(--bit-shadow-sm);
+  border-radius: var(--bit-radius-chip);
+  box-shadow: var(--bit-shadow-chip);
   transition: background-color var(--bit-duration-fast);
-  --_bit-lift: var(--bit-shadow-sm);
-  --_bit-lift-radius: var(--bit-radius-6px);
+  --_bit-lift: var(--bit-shadow-chip);
+  --_bit-lift-radius: var(--bit-radius-chip);
 }
 
 .bit-checkbox__input:focus-visible + .bit-checkbox__box {
