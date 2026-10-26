@@ -108,7 +108,7 @@ describe('power-up role tokens', () => {
     const css = readCss('themes/power-up.css');
     expect(rolesOutsideModeBlock(css)).toEqual([]);
     // The failure this guards against: the same declarations moved to a root-only rule.
-    const rootOnly = css.replace(/    --bit-radius-control:[\s\S]*?--bit-shadow-chip: var\(--bit-shadow-sm\);\n/, '');
+    const rootOnly = css.replace(/ {4}--bit-radius-control:[\s\S]*?--bit-shadow-chip: var\(--bit-shadow-sm\);\n/, '');
     expect(rolesOutsideModeBlock(`${rootOnly}\n:where(:root) { --bit-radius-control: 10px; }`)).toEqual([...ROLE_TOKENS]);
   });
 
