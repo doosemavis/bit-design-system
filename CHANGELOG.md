@@ -9,6 +9,7 @@ Package releases only. Docs-site changes don't appear here. One bullet per line.
 - The size scale (`--bit-radius-6px`, `-10px`, `-14px`, `-full`; `--bit-shadow-sm`, `-md`, `-lg`, `-inset`) is unchanged.
 ### Changed
 - Components read the role tokens now, never the size scale. So overriding a size token on part of a page (say `--bit-radius-10px` on one section) no longer reaches the components there: override the role token instead (`--bit-radius-control`).
+- Your own theme file must declare the nine role tokens in its light block (each pointing at a step of its scale). Without them, components inside your theme take power-up's corners and shadows from the page root, or none if power-up isn't loaded.
 
 ## 0.1.11 — 2026-10-19
 ### Changed
