@@ -20,8 +20,8 @@
   color: var(--bit-color-text);
   background: var(--bit-color-surface);
   border: var(--bit-border-width) solid var(--bit-color-line);
-  border-radius: var(--bit-radius-10px);
-  box-shadow: var(--bit-shadow-md);
+  border-radius: var(--bit-radius-surface);
+  box-shadow: var(--bit-shadow-surface);
 }
 
 .bit-navbar.bit-sm {
@@ -128,7 +128,7 @@
   font-weight: var(--bit-weight-normal);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  border-radius: var(--bit-radius-6px);
+  border-radius: var(--bit-radius-chip);
 }
 
 .bit-navbar.bit-bar .bit-navbar__link:hover:not([aria-current="page"]) {
@@ -140,7 +140,7 @@
 .bit-navbar.bit-bar .bit-navbar__link[aria-current="page"] {
   color: var(--bit-color-text);
   background: var(--bit-color-bg);
-  box-shadow: var(--bit-shadow-sm);
+  box-shadow: var(--bit-shadow-chip);
   --_bit-focus-ring: var(--bit-focus-ring-color);
 }
 
