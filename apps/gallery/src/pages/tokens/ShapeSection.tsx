@@ -1,11 +1,13 @@
-import { SEMANTIC_TOKENS, Stack } from '@bit-ds/react';
+import { ROLE_TOKENS, SEMANTIC_TOKENS, Stack } from '@bit-ds/react';
 import type { CSSProperties } from 'react';
 import { SectionLead, TokenCard, TokenGrid } from './TokenCard';
 import { TokenRow, TokenRows } from './TokenRow';
 import type { TokenValues } from './tokenValues';
 
-const RADII = SEMANTIC_TOKENS.filter((name) => name.startsWith('--bit-radius-'));
-const SHADOWS = SEMANTIC_TOKENS.filter((name) => name.startsWith('--bit-shadow-'));
+/** The scale: every radius and shadow step. The role tokens that point at them get their own card. */
+const isScale = (name: string) => !ROLE_TOKENS.includes(name);
+const RADII = SEMANTIC_TOKENS.filter((name) => name.startsWith('--bit-radius-') && isScale(name));
+const SHADOWS = SEMANTIC_TOKENS.filter((name) => name.startsWith('--bit-shadow-') && isScale(name));
 
 const FOCUS_RING = 'var(--bit-focus-ring-width) solid var(--bit-focus-ring-color)';
 
@@ -25,7 +27,21 @@ const LINES: readonly { name: string; token: string; style: CSSProperties; swatc
 /** The step after the family prefix: "6px" for --bit-radius-6px, "inset" for --bit-shadow-inset. */
 const step = (token: string, family: string) => token.slice(`--bit-${family}-`.length);
 
-/** Radius, lines and shadow: a card each, every row a surface tile drawn with its own token. */
+/** The family a role token belongs to: "radius" for --bit-radius-control. */
+const familyOf = (token: string) => (token.startsWith('--bit-radius-') ? 'radius' : 'shadow');
+
+/**
+ * A role's value, and the scale step it equals: "10px = --bit-radius-10px". Found by value, not by reading the
+ * theme's var(), so another theme's file shows its own mapping; a value that equals no step is shown alone.
+ */
+function roleValue(token: string, value: (token: string) => string): string {
+  const own = value(token);
+  const steps = familyOf(token) === 'radius' ? RADII : SHADOWS;
+  const step = own === '' ? undefined : steps.find((candidate) => value(candidate) === own);
+  return step ? `${own} = ${step}` : own;
+}
+
+/** Radius, lines, shadow and roles: a card each, every row a surface tile drawn with its own token. */
 export function ShapeSection({ values }: { values: TokenValues }) {
   const value = (token: string) => values.values.get(token) ?? '';
   return (
@@ -69,6 +85,25 @@ export function ShapeSection({ values }: { values: TokenValues }) {
                 name={step(token, 'shadow')}
                 token={token}
                 value={value(token)}
+              />
+            ))}
+          </TokenRows>
+        </TokenCard>
+        {/* What components read: each role points at a step above, so a theme retunes a role, not a size. */}
+        <TokenCard name="roles" full>
+          <TokenRows wide>
+            {ROLE_TOKENS.map((token) => (
+              <TokenRow
+                key={token}
+                preview={
+                  <span
+                    className="gallery-shape"
+                    style={familyOf(token) === 'radius' ? { borderRadius: `var(${token})` } : { boxShadow: `var(${token})` }}
+                  />
+                }
+                name={`${familyOf(token)} ${step(token, familyOf(token))}`}
+                token={token}
+                value={roleValue(token, value)}
               />
             ))}
           </TokenRows>
