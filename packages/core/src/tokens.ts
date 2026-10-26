@@ -86,6 +86,17 @@ const shapeTokens = [
   ...['sm', 'md', 'lg', 'inset'].map((s) => token('shadow', s)),
 ];
 
+/**
+ * Role tokens: what components read for corners and shadows. Each points at a step of the scale above, so a theme
+ * retunes a role (control corners, how far a card floats) without renaming a size. A component reads only these,
+ * never `--bit-radius-{n}px` or `--bit-shadow-{sm|md|lg}`; `--bit-radius-full` (a shape) and
+ * `--bit-shadow-inset` (the field well, already a role) stay as they are.
+ */
+export const ROLE_TOKENS: readonly string[] = [
+  ...['control', 'surface', 'card', 'chip'].map((role) => token('radius', role)),
+  ...['control', 'control-hover', 'surface', 'raised', 'chip'].map((role) => token('shadow', role)),
+];
+
 const typeTokens = [
   ...['display', 'body', 'pixel', 'mono'].map((f) => token('font', f)),
   ...TEXT_SIZES.map((n) => token('text', px(n))),
@@ -143,6 +154,7 @@ export const SEMANTIC_TOKENS: readonly string[] = [
   ...componentColorTokens,
   ...colorTokens,
   ...shapeTokens,
+  ...ROLE_TOKENS,
   ...typeTokens,
   ...spaceTokens,
   ...controlTokens,

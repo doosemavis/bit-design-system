@@ -1,4 +1,4 @@
-export { PREFIX, SEMANTIC_TOKENS, BRAND_TOKENS } from '@bit-ds/core/tokens';
+export { PREFIX, SEMANTIC_TOKENS, BRAND_TOKENS, ROLE_TOKENS } from '@bit-ds/core/tokens';
 export { COLORS, SIZES, TEXT_SIZES, DEPRECATED_TEXT_SIZES, HEADING_SIZES, SPACE_STEPS, VARIANTS, headingTag } from './system/axes';
 export type { Color, Size, TextSize, DeprecatedTextSize, HeadingTag, SpaceStep, Variant } from './system/axes';
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { MODE_TOKENS, SEMANTIC_TOKENS } from '../tokens';
-import { listCss, readCss, styleRules, themeModes } from './css';
+import { listCss, readCss, resolveVar, styleRules, themeModes } from './css';
 
 const themes = listCss('themes');
 
@@ -74,5 +74,28 @@ describe('themes', () => {
       expect(css).toContain('color-scheme: light;');
       expect(css).toContain('color-scheme: dark;');
     });
+  });
+});
+
+describe('power-up role tokens', () => {
+  const { light, dark: darkOverrides } = themeModes(readCss('themes/power-up.css'));
+  const dark = new Map([...light, ...darkOverrides]);
+  // Each role points at today's step of the scale, so switching components onto roles moves nothing.
+  const POINTS_AT: readonly (readonly [role: string, step: string])[] = [
+    ['--bit-radius-control', '--bit-radius-10px'],
+    ['--bit-radius-surface', '--bit-radius-10px'],
+    ['--bit-radius-card', '--bit-radius-14px'],
+    ['--bit-radius-chip', '--bit-radius-6px'],
+    ['--bit-shadow-control', '--bit-shadow-md'],
+    ['--bit-shadow-control-hover', '--bit-shadow-sm'],
+    ['--bit-shadow-surface', '--bit-shadow-md'],
+    ['--bit-shadow-raised', '--bit-shadow-lg'],
+    ['--bit-shadow-chip', '--bit-shadow-sm'],
+  ];
+
+  it.each(POINTS_AT)('%s points at %s', (role, step) => {
+    expect(light.get(role)).toBe(`var(${step})`);
+    expect(resolveVar(light, role)).toBe(resolveVar(light, step));
+    expect(resolveVar(dark, role)).toBe(resolveVar(dark, step));
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SEMANTIC_TOKENS, MODE_TOKENS, BRAND_TOKENS, COLORS, SIZES, SPACE_STEPS, TEXT_SIZES, HEADING_SIZES, CODE_KINDS, headingTag } from '../tokens';
+import { SEMANTIC_TOKENS, MODE_TOKENS, BRAND_TOKENS, ROLE_TOKENS, COLORS, SIZES, SPACE_STEPS, TEXT_SIZES, HEADING_SIZES, CODE_KINDS, headingTag } from '../tokens';
 
 describe('semantic token list', () => {
   it('has the five colors, three control sizes, six px text sizes, 13 px heading sizes, eight px space steps', () => {
@@ -10,12 +10,12 @@ describe('semantic token list', () => {
     expect(SPACE_STEPS).toEqual([4, 8, 12, 16, 24, 32, 48, 64]);
   });
 
-  it('contains exactly 110 unique names, all prefixed --bit-', () => {
+  it('contains exactly 119 unique names, all prefixed --bit-', () => {
     // 98 in 0.1.7, plus text 14, 16 and 40 and the 13 heading sizes (114 in 0.1.8), minus the five logo colors,
-    // which moved to BRAND_TOKENS, plus warning text for the Textarea count. 11, 13 and 15 stay as deprecated
-    // aliases until 0.2.0.
-    expect(SEMANTIC_TOKENS).toHaveLength(110);
-    expect(new Set(SEMANTIC_TOKENS).size).toBe(110);
+    // which moved to BRAND_TOKENS, plus warning text for the Textarea count (110), plus the nine role tokens in
+    // 0.1.12. 11, 13 and 15 stay as deprecated aliases until 0.2.0.
+    expect(SEMANTIC_TOKENS).toHaveLength(119);
+    expect(new Set(SEMANTIC_TOKENS).size).toBe(119);
     for (const name of SEMANTIC_TOKENS) expect(name).toMatch(/^--bit-[a-z0-9-]+$/);
   });
 
@@ -95,5 +95,23 @@ describe('headingTag', () => {
       20: 'h6', 22: 'h5', 24: 'h4', 26: 'h3', 28: 'h3', 30: 'h3',
       32: 'h2', 34: 'h2', 36: 'h2', 38: 'h2', 40: 'h1', 42: 'h1', 44: 'h1',
     });
+  });
+
+  it('names nine role tokens, which themes declare in both modes but never override for dark', () => {
+    expect(ROLE_TOKENS).toEqual([
+      '--bit-radius-control',
+      '--bit-radius-surface',
+      '--bit-radius-card',
+      '--bit-radius-chip',
+      '--bit-shadow-control',
+      '--bit-shadow-control-hover',
+      '--bit-shadow-surface',
+      '--bit-shadow-raised',
+      '--bit-shadow-chip',
+    ]);
+    for (const name of ROLE_TOKENS) {
+      expect(SEMANTIC_TOKENS).toContain(name);
+      expect(MODE_TOKENS).not.toContain(name);
+    }
   });
 });
