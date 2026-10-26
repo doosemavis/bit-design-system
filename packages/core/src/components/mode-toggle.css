@@ -6,7 +6,7 @@
   align-items: center;
   border: var(--bit-border-width) solid var(--bit-color-line);
   border-radius: var(--bit-radius-full);
-  box-shadow: var(--bit-shadow-sm);
+  box-shadow: var(--bit-shadow-chip);
   background: var(--bit-color-surface);
 }
 
